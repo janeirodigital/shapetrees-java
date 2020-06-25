@@ -2,17 +2,18 @@ package com.janeirodigital.shapetrees;
 
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
+import com.janeirodigital.shapetrees.helper.HttpClientHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -32,6 +33,7 @@ public class RemoteResource {
     private static final String LDP_CONTAINER = "http://www.w3.org/ns/ldp#Container";
 
     private final URI URI;
+    private String authorizationHeaderValue;
     private Boolean invalidated = false;
     private Boolean exists;
     private Map<String, List<String>> responseHeaders;
@@ -39,7 +41,7 @@ public class RemoteResource {
     private Graph parsedGraph;
     private String rawBody;
 
-    public RemoteResource(String uriString) throws IOException {
+    public RemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
         URI requestUri;
         try {
             requestUri = new URI(uriString);
@@ -47,11 +49,13 @@ public class RemoteResource {
             throw new HttpResponseException(400, "Request URI is not a value URI");
         }
         this.URI = requestUri;
+        this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
     }
 
-    public RemoteResource(URI uri) throws IOException {
+    public RemoteResource(URI uri, String authorizationHeaderValue) throws IOException {
         this.URI = uri;
+        this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
     }
 
@@ -145,7 +149,7 @@ public class RemoteResource {
             throw new Exception("Cannot call 'updateGraph' on an invalidated RemoteResource - ");
         }
 
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient httpClient = HttpClientHelper.getClient(true);
         HttpPut putRequest = new HttpPut(this.URI);
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
@@ -164,8 +168,11 @@ public class RemoteResource {
     @SneakyThrows
     private void dereferenceURI() {
         log.debug("RemoteResource#dereferencingURI({})", this.URI);
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        CloseableHttpResponse response = httpClient.execute(new HttpGet(this.URI));
+
+        CloseableHttpClient httpClient = HttpClientHelper.getClient(true);
+        HttpGet get = new HttpGet(this.URI);
+        get.setHeader(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);
+        CloseableHttpResponse response = httpClient.execute(get);
         parseResponseToRemoteResource(response);
         this.invalidated = false;
     }
@@ -185,9 +192,8 @@ public class RemoteResource {
         }
 
         // Save raw body
-        if (response.getEntity() instanceof StringEntity) {
-            // TODO: Potential area for improvement to handle larger responses without blocking all to hell
-            this.rawBody = IOUtils.toString(((StringEntity) response.getEntity()).getContent(), StandardCharsets.UTF_8);
-        }
+        HttpEntity entity = response.getEntity();
+        this.rawBody = EntityUtils.toString(entity, "UTF-8");
     }
+
 }

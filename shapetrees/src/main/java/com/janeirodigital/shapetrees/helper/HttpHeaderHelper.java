@@ -30,7 +30,7 @@ public class HttpHeaderHelper {
         Map<String, List<String>> linkHeaderMap = new HashMap<>();
         for (Header linkHeader : linkHeaders) {
             Matcher matcher = LINK_HEADER_PATTERN.matcher(linkHeader.getValue());
-            if (matcher.matches() && matcher.groupCount() >= 3) {
+            if (matcher.matches() && matcher.groupCount() >= 2) {
                 String uri = matcher.group(1);
                 String rel = matcher.group(2);
                 if (!linkHeaderMap.containsKey(rel)) {
