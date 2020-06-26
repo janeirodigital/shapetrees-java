@@ -3,8 +3,9 @@ package com.janeirodigital.shapetrees.enums;
 public enum HttpHeaders {
     ACCEPT("Accept"),
     AUTHORIZATION("Authorization"),
-    LINK("Link"),
     CONTENT_TYPE("Content-Type"),
+    LINK("Link"),
+    LOCATION("Location"),
     SLUG("Slug");
 
     public String getValue() {

@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
+import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
 
 import java.net.URI;
 
@@ -11,13 +12,8 @@ public class MockEcosystem implements ShapeTreeEcosystem {
     }
 
     @Override
-    public Boolean containerIsShapeTree(URI parentContainer) {
-        return false;
-    }
-
-    @Override
-    public Boolean containerIsShapeTree(URI parentContainer, URI shapeTreeURI) {
-        return false;
+    public ShapeTreePlantResult getExistingShapeTreeFromContainer(URI parentContainer, URI shapeTreeURI) {
+        return new ShapeTreePlantResult();
     }
 
     @Override

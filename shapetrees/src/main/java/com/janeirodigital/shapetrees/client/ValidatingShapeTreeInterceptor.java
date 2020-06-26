@@ -6,35 +6,36 @@ import com.janeirodigital.shapetrees.enums.Namespaces;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
 import com.janeirodigital.shapetrees.helper.HttpClientHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
+import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
 import com.janeirodigital.shapetrees.model.ShapeTreeStep;
+import com.janeirodigital.shapetrees.model.ValidationResult;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
+import okio.Buffer;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HttpContext;
 import org.apache.jena.graph.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
 @Slf4j
-public class ValidatingShapeTreeInterceptor implements HttpRequestInterceptor {
+public class ValidatingShapeTreeInterceptor implements Interceptor {
 
-    public static final String REL_SHAPE_TREE = "ShapeTree";
-    public static final String REL_DESCRIBEDBY = "acl"; // "describedby"; TODO: This is not working in ESS, using acl for testing
-    public static final String POST = "POST";
-    public static final String REL_TYPE_CONTAINER = "<http://www.w3.org/ns/ldp#Container>; rel=\"type\"";
+    private static final String REL_SHAPE_TREE = "ShapeTree";
+    private static final String REL_DESCRIBEDBY = "acl"; // "describedby"; TODO: This is not working in ESS, using acl for testing
+    private static final String POST = "POST";
+    private static final String PUT = "PUT";
+    private static final String PATCH = "PATCH";
+    private static final String DELETE = "DELETE";
+    private static final String REL_TYPE = "type";
+    private static final String LDP_CONTAINER = "http://www.w3.org/ns/ldp#Container";
+    private static final String REL_TYPE_CONTAINER = "<" + LDP_CONTAINER + ">; rel=\"" + REL_TYPE + "\"";
+    private static final String SHAPE_TREE_ROOT_PREDICATE = Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeRoot";
+    private static final String SHAPE_TREE_INSTANCE_PATH_PREDICATE = Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeInstancePath";
+    private static final String SHAPE_TREE_INSTANCE_ROOT_PREDICATE = Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeInstanceRoot";
 
 
     private final ShapeTreeEcosystem ecosystem;
@@ -43,37 +44,42 @@ public class ValidatingShapeTreeInterceptor implements HttpRequestInterceptor {
         this.ecosystem = ecosystem;
     }
 
+
+    @NotNull
     @SneakyThrows
     @Override
-    public void process(HttpRequest request, HttpContext context) {
+    public Response intercept(Chain chain) {
 
-        String authorizationHeaderValue = request.getFirstHeader("Authorization").getValue();
-        HttpRequestWrapper requestWrapper = (HttpRequestWrapper)request;
-        RemoteResource requestRemoteResource = new RemoteResource(requestWrapper.getTarget().toURI() + request.getRequestLine().getUri(), authorizationHeaderValue);
-        Map<String, List<String>> incomingRequestHeaders = HttpHeaderHelper.parseHeadersToMap(request.getAllHeaders());
-        Map<String, List<String>> incomingRequestLinkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(request.getHeaders(HttpHeaders.LINK.getValue()));
+        Request request = chain.request();
 
-        switch (request.getRequestLine().getMethod()) {
+        // The authorization header is saved so it can be used on other requests
+        String authorizationHeaderValue = request.header(HttpHeaders.AUTHORIZATION.getValue());
+        RemoteResource requestRemoteResource = new RemoteResource(request.url().uri(), authorizationHeaderValue);
+        Map<String, List<String>> incomingRequestHeaders = request.headers().toMultimap();
+        Map<String, List<String>> incomingRequestLinkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(request.headers(HttpHeaders.LINK.getValue()));
+
+        Integer responseCode = null;
+        String responseMessage = null;
+        Response chainedResponse = null;
+
+        switch (request.method()) {
             case POST: {
                 // For a POST the requestRemoteResource is the parent container
                 // If it doesn't exist, return a 404
-                if (!requestRemoteResource.exists()) throw new HttpResponseException(404, "Parent Container not found");
+                if (!requestRemoteResource.exists()) {
+                    responseCode = 404;
+                    responseMessage = "Parent Container not found";
+                    break;
+                }
 
-                String slugHeaderValue = null;
+                String slugHeaderValue;
                 if (incomingRequestHeaders.containsKey(HttpHeaders.SLUG.getValue())) {
                     slugHeaderValue = incomingRequestHeaders.get(HttpHeaders.SLUG.getValue()).stream().findFirst().orElse(null);
                 } else {
                     slugHeaderValue = "Container";
                 }
 
-                // TODO - why did the JS code append a slash at the end, just to remove it later?
-                // TODO - Slash is kept for certain operations
                 String requestedName = slugHeaderValue;
-
-                StringEntity interceptedRequestBody = null;
-                if (request instanceof HttpEntityEnclosingRequest) {
-                    interceptedRequestBody = (StringEntity)((HttpEntityEnclosingRequest) request).getEntity();
-                }
 
                 String incomingRequestContentType = null;
                 if (incomingRequestHeaders.containsKey(HttpHeaders.CONTENT_TYPE.getValue())) {
@@ -84,39 +90,129 @@ public class ValidatingShapeTreeInterceptor implements HttpRequestInterceptor {
                     incomingRequestShapeTreeUri = incomingRequestLinkHeaders.get(REL_SHAPE_TREE).stream().findFirst().orElse(null);
                 }
 
+                Buffer buffer = new Buffer();
+                request.body().writeTo(buffer);
+                String incomingRequestBody = buffer.readUtf8();
+                Graph incomingRequestBodyGraph = null;
+                if (incomingRequestBody != null) {
+                    incomingRequestBodyGraph = GraphHelper.readStringIntoGraph(incomingRequestBody, incomingRequestContentType);
+                }
 
                 if (incomingRequestShapeTreeUri != null) {
                     // This means we're Planting a new Shape Tree
-                    Graph incomingRequestBodyGraph = null;
-                    if (interceptedRequestBody != null) {
-                        incomingRequestBodyGraph = GraphHelper.readStreamIntoGraph(interceptedRequestBody.getContent(), incomingRequestContentType);
-                    }
 
                     ShapeTreeStep shapeTreeStep = null;
                     try {
                         shapeTreeStep = ShapeTreeFactory.getShapeTreeStep(new URI(incomingRequestShapeTreeUri));
                     } catch (URISyntaxException e) {
-                        throw new HttpResponseException(400, "Value of 'ShapeTree' link header is not a value URI");
+                        responseCode = 400;
+                        responseMessage = "Value of 'ShapeTree' link header is not a value URI";
+                        break;
                     }
 
-                    Boolean alreadyPlanted = ecosystem.containerIsShapeTree(requestRemoteResource.getURI(), shapeTreeStep.getURI());
-                    if (!alreadyPlanted) {
-                        URI plantedURI = plantShapeTree(authorizationHeaderValue, requestRemoteResource, shapeTreeStep, requestedName, ".", 0);
-                        //ecosystem.indexShapeTree(requestRemoteResource.getURI(), shapeTreeStep.getURI(), plantedURI, incomingRequestBodyGraph);
+                    ShapeTreePlantResult existingPlantedShapeTree = ecosystem.getExistingShapeTreeFromContainer(requestRemoteResource.getURI(), shapeTreeStep.getURI());
+                    if (existingPlantedShapeTree.getRootContainer() == null) {
+                        ShapeTreePlantResult plantResult = plantShapeTree(authorizationHeaderValue, requestRemoteResource, shapeTreeStep, requestedName, ".", 0);
+                        ecosystem.indexShapeTree(requestRemoteResource.getURI(), shapeTreeStep.getURI(), plantResult.getRootContainer());
+                        return createPlantResponse(plantResult);
+                    } else {
+                        return createPlantResponse(existingPlantedShapeTree);
                     }
+                } else {
+                    // This is a POST without a shapetree link
+                    // Determine if the container we're posting to is managed or not
+                    String containerMetaDataURIString = requestRemoteResource.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
+                    RemoteResource containerMetadataResource = new RemoteResource(containerMetaDataURIString, authorizationHeaderValue);
+                    Graph containerMetadataGraph = containerMetadataResource.getGraph();
+                    Boolean shapeTreeManagedContainer = containerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), null);
+                    // If managed, do validation
+                    if (shapeTreeManagedContainer) {
+                        List<Triple> shapeTreeTriple = containerMetadataGraph.find(null, NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), null).toList();
+                        if (shapeTreeTriple != null && shapeTreeTriple.size() > 1) {
+                            responseCode = 500;
+                            responseMessage = "Multiple triples containing " + SHAPE_TREE_ROOT_PREDICATE + " - only one expected";
+                            break;
+                        }
+                        String shapeTreeStepURI = shapeTreeTriple.get(0).getObject().getURI();
+                        ShapeTreeStep targetShapeTreeStep = ShapeTreeFactory.getShapeTreeStep(new URI(shapeTreeStepURI));
+
+                        // TODO How to get the focus node for validation -- not folling links.root in JS implementation
+                        ValidationResult validationResult = targetShapeTreeStep.validateContent(authorizationHeaderValue, incomingRequestBodyGraph, null);
+                        if (validationResult.getValid()) {
+                            //  IF successful -- pass through
+                            chainedResponse = chain.proceed(chain.request());
+                        } else {
+                            //  IF not -- create error response (set error code and message and then break)
+                            responseCode = 400;
+                            responseMessage = "Payload did not meet requirements defined by ShapeTree";
+                            break;
+                        }
+                    } else {
+                        // IF NOT managed, pass through the request to server naturally
+                        chainedResponse = chain.proceed(chain.request());
+                    }
+
+                    // Determine if what was just created was a container
+                    if (incomingRequestLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER)) {
+                        // TODO
+                        // if so, look at its shapetree to figure out if we should be creating nested containers in it
+                        // should be able to use the plantShapeTree method to do this since it is already doing that
+                    }
+
+
+                    return chainedResponse;
                 }
             }
-
-            // TODO Patch -- handle a local SPARQL update and do validation before passing it on
+            case PUT:
+                break;
+            case PATCH:
+                // TODO Patch -- handle a local SPARQL update and do validation before passing it on
+                break;
+            case DELETE:
+                break;
+            default:
+                break;
         }
+
+        if (responseCode == null || responseMessage == null) {
+            log.error("Dropped to bottom of interceptor without a statusCode or statusMessage");
+            responseCode = 999;
+            responseMessage = "Undefined error";
+        }
+
+        // TODO this is where we handle an error in our processing and manufacture a response
+        // Should talk about the formatting we want to use here
+        Response response = new Response.Builder()
+                .code(responseCode)
+                .body(ResponseBody.create(responseMessage, MediaType.get("text/plain")))
+                .build();
+        return response;
+    }
+
+    private Response createPlantResponse(ShapeTreePlantResult plantResult) {
+        Response response = new Response.Builder()
+                .code(201)
+                .addHeader(HttpHeaders.LOCATION.getValue(), plantResult.getRootContainer().toString())
+                .addHeader(HttpHeaders.LINK.getValue(), "<" + plantResult.getRootContainerMetadata().toString() + ">; rel=\"" + REL_DESCRIBEDBY + "\"")
+                .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
+                .body(ResponseBody.create("", MediaType.get("text/turtle")))
+                .build();
+        return response;
     }
 
     @SneakyThrows
-    private URI plantShapeTree(String authorizationHeaderValue, RemoteResource parentContainer, ShapeTreeStep shapeTreeStep, String requestedName, String shapeTreePath, int depth) {
+    private ShapeTreePlantResult plantShapeTree(String authorizationHeaderValue, RemoteResource parentContainer, ShapeTreeStep shapeTreeStep, String requestedName, String shapeTreePath, int depth) {
         log.debug("plantShapeTree: parent [{}], step [{}], slug [{}], path [{}], depth [{}]", parentContainer.getURI(), shapeTreeStep.getId(), requestedName, shapeTreePath, depth);
 
         // Create new container with the Slug/Requested Name
         RemoteResource shapeTreeContainer = createContainer(authorizationHeaderValue, parentContainer.getURI(), requestedName);
+        // TODO!!!
+        // TODO!!!  This next line is a work around.  As of 6/25/2020, ESS does not return the proper headers
+        // TODO!!!  After creating a container, as a result, we are GETting the same URI again so we can get
+        // TODO!!!  the appropriate headers.  For example, after creating a container the response headers
+        // TODO!!!  include the acl/effectiveAcl headers for the parent container, not the newly created one
+        // TODO!!!
+        shapeTreeContainer = new RemoteResource(shapeTreeContainer.getURI(), authorizationHeaderValue);
 
         String metaDataURIString = shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
         RemoteResource shapeTreeContainerMetadataResource = new RemoteResource(metaDataURIString, authorizationHeaderValue);
@@ -125,46 +221,46 @@ public class ValidatingShapeTreeInterceptor implements HttpRequestInterceptor {
         Graph shapeTreeContainerMetadataGraph = shapeTreeContainerMetadataResource.getGraph();
 
         // Remove any previous triples for the shapetree planting metadata
-        // TODO: What are some cases where this could already exist?
-        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeRoot"), null);
-        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeInstancePath"), null);
-        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeInstanceRoot"), null);
+        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), null);
+        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), null);
+        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), null);
 
         List<Triple> triplesToAdd = new ArrayList<>();
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeRoot"), NodeFactory.createURI(shapeTreeStep.getId())));
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeInstancePath"), NodeFactory.createLiteral(shapeTreePath)));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), NodeFactory.createURI(shapeTreeStep.getId())));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), NodeFactory.createLiteral(shapeTreePath)));
         String relativePath = (depth==0) ? "./" : StringUtils.repeat("../", depth);
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeInstanceRoot"), NodeFactory.createURI(relativePath)));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), NodeFactory.createURI(relativePath)));
         GraphUtil.add(shapeTreeContainerMetadataGraph, triplesToAdd);
         // Write the updates back to the resource
         shapeTreeContainerMetadataResource.updateGraph(shapeTreeContainerMetadataGraph,false);
+
+        List<URI> nestedContainersCreated = new ArrayList<>();
 
         // Recursively call plantShapeTree for any static, nested container contents -- resources and dynamically named containers are ignored
         for (URI contentStepURI : shapeTreeStep.getContents()) {
             ShapeTreeStep contentStep = ShapeTreeFactory.getShapeTreeStep(contentStepURI);
             if (contentStep.getLabel() != null) {
                 // the return URI is discarded for recursive calls
-                plantShapeTree(authorizationHeaderValue, shapeTreeContainer, contentStep, contentStep.getLabel(), shapeTreePath +"/" + contentStep.getLabel(), ++depth);
+                ShapeTreePlantResult nestedResult = plantShapeTree(authorizationHeaderValue, shapeTreeContainer, contentStep, contentStep.getLabel(), shapeTreePath +"/" + contentStep.getLabel(), ++depth);
+                nestedContainersCreated.add(nestedResult.getRootContainer());
             }
         }
 
-        return shapeTreeContainer.getURI();
+        return new ShapeTreePlantResult(shapeTreeContainer.getURI(), shapeTreeContainerMetadataResource.getURI(), nestedContainersCreated);
     }
 
     @SneakyThrows
     private RemoteResource createContainer(String authorizationHeaderValue, URI parentURI, String requestedName) {
         log.debug("createContainer: parent [{}], slug [{}]", parentURI, requestedName);
-        CloseableHttpClient httpClient = HttpClientHelper.getClient(true);
-        HttpPost createContainerPost = new HttpPost();
-        List<Header> headers = new ArrayList<>();
-        headers.add(new BasicHeader(HttpHeaders.SLUG.getValue(), requestedName));
-        headers.add(new BasicHeader(HttpHeaders.LINK.getValue(), REL_TYPE_CONTAINER));
-        headers.add(new BasicHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle"));
-        headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue));
-        createContainerPost.setHeaders(headers.toArray(new Header[0]));
-        createContainerPost.setURI(parentURI);
+        OkHttpClient httpClient = HttpClientHelper.getClient(true);
+        Request createContainerPost = new Request.Builder()
+                .addHeader(HttpHeaders.SLUG.getValue(), requestedName)
+                .addHeader(HttpHeaders.LINK.getValue(), REL_TYPE_CONTAINER)
+                .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
+                .addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue)
+                .url(parentURI.toURL()).build();
 
-        CloseableHttpResponse response = httpClient.execute(createContainerPost);
+        Response response = httpClient.newCall(createContainerPost).execute();
         return new RemoteResource(response);
     }
 

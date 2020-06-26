@@ -1,9 +1,15 @@
 package com.janeirodigital.shapetrees.client;
 
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
+import com.janeirodigital.shapetrees.helper.HttpClientHelper;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShapeTreeValidatingClientBuilder {
 
@@ -13,14 +19,10 @@ public class ShapeTreeValidatingClientBuilder {
         this.ecosystem = ecosystem;
     }
 
-    public HttpClient get() {
+    public OkHttpClient get() {
         ValidatingShapeTreeInterceptor requestInterceptor = new ValidatingShapeTreeInterceptor(ecosystem);
-        CloseableHttpClient httpClient = HttpClients
-                .custom().
-                .addInterceptorFirst(requestInterceptor)
-                .add
-                .build();
-
-        return httpClient;
+        List<Interceptor> interceptorList = new ArrayList<>();
+        interceptorList.add(requestInterceptor);
+        return HttpClientHelper.getClient(true, interceptorList);
     }
 }
