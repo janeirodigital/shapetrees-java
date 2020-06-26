@@ -5,7 +5,6 @@ import okhttp3.OkHttpClient;
 
 import javax.net.ssl.*;
 import java.security.cert.CertificateException;
-import java.util.List;
 
 
 public class HttpClientHelper {
@@ -22,17 +21,18 @@ public class HttpClientHelper {
         }
     }
 
-    public static OkHttpClient getClient(Boolean ignoreSSL, List<Interceptor> interceptorList) {
+    public static OkHttpClient getClient(Boolean ignoreSSL, Interceptor interceptor) {
         if (ignoreSSL) {
-            return getUnsafeOkHttpClient(interceptorList);
+            return getUnsafeOkHttpClient(interceptor);
         } else {
-            OkHttpClient client = new OkHttpClient();
-            client.interceptors().addAll(interceptorList);
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(interceptor)
+                    .build();
             return client;
         }
     }
 
-    private static OkHttpClient getUnsafeOkHttpClient(List<Interceptor> interceptorList) {
+    private static OkHttpClient getUnsafeOkHttpClient(Interceptor interceptor) {
         try {
             // Create a trust manager that does not validate certificate chains
             final TrustManager[] trustAllCerts = new TrustManager[] {
@@ -47,7 +47,7 @@ public class HttpClientHelper {
 
                         @Override
                         public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                            return null;
+                            return new java.security.cert.X509Certificate[]{};
                         }
                     }
             };
@@ -58,16 +58,26 @@ public class HttpClientHelper {
             // Create an ssl socket factory with our all-trusting manager
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-            OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                    .sslSocketFactory(sslSocketFactory)
-                    .hostnameVerifier(new HostnameVerifier() {
-                        @Override
-                        public boolean verify(String hostname, SSLSession session) {
-                            return true;
-                        }
-                    }).build();
-            if (interceptorList != null) {
-                okHttpClient.interceptors().addAll(interceptorList);
+            HostnameVerifier trustingHostNameVerifier = new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            };
+
+            OkHttpClient okHttpClient;
+
+            if (interceptor != null) {
+                okHttpClient = new OkHttpClient.Builder()
+                        .sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
+                        .hostnameVerifier(trustingHostNameVerifier)
+                        .addInterceptor(interceptor)
+                        .build();
+            } else {
+                okHttpClient = new OkHttpClient.Builder()
+                        .sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
+                        .hostnameVerifier(trustingHostNameVerifier)
+                        .build();
             }
 
             return okHttpClient;

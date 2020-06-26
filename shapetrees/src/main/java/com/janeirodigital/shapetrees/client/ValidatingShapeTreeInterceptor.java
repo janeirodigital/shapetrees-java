@@ -15,6 +15,7 @@ import okhttp3.*;
 import okio.Buffer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.*;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -94,7 +95,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
                 request.body().writeTo(buffer);
                 String incomingRequestBody = buffer.readUtf8();
                 Graph incomingRequestBodyGraph = null;
-                if (incomingRequestBody != null) {
+                if (incomingRequestBody != null && incomingRequestBody.length() > 0) {
                     incomingRequestBodyGraph = GraphHelper.readStringIntoGraph(incomingRequestBody, incomingRequestContentType);
                 }
 
@@ -114,9 +115,9 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
                     if (existingPlantedShapeTree.getRootContainer() == null) {
                         ShapeTreePlantResult plantResult = plantShapeTree(authorizationHeaderValue, requestRemoteResource, shapeTreeStep, requestedName, ".", 0);
                         ecosystem.indexShapeTree(requestRemoteResource.getURI(), shapeTreeStep.getURI(), plantResult.getRootContainer());
-                        return createPlantResponse(plantResult);
+                        return createPlantResponse(plantResult, request);
                     } else {
-                        return createPlantResponse(existingPlantedShapeTree);
+                        return createPlantResponse(existingPlantedShapeTree, request);
                     }
                 } else {
                     // This is a POST without a shapetree link
@@ -164,6 +165,8 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
                 }
             }
             case PUT:
+                // TODO -- Is there any logic to choose the appropriate step based on the name of the resource
+                // TODO -- matching the uriTemplate?
                 break;
             case PATCH:
                 // TODO Patch -- handle a local SPARQL update and do validation before passing it on
@@ -185,17 +188,23 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
         Response response = new Response.Builder()
                 .code(responseCode)
                 .body(ResponseBody.create(responseMessage, MediaType.get("text/plain")))
+                .request(request)
+                .protocol(Protocol.HTTP_1_1)
+                .message(responseMessage)
                 .build();
         return response;
     }
 
-    private Response createPlantResponse(ShapeTreePlantResult plantResult) {
+    private Response createPlantResponse(ShapeTreePlantResult plantResult, Request request) {
         Response response = new Response.Builder()
                 .code(201)
                 .addHeader(HttpHeaders.LOCATION.getValue(), plantResult.getRootContainer().toString())
                 .addHeader(HttpHeaders.LINK.getValue(), "<" + plantResult.getRootContainerMetadata().toString() + ">; rel=\"" + REL_DESCRIBEDBY + "\"")
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
                 .body(ResponseBody.create("", MediaType.get("text/turtle")))
+                .request(request)
+                .protocol(Protocol.HTTP_1_1)
+                .message("Created")
                 .build();
         return response;
     }
@@ -214,16 +223,22 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
         // TODO!!!
         shapeTreeContainer = new RemoteResource(shapeTreeContainer.getURI(), authorizationHeaderValue);
 
-        String metaDataURIString = shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
+
+        String metaDataURIString = getMetadataResourceURI(shapeTreeContainer);
         RemoteResource shapeTreeContainerMetadataResource = new RemoteResource(metaDataURIString, authorizationHeaderValue);
 
         // Get the existing graph
-        Graph shapeTreeContainerMetadataGraph = shapeTreeContainerMetadataResource.getGraph();
+        Graph shapeTreeContainerMetadataGraph;
+        if (shapeTreeContainerMetadataResource.exists()) {
+            shapeTreeContainerMetadataGraph = shapeTreeContainerMetadataResource.getGraph();
 
-        // Remove any previous triples for the shapetree planting metadata
-        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), null);
-        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), null);
-        GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), null);
+            // Remove any previous triples for the shapetree planting metadata
+            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), null);
+            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), null);
+            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), null);
+        }
+
+        shapeTreeContainerMetadataGraph = ModelFactory.createDefaultModel().getGraph();
 
         List<Triple> triplesToAdd = new ArrayList<>();
         triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), NodeFactory.createURI(shapeTreeStep.getId())));
@@ -232,7 +247,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
         triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), NodeFactory.createURI(relativePath)));
         GraphUtil.add(shapeTreeContainerMetadataGraph, triplesToAdd);
         // Write the updates back to the resource
-        shapeTreeContainerMetadataResource.updateGraph(shapeTreeContainerMetadataGraph,false);
+        shapeTreeContainerMetadataResource.updateGraph(shapeTreeContainerMetadataGraph,false, authorizationHeaderValue);
 
         List<URI> nestedContainersCreated = new ArrayList<>();
 
@@ -249,6 +264,20 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
         return new ShapeTreePlantResult(shapeTreeContainer.getURI(), shapeTreeContainerMetadataResource.getURI(), nestedContainersCreated);
     }
 
+    @NotNull
+    private String getMetadataResourceURI(RemoteResource shapeTreeContainer) {
+        // This header approach is not currently working, instead, we're going to use a separate metadata file
+        /*
+        String metaDataURIString = shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
+        if (metaDataURIString.startsWith("/")) {
+            // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
+            URI shapeTreeContainerURI = shapeTreeContainer.getURI();
+            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
+        }*/
+
+        return shapeTreeContainer.getURI() + ".meta";
+    }
+
     @SneakyThrows
     private RemoteResource createContainer(String authorizationHeaderValue, URI parentURI, String requestedName) {
         log.debug("createContainer: parent [{}], slug [{}]", parentURI, requestedName);
@@ -258,6 +287,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
                 .addHeader(HttpHeaders.LINK.getValue(), REL_TYPE_CONTAINER)
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
                 .addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue)
+                .post(RequestBody.create(new byte[]{}))
                 .url(parentURI.toURL()).build();
 
         Response response = httpClient.newCall(createContainerPost).execute();

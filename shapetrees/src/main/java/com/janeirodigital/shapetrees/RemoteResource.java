@@ -145,7 +145,7 @@ public class RemoteResource {
         return headerValues.get(0);
     }
 
-    public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate) throws Exception {
+    public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws Exception {
         log.debug("RemoteResource#updateGraph({})", this.URI);
 
         if (this.invalidated) {
@@ -159,10 +159,11 @@ public class RemoteResource {
         Request request = new Request.Builder()
                 .url(this.URI.toURL())
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
-                .post(RequestBody.create(sw.toString(), MediaType.get("text/turtle")))
+                .addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue)
+                .put(RequestBody.create(sw.toString(), MediaType.get("text/turtle")))
                 .build();
 
-        httpClient.newCall(request).execute();
+        Response response = httpClient.newCall(request).execute();
 
         if (refreshResourceAfterUpdate) {
             dereferenceURI();
