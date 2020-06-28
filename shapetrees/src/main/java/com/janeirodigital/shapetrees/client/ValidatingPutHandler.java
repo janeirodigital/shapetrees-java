@@ -71,7 +71,7 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
                 // TODO -- if there is no matching URI template, do we just let the POST happen as-is??  Can someone just create a container
                 // TODO -- within a managed container that perhaps doesn't list any contents?
                 // TODO -- inquiring minds want to know
-                ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, containerShapeTreeRootStep, targetShapeTreeStep, requestedName, ".", 0);
+                ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, containerShapeTreeRootStep, targetShapeTreeStep, requestedName, ".", 0);
                 return createPlantResponse(result, this.request);
             } else {
                 // if we're creating a resource, pass through

@@ -123,11 +123,11 @@ public abstract class AbstractValidatingHandler {
                 .build();
     }
 
-    protected static ShapeTreePlantResult plantShapeTree(String authorizationHeaderValue, RemoteResource parentContainer, ShapeTreeStep rootShapeTreeStep, ShapeTreeStep shapeTreeStep, String requestedName, String shapeTreePath, int depth) throws IOException, URISyntaxException {
+    protected static ShapeTreePlantResult plantShapeTree(String authorizationHeaderValue, RemoteResource parentContainer, String incomingBody, ShapeTreeStep rootShapeTreeStep, ShapeTreeStep shapeTreeStep, String requestedName, String shapeTreePath, int depth) throws IOException, URISyntaxException {
         log.debug("plantShapeTree: parent [{}], root step [{}], step [{}], slug [{}], path [{}], depth [{}]", parentContainer.getURI(), rootShapeTreeStep.getId(), shapeTreeStep.getId(), requestedName, shapeTreePath, depth);
 
         // Create new container with the Slug/Requested Name
-        RemoteResource shapeTreeContainer = createContainer(authorizationHeaderValue, parentContainer.getURI(), requestedName);
+        RemoteResource shapeTreeContainer = createContainer(authorizationHeaderValue, parentContainer.getURI(), requestedName, incomingBody);
         // TODO!!!
         // TODO!!!  This next line is a work around.  As of 6/25/2020, ESS does not return the proper headers
         // TODO!!!  After creating a container, as a result, we are GETting the same URI again so we can get
@@ -155,23 +155,24 @@ public abstract class AbstractValidatingHandler {
         shapeTreeContainerMetadataGraph = ModelFactory.createDefaultModel().getGraph();
 
         List<Triple> triplesToAdd = new ArrayList<>();
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), NodeFactory.createURI(shapeTreeStep.getId())));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), NodeFactory.createURI(shapeTreeStep.getId())));
         triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), NodeFactory.createLiteral(shapeTreePath)));
         String relativePath = (depth==0) ? "./" : StringUtils.repeat("../", depth);
         triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), NodeFactory.createURI(relativePath)));
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), NodeFactory.createURI(rootShapeTreeStep.getId())));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), NodeFactory.createURI(rootShapeTreeStep.getId())));
         GraphUtil.add(shapeTreeContainerMetadataGraph, triplesToAdd);
         // Write the updates back to the resource
         shapeTreeContainerMetadataResource.updateGraph(shapeTreeContainerMetadataGraph,false, authorizationHeaderValue);
 
         List<URI> nestedContainersCreated = new ArrayList<>();
 
+        depth++;
         // Recursively call plantShapeTree for any static, nested container contents -- resources and dynamically named containers are ignored
         for (URI contentStepURI : shapeTreeStep.getContents()) {
             ShapeTreeStep contentStep = ShapeTreeFactory.getShapeTreeStep(contentStepURI);
             if (contentStep.getLabel() != null) {
                 // the return URI is discarded for recursive calls
-                ShapeTreePlantResult nestedResult = plantShapeTree(authorizationHeaderValue, shapeTreeContainer, rootShapeTreeStep, contentStep, contentStep.getLabel(), shapeTreePath +"/" + contentStep.getLabel(), ++depth);
+                ShapeTreePlantResult nestedResult = plantShapeTree(authorizationHeaderValue, shapeTreeContainer, null, rootShapeTreeStep, contentStep, contentStep.getLabel(), shapeTreePath +"/" + contentStep.getLabel(), depth);
                 nestedContainersCreated.add(nestedResult.getRootContainer());
             }
         }
@@ -179,15 +180,20 @@ public abstract class AbstractValidatingHandler {
         return new ShapeTreePlantResult(shapeTreeContainer.getURI(), shapeTreeContainerMetadataResource.getURI(), nestedContainersCreated);
     }
 
-    private static RemoteResource createContainer(String authorizationHeaderValue, URI parentURI, String requestedName) throws IOException, URISyntaxException {
+    private static RemoteResource createContainer(String authorizationHeaderValue, URI parentURI, String requestedName, String incomingBody) throws IOException, URISyntaxException {
         log.debug("createContainer: parent [{}], slug [{}]", parentURI, requestedName);
+
+        if (incomingBody == null) {
+            incomingBody = "";
+        }
+
         OkHttpClient httpClient = HttpClientHelper.getClient(true);
         Request createContainerPost = new Request.Builder()
                 .addHeader(HttpHeaders.SLUG.getValue(), requestedName)
                 .addHeader(HttpHeaders.LINK.getValue(), REL_TYPE_CONTAINER)
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
                 .addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue)
-                .post(RequestBody.create(new byte[]{}))
+                .post(RequestBody.create(incomingBody, MediaType.get("text/turtle")))
                 .url(parentURI.toURL()).build();
 
         Response response = httpClient.newCall(createContainerPost).execute();

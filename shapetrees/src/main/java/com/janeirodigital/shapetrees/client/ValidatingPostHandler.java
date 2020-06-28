@@ -49,7 +49,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             ShapeTreePlantResult existingPlantedShapeTree = this.ecosystem.getExistingShapeTreeFromContainer(this.requestRemoteResource.getURI(), shapeTreeStep.getURI());
             if (existingPlantedShapeTree.getRootContainer() == null) {
                 // If not, plant the ShapeTree
-                ShapeTreePlantResult plantResult = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, shapeTreeStep, shapeTreeStep, requestedName, ".", 0);
+                ShapeTreePlantResult plantResult = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, shapeTreeStep, shapeTreeStep, requestedName, ".", 0);
                 // Provide to the ecosystem to index
                 this.ecosystem.indexShapeTree(requestRemoteResource.getURI(), shapeTreeStep.getURI(), plantResult.getRootContainer());
                 // Create and return a response
@@ -109,7 +109,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
                     // TODO -- if there is no matching URI template, do we just let the POST happen as-is??  Can someone just create a container
                     // TODO -- within a managed container that perhaps doesn't list any contents?
                     // TODO -- inquiring minds want to know
-                    ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, containerShapeTreeRootStep, targetShapeTreeStep, requestedName, ".", 0);
+                    ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, containerShapeTreeRootStep, targetShapeTreeStep, requestedName, ".", 0);
                     return createPlantResponse(result, this.request);
                 } else {
                     // if we're creating a resource, pass through

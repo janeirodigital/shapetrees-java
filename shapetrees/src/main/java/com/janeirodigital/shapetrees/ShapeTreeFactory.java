@@ -97,10 +97,10 @@ public class ShapeTreeFactory {
         }
 
         // Containers are expected to have contents
-        if (resource.hasProperty(model.createProperty(CONTENTS)) && !step.getRdfResourceType().contains("#Container")) {
+        if (resource.hasProperty(model.createProperty(CONTENTS)) && !step.getRdfResourceType().contains("Container")) {
             throw new ShapeTreeException(400, "Contents predicate not expected outside of #Container RDF Types");
         }
-        if (step.getRdfResourceType().contains("#Container")) {
+        if (step.getRdfResourceType().contains("Container")) {
             List<URI> uris = getURLListValue(model, resource, CONTENTS);
             step.setContents(uris);
             if (uris != null) {
@@ -141,8 +141,7 @@ public class ShapeTreeFactory {
                     uris.add(contentURI);
                 }
             }
-            return uris;
         }
-        return null;
+        return uris;
     }
 }

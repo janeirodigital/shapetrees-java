@@ -42,7 +42,7 @@ public class ShapeTreeStep {
     }
 
     public Boolean isContainer() {
-        return this.getRdfResourceType() != null && this.getRdfResourceType().equals("ldp:Container");
+        return this.getRdfResourceType() != null && this.getRdfResourceType().contains("Container");
     }
 
     public ValidationResult validateContent(String authorizationHeaderValue, Graph graph, URI focusNodeURI, Boolean isAContainer) throws IOException {
