@@ -7,6 +7,6 @@ import java.util.List;
 
 @Getter @AllArgsConstructor
 public class ValidationResult {
-    private Boolean valid;
-    List<String> nonConformantNodes;
+    private final Boolean valid;
+    private final List<String> nonConformantNodes;
 }

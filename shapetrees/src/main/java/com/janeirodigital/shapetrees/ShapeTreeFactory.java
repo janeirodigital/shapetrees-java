@@ -2,7 +2,6 @@ package com.janeirodigital.shapetrees;
 
 import com.janeirodigital.shapetrees.model.ReferencedShapeTreeStep;
 import com.janeirodigital.shapetrees.model.ShapeTreeStep;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_URI;
@@ -10,6 +9,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.RDFDataMgr;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,9 +28,9 @@ public class ShapeTreeFactory {
 
     private static final Map<URI, ShapeTreeStep> localShapeTreeCache = new HashMap<>();
 
-    public static ShapeTreeStep getShapeTreeStep(URI shapeTreeStepURI) throws Exception {
+    public static ShapeTreeStep getShapeTreeStep(URI shapeTreeStepURI) throws URISyntaxException, ShapeTreeException {
         if (localShapeTreeCache.containsKey(shapeTreeStepURI)) {
-            log.info("[{}] previously cached -- returning", shapeTreeStepURI.toString());
+            log.debug("[{}] previously cached -- returning", shapeTreeStepURI.toString());
             return localShapeTreeCache.get(shapeTreeStepURI);
         }
 
@@ -39,7 +39,7 @@ public class ShapeTreeFactory {
         return localShapeTreeCache.get(shapeTreeStepURI);
     }
 
-    private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws Exception {
+    private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
         Model model = RDFDataMgr.loadModel(shapeTreeURI.toString());
 
         Resource resource = model.getResource(shapeTreeURI.toString());
@@ -48,13 +48,13 @@ public class ShapeTreeFactory {
         }
     }
 
-    private static void recursivelyParseShapeTreeStep(Model model, Resource resource) throws Exception{
+    private static void recursivelyParseShapeTreeStep(Model model, Resource resource) throws URISyntaxException, ShapeTreeException {
         String stepURIString = resource.getURI();
-        log.info("Entering recursivelyParseShapeTreeStep for [{}]", stepURIString);
+        log.debug("Entering recursivelyParseShapeTreeStep for [{}]", stepURIString);
         URI stepURI = new URI(stepURIString);
 
         if (localShapeTreeCache.containsKey(stepURI)) {
-            log.info("[{}] previously cached -- returning", stepURIString);
+            log.debug("[{}] previously cached -- returning", stepURIString);
             return;
         }
 
@@ -90,6 +90,7 @@ public class ShapeTreeFactory {
                     }
                 }
 
+                // Create the object that defines there relation between a Step and its children
                 ReferencedShapeTreeStep referencedStep = new ReferencedShapeTreeStep(referenceStepUri, shapePath);
                 step.getReferences().add(referencedStep);
             }
@@ -97,7 +98,7 @@ public class ShapeTreeFactory {
 
         // Containers are expected to have contents
         if (resource.hasProperty(model.createProperty(CONTENTS)) && !step.getRdfResourceType().contains("#Container")) {
-            throw new Exception("Contents predicate not expected outside of #Container RDF Types");
+            throw new ShapeTreeException(400, "Contents predicate not expected outside of #Container RDF Types");
         }
         if (step.getRdfResourceType().contains("#Container")) {
             List<URI> uris = getURLListValue(model, resource, CONTENTS);
@@ -121,15 +122,14 @@ public class ShapeTreeFactory {
             } else if (statement.getObject().isURIResource()) {
                 return statement.getObject().asResource().getURI();
             } else {
-                System.out.println("Need to figure this out!");
+                log.error("In getStringValue for predicate [{}] unable to value of Node", predicate);
             }
 
         }
         return null;
     }
 
-    @SneakyThrows
-    private static List<URI> getURLListValue(Model model, Resource resource, String predicate) {
+    private static List<URI> getURLListValue(Model model, Resource resource, String predicate) throws URISyntaxException {
         List<URI> uris = new ArrayList<>();
         Property property = model.createProperty(predicate);
         if (resource.hasProperty(property)) {

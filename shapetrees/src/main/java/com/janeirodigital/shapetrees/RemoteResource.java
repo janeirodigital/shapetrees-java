@@ -142,11 +142,11 @@ public class RemoteResource {
         return headerValues.get(0);
     }
 
-    public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws Exception {
+    public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
         log.debug("RemoteResource#updateGraph({})", this.URI);
 
         if (this.invalidated) {
-            throw new Exception("Cannot call 'updateGraph' on an invalidated RemoteResource - ");
+            throw new ShapeTreeException(500, "Cannot call 'updateGraph' on an invalidated RemoteResource - ");
         }
 
         StringWriter sw = new StringWriter();
