@@ -72,6 +72,9 @@ public class ShapeTreeFactory {
         // Set Reference collection
         step.setReferences(new ArrayList<>());
 
+        // Add the step to the cache before any of the recursive processing
+        localShapeTreeCache.put(stepURI, step);
+
         Property referencesProperty = model.createProperty(REFERENCES);
         if (resource.hasProperty(referencesProperty)) {
             List<Statement> referenceStatements = resource.listProperties(referencesProperty).toList();
@@ -80,10 +83,11 @@ public class ShapeTreeFactory {
                 Resource referenceResource = referenceStatement.getObject().asResource();
                 URI referenceStepUri = new URI(getStringValue(model, referenceResource, TREE_STEP));
                 String shapePath = getStringValue(model, referenceResource, SHAPE_PATH);
-
-                // If the model contains the referenced ShapeTree Step, go ahead and parse and cache it
-                if (model.getResource(referenceStepUri.toString()) != null) {
-                    recursivelyParseShapeTreeStep(model, model.getResource(referenceStepUri.toString()));
+                if (!localShapeTreeCache.containsKey(referenceStepUri)) {
+                    // If the model contains the referenced ShapeTree Step, go ahead and parse and cache it
+                    if (model.getResource(referenceStepUri.toString()) != null) {
+                        recursivelyParseShapeTreeStep(model, model.getResource(referenceStepUri.toString()));
+                    }
                 }
 
                 ReferencedShapeTreeStep referencedStep = new ReferencedShapeTreeStep(referenceStepUri, shapePath);
@@ -100,12 +104,12 @@ public class ShapeTreeFactory {
             step.setContents(uris);
             if (uris != null) {
                 for (URI uri : uris) {
-                    recursivelyParseShapeTreeStep(model, model.getResource(uri.toString()));
+                    if (!localShapeTreeCache.containsKey(uri)) {
+                        recursivelyParseShapeTreeStep(model, model.getResource(uri.toString()));
+                    }
                 }
             }
         }
-
-        localShapeTreeCache.put(stepURI, step);
     }
 
     private static String getStringValue(Model model, Resource resource, String predicate) {

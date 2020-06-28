@@ -9,6 +9,8 @@ import org.apache.jena.riot.RDFDataMgr;
 
 import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class GraphHelper {
 
@@ -23,16 +25,20 @@ public class GraphHelper {
         }
     }
 
-    public static Graph readStringIntoGraph(String rawContent, String contentType) {
+    public static Graph readStringIntoGraph(String rawContent, String contentType) throws URISyntaxException {
+        return readStringIntoGraph(rawContent, new URI(Namespaces.SHAPETREE_NAMESPACE.getValue()), contentType);
+    }
+
+    public static Graph readStringIntoGraph(String rawContent, URI baseURI, String contentType) {
         Model model = ModelFactory.createDefaultModel();
         StringReader reader = new StringReader(rawContent);
-        RDFDataMgr.read(model.getGraph(), reader, Namespaces.SHAPETREE_NAMESPACE.getValue(), GraphHelper.getLangForContentType(contentType));
+        RDFDataMgr.read(model.getGraph(), reader, baseURI.toString(), GraphHelper.getLangForContentType(contentType));
         return model.getGraph();
     }
 
-    public static Graph readStreamIntoGraph(InputStream inputStream, String contentType) {
+    public static Graph readStreamIntoGraph(InputStream inputStream, URI baseURI, String contentType) {
         Model model = ModelFactory.createDefaultModel();
-        RDFDataMgr.read(model.getGraph(), inputStream, Namespaces.SHAPETREE_NAMESPACE.getValue(), GraphHelper.getLangForContentType(contentType));
+        RDFDataMgr.read(model.getGraph(), inputStream, baseURI.toString(), GraphHelper.getLangForContentType(contentType));
         return model.getGraph();
     }
 

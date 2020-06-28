@@ -4,7 +4,6 @@ import com.janeirodigital.shapetrees.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
 import com.janeirodigital.shapetrees.helper.HttpClientHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.jena.graph.Graph;
@@ -56,7 +55,7 @@ public class RemoteResource {
         this.URI = new URI(getFirstHeaderByName("Location"));
     }
 
-    public URI getURI() {
+    public URI getURI() throws IOException {
         if (this.invalidated) {
             dereferenceURI();
         }
@@ -67,7 +66,7 @@ public class RemoteResource {
         return this.exists;
     }
 
-    public String getBody() {
+    public String getBody() throws IOException {
         if (!this.exists) return null;
 
         if (this.invalidated) {
@@ -79,7 +78,7 @@ public class RemoteResource {
     }
 
     // Lazy-load graph when requested
-    public Graph getGraph() {
+    public Graph getGraph() throws IOException {
         if (!this.exists) return null;
 
         if (this.invalidated) {
@@ -88,18 +87,16 @@ public class RemoteResource {
         }
 
         if (this.parsedGraph == null) {
-            this.parsedGraph = GraphHelper.readStringIntoGraph(this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
-        } else {
-            return this.parsedGraph;
+            this.parsedGraph = GraphHelper.readStringIntoGraph(this.rawBody, this.URI, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
         }
-        return null;
+        return this.parsedGraph;
     }
 
     public Boolean isContainer() {
         return parsedLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER);
     }
 
-    public String getFirstHeaderByName(String headerName) {
+    public String getFirstHeaderByName(String headerName) throws IOException {
         if (this.invalidated) {
             log.debug("RemoteResource#getFirstHeaderByName({}) - Resource Invalidated - Refreshing", this.URI);
             dereferenceURI();
@@ -113,7 +110,7 @@ public class RemoteResource {
         return headerValues.get(0);
     }
 
-    public List<String> getHeaderValues(String headerName) {
+    public List<String> getHeaderValues(String headerName) throws IOException {
         if (this.invalidated) {
             log.debug("RemoteResource#getHeaderValues({}) - Resource Invalidated - Refreshing", this.URI);
             dereferenceURI();
@@ -122,7 +119,7 @@ public class RemoteResource {
         return responseHeaders.get(headerName);
     }
 
-    public List<String> getLinkHeaderValuesByRel(String relation) {
+    public List<String> getLinkHeaderValuesByRel(String relation) throws IOException {
         if (this.invalidated) {
             log.debug("RemoteResource#getLinkHeaderValuesByRel({}) - Resource Invalidated - Refreshing", this.URI);
             dereferenceURI();
@@ -131,7 +128,7 @@ public class RemoteResource {
         return parsedLinkHeaders.get(relation);
     }
 
-    public String getFirstLinkHeaderValueByRel(String relation) {
+    public String getFirstLinkHeaderValueByRel(String relation) throws IOException {
         if (this.invalidated) {
             log.debug("RemoteResource#getFirstLinkHeaderValueByRel({}) - Resource Invalidated - Refreshing", this.URI);
             dereferenceURI();
@@ -163,7 +160,8 @@ public class RemoteResource {
                 .put(RequestBody.create(sw.toString(), MediaType.get("text/turtle")))
                 .build();
 
-        Response response = httpClient.newCall(request).execute();
+        // TODO should probably handle the response and throw error if failure
+        httpClient.newCall(request).execute();
 
         if (refreshResourceAfterUpdate) {
             dereferenceURI();
@@ -173,8 +171,7 @@ public class RemoteResource {
         }
     }
 
-    @SneakyThrows
-    private void dereferenceURI() {
+    private void dereferenceURI() throws IOException {
         log.debug("RemoteResource#dereferencingURI({})", this.URI);
 
         OkHttpClient httpClient = HttpClientHelper.getClient(true);
@@ -190,13 +187,10 @@ public class RemoteResource {
     }
 
     private void parseResponseToRemoteResource(Response response) throws IOException {
-        // TODO I don't like this test
-        this.exists = response.code() != 404;
+        this.exists = response.code() < 400;
 
         // Parse the headers for ease of use later
-        if (response.headers() != null) {
-            this.responseHeaders = response.headers().toMultimap();
-        }
+        this.responseHeaders = response.headers().toMultimap();
 
         // We especially care about Link headers which require extra parsing of the rel values
         if (this.responseHeaders.get(HttpHeaders.LINK.getValue()) != null) {
@@ -204,7 +198,9 @@ public class RemoteResource {
         }
 
         // Save raw body
-        this.rawBody = response.body().string();
+        if (response.body() != null) {
+            this.rawBody = response.body().string();
+        }
     }
 
 }

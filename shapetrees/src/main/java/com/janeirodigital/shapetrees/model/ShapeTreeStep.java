@@ -1,10 +1,11 @@
 package com.janeirodigital.shapetrees.model;
 
 import com.janeirodigital.shapetrees.RemoteResource;
+import com.janeirodigital.shapetrees.ShapeTreeFactory;
+import com.sun.jersey.api.uri.UriTemplate;
 import fr.inria.lille.shexjava.GlobalFactory;
 import fr.inria.lille.shexjava.schema.Label;
 import fr.inria.lille.shexjava.schema.ShexSchema;
-import fr.inria.lille.shexjava.schema.parsing.GenParser;
 import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
 import fr.inria.lille.shexjava.util.Pair;
 import fr.inria.lille.shexjava.validation.RecursiveValidation;
@@ -15,16 +16,14 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.jena.JenaRDF;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.ModelFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class ShapeTreeStep {
@@ -41,21 +40,23 @@ public class ShapeTreeStep {
     }
 
     public Boolean isContainer() {
-        if (this.getRdfResourceType() != null && this.getRdfResourceType().equals("ldp:Container")) {
-            return true;
-        }
-        return false;
+        return this.getRdfResourceType() != null && this.getRdfResourceType().equals("ldp:Container");
     }
 
     @SneakyThrows
-    public ValidationResult validateContent(String authorizationHeaderValue, Graph graph, URI focusNodeURI) {
+    public ValidationResult validateContent(String authorizationHeaderValue, Graph graph, URI focusNodeURI, Boolean isAContainer) {
+        if (this.isContainer() != isAContainer) {
+            throw new Exception("The resource type being validated does not match the type expected by the ShapeTreeStep");
+        }
+
+
         if (this.shapeUri == null) {
             throw new Exception("Attempting to validate a ShapeTreeStep (" + id + ") that does not have an associated Shape");
         }
-
-        RemoteResource shexShapeSchema = new RemoteResource(this.shapeUri, authorizationHeaderValue);
+        URI resolvedShapeURI = URI.create(this.id).resolve(this.shapeUri);
+        RemoteResource shexShapeSchema = new RemoteResource(resolvedShapeURI, authorizationHeaderValue);
         if (!shexShapeSchema.exists() || shexShapeSchema.getBody() == null) {
-            throw new Exception("Attempting to validate a ShapeTreeStep (" + id + ") - Shape at (" + this.shapeUri + ") is not found or is emptys");
+            throw new Exception("Attempting to validate a ShapeTreeStep (" + id + ") - Shape at (" + this.shapeUri + ") is not found or is empty");
         }
 
         // Tell ShExJava we want to use Jena as our graph library
@@ -82,5 +83,31 @@ public class ShapeTreeStep {
         }
 
         return new ValidationResult(valid, failedNodes);
+    }
+
+    @SneakyThrows
+    public ShapeTreeStep findMatchingContainsShapeTreeStep(String requestedName) {
+        if (this.contents == null || this.contents.size() == 0) {
+            return null;
+        }
+
+        List<ShapeTreeStep> matchingSteps = new ArrayList<>();
+
+        for (URI childStepURI : this.contents) {
+            ShapeTreeStep childStep = ShapeTreeFactory.getShapeTreeStep(childStepURI);
+            UriTemplate template = new UriTemplate(childStep.getUriTemplate());
+            boolean matches = template.match(requestedName, new ArrayList<>());
+            if (matches) {
+                matchingSteps.add(childStep);
+            }
+        }
+
+        if (matchingSteps.size() == 0) {
+            return null;
+        } else if (matchingSteps.size() > 1) {
+            throw new Exception("Multiple ShapeTree steps matched the incoming slug.  This likely indicates an issue with the ShapeTree definition.  Matched " + matchingSteps.stream().map(ShapeTreeStep::getId).collect(Collectors.joining(", ")));
+        } else {
+            return matchingSteps.get(0);
+        }
     }
 }

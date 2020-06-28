@@ -20,12 +20,12 @@ public class ShapeTree {
 
 
     public Iterator<ShapeTree> getReferencedShapeTrees() {
-        // TODO
+        // TODO Implement this
         return null;
     }
 
     public Iterator<URL> getReferencedResources(URI dataInstanceURI) {
-        // TODO
+        // TODO Implement this
         return null;
     }
 }
