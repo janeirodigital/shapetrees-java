@@ -103,7 +103,7 @@ public abstract class AbstractValidatingHandler {
         return null;
     }
 
-    protected Graph getIncomingBodyGraph(URI baseURI) {
+    protected Graph getIncomingBodyGraph(URI baseURI) throws ShapeTreeException {
         if (this.incomingRequestBody != null && this.incomingRequestBody.length() > 0) {
             return GraphHelper.readStringIntoGraph(this.incomingRequestBody, baseURI, this.incomingRequestContentType);
         }
@@ -172,7 +172,9 @@ public abstract class AbstractValidatingHandler {
             ShapeTreeStep contentStep = ShapeTreeFactory.getShapeTreeStep(contentStepURI);
             if (contentStep.getLabel() != null) {
                 // the return URI is discarded for recursive calls
-                ShapeTreePlantResult nestedResult = plantShapeTree(authorizationHeaderValue, shapeTreeContainer, null, rootShapeTreeStep, contentStep, contentStep.getLabel(), shapeTreePath +"/" + contentStep.getLabel(), depth);
+                // Add a trailing slash so recursion lines up nicely to paths
+                if (shapeTreePath.equals(".")) shapeTreePath = "./";
+                ShapeTreePlantResult nestedResult = plantShapeTree(authorizationHeaderValue, shapeTreeContainer, null, rootShapeTreeStep, contentStep, contentStep.getLabel(), shapeTreePath + contentStep.getLabel() +"/", depth);
                 nestedContainersCreated.add(nestedResult.getRootContainer());
             }
         }
@@ -224,6 +226,21 @@ public abstract class AbstractValidatingHandler {
         }
         String stepURI = triples.get(0).getObject().getURI();
         return ShapeTreeFactory.getShapeTreeStep(new URI(stepURI));
+    }
+
+    protected static String getValueFromGraphByPredicate(Graph graph, String predicate) throws ShapeTreeException, URISyntaxException {
+        List<Triple> triples = graph.find(null, NodeFactory.createURI(predicate), null).toList();
+        if (triples == null || triples.size() == 0) {
+            throw new ShapeTreeException(500, "No triples containing " + predicate + " - one expected");
+        }
+        if (triples.size() > 1) {
+            throw new ShapeTreeException(500, "Multiple triples containing " + predicate + " - only one expected");
+        }
+        if (triples.get(0).getObject().isURI()) {
+            return triples.get(0).getObject().getURI();
+        } else {
+            return triples.get(0).getObject().getLiteralValue().toString();
+        }
     }
 
     protected URI getParentContainerURI() throws IOException {

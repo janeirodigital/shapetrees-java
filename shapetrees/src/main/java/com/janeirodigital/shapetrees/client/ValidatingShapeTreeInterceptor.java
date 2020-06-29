@@ -64,7 +64,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
         return null;
     }
 
-    // TODO need to discuss how to express error responses
+    // TODO: Update to a simple JSON-LD body
     private Response createErrorResponse(ShapeTreeException exception, Request request) {
         return new Response.Builder()
                 .code(exception.getStatusCode())

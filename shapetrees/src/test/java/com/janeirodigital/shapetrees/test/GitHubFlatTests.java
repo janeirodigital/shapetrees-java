@@ -113,9 +113,8 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(12)
     void addShapetreeJSRepoToGitOrgs_shapetrees() {
-        // SOME PATCH
-        //H.patch({path: `/${Shared}/Git-Orgs/shapetrees.ttl`, mediaType: 'application/sparql-query', body: `INSERT DATA { <#shapetrees> <${NS_gh}repository> <../Git-Repos/shapetrees.js.ttl> }`,status: 204});
-        //H.find([{path: `/${Shared}/Git-Orgs/shapetrees.ttl`, accept: 'text/turtle', entries: ['gh:repository <../Git-Repos/shapetrees.js.ttl>']},])
+        patchContent(new URI(ROOT_PATH+"Git-Orgs/shapetrees.ttl"), false, "INSERT DATA { <" + ROOT_PATH + "Git-Orgs/shapetrees.ttl#shapetrees> <http://github.example/ns#repo> <../Git-Repos/shapetrees.js.ttl> }", "#shapetrees" );
+        ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Git-Orgs/shapetrees.ttl"), new URI("http://github.example/ns#repo"), new URI(ROOT_PATH+"Git-Repos/shapetrees.js.ttl"));
     }
 
     @Test
@@ -132,8 +131,8 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(14)
     void addjsgRepoToGitUsersEricPrud() {
-        //H.patch({path: `/${Shared}/Git-Users/ericprud.ttl`, mediaType: 'application/sparql-query',body: `INSERT DATA { <#ericprud> <${NS_gh}repository> <../Git-Repos/jsg.ttl> }`,status: 204});
-        //H.find([{path: `/${Shared}/Git-Users/ericprud.ttl`, accept: 'text/turtle', entries: ['gh:repository <../Git-Repos/jsg.ttl>']},])
+        //patchContent(new URI(ROOT_PATH+"Git-Users/ericprud.ttl"), false, "INSERT DATA { <" + ROOT_PATH + "Git-Users/ericprud.ttl#ericprud> <http://github.example/ns#repo> <../Git-Repos/jsg.ttl> }", "#ericprud" );
+        //ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Git-Users/ericprud.ttl"), new URI("http://github.example/ns#repo"), new URI(ROOT_PATH+"Git-Repos/jsg.ttl"));
     }
 
     @Test
