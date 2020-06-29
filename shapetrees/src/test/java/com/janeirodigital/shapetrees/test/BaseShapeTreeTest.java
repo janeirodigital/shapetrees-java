@@ -1,13 +1,13 @@
 package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.RemoteResource;
-import com.janeirodigital.shapetrees.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.client.ShapeTreeValidatingClientBuilder;
 import com.janeirodigital.shapetrees.enums.Namespaces;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -20,16 +20,12 @@ import org.opentest4j.AssertionFailedError;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -244,6 +240,15 @@ public abstract class BaseShapeTreeTest {
         } else if (input instanceof URI) {
             return NodeFactory.createURI((input).toString());
         } else if (input instanceof String) {
+            String inputString = (String)input;
+            if (inputString.contains("^^")) {
+                String inputValue = inputString.substring(0, inputString.indexOf("^^"));
+                String dataType = inputString.substring(inputString.indexOf("^^")+2);
+                if (dataType.startsWith("xsd:")) {
+                    dataType = dataType.replace("xsd:","http://www.w3.org/2001/XMLSchema#");
+                }
+                return NodeFactory.createLiteral(inputValue, TypeMapper.getInstance().getTypeByName(dataType));
+            }
             return NodeFactory.createLiteral((String)input);
         } else if (input instanceof Integer) {
             return NodeFactory.createLiteral(input.toString(), XSDDatatype.XSDint);
