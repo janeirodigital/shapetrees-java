@@ -126,14 +126,68 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @Order(13)
     @DisplayName("PUT Tests - Successful PUT to replace managed LDPR")
     @SneakyThrows
-    void putTestReplaceManagedLDRP() {
+    void putTestReplaceManagedLDPR() {
         putContent(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/1.ttl"), false, "target/test-classes/test-data/shape-trees/jsg-issue1-03.ttl", "#issue1", 204);
         ensureExistsWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/1.ttl"), new URI("http://github.example/ns#updated_at"), "2019-12-18T03:00:00Z^^xsd:dateTime");
-        //TODO I believe the JS test looks for a 201 incorrectly
     }
 
+    @Test
+    @Order(14)
+    @DisplayName("PUT Tests - Successful PUT to create managed LDRP")
+    @SneakyThrows
+    void putTestCreateManagedLDPR() {
+        putContent(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/1-new.ttl"), false, "target/test-classes/test-data/apps/gh-deep/jsg-issue1.ttl", "#issue1", 201);
+        ensureExistsWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/1-new.ttl"), new URI("http://github.example/ns#updated_at"), "2019-12-18T01:00:00Z^^xsd:dateTime");
+    }
 
+    @Test
+    @Order(15)
+    @DisplayName("PUT Tests - Successful PUT to create managed LDRC")
+    @SneakyThrows
+    void putTestReplacedManagedLDPC() {
+        putContent(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), true, "target/test-classes/test-data/shape-trees/jsg-put.ttl", "#jsg", 201);
+        ensureExistsWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), new URI("http://github.example/ns#updated_at"), "2019-12-18T03:00:00Z^^xsd:dateTime");
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), "./repos/ericprud/jsg-put/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/issues/"), "./repos/ericprud/jsg-put/issues/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/labels/"), "./repos/ericprud/jsg-put/labels/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/milestones/"), "./repos/ericprud/jsg-put/milestones/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+    }
 
+    @Test
+    @Order(16)
+    @DisplayName("PUT Tests - to unmanaged container")
+    @SneakyThrows
+    void putTestUnmanagedContainer() {
+        putContent(new URI(ROOT_PATH+"Unmanaged/issues/"), true, "target/test-classes/test-data/shape-trees/jsg-02.ttl", "#jsg", 201);
+        ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Unmanaged/issues/"), new URI("http://github.example/ns#updated_at"), "2019-12-18T02:00:00Z^^xsd:dateTime");
+    }
+
+    @Test
+    @Order(17)
+    @DisplayName("PUT Tests - to replace unmanaged container")
+    @SneakyThrows
+    void putTestReplaceUnmanagedContainer() {
+        putContent(new URI(ROOT_PATH+"Unmanaged/issues/"), true, "target/test-classes/test-data/shape-trees/jsg-03.ttl", "#jsg", 201);
+        ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Unmanaged/issues/"), new URI("http://github.example/ns#updated_at"), "2019-12-18T03:00:00Z^^xsd:dateTime");
+    }
+
+    @Test
+    @Order(18)
+    @DisplayName("PUT Tests - to create unmanaged LDPR")
+    @SneakyThrows
+    void putTestCreateUnmanagedResource() {
+        putContent(new URI(ROOT_PATH+"Unmanaged/issues/1.ttl"), false, "target/test-classes/test-data/apps/gh-deep/jsg-issue1.ttl", "#issue1", 201);
+        ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Unmanaged/issues/1.ttl"), new URI("http://github.example/ns#updated_at"), "2019-12-18T01:00:00Z^^xsd:dateTime");
+    }
+
+    @Test
+    @Order(19)
+    @DisplayName("PUT Tests - to replace unmanaged LDPR")
+    @SneakyThrows
+    void putTestUpdateUnmanagedResource() {
+        putContent(new URI(ROOT_PATH+"Unmanaged/issues/1.ttl"), false, "target/test-classes/test-data/shape-trees/jsg-issue1-03.ttl", "#issue1", 204);
+        ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Unmanaged/issues/1.ttl"), new URI("http://github.example/ns#updated_at"), "2019-12-18T03:00:00Z^^xsd:dateTime");
+    }
 
 
 

@@ -9,7 +9,6 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RiotException;
 
-import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,8 +22,6 @@ public class GraphHelper {
         switch (contentType) {
             case "application/ld+json":
                 return Lang.JSONLD;
-            case "text/turtle":
-                return Lang.TURTLE;
             default:
                 return Lang.TURTLE;
         }
@@ -43,12 +40,6 @@ public class GraphHelper {
         } catch (RiotException rex) {
             throw new ShapeTreeException(422, "Error processing input - " + rex.getMessage());
         }
-    }
-
-    public static Graph readStreamIntoGraph(InputStream inputStream, URI baseURI, String contentType) {
-        Model model = ModelFactory.createDefaultModel();
-        RDFDataMgr.read(model.getGraph(), inputStream, baseURI.toString(), GraphHelper.getLangForContentType(contentType));
-        return model.getGraph();
     }
 
 }

@@ -101,6 +101,9 @@ public class ShapeTreeStep {
         for (URI childStepURI : this.contents) {
             ShapeTreeStep childStep = ShapeTreeFactory.getShapeTreeStep(childStepURI);
             UriTemplate template = new UriTemplate(childStep.getUriTemplate());
+            if (requestedName.endsWith("/")) {
+                requestedName = requestedName.replace("/", "");
+            }
             boolean matches = template.match(requestedName, new ArrayList<>());
             if (matches) {
                 matchingSteps.add(childStep);

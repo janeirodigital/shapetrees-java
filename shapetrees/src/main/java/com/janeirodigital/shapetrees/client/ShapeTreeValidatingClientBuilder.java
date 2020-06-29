@@ -14,6 +14,6 @@ public class ShapeTreeValidatingClientBuilder {
 
     public OkHttpClient get() {
         ValidatingShapeTreeInterceptor requestInterceptor = new ValidatingShapeTreeInterceptor(ecosystem);
-        return HttpClientHelper.getClient(true, requestInterceptor);
+        return HttpClientHelper.getClient(requestInterceptor);
     }
 }

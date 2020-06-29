@@ -45,7 +45,7 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
         // Retrieve graph of parent container metadata resource
         Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph();
         // Get the shape tree step that manages that container
-        boolean shapeTreeManagedContainer = parentContainerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
+        boolean shapeTreeManagedContainer = parentContainerMetadataGraph != null && parentContainerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
         // If managed, do validation
         if (shapeTreeManagedContainer) {
             // This is the ShapeTree step that managed the container we're posting to

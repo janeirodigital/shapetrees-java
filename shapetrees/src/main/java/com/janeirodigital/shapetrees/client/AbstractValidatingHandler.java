@@ -189,7 +189,7 @@ public abstract class AbstractValidatingHandler {
             incomingBody = "";
         }
 
-        OkHttpClient httpClient = HttpClientHelper.getClient(true);
+        OkHttpClient httpClient = HttpClientHelper.getClient();
         Request createContainerPost = new Request.Builder()
                 .addHeader(HttpHeaders.SLUG.getValue(), requestedName)
                 .addHeader(HttpHeaders.LINK.getValue(), REL_TYPE_CONTAINER)

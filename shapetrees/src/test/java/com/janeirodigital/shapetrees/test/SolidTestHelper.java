@@ -16,7 +16,7 @@ import java.util.List;
 public class SolidTestHelper {
     @SneakyThrows
     public static List<String> getRecursiveContainerContents(String authHeaderValue, String uri, List<String> entries) {
-        OkHttpClient client = HttpClientHelper.getClient(true);
+        OkHttpClient client = HttpClientHelper.getClient();
         Request get = new Request.Builder()
                 .url(uri)
                 .addHeader(HttpHeaders.ACCEPT.getValue(), "text/turtle")
@@ -40,7 +40,7 @@ public class SolidTestHelper {
 
     @SneakyThrows
     public static void deleteResource(String authHeaderValue, String uri) {
-        OkHttpClient client = HttpClientHelper.getClient(true);
+        OkHttpClient client = HttpClientHelper.getClient();
 
         Request delete = new Request.Builder()
                 .url(uri)

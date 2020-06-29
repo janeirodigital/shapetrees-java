@@ -32,7 +32,7 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
         RemoteResource parentContainerMetadataResource = new RemoteResource(parentContainerMetaDataURIString, this.authorizationHeaderValue);
         Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph();
         // Get the shape tree step that manages that container
-        boolean shapeTreeManagedContainer = parentContainerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
+        boolean shapeTreeManagedContainer = parentContainerMetadataGraph != null && parentContainerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
         // If managed, do validation
         if (shapeTreeManagedContainer) {
             // This is the ShapeTree step that managed the container we're posting to
@@ -44,6 +44,9 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
                and finding the one whose uriTemplate matches the Slug of the container we're about to create
              */
             ShapeTreeStep targetShapeTreeStep = containerShapeTreeStep.findMatchingContainsShapeTreeStep(requestedName);
+            if (targetShapeTreeStep == null) {
+                throw new ShapeTreeException(400, containerShapeTreeStep.getId() + " contains no matching child with matching URI Template for " + requestedName);
+            }
 
             Graph incomingRequestBodyGraph = getIncomingBodyGraph(new URI(this.requestRemoteResource.getURI().toString()));
 
@@ -76,9 +79,14 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
                 String containerPath = getValueFromGraphByPredicate(parentContainerMetadataGraph, SHAPE_TREE_INSTANCE_PATH_PREDICATE);
                 String instanceRoot = getValueFromGraphByPredicate(parentContainerMetadataGraph, SHAPE_TREE_INSTANCE_ROOT_PREDICATE);
                 String pathFromRoot = requestRemoteResource.getURI().toString().replace(instanceRoot, "");
-                int relativeDepth = StringUtils.countMatches(pathFromRoot, "/") + 1;
+                // In this case the URI is going to end in a slash for the contain that is being requested to create
+                // because of this extra slash, we just count the slashes instead of adding one as seen in the ValidatingPostHandler
+                int relativeDepth = StringUtils.countMatches(pathFromRoot, "/");
 
-                ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, containerShapeTreeRootStep, targetShapeTreeStep, requestedName, containerPath + requestedName + "/", relativeDepth);
+                if (requestedName.endsWith("/")) {
+                    requestedName = requestedName.replace("/","");
+                }
+                ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, parentContainer, this.incomingRequestBody, containerShapeTreeRootStep, targetShapeTreeStep, requestedName, containerPath + requestedName + "/", relativeDepth);
                 return createPlantResponse(result, this.request);
             } else {
                 // if we're creating a resource, pass through

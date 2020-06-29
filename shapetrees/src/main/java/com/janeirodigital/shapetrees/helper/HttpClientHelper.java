@@ -9,20 +9,18 @@ import java.security.cert.CertificateException;
 
 public class HttpClientHelper {
 
-    public static OkHttpClient getClient() {
-        return new OkHttpClient();
-    }
 
-    public static OkHttpClient getClient(Boolean ignoreSSL) {
-        if (ignoreSSL) {
+    public static OkHttpClient getClient() {
+
+        if (shouldIgnoreSSL()) {
             return getUnsafeOkHttpClient(null);
         } else {
             return new OkHttpClient();
         }
     }
 
-    public static OkHttpClient getClient(Boolean ignoreSSL, Interceptor interceptor) {
-        if (ignoreSSL) {
+    public static OkHttpClient getClient(Interceptor interceptor) {
+        if (shouldIgnoreSSL()) {
             return getUnsafeOkHttpClient(interceptor);
         } else {
             OkHttpClient client = new OkHttpClient.Builder()
@@ -84,5 +82,13 @@ public class HttpClientHelper {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static boolean shouldIgnoreSSL() {
+        boolean ignoreSSL = false;
+        if (System.getenv("SHAPETREE_IGNORE_SSL") != null) {
+            ignoreSSL = Boolean.parseBoolean(System.getenv("SHAPETREE_IGNORE_SSL"));
+        }
+        return ignoreSSL;
     }
 }

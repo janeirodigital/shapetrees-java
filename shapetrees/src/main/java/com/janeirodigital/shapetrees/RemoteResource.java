@@ -93,7 +93,14 @@ public class RemoteResource {
     }
 
     public Boolean isContainer() {
-        return parsedLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER);
+        if (!this.exists()) {
+            return this.URI.toString().endsWith("/");
+        }
+
+        if (this.parsedLinkHeaders != null && this.parsedLinkHeaders.get(REL_TYPE) != null) {
+            return this.parsedLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER);
+        }
+        return false;
     }
 
     public String getFirstHeaderByName(String headerName) throws IOException {
@@ -152,7 +159,7 @@ public class RemoteResource {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
-        OkHttpClient httpClient = HttpClientHelper.getClient(true);
+        OkHttpClient httpClient = HttpClientHelper.getClient();
         Request request = new Request.Builder()
                 .url(this.URI.toURL())
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
@@ -174,7 +181,7 @@ public class RemoteResource {
     private void dereferenceURI() throws IOException {
         log.debug("RemoteResource#dereferencingURI({})", this.URI);
 
-        OkHttpClient httpClient = HttpClientHelper.getClient(true);
+        OkHttpClient httpClient = HttpClientHelper.getClient();
         Request request = new Request.Builder()
                 .url(this.URI.toURL())
                 .addHeader(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue)

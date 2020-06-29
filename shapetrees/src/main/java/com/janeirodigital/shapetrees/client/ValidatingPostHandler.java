@@ -69,7 +69,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             // Read the graph of the container's metadata resource
             Graph containerMetadataGraph = containerMetadataResource.getGraph();
             // If that graph contains the SHAPE_TREE_STEP_PREDICATE it means the container being POSTed to is a managed container
-            boolean shapeTreeManagedContainer = containerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
+            boolean shapeTreeManagedContainer = containerMetadataGraph != null && containerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
             // If managed, do validation
             if (shapeTreeManagedContainer) {
                 // This is the ShapeTree step that managed the container we're posting to
