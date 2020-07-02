@@ -8,5 +8,7 @@ public interface ShapeTreeEcosystem {
     void initializeEcosystem();
     ShapeTreePlantResult getExistingShapeTreeFromContainer(URI parentContainer, URI shapeTreeURI);
     void indexShapeTree(URI parentContainer, URI shapeTreeURI, URI plantedShapeTreeURI);
+    void indexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI);
     void unIndexShapeTree(URI parentContainer, URI shapeTreeURI, URI plantedShapeTreeURI);
+    void unIndexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI);
 }

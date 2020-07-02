@@ -34,7 +34,7 @@ public class RemoteResourceTests extends BaseShapeTreeTest {
     @DisplayName("RemoteResource - UpdateGraph with refresh")
     void updateResourceWithRefresh() {
         RemoteResource resource = new RemoteResource(new URI(ROOT_PATH+"testing.ttl"), AUTH_HEADER_VALUE);
-        Graph existingGraph = resource.getGraph();
+        Graph existingGraph = resource.getGraph(new URI(ROOT_PATH+"testing.ttl"));
         List<Triple> triplesToAdd = new ArrayList<>();
         triplesToAdd.add(new Triple(NodeFactory.createURI(resource.getURI().toString()), NodeFactory.createURI("http://example.com/predicate"), NodeFactory.createLiteral("testing1")));
         GraphUtil.add(existingGraph, triplesToAdd);
@@ -49,7 +49,7 @@ public class RemoteResourceTests extends BaseShapeTreeTest {
     @DisplayName("RemoteResource - UpdateGraph without refresh")
     void updateResourceWithoutRefresh() {
         RemoteResource resource = new RemoteResource(new URI(ROOT_PATH+"testing.ttl"), AUTH_HEADER_VALUE);
-        Graph existingGraph = resource.getGraph();
+        Graph existingGraph = resource.getGraph(new URI(ROOT_PATH+"testing.ttl"));
         List<Triple> triplesToAdd = new ArrayList<>();
         triplesToAdd.add(new Triple(NodeFactory.createURI(resource.getURI().toString()), NodeFactory.createURI("http://example.com/predicate"), NodeFactory.createLiteral("testing2")));
         GraphUtil.add(existingGraph, triplesToAdd);

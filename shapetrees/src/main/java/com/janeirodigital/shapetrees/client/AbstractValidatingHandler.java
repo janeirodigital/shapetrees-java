@@ -143,23 +143,23 @@ public abstract class AbstractValidatingHandler {
         // Get the existing graph
         Graph shapeTreeContainerMetadataGraph;
         if (shapeTreeContainerMetadataResource.exists()) {
-            shapeTreeContainerMetadataGraph = shapeTreeContainerMetadataResource.getGraph();
+            shapeTreeContainerMetadataGraph = shapeTreeContainerMetadataResource.getGraph(shapeTreeContainer.getURI());
 
             // Remove any previous triples for the shapetree planting metadata
-            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), null);
-            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), null);
-            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), null);
-            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
+            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(shapeTreeContainer.getURI().toString()), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), null);
+            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(shapeTreeContainer.getURI().toString()), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), null);
+            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(shapeTreeContainer.getURI().toString()), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), null);
+            GraphUtil.remove(shapeTreeContainerMetadataGraph, NodeFactory.createURI(shapeTreeContainer.getURI().toString()), NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
         }
 
         shapeTreeContainerMetadataGraph = ModelFactory.createDefaultModel().getGraph();
 
         List<Triple> triplesToAdd = new ArrayList<>();
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), NodeFactory.createURI(shapeTreeStep.getId())));
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), NodeFactory.createLiteral(shapeTreePath)));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeContainer.getURI().toString()), NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), NodeFactory.createURI(shapeTreeStep.getId())));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeContainer.getURI().toString()), NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), NodeFactory.createLiteral(shapeTreePath)));
         String relativePath = (depth==0) ? "./" : StringUtils.repeat("../", depth);
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), NodeFactory.createURI(relativePath)));
-        triplesToAdd.add(new Triple(NodeFactory.createURI(metaDataURIString), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), NodeFactory.createURI(rootShapeTreeStep.getId())));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeContainer.getURI().toString()), NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), NodeFactory.createURI(relativePath)));
+        triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeContainer.getURI().toString()), NodeFactory.createURI(SHAPE_TREE_ROOT_PREDICATE), NodeFactory.createURI(rootShapeTreeStep.getId())));
         GraphUtil.add(shapeTreeContainerMetadataGraph, triplesToAdd);
         // Write the updates back to the resource
         shapeTreeContainerMetadataResource.updateGraph(shapeTreeContainerMetadataGraph,false, authorizationHeaderValue);

@@ -23,4 +23,14 @@ public class SolidInteroperabilityEcosystem implements ShapeTreeEcosystem {
     public void unIndexShapeTree(URI parentContainer, URI shapeTreeURI, URI plantedShapeTreeURI) {
         // TODO Implement this
     }
+
+    @Override
+    public void indexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI) {
+
+    }
+
+    @Override
+    public void unIndexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI) {
+
+    }
 }

@@ -43,7 +43,7 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
         // Dereference parent container metadata resource
         RemoteResource parentContainerMetadataResource = new RemoteResource(parentContainerMetaDataURIString, authorizationHeaderValue);
         // Retrieve graph of parent container metadata resource
-        Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph();
+        Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph(parentURI);
         // Get the shape tree step that manages that container
         boolean shapeTreeManagedContainer = parentContainerMetadataGraph != null && parentContainerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
         // If managed, do validation
@@ -57,7 +57,7 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
             ShapeTreeStep targetShapeTreeStep = containerShapeTreeStep.findMatchingContainsShapeTreeStep(requestedName);
 
             // Get existing resource graph (prior to PATCH)
-            Graph existingResourceGraph = requestRemoteResource.getGraph();
+            Graph existingResourceGraph = requestRemoteResource.getGraph(requestRemoteResource.getURI());
 
             // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
             UpdateRequest updateRequest = UpdateFactory.create(this.incomingRequestBody);

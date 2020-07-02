@@ -3,6 +3,7 @@ package com.janeirodigital.shapetrees.model;
 import com.janeirodigital.shapetrees.RemoteResource;
 import com.janeirodigital.shapetrees.ShapeTreeException;
 import com.janeirodigital.shapetrees.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.enums.RecursionMethod;
 import com.sun.jersey.api.uri.UriTemplate;
 import fr.inria.lille.shexjava.GlobalFactory;
 import fr.inria.lille.shexjava.schema.Label;
@@ -21,10 +22,10 @@ import org.apache.jena.graph.Graph;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.Reference;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
@@ -49,7 +50,6 @@ public class ShapeTreeStep {
         if (this.isContainer() != isAContainer) {
             throw new ShapeTreeException(400, "The resource type being validated does not match the type expected by the ShapeTreeStep");
         }
-
 
         if (this.shapeUri == null) {
             throw new ShapeTreeException(400, "Attempting to validate a ShapeTreeStep (" + id + ") that does not have an associated Shape");
@@ -117,5 +117,50 @@ public class ShapeTreeStep {
         } else {
             return matchingSteps.get(0);
         }
+    }
+
+    public Iterator<ReferencedShapeTreeStep> getReferencedSteps() throws URISyntaxException, ShapeTreeException {
+        return getReferencedSteps(RecursionMethod.DEPTH_FIRST);
+    }
+
+    public Iterator<ReferencedShapeTreeStep> getReferencedSteps(RecursionMethod recursionMethod) throws URISyntaxException, ShapeTreeException {
+        return getReferencedStepsList(recursionMethod).iterator();
+    }
+
+    private List<ReferencedShapeTreeStep> getReferencedStepsList(RecursionMethod recursionMethod) throws URISyntaxException, ShapeTreeException {
+        if (recursionMethod.equals(RecursionMethod.BREADTH_FIRST)) {
+            return getReferencedStepsListBreadthFirst();
+        } else {
+            List<ReferencedShapeTreeStep> referencedSteps = new ArrayList<>();
+            return getReferencedStepsListDepthFirst(this.getReferences(), referencedSteps);
+        }
+    }
+
+    private List<ReferencedShapeTreeStep> getReferencedStepsListBreadthFirst() throws URISyntaxException, ShapeTreeException {
+        List<ReferencedShapeTreeStep> referencedSteps = new ArrayList<>();
+        Queue<ReferencedShapeTreeStep> queue = new LinkedList<>();
+        queue.addAll(this.getReferences());
+
+        while (!queue.isEmpty()) {
+            ReferencedShapeTreeStep currentStep = queue.poll();
+            referencedSteps.add(currentStep);
+            ShapeTreeStep step = ShapeTreeFactory.getShapeTreeStep(currentStep.getReferencedStep());
+            List<ReferencedShapeTreeStep> currentReferencedSteps = step.getReferences();
+            if (currentReferencedSteps != null) {
+                for (ReferencedShapeTreeStep currentReferencedStep : currentReferencedSteps) {
+                    queue.add(currentReferencedStep);
+                }
+            }
+        }
+        return referencedSteps;
+    }
+
+    private List<ReferencedShapeTreeStep> getReferencedStepsListDepthFirst(List<ReferencedShapeTreeStep> currentReferencedSteps, List<ReferencedShapeTreeStep> referencedSteps) throws URISyntaxException, ShapeTreeException {
+        for (ReferencedShapeTreeStep currentStepReference : currentReferencedSteps) {
+            referencedSteps.add(currentStepReference);
+            ShapeTreeStep currentReferencedStep = ShapeTreeFactory.getShapeTreeStep(currentStepReference.getReferencedStep());
+            referencedSteps = getReferencedStepsListDepthFirst(currentReferencedStep.getReferences(), referencedSteps);
+        }
+        return referencedSteps;
     }
 }

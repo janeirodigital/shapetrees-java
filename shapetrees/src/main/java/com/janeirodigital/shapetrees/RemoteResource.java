@@ -78,7 +78,7 @@ public class RemoteResource {
     }
 
     // Lazy-load graph when requested
-    public Graph getGraph() throws IOException {
+    public Graph getGraph(URI baseURI) throws IOException {
         if (!this.exists) return null;
 
         if (this.invalidated) {
@@ -87,7 +87,7 @@ public class RemoteResource {
         }
 
         if (this.parsedGraph == null) {
-            this.parsedGraph = GraphHelper.readStringIntoGraph(this.rawBody, this.URI, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
+            this.parsedGraph = GraphHelper.readStringIntoGraph(this.rawBody, baseURI, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
         }
         return this.parsedGraph;
     }

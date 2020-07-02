@@ -67,7 +67,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             // Dereference the container's metadata resource
             RemoteResource containerMetadataResource = new RemoteResource(containerMetaDataURIString, this.authorizationHeaderValue);
             // Read the graph of the container's metadata resource
-            Graph containerMetadataGraph = containerMetadataResource.getGraph();
+            Graph containerMetadataGraph = containerMetadataResource.getGraph(this.requestRemoteResource.getURI());
             // If that graph contains the SHAPE_TREE_STEP_PREDICATE it means the container being POSTed to is a managed container
             boolean shapeTreeManagedContainer = containerMetadataGraph != null && containerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
             // If managed, do validation

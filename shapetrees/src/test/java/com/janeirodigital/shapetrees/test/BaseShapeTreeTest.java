@@ -191,19 +191,24 @@ public abstract class BaseShapeTreeTest {
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }
-        ensureExistingTriple(resource.getGraph(), null, NodeFactory.createURI(predicate.toString()), null);
+        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(predicate.toString()), null);
     }
 
     static void ensureExistsHasMetadataWithPredicateValue(URI uri, URI predicate, Object value) throws IOException, URISyntaxException {
-        ensureExistsWithPredicateValue(getMetadataResourceURI(uri), predicate, value);
+        ensureExistsWithPredicateValue(getMetadataResourceURI(uri), uri, predicate, value);
     }
 
     static void ensureExistsWithPredicateValue(URI uri, URI predicate, Object value) throws IOException, URISyntaxException {
+        ensureExistsWithPredicateValue(uri, uri, predicate, value);
+    }
+
+
+    static void ensureExistsWithPredicateValue(URI uri, URI baseURI, URI predicate, Object value) throws IOException, URISyntaxException {
         RemoteResource resource = new RemoteResource(uri, AUTH_HEADER_VALUE);
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }
-        ensureExistingTriple(resource.getGraph(), null, NodeFactory.createURI(predicate.toString()), value);
+        ensureExistingTriple(resource.getGraph(baseURI), null, NodeFactory.createURI(predicate.toString()), value);
     }
 
     static void ensureExistsHasMetadataWithValues(URI uri, String instancePathValue, URI instanceRootValue) throws IOException, URISyntaxException{
@@ -211,8 +216,8 @@ public abstract class BaseShapeTreeTest {
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }
-        ensureExistingTriple(resource.getGraph(), null, NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), instancePathValue);
-        ensureExistingTriple(resource.getGraph(), null, NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), instanceRootValue);
+        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), instancePathValue);
+        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), instanceRootValue);
     }
 
     private static void ensureExistingTriple(Graph graph, Object subject, Object predicate, Object object) {

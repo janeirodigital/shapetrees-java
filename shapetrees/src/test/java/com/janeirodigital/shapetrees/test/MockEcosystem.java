@@ -25,4 +25,14 @@ public class MockEcosystem implements ShapeTreeEcosystem {
     public void unIndexShapeTree(URI parentContainer, URI shapeTreeURI, URI plantedShapeTreeURI) {
 
     }
+
+    @Override
+    public void indexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI) {
+
+    }
+
+    @Override
+    public void unIndexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI) {
+
+    }
 }

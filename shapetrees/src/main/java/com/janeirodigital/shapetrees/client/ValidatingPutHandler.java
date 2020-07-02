@@ -30,7 +30,7 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
         RemoteResource parentContainer = new RemoteResource(parentURI, this.authorizationHeaderValue);
         String parentContainerMetaDataURIString = getMetadataResourceURI(parentContainer);
         RemoteResource parentContainerMetadataResource = new RemoteResource(parentContainerMetaDataURIString, this.authorizationHeaderValue);
-        Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph();
+        Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph(parentContainer.getURI());
         // Get the shape tree step that manages that container
         boolean shapeTreeManagedContainer = parentContainerMetadataGraph != null && parentContainerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
         // If managed, do validation
