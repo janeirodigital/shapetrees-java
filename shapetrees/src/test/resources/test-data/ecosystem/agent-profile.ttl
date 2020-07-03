@@ -1,0 +1,6 @@
+PREFIX eco: <http://www.w3.org/ns/solid/ecosystem#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+<#me>
+    a eco:Agent ;
+    eco:hasRegistrar <../registries/> .

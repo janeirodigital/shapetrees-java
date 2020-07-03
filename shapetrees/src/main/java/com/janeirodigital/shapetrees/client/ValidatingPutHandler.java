@@ -54,13 +54,8 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
             // If there is a graph to validate...
             if (incomingRequestBodyGraph != null) {
                 // ...and a focus node was provided via the focusNode header, then we perform our validation
-                if (this.incomingRequestLinkHeaders.get(FOCUS_NODE) != null) {
-                    String focusNode = this.incomingRequestLinkHeaders.get(FOCUS_NODE).get(0);
-                    URI focusNodeURI = this.requestRemoteResource.getURI().resolve(focusNode);
-                    validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, incomingRequestBodyGraph, focusNodeURI, this.requestRemoteResource.isContainer());
-                } else {
-                    throw new ShapeTreeException(400, "No Link header with relation " + FOCUS_NODE + " supplied, unable to perform Shape validation");
-                }
+                URI focusNodeURI = getIncomingResolvedFocusNode(this.requestRemoteResource.getURI(), true);
+                validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, incomingRequestBodyGraph, focusNodeURI, this.requestRemoteResource.isContainer());
             }
             // If there is a body graph and it did not pass validation, return an error
             if (incomingRequestBodyGraph != null && !validationResult.getValid()) {

@@ -35,7 +35,7 @@ public class ShapeTreeStep {
     private String shapeUri;
     private String label;
     private String uriTemplate;
-    private List<URI> contents;
+    private List<URI> contents = new ArrayList<>();
     private List<ReferencedShapeTreeStep> references;
 
     public URI getURI() throws URISyntaxException {
@@ -93,7 +93,14 @@ public class ShapeTreeStep {
 
     public ShapeTreeStep findMatchingContainsShapeTreeStep(String requestedName) throws URISyntaxException, ShapeTreeException {
         if (this.contents == null || this.contents.size() == 0) {
-            return null;
+            // TODO - this needs to be talked about!!
+            // TODO - Effectively, if there are no contents and the current shapetree is a resource, use its own
+            // TODO - shape as validation
+            if (this.getRdfResourceType().contains("Resource")) {
+                return this;
+            } else {
+                return null;
+            }
         }
 
         List<ShapeTreeStep> matchingSteps = new ArrayList<>();

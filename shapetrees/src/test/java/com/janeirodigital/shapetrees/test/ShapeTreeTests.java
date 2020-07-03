@@ -29,7 +29,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PLANT - should fail with bad turtle")
     @Test
     void plantBadTurtle() {
-        plant(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "@prefix x: <> @@bad Turtle@@", "text/turtle", 422);
+        plantWithStringContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "@prefix x: <> @@bad Turtle@@", "text/turtle", "#", 422);
     }
 
     @Order(4)
@@ -37,7 +37,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PLANT - should fail with bad JSON")
     @Test
     void plantBadJSON() {
-        plant(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "{ \"foo\": 1, \"@id\": 2@@bad JSON}", "application/ld+json", 422);
+        plantWithStringContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "{ \"foo\": 1, \"@id\": 2@@bad JSON}", "application/ld+json", "#", 422);
     }
 
     @Order(5)
@@ -45,7 +45,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PLANT - should fail with bad JSONLD")
     @Test
     void plantBadJSONLD() {
-        plant(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "{ \"foo\": 1, \"@id\": 2}", "application/ld+json", 422);
+        plantWithStringContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "{ \"foo\": 1, \"@id\": 2}", "application/ld+json", "#", 422);
     }
 
     @Order(6)

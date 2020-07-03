@@ -50,9 +50,23 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             ShapeTreePlantResult existingPlantedShapeTree = this.ecosystem.getExistingShapeTreeFromContainer(this.requestRemoteResource.getURI(), shapeTreeStep.getURI());
             if (existingPlantedShapeTree.getRootContainer() == null) {
                 // If not, plant the ShapeTree
+
+                ValidationResult validationResult = null;
+                // If there is a graph to validate...and the ShapeTree being planted requests shape validation
+                if (incomingRequestBodyGraph != null && shapeTreeStep.getShapeUri() != null) {
+                    // ...and a focus node was provided via the focusNode header, then we perform our validation
+                    URI focusNodeURI = getIncomingResolvedFocusNode(new URI(this.requestRemoteResource.getURI() + requestedName), true);
+                    validationResult = shapeTreeStep.validateContent(this.authorizationHeaderValue, incomingRequestBodyGraph, focusNodeURI, true);
+                }
+
+                // If there is a body graph and it did not pass validation, return an error
+                if (incomingRequestBodyGraph != null && !validationResult.getValid()) {
+                    throw new ShapeTreeException(400, "Payload did not meet requirements defined by ShapeTree " + shapeTreeStep.getURI());
+                }
+
                 ShapeTreePlantResult plantResult = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, shapeTreeStep, shapeTreeStep, requestedName, ".", 0);
                 // Provide to the ecosystem to index
-                this.ecosystem.indexShapeTree(requestRemoteResource.getURI(), shapeTreeStep.getURI(), plantResult.getRootContainer());
+                this.ecosystem.indexShapeTree(this.getShapeTreeContext(), requestRemoteResource.getURI(), shapeTreeStep.getURI(), plantResult.getRootContainer());
                 // Create and return a response
                 return createPlantResponse(plantResult, this.request);
             } else {
@@ -91,13 +105,8 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
                 // If there is a graph to validate...
                 if (incomingRequestBodyGraph != null) {
                     // ...and a focus node was provided via the focusNode header, then we perform our validation
-                    if (this.incomingRequestLinkHeaders.get(FOCUS_NODE) != null) {
-                        String focusNode = this.incomingRequestLinkHeaders.get(FOCUS_NODE).get(0);
-                        URI focusNodeURI = new URI(this.requestRemoteResource.getURI() + requestedName).resolve(focusNode);
-                        validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, incomingRequestBodyGraph, focusNodeURI, isContainer);
-                    } else {
-                        throw new ShapeTreeException(400, "No Link header with relation " + FOCUS_NODE + " supplied, unable to perform Shape validation");
-                    }
+                    URI focusNodeURI = getIncomingResolvedFocusNode(new URI(this.requestRemoteResource.getURI() + requestedName), true);
+                    validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, incomingRequestBodyGraph, focusNodeURI, isContainer);
                 }
                 // If there is a body graph and it did not pass validation, return an error
                 if (incomingRequestBodyGraph != null && !validationResult.getValid()) {

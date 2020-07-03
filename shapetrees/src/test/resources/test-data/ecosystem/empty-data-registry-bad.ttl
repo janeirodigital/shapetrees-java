@@ -1,0 +1,4 @@
+PREFIX eco: <http://www.w3.org/ns/solid/ecosystem#>
+
+<#registry>
+    a eco:ApplicationRegistry .

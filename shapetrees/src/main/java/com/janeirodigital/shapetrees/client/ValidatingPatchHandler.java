@@ -62,15 +62,13 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
             // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
             UpdateRequest updateRequest = UpdateFactory.create(this.incomingRequestBody);
             UpdateAction.execute(updateRequest, existingResourceGraph);
-            ValidationResult validationResult;
-            if (this.incomingRequestLinkHeaders != null && this.incomingRequestLinkHeaders.get(FOCUS_NODE) != null) {
-                String focusNode = this.incomingRequestLinkHeaders.get(FOCUS_NODE).get(0);
-                URI focusNodeURI = this.requestRemoteResource.getURI().resolve(focusNode);
-                validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, existingResourceGraph, focusNodeURI, this.requestRemoteResource.isContainer());
-            } else {
-                // ...but no focus node, we return an error
-                throw new ShapeTreeException(400, "No Link header with relation " + FOCUS_NODE + " supplied, unable to perform Shape validation");
+
+            if (existingResourceGraph == null) {
+                throw new ShapeTreeException(400, "No graph after update");
             }
+
+            URI focusNodeURI = getIncomingResolvedFocusNode(this.requestRemoteResource.getURI(), true);
+            ValidationResult validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, existingResourceGraph, focusNodeURI, this.requestRemoteResource.isContainer());
 
             if (validationResult.getValid()) {
                 // If the result of the locally applied PATCH validates, then pass it to the server

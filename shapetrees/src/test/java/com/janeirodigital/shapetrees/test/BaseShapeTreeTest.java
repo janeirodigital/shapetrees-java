@@ -134,10 +134,17 @@ public abstract class BaseShapeTreeTest {
     }
 
     static Response plant(URI parentContainer, URI shapeTreeStepURI, String slug) throws IOException {
-        return plant(parentContainer, shapeTreeStepURI, slug, null, "text/turtle", 201);
+        return plantWithStringContent(parentContainer, shapeTreeStepURI, slug, null, "text/turtle", null, 201);
     }
 
-    static Response plant(URI parentContainer, URI shapeTreeStepURI, String slug, String content, String contentType, Integer expectedCode) throws IOException {
+    static Response plantWithResourceContent(URI parentContainer, URI shapeTreeStepURI, String slug, String bodyResourcePath, String contentType, String focusNode, Integer expectedCode) throws IOException {
+        FileInputStream inputStream = new FileInputStream(bodyResourcePath);
+        String bodyString = IOUtils.toString(inputStream, "UTF-8");
+
+        return plantWithStringContent(parentContainer, shapeTreeStepURI, slug, bodyString, contentType, focusNode, expectedCode);
+    }
+
+    static Response plantWithStringContent(URI parentContainer, URI shapeTreeStepURI, String slug, String content, String contentType, String focusNode, Integer expectedCode) throws IOException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(new MockEcosystem()).get();
 
         byte[] bytes = new byte[]{};
@@ -150,6 +157,7 @@ public abstract class BaseShapeTreeTest {
                 .addHeader("Authorization", AUTH_HEADER_VALUE)
                 .addHeader("Link", "<" + shapeTreeStepURI.toString() + ">; rel=\"ShapeTree\"")
                 .addHeader("Link", "<http://www.w3.org/ns/ldp#Container>; rel=\"type\"")
+                .addHeader("Link", "<" + focusNode + ">; rel=\"focusNode\"")
                 .addHeader("Slug", slug)
                 .addHeader("Content-Type", contentType)
                 .post(RequestBody.create(bytes))

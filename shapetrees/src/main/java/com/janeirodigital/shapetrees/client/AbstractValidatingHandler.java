@@ -9,6 +9,7 @@ import com.janeirodigital.shapetrees.enums.Namespaces;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
 import com.janeirodigital.shapetrees.helper.HttpClientHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
+import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
 import com.janeirodigital.shapetrees.model.ShapeTreeStep;
 import lombok.extern.slf4j.Slf4j;
@@ -108,6 +109,23 @@ public abstract class AbstractValidatingHandler {
             return GraphHelper.readStringIntoGraph(this.incomingRequestBody, baseURI, this.incomingRequestContentType);
         }
         return null;
+    }
+
+    protected URI getIncomingResolvedFocusNode(URI baseURI, boolean throwIfNotFound) throws IOException {
+        if (this.incomingRequestLinkHeaders.get(FOCUS_NODE) != null) {
+            String focusNode = this.incomingRequestLinkHeaders.get(FOCUS_NODE).get(0);
+            URI focusNodeURI = baseURI.resolve(focusNode);
+            return focusNodeURI;
+        } else if (throwIfNotFound) {
+            throw new ShapeTreeException(400, "No Link header with relation " + FOCUS_NODE + " supplied, unable to perform Shape validation");
+        } else {
+            return null;
+        }
+    }
+
+    protected ShapeTreeContext getShapeTreeContext() {
+        // TODO - need to not make these values hardcoded
+        return new ShapeTreeContext(this.authorizationHeaderValue, "https://auth-agent.example", "https://ldp.local-ess.inrupt.com/aHR0cDovL2RldnNlcnZlcjozMDA4Mi9hdXRoL3JlYWxtcy9tYXN0ZXJiMzg4YmJlMV85ZjYzXzRlYmNfYmEzMF80MWY4ZmJjZmM0NTc/shapetree-testing/profile/id#me");
     }
 
     protected static Response createPlantResponse(ShapeTreePlantResult plantResult, Request request) {
