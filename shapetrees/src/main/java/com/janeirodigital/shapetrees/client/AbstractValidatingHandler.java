@@ -107,7 +107,10 @@ public abstract class AbstractValidatingHandler {
     }
 
     protected URI normalizeBaseURI(URI uri, String requestedName, Boolean isContainer) throws URISyntaxException {
-        String uriString = uri.toString() + requestedName;
+        String uriString = uri.toString();
+        if (requestedName != null) {
+            uriString += requestedName;
+        }
         if (isContainer && !uriString.endsWith("/")) {
             uriString += "/";
         }
