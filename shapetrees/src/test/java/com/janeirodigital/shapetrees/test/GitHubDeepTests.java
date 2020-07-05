@@ -1,20 +1,26 @@
 package com.janeirodigital.shapetrees.test;
 
+import com.janeirodigital.shapetrees.ShapeTreeVocabulary;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 
 import java.net.URI;
+import java.util.Collections;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class GitHubDeepTests extends BaseShapeTreeTest {
+
+    public GitHubDeepTests() {
+        super(new MockEcosystem());
+    }
 
     @Test
     @Order(1)
     @DisplayName("Create /Git/")
     @SneakyThrows
     void plantGit() {
-        plant(new URI(ROOT_PATH), new URI("http://localhost:9999/static/gh-deep/gh-deep-ShapeTree.jsonld#root"), "Git");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git/"), new URI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), ".");
+        plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-deep/gh-deep-ShapeTree.jsonld#root")), "Git", null);
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
         ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/"), ".", new URI(ROOT_PATH+"Git/"));
         ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/"), "./repos/", new URI(ROOT_PATH+"Git/"));
         ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/"), "./users/", new URI(ROOT_PATH+"Git/"));
@@ -51,7 +57,7 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
     @SneakyThrows
     void createEricPrudRepo() {
         postContent(new URI(ROOT_PATH + "Git/repos/"), "ericprud", true, "target/test-classes/test-data/apps/gh-deep/ericprud-org.ttl", "#ericprud");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git/repos/ericprud/"), new URI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), "./repos/ericprud/");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git/repos/ericprud/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), "./repos/ericprud/");
         ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/"), "./repos/ericprud/", new URI(ROOT_PATH+"Git/"));
     }
 

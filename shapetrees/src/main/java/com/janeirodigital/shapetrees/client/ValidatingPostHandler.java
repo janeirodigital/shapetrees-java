@@ -1,26 +1,26 @@
 package com.janeirodigital.shapetrees.client;
 
-import com.janeirodigital.shapetrees.RemoteResource;
-import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
-import com.janeirodigital.shapetrees.ShapeTreeException;
-import com.janeirodigital.shapetrees.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.*;
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
 import com.janeirodigital.shapetrees.model.ShapeTreeStep;
 import com.janeirodigital.shapetrees.model.ValidationResult;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.NodeFactory;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+@Slf4j
 public class ValidatingPostHandler extends AbstractValidatingHandler implements ValidatingHandler {
-
-    private static final String REL_SHAPE_TREE = "ShapeTree";
 
     public ValidatingPostHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         super(chain, ecosystem);
@@ -31,110 +31,152 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
         ensureRequestResourceExists("Parent Container not found");
 
         String requestedName = getIncomingHeaderValueWithDefault(HttpHeaders.SLUG.getValue(), "Container");
-        String incomingRequestShapeTreeUri = getIncomingLinkHeaderByRelationValue(REL_SHAPE_TREE);
+        List<String> incomingRequestShapeTreeUris = getIncomingLinkHeaderByRelationValue(REL_SHAPE_TREE);
+        Boolean isContainer = this.incomingRequestLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER);
+        URI normalizedBaseURI = normalizeBaseURI(this.requestRemoteResource.getURI(), requestedName, isContainer);
+        Graph incomingRequestBodyGraph = getIncomingBodyGraph(normalizedBaseURI);
 
-        Graph incomingRequestBodyGraph = getIncomingBodyGraph(new URI(this.requestRemoteResource.getURI().toString() + requestedName));
+        if (incomingRequestShapeTreeUris != null && incomingRequestShapeTreeUris.size() > 0) {
+           // This means we're Planting a new Shape Tree
 
-        if (incomingRequestShapeTreeUri != null) {
-            // This means we're Planting a new Shape Tree
+            // If we are performing a plant there are few levels of validation we need to perform:
+            // 1.  Ensure that between existing and new ShapeTrees the configuration is not invalid
+            // 2.  The body of the incoming request against the ShapeTree, if it has a shapeURI present
+            // 3.  The ShapeTree of the parent container looking at the appropriate contents node
 
-            // Retrieve the ShapeTreeStep we're trying to plant
+            // Determine the ShapeTrees that are being requested to be planted
+            List<ShapeTreeStep> shapeTreesToPlant = new ArrayList<>();
             ShapeTreeStep shapeTreeStep;
             try {
-                shapeTreeStep = ShapeTreeFactory.getShapeTreeStep(new URI(incomingRequestShapeTreeUri));
+                for (String shapeTreeUri : incomingRequestShapeTreeUris) {
+                    shapeTreeStep = ShapeTreeFactory.getShapeTreeStep(new URI(shapeTreeUri));
+                    shapeTreesToPlant.add(shapeTreeStep);
+                }
             } catch (URISyntaxException e) {
                 throw new ShapeTreeException(400, "Value of 'ShapeTree' link header is not a value URI");
             }
 
+            // 1.  Validate the potentially multiple ShapeTrees to ensure they don't conflict
+            //     this will also retrieve any already planted ShapeTrees and ensure both existing and are valid
+            validateShapeTrees(this.requestRemoteResource.getURI(), requestedName, shapeTreesToPlant);
+
             // Determine if the ecosystem already has a planted ShapeTree we can reuse
-            ShapeTreePlantResult existingPlantedShapeTree = this.ecosystem.getExistingShapeTreeFromContainer(this.requestRemoteResource.getURI(), shapeTreeStep.getURI());
-            if (existingPlantedShapeTree.getRootContainer() == null) {
-                // If not, plant the ShapeTree
-
-                ValidationResult validationResult = null;
-                // If there is a graph to validate...and the ShapeTree being planted requests shape validation
-                if (incomingRequestBodyGraph != null && shapeTreeStep.getShapeUri() != null) {
-                    // ...and a focus node was provided via the focusNode header, then we perform our validation
-                    URI focusNodeURI = getIncomingResolvedFocusNode(new URI(this.requestRemoteResource.getURI() + requestedName), true);
-                    validationResult = shapeTreeStep.validateContent(this.authorizationHeaderValue, incomingRequestBodyGraph, focusNodeURI, true);
-                }
-
-                // If there is a body graph and it did not pass validation, return an error
-                if (incomingRequestBodyGraph != null && !validationResult.getValid()) {
-                    throw new ShapeTreeException(400, "Payload did not meet requirements defined by ShapeTree " + shapeTreeStep.getURI());
-                }
-
-                ShapeTreePlantResult plantResult = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, shapeTreeStep, shapeTreeStep, requestedName, ".", 0);
-                // Provide to the ecosystem to index
-                this.ecosystem.indexShapeTree(this.getShapeTreeContext(), requestRemoteResource.getURI(), shapeTreeStep.getURI(), plantResult.getRootContainer());
-                // Create and return a response
-                return createPlantResponse(plantResult, this.request);
-            } else {
+            ShapeTreePlantResult existingPlantedShapeTree = null; // TODO - need to figure out proper signature for this;  this.ecosystem.getExistingShapeTreeFromContainer(this.requestRemoteResource.getURI(), shapeTreeStep.getURI());
+            if (existingPlantedShapeTree != null && existingPlantedShapeTree.getRootContainer() != null) {
                 // If an existing ShapeTree exists, nothing to do here
-                return createPlantResponse(existingPlantedShapeTree, this.request);
+                return createPlantResponse(Collections.singletonList(existingPlantedShapeTree), this.request, this.incomingRequestLinkHeaders);
             }
+
+            // Before doing validation, ensure the ecosystem has the ability to transmogrify the body graph
+            Graph ecosystemUpdatedBodyGraph = ecosystem.beforePlantShapeTree(this.getShapeTreeContext(), normalizedBaseURI, incomingRequestBodyGraph, shapeTreesToPlant, this.incomingRequestLinkHeaders);
+
+            // 2. Validate the request body using the appropriate ShapeTree
+            validateRequestBody(ecosystemUpdatedBodyGraph, normalizedBaseURI, shapeTreesToPlant);
+
+            // 3. Validate the request against the parent container which may already be a managed container
+            validateAgainstParentContainer(ecosystemUpdatedBodyGraph, normalizedBaseURI, this.requestRemoteResource, requestedName, true);
+
+            // At this point all validations have been passed and the ShapeTree can be planted
+            List<ShapeTreePlantResult> plantResults = new ArrayList<>();
+            for (ShapeTreeStep shapeTreeToPlant : shapeTreesToPlant) {
+                ShapeTreePlantResult plantResult = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, ecosystemUpdatedBodyGraph, shapeTreeToPlant, shapeTreeToPlant, requestedName, ".", 0);
+                plantResults.add(plantResult);
+                // Provide to the ecosystem to index
+                this.ecosystem.indexShapeTree(this.getShapeTreeContext(), requestRemoteResource.getURI(), shapeTreeToPlant.getURI(), plantResult.getRootContainer(), this.incomingRequestLinkHeaders);
+            }
+            // Create and return a response
+            return createPlantResponse(plantResults, this.request, this.incomingRequestLinkHeaders);
         } else {
-            // This is a POST without a ShapeTree link header, meaning we're doing a POST to either a managed or unmanaged container
-            // Determine if the container we're posting to is managed or not
-            // Get URI of the POST container's metadata resource
-            String containerMetaDataURIString = getMetadataResourceURI(this.requestRemoteResource);
-            // Dereference the container's metadata resource
-            RemoteResource containerMetadataResource = new RemoteResource(containerMetaDataURIString, this.authorizationHeaderValue);
-            // Read the graph of the container's metadata resource
-            Graph containerMetadataGraph = containerMetadataResource.getGraph(this.requestRemoteResource.getURI());
-            // If that graph contains the SHAPE_TREE_STEP_PREDICATE it means the container being POSTed to is a managed container
-            boolean shapeTreeManagedContainer = containerMetadataGraph != null && containerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
-            // If managed, do validation
-            if (shapeTreeManagedContainer) {
-                // This is the ShapeTree step that managed the container we're posting to
-                ShapeTreeStep containerShapeTreeStep = getShapeTreeStepFromGraphByPredicate(containerMetadataGraph, SHAPE_TREE_STEP_PREDICATE);
-                // This is the ShapeTree step for the root of the ShapeTree that was planted - may or may not be the same as containerShapeTreeStep
-                ShapeTreeStep containerShapeTreeRootStep = getShapeTreeStepFromGraphByPredicate(containerMetadataGraph, SHAPE_TREE_ROOT_PREDICATE);
-
-
-                /* This is the ShapeTree that the container being created must adhere to
-                   it is identified by traversing the ShapeTree steps contained within containerShapeTreeStep
-                   and finding the one whose uriTemplate matches the Slug of the container we're about to create
-                 */
-                ShapeTreeStep targetShapeTreeStep = containerShapeTreeStep.findMatchingContainsShapeTreeStep(requestedName);
-
-                // Look at the incoming Link headers for a relation of 'type' to determine if a Container is being created with the POST
-                Boolean isContainer = this.incomingRequestLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER);
-
-                ValidationResult validationResult = null;
-                // If there is a graph to validate...
-                if (incomingRequestBodyGraph != null) {
-                    // ...and a focus node was provided via the focusNode header, then we perform our validation
-                    URI focusNodeURI = getIncomingResolvedFocusNode(new URI(this.requestRemoteResource.getURI() + requestedName), true);
-                    validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, incomingRequestBodyGraph, focusNodeURI, isContainer);
-                }
-                // If there is a body graph and it did not pass validation, return an error
-                if (incomingRequestBodyGraph != null && !validationResult.getValid()) {
-                    throw new ShapeTreeException(400, "Payload did not meet requirements defined by ShapeTree " + targetShapeTreeStep.getURI());
-                }
-
-                // Determine if we are trying to created a container
-                if (isContainer) {
-                    // At this point we're trying to create a container inside a managed container
-                    // This means we're going to effectively plant that targetShapeTreeStep (which comes from the matching URI Template)
-                    // TODO -- if there is no matching URI template, do we just let the POST happen as-is??  Can someone just create a container
-                    // TODO -- within a managed container that perhaps doesn't list any contents?
-                    // TODO -- inquiring minds want to know
-                    // Determine the depth based on container and the relative depth
-                    String containerPath = getValueFromGraphByPredicate(containerMetadataGraph, SHAPE_TREE_INSTANCE_PATH_PREDICATE);
-                    String instanceRoot = getValueFromGraphByPredicate(containerMetadataGraph, SHAPE_TREE_INSTANCE_ROOT_PREDICATE);
-                    String pathFromRoot = requestRemoteResource.getURI().toString().replace(instanceRoot, "");
-                    int relativeDepth = StringUtils.countMatches(pathFromRoot, "/") + 1;
-
-                    ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, containerShapeTreeRootStep, targetShapeTreeStep, requestedName, containerPath + requestedName + "/", relativeDepth);
-                    return createPlantResponse(result, this.request);
-                } else {
-                    // if we're creating a resource, pass through
-                    return this.chain.proceed(this.chain.request());
-                }
-            } else {
-                // IF NOT managed, pass through the request to server naturally
+            List<ShapeTreeLocator> shapeTreeLocatorMetadatas = validateAgainstParentContainer(incomingRequestBodyGraph, normalizedBaseURI, this.requestRemoteResource, requestedName, isContainer);
+            if (shapeTreeLocatorMetadatas == null) {
+                // If validation returns no locators, that means the parent container is not managed and the request should be passed through
                 return this.chain.proceed(this.chain.request());
+            }
+            if (!isContainer) {
+                // We're creating a resource and it has already passed validation, pass through
+                return this.chain.proceed(this.chain.request());
+            }
+
+            // We're creating a container, have already passed validation and will now call Plant as it may
+            // lead to nested static content to be created
+            List<ShapeTreePlantResult> results = new ArrayList<>();
+            for (ShapeTreeLocator locator : shapeTreeLocatorMetadatas) {
+
+                ShapeTreeStep rootShapeTree = ShapeTreeFactory.getShapeTreeStep(new URI(locator.getRootShapeTree()));
+                ShapeTreeStep shapeTree = ShapeTreeFactory.getShapeTreeStep(new URI(locator.getShapeTree()));
+
+                // Determine the depth based on container and the relative depth
+                String containerPath = locator.getShapeTreeInstancePath();
+                String instanceRoot = locator.getShapeTreeRoot();
+                String pathFromRoot = requestRemoteResource.getURI().toString().replace(instanceRoot, "");
+                // In this case the URI is going to end in a slash for the contain that is being requested to create
+                // because of this extra slash, we just count the slashes instead of adding one as seen in the ValidatingPostHandler
+                int relativeDepth = StringUtils.countMatches(pathFromRoot, "/") + 1;
+
+                if (requestedName.endsWith("/")) {
+                    requestedName = requestedName.replace("/","");
+                }
+                ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, rootShapeTree, shapeTree, requestedName, containerPath + requestedName + "/", relativeDepth);
+                results.add(result);
+            }
+
+            return createPlantResponse(results, this.request, this.incomingRequestLinkHeaders);
+        }
+    }
+
+    private void validateRequestBody(Graph graphToValidate, URI baseURI, List<ShapeTreeStep> shapeTreesToPlant) throws IOException, URISyntaxException {
+        ShapeTreeStep validatingShapeTree = getShapeTreeWithShapeURI(shapeTreesToPlant);
+
+        ValidationResult validationResult = null;
+        // If there is a graph to validate...and a ShapeTree indicates it wants to validate the container body
+        if (graphToValidate != null && validatingShapeTree != null && validatingShapeTree.getShapeUri() != null) {
+            // ...and a focus node was provided via the focusNode header, then we perform our validation
+            URI focusNodeURI = getIncomingResolvedFocusNode(baseURI, true);
+            validationResult = validatingShapeTree.validateContent(this.authorizationHeaderValue, graphToValidate, focusNodeURI, true);
+        }
+
+        // If there is a body graph and it did not pass validation, return an error
+        if (graphToValidate != null && validationResult != null && !validationResult.getValid()) {
+            throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + validatingShapeTree.getURI());
+        }
+    }
+
+    private void validateShapeTrees(URI requestURI, String requestedName, List<ShapeTreeStep> shapeTreesToPlant) throws IOException, URISyntaxException {
+
+        // Determine if the target container exists, if so, retrieve any existing ShapeTrees to validate alongside the newly requested ones
+        RemoteResource targetContainer = new RemoteResource(requestURI + requestedName, authorizationHeaderValue);
+        if (targetContainer.exists()) {
+            String existingMetaDataURIString = getMetadataResourceURI(targetContainer);
+            RemoteResource targetMetadata = new RemoteResource(existingMetaDataURIString, authorizationHeaderValue);
+            if (targetMetadata.exists()) {
+                List<ShapeTreeLocator> locators = getShapeTreeLocators(targetMetadata.getGraph(new URI(requestURI.toString() + requestedName)));
+                for (ShapeTreeLocator locator : locators) {
+                    ShapeTreeStep shapeTree = ShapeTreeFactory.getShapeTreeStep(new URI(locator.getShapeTree()));
+                    log.debug("Found ShapeTree [{}] already planted in existing container, adding to list to validate", shapeTree.getURI());
+                    shapeTreesToPlant.add(shapeTree);
+                }
+            }
+        }
+
+        String foundShapeURI = null;
+        List<URI> foundContents = null;
+
+        for (ShapeTreeStep shapeTree : shapeTreesToPlant) {
+            if (shapeTree.getShapeUri() != null) {
+                if (foundShapeURI == null) {
+                    foundShapeURI = shapeTree.getShapeUri();
+                }
+                else {
+                    throw new ShapeTreeException(400, "Only one ShapeTree provided can specify a ShapeURI");
+                }
+            }
+
+            if (shapeTree.getContents() != null && shapeTree.getContents().size() > 0) {
+                if (foundContents == null) {
+                    foundContents = shapeTree.getContents();
+                } else {
+                    throw new ShapeTreeException(400, "Only one ShapeTree provided can specify Contents");
+                }
             }
         }
     }

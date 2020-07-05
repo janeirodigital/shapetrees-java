@@ -1,13 +1,22 @@
-package com.janeirodigital.shapetrees.test;
+package com.janeirodigital.solid.interoperability.tests;
 
 import com.janeirodigital.shapetrees.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.test.BaseShapeTreeTest;
+import com.janeirodigital.solid.interoperability.SolidInteroperabilityEcosystem;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class EcoSystemTests extends BaseShapeTreeTest {
+public class EcosystemTests extends BaseShapeTreeTest {
+
+    public EcosystemTests() {
+        super(new SolidInteroperabilityEcosystem());
+    }
 
     @Order(1)
     @Test
@@ -29,7 +38,7 @@ public class EcoSystemTests extends BaseShapeTreeTest {
     @DisplayName("Plant Agent Tree")
     @SneakyThrows
     void plantAgentTree() {
-        plant(new URI(ROOT_PATH), new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#agent-tree"), "profile");
+        plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#profile-tree")), "profile", null);
     }
 
     @Order(3)
@@ -37,7 +46,7 @@ public class EcoSystemTests extends BaseShapeTreeTest {
     @DisplayName("POST Agent ID Doc - Validation FAILURE")
     @SneakyThrows
     void postAgentIdFailure() {
-        postContent(new URI(ROOT_PATH+"profile/"), "id", false, "target/test-classes/test-data/ecosystem/agent-profile-bad.ttl", "#me", 400);
+        postContent(new URI(ROOT_PATH+"profile/"), "id", false, "target/test-classes/test-data/ecosystem/agent-profile-bad.ttl", "#me", 422);
     }
 
     @Order(4)
@@ -53,7 +62,7 @@ public class EcoSystemTests extends BaseShapeTreeTest {
     @DisplayName("Plant Registrar Tree - Validation FAILURE")
     @SneakyThrows
     void plantRegistrarTreeFailure() {
-        plantWithResourceContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#registrar-tree"), "registries", "target/test-classes/test-data/ecosystem/registries-bad.ttl", "text/turtle", "#registrar", 400 );
+        plantWithResourceContent(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#registrar-tree")), "registries", "target/test-classes/test-data/ecosystem/registries-bad.ttl", "text/turtle", "#registrar", 422 );
     }
 
 
@@ -62,7 +71,7 @@ public class EcoSystemTests extends BaseShapeTreeTest {
     @DisplayName("Plant Registrar Tree - Validation SUCCESS")
     @SneakyThrows
     void plantRegistrarTreeSuccess() {
-        plantWithResourceContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#registrar-tree"), "registries", "target/test-classes/test-data/ecosystem/registries.ttl", "text/turtle", "#registrar", 201 );
+        plantWithResourceContent(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#registrar-tree")), "registries", "target/test-classes/test-data/ecosystem/registries.ttl", "text/turtle", "#registrar", 201 );
     }
 
     @Order(7)
@@ -70,7 +79,7 @@ public class EcoSystemTests extends BaseShapeTreeTest {
     @DisplayName("Create Data Registry Set - Validation FAILURE")
     @SneakyThrows
     void putDataRegistrySetFailure() {
-        putContent(new URI(ROOT_PATH+"registries/data"), false, "target/test-classes/test-data/ecosystem/data-registry-set-bad.ttl", "#set", 400);
+        putContent(new URI(ROOT_PATH+"registries/data"), false, "target/test-classes/test-data/ecosystem/data-registry-set-bad.ttl", "#set", 422);
     }
 
     @Order(8)
@@ -86,7 +95,7 @@ public class EcoSystemTests extends BaseShapeTreeTest {
     @DisplayName("Create Data Registry - Validation FAILURE")
     @SneakyThrows
     void plantDataRegistryFailure() {
-        plantWithResourceContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registry-tree"), "data", "target/test-classes/test-data/ecosystem/empty-data-registry-bad.ttl", "text/turtle", "#registry", 400 );
+        plantWithResourceContent(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registry-tree")), "data", "target/test-classes/test-data/ecosystem/empty-data-registry-bad.ttl", "text/turtle", "#registry", 422 );
     }
 
     @Order(10)
@@ -94,7 +103,7 @@ public class EcoSystemTests extends BaseShapeTreeTest {
     @DisplayName("Create Data Registry - Validation SUCCESS")
     @SneakyThrows
     void plantDataRegistrySuccess() {
-        plantWithResourceContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registry-tree"), "data", "target/test-classes/test-data/ecosystem/empty-data-registry.ttl", "text/turtle", "#registry", 201 );
+        plantWithResourceContent(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registry-tree")), "data", "target/test-classes/test-data/ecosystem/empty-data-registry.ttl", "text/turtle", "#registry", 201 );
     }
 
     @Order(11)
@@ -102,7 +111,9 @@ public class EcoSystemTests extends BaseShapeTreeTest {
     @DisplayName("Plant Git Orgs - Validation SUCCESS")
     @SneakyThrows
     void plantGitOrgsSuccess() {
-        plant(new URI(ROOT_PATH+"data/"), new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#orgs"), "49a4057a_5259");
+        List<URI> shapeTreesToPlant = new ArrayList<>();
+        shapeTreesToPlant.add(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#orgs"));
+        shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
+        plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "gitorgs", "#registration");
     }
-
 }

@@ -1,12 +1,18 @@
 package com.janeirodigital.shapetrees.test;
 
+import com.janeirodigital.shapetrees.ShapeTreeVocabulary;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 
 import java.net.URI;
+import java.util.Collections;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ShapeTreeTests extends BaseShapeTreeTest {
+
+    public ShapeTreeTests() {
+        super(new MockEcosystem());
+    }
 
     @Order(1)
     @SneakyThrows
@@ -29,7 +35,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PLANT - should fail with bad turtle")
     @Test
     void plantBadTurtle() {
-        plantWithStringContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "@prefix x: <> @@bad Turtle@@", "text/turtle", "#", 422);
+        plantWithStringContent(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top")), "ShouldNotExist", "@prefix x: <> @@bad Turtle@@", "text/turtle", "#", 422);
     }
 
     @Order(4)
@@ -37,7 +43,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PLANT - should fail with bad JSON")
     @Test
     void plantBadJSON() {
-        plantWithStringContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "{ \"foo\": 1, \"@id\": 2@@bad JSON}", "application/ld+json", "#", 422);
+        plantWithStringContent(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top")), "ShouldNotExist", "{ \"foo\": 1, \"@id\": 2@@bad JSON}", "application/ld+json", "#", 422);
     }
 
     @Order(5)
@@ -45,7 +51,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PLANT - should fail with bad JSONLD")
     @Test
     void plantBadJSONLD() {
-        plantWithStringContent(new URI(ROOT_PATH), new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top"), "ShouldNotExist", "{ \"foo\": 1, \"@id\": 2}", "application/ld+json", "#", 422);
+        plantWithStringContent(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/cal/GoogleShapeTree.jsonld#top")), "ShouldNotExist", "{ \"foo\": 1, \"@id\": 2}", "application/ld+json", "#", 422);
     }
 
     @Order(6)
@@ -53,8 +59,8 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PUT Tests - plant ShapeMaps-PUT-tests/")
     @Test
     void putTestsplantPUTTests() {
-        plant(new URI(ROOT_PATH), new URI("http://localhost:9999/static/gh-deep/gh-deep-ShapeTree.jsonld#root"), "ShapeMaps-PUT-tests");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"), new URI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), ".");
+        plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-deep/gh-deep-ShapeTree.jsonld#root")), "ShapeMaps-PUT-tests", null);
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Order(7)
@@ -96,7 +102,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @SneakyThrows
     void putTestCreateReposEricPrud() {
         postContent(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/"), "ericprud", true, "target/test-classes/test-data/apps/gh-deep/ericprud-org.ttl", "#ericprud");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/"), new URI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), "./repos/ericprud/");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), "./repos/ericprud/");
         ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/"), "./repos/ericprud/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
     }
 

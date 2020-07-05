@@ -2,7 +2,6 @@ package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.RemoteResource;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.NodeFactory;
@@ -17,6 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RemoteResourceTests extends BaseShapeTreeTest {
+
+    public RemoteResourceTests() {
+        super(new MockEcosystem());
+    }
 
     @Test
     @Order(1)

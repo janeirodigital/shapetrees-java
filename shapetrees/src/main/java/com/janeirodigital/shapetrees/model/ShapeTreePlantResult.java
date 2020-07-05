@@ -9,6 +9,7 @@ import java.util.List;
 
 @Getter @AllArgsConstructor @NoArgsConstructor
 public class ShapeTreePlantResult {
+    private URI shapeTreeURI;
     private URI rootContainer;
     private URI rootContainerMetadata;
     private List<URI> createdChildren;

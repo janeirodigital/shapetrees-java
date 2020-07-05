@@ -1,8 +1,7 @@
 package com.janeirodigital.shapetrees.client;
 
-import com.janeirodigital.shapetrees.RemoteResource;
-import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
-import com.janeirodigital.shapetrees.ShapeTreeException;
+import com.janeirodigital.shapetrees.*;
+import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.model.ShapeTreeStep;
 import com.janeirodigital.shapetrees.model.ValidationResult;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +16,8 @@ import org.apache.jena.update.UpdateRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class ValidatingPatchHandler extends AbstractValidatingHandler implements ValidatingHandler {
@@ -30,8 +31,9 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
         ensureRequestResourceExists("Resource being PATCHed does not exist");
         if (this.incomingRequestContentType == null || !this.incomingRequestContentType.toLowerCase().equals("application/sparql-update")) {
             log.error("Received a patch without a content type of application/sparql-update");
-            throw new ShapeTreeException(400, "PATCH verb expects a content type of application/sparql-update");
+            throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");
         }
+
         // Get the parent container URI
         URI parentURI = getParentContainerURI();
         // Get requested name (resource being PATCHed)
@@ -44,20 +46,30 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
         RemoteResource parentContainerMetadataResource = new RemoteResource(parentContainerMetaDataURIString, authorizationHeaderValue);
         // Retrieve graph of parent container metadata resource
         Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph(parentURI);
+
+        URI normalizedBaseURI = normalizeBaseURI(this.requestRemoteResource.getURI(), null, this.requestRemoteResource.isContainer());
         // Get the shape tree step that manages that container
-        boolean shapeTreeManagedContainer = parentContainerMetadataGraph != null && parentContainerMetadataGraph.contains(null, NodeFactory.createURI(SHAPE_TREE_STEP_PREDICATE), null);
+        boolean shapeTreeManagedContainer = parentContainerMetadataGraph != null && parentContainerMetadataGraph.contains(null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR), null);
         // If managed, do validation
         if (shapeTreeManagedContainer) {
-            // This is the ShapeTree step that managed the container we're posting to
-            ShapeTreeStep containerShapeTreeStep = getShapeTreeStepFromGraphByPredicate(parentContainerMetadataGraph, SHAPE_TREE_STEP_PREDICATE);
+
+            List<ShapeTreeLocator> shapeTreeLocatorMetadatas = getShapeTreeLocators(parentContainerMetadataGraph);
+
+            List<ShapeTreeStep> shapeTrees = new ArrayList<>();
+            for (ShapeTreeLocator locator : shapeTreeLocatorMetadatas) {
+                shapeTrees.add(ShapeTreeFactory.getShapeTreeStep(new URI(locator.getShapeTree())));
+            }
+
+            ShapeTreeStep validatingShapeTree = getShapeTreeWithContents(shapeTrees);
+
             /* This is the ShapeTree that the container being created must adhere to
                it is identified by traversing the ShapeTree steps contained within containerShapeTreeStep
                and finding the one whose uriTemplate matches the Slug of the container we're about to create
              */
-            ShapeTreeStep targetShapeTreeStep = containerShapeTreeStep.findMatchingContainsShapeTreeStep(requestedName);
+            ShapeTreeStep targetShapeTreeStep = validatingShapeTree.findMatchingContainsShapeTreeStep(requestedName);
 
             // Get existing resource graph (prior to PATCH)
-            Graph existingResourceGraph = requestRemoteResource.getGraph(requestRemoteResource.getURI());
+            Graph existingResourceGraph = requestRemoteResource.getGraph(normalizedBaseURI);
 
             // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
             UpdateRequest updateRequest = UpdateFactory.create(this.incomingRequestBody);
@@ -67,7 +79,7 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
                 throw new ShapeTreeException(400, "No graph after update");
             }
 
-            URI focusNodeURI = getIncomingResolvedFocusNode(this.requestRemoteResource.getURI(), true);
+            URI focusNodeURI = getIncomingResolvedFocusNode(normalizedBaseURI, true);
             ValidationResult validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, existingResourceGraph, focusNodeURI, this.requestRemoteResource.isContainer());
 
             if (validationResult.getValid()) {
@@ -75,11 +87,12 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
                 return chain.proceed(chain.request());
             } else {
                 // Otherwise, return a validation error
-                throw new ShapeTreeException(400, "Payload did not meet requirements defined by ShapeTree " + targetShapeTreeStep.getURI());
+                throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + targetShapeTreeStep.getURI());
             }
         } else {
             // If the parent container is managed, then pass through the PATCH
             return chain.proceed(chain.request());
         }
     }
+
 }

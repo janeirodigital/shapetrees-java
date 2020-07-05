@@ -1,8 +1,9 @@
 package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.RemoteResource;
+import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
+import com.janeirodigital.shapetrees.ShapeTreeVocabulary;
 import com.janeirodigital.shapetrees.client.ShapeTreeValidatingClientBuilder;
-import com.janeirodigital.shapetrees.enums.Namespaces;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -35,10 +36,12 @@ public abstract class BaseShapeTreeTest {
     protected static final String ROOT_PATH = SERVER_ROOT+"aHR0cDovL2RldnNlcnZlcjozMDA4Mi9hdXRoL3JlYWxtcy9tYXN0ZXJiMzg4YmJlMV85ZjYzXzRlYmNfYmEzMF80MWY4ZmJjZmM0NTc/shapetree-testing/";
     protected static final String TOKEN = "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJodHRwczpcL1wvbGRwLmxvY2FsLWVzcy5pbnJ1cHQuY29tXC9hSFIwY0RvdkwyUmxkbk5sY25abGNqb3pNREE0TWk5aGRYUm9MM0psWVd4dGN5OXRZWE4wWlhKaU16ZzRZbUpsTVY4NVpqWXpYelJsWW1OZlltRXpNRjgwTVdZNFptSmpabU0wTlRjXC9wcm9maWxlXC9jYXJkI21lIiwiYXpwIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDAiLCJpc3MiOiJodHRwczpcL1wvb2lkYy5sb2NhbC1lc3MuaW5ydXB0LmNvbVwvIiwiY25mIjp7ImprdCI6Ik01RUlYX0hMbGxvazhOR3U2b0FURGtFaTJNNVFsMEt2TVV4c0pVOTEtSzgifSwiZXhwIjoxNTk0MDc5Mzg3LCJpYXQiOjE1OTM0NzQ1ODcsImp0aSI6ImRlZjRiOGNkLTQ4YzUtNDM5My1iMzQ0LTFmYmRjNThiZDk5MiJ9.OaUV1UrvoM8uThUZ78j4BcgQ8FRjy6aVWkktCLD-blB1wh8imJM97oCfUYuAiE67Wsj7aEJsDk3L58NvkJnX-8A238H8CzlSS1SqywagE3K1taq7iqV2aYUWCHVJ8UAVv2aK8ZzZY1mog3ISgSAthSdQNMNU95PeSrsucro1mJn77s3lMXXOIcKp24IclsvDaHLXcvxVSVHOUr-aArjP1itofvDMaeLVoqSbW8ZsGeAmCr3jaaEVudaL3mI1f7y9aN4I0K3w7qgxxQwLoeoNJd7OftrN4W_I9k0XrHJNQgls6XY6HEL0v63R-rDlWe2i28s2Kqb3adE1nYBGD17cmA";
     protected static final String AUTH_HEADER_VALUE = "Bearer " + TOKEN;
-    protected static final String SHAPE_TREE_ROOT_PREDICATE = Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeRoot";
-    protected static final String SHAPE_TREE_INSTANCE_PATH_PREDICATE = Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeInstancePath";
-    protected static final String SHAPE_TREE_INSTANCE_ROOT_PREDICATE = Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeInstanceRoot";
-    protected static final String SHAPE_TREE_STEP_PREDICATE = Namespaces.SHAPETREE_NAMESPACE.getValue() + "shapeTreeStep";
+    private final ShapeTreeEcosystem ecosystem;
+
+    public BaseShapeTreeTest(ShapeTreeEcosystem ecosystem) {
+        this.ecosystem = ecosystem;
+    }
+
 
     @SneakyThrows
     @BeforeAll
@@ -58,12 +61,12 @@ public abstract class BaseShapeTreeTest {
         }
     }
 
-    static Response patchContent(URI patchResource, boolean isContainer, String sparqlUpdate, String focusNode) throws IOException {
+    protected Response patchContent(URI patchResource, boolean isContainer, String sparqlUpdate, String focusNode) throws IOException {
         return patchContent(patchResource, isContainer, sparqlUpdate, focusNode, 204);
     }
 
-    static Response patchContent(URI patchResource, boolean isContainer, String sparqlUpdate, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder((new MockEcosystem())).get();
+    protected Response patchContent(URI patchResource, boolean isContainer, String sparqlUpdate, String focusNode, Integer expectedCode) throws IOException {
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder((this.ecosystem)).get();
 
         byte[] sparqlUpdateBytes = sparqlUpdate.getBytes();
 
@@ -80,12 +83,12 @@ public abstract class BaseShapeTreeTest {
         return response;
     }
 
-    static Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode) throws IOException {
+    protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode) throws IOException {
         return postContent(parentContainer, slug, isContainer, bodyResourcePath, focusNode, 201);
     }
 
-    static Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(new MockEcosystem()).get();
+    protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
 
@@ -107,12 +110,12 @@ public abstract class BaseShapeTreeTest {
         return response;
     }
 
-    static Response putContent(URI resourceURI, boolean isContainer, String bodyResourcePath, String focusNode) throws IOException {
+    protected Response putContent(URI resourceURI, boolean isContainer, String bodyResourcePath, String focusNode) throws IOException {
         return putContent(resourceURI, isContainer, bodyResourcePath, focusNode, 201);
     }
 
-    static Response putContent(URI resourceURI, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(new MockEcosystem()).get();
+    protected Response putContent(URI resourceURI, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
 
@@ -133,29 +136,34 @@ public abstract class BaseShapeTreeTest {
         return response;
     }
 
-    static Response plant(URI parentContainer, URI shapeTreeStepURI, String slug) throws IOException {
-        return plantWithStringContent(parentContainer, shapeTreeStepURI, slug, null, "text/turtle", null, 201);
+    protected Response plant(URI parentContainer, List<URI> shapeTreeStepURIs, String slug, String focusNode) throws IOException {
+        return plantWithStringContent(parentContainer, shapeTreeStepURIs, slug, null, "text/turtle", focusNode, 201);
     }
 
-    static Response plantWithResourceContent(URI parentContainer, URI shapeTreeStepURI, String slug, String bodyResourcePath, String contentType, String focusNode, Integer expectedCode) throws IOException {
+    protected Response plantWithResourceContent(URI parentContainer, List<URI> shapeTreeStepURIs, String slug, String bodyResourcePath, String contentType, String focusNode, Integer expectedCode) throws IOException {
         FileInputStream inputStream = new FileInputStream(bodyResourcePath);
         String bodyString = IOUtils.toString(inputStream, "UTF-8");
 
-        return plantWithStringContent(parentContainer, shapeTreeStepURI, slug, bodyString, contentType, focusNode, expectedCode);
+        return plantWithStringContent(parentContainer, shapeTreeStepURIs, slug, bodyString, contentType, focusNode, expectedCode);
     }
 
-    static Response plantWithStringContent(URI parentContainer, URI shapeTreeStepURI, String slug, String content, String contentType, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(new MockEcosystem()).get();
+    protected Response plantWithStringContent(URI parentContainer, List<URI> shapeTreeStepURIs, String slug, String content, String contentType, String focusNode, Integer expectedCode) throws IOException {
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         byte[] bytes = new byte[]{};
         if (content != null) {
             bytes = content.getBytes();
         }
 
-        Request plantPost = new Request.Builder()
+        Request.Builder builder = new Request.Builder()
                 .url(parentContainer.toString())
-                .addHeader("Authorization", AUTH_HEADER_VALUE)
-                .addHeader("Link", "<" + shapeTreeStepURI.toString() + ">; rel=\"ShapeTree\"")
+                .addHeader("Authorization", AUTH_HEADER_VALUE);
+
+        for (URI shapeTreeUri : shapeTreeStepURIs) {
+            builder.addHeader("Link", "<" + shapeTreeUri.toString() + ">; rel=\"ShapeTree\"");
+        }
+
+        Request plantPost = builder
                 .addHeader("Link", "<http://www.w3.org/ns/ldp#Container>; rel=\"type\"")
                 .addHeader("Link", "<" + focusNode + ">; rel=\"focusNode\"")
                 .addHeader("Slug", slug)
@@ -168,13 +176,13 @@ public abstract class BaseShapeTreeTest {
         return response;
     }
 
-    static Response delete(URI resourceURI) throws IOException {
+    protected Response delete(URI resourceURI) throws IOException {
         return delete(resourceURI, 204);
     }
 
-    static Response delete(URI resourceURI, Integer expectedCode) throws IOException
+    protected Response delete(URI resourceURI, Integer expectedCode) throws IOException
     {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(new MockEcosystem()).get();
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         Request delete = new Request.Builder()
                 .url(resourceURI.toString())
@@ -187,14 +195,14 @@ public abstract class BaseShapeTreeTest {
         return response;
 
     }
-    static void ensureExists(URI uri) throws IOException {
+    protected static void ensureExists(URI uri) throws IOException {
         RemoteResource resource = new RemoteResource(uri, AUTH_HEADER_VALUE);
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }
     }
 
-    static void ensureExistsWithPredicate(URI uri, URI predicate) throws IOException, URISyntaxException {
+    protected static void ensureExistsWithPredicate(URI uri, URI predicate) throws IOException, URISyntaxException {
         RemoteResource resource = new RemoteResource(uri, AUTH_HEADER_VALUE);
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
@@ -202,16 +210,16 @@ public abstract class BaseShapeTreeTest {
         ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(predicate.toString()), null);
     }
 
-    static void ensureExistsHasMetadataWithPredicateValue(URI uri, URI predicate, Object value) throws IOException, URISyntaxException {
+    protected static void ensureExistsHasMetadataWithPredicateValue(URI uri, URI predicate, Object value) throws IOException, URISyntaxException {
         ensureExistsWithPredicateValue(getMetadataResourceURI(uri), uri, predicate, value);
     }
 
-    static void ensureExistsWithPredicateValue(URI uri, URI predicate, Object value) throws IOException, URISyntaxException {
+    protected static void ensureExistsWithPredicateValue(URI uri, URI predicate, Object value) throws IOException, URISyntaxException {
         ensureExistsWithPredicateValue(uri, uri, predicate, value);
     }
 
 
-    static void ensureExistsWithPredicateValue(URI uri, URI baseURI, URI predicate, Object value) throws IOException, URISyntaxException {
+    protected static void ensureExistsWithPredicateValue(URI uri, URI baseURI, URI predicate, Object value) throws IOException, URISyntaxException {
         RemoteResource resource = new RemoteResource(uri, AUTH_HEADER_VALUE);
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
@@ -219,16 +227,16 @@ public abstract class BaseShapeTreeTest {
         ensureExistingTriple(resource.getGraph(baseURI), null, NodeFactory.createURI(predicate.toString()), value);
     }
 
-    static void ensureExistsHasMetadataWithValues(URI uri, String instancePathValue, URI instanceRootValue) throws IOException, URISyntaxException{
+    protected static void ensureExistsHasMetadataWithValues(URI uri, String instancePathValue, URI instanceRootValue) throws IOException, URISyntaxException{
         RemoteResource resource = new RemoteResource(getMetadataResourceURI(uri), AUTH_HEADER_VALUE);
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }
-        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(SHAPE_TREE_INSTANCE_PATH_PREDICATE), instancePathValue);
-        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(SHAPE_TREE_INSTANCE_ROOT_PREDICATE), instanceRootValue);
+        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), instancePathValue);
+        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_ROOT), instanceRootValue);
     }
 
-    private static void ensureExistingTriple(Graph graph, Object subject, Object predicate, Object object) {
+    protected static void ensureExistingTriple(Graph graph, Object subject, Object predicate, Object object) {
         if (graph == null) {
             throw new AssertionFailedError("Graph is null");
         }
@@ -273,7 +281,7 @@ public abstract class BaseShapeTreeTest {
     }
 
     @SneakyThrows
-    static void ensureNotExists(URI uri) {
+    protected static void ensureNotExists(URI uri) {
         RemoteResource resource = new RemoteResource(uri, AUTH_HEADER_VALUE);
         if (resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " unexpectedly exists");
@@ -282,7 +290,7 @@ public abstract class BaseShapeTreeTest {
 
     @NotNull
     @SneakyThrows
-    static URI getMetadataResourceURI(URI primaryResourceURI) {
+    protected static URI getMetadataResourceURI(URI primaryResourceURI) {
         return new URI(primaryResourceURI.toString() + ".meta");
     }
 }
