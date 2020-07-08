@@ -1,9 +1,9 @@
 package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
+import com.janeirodigital.shapetrees.model.ShapeTree;
 import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
-import com.janeirodigital.shapetrees.model.ShapeTreeStep;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 
@@ -22,12 +22,12 @@ public class MockEcosystem implements ShapeTreeEcosystem {
     }
 
     @Override
-    public ShapeTreePlantResult getExistingShapeTreeFromContainer(URI parentContainer, URI shapeTreeURI) {
-        return null;
+    public ShapeTreePlantResult getExistingShapeTreeFromContainer(ShapeTreeContext context, URI parentContainer, List<ShapeTree> shapeTreesToPlant, String requestedName) {
+        return new ShapeTreePlantResult();
     }
 
     @Override
-    public Graph beforePlantShapeTree(ShapeTreeContext context, URI expectedURI, Graph graph, List<ShapeTreeStep> shapeTreesToPlant, Map<String, List<String>> linkHeaders) throws URISyntaxException {
+    public Graph beforePlantShapeTree(ShapeTreeContext context, URI expectedURI, Graph graph, List<ShapeTree> shapeTreesToPlant, Map<String, List<String>> linkHeaders) throws URISyntaxException {
         return graph;
     }
 

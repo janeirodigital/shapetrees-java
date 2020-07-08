@@ -21,7 +21,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     void createGitOrgs()
     {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#orgs")), "Git-Orgs", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Orgs/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Orgs/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Test
@@ -30,7 +30,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @Order(2)
     void createGitUsers() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#users")), "Git-Users", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Users/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Users/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Test
@@ -39,7 +39,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @Order(3)
     void createGitRepos() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#repos")), "Git-Repos", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Repos/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Repos/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Test
@@ -48,7 +48,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @Order(4)
     void createGitIssues() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#issues")), "Git-Issues", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Issues/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Issues/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Test
@@ -57,7 +57,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @Order(5)
     void createGitComments() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#cmnt_C")), "Git-Comments", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Comments/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Comments/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Test
@@ -66,7 +66,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @Order(6)
     void createGitEvents() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#evt_C")), "Git-Events", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Events/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Events/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Test
@@ -75,7 +75,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @Order(7)
     void createGitLabels() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#lbl_C")), "Git-Labels", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Labels/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Labels/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Test
@@ -84,7 +84,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @Order(8)
     void createGitMilestones() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#mlt_C")), "Git-Milestones", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Milestones/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Milestones/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Test

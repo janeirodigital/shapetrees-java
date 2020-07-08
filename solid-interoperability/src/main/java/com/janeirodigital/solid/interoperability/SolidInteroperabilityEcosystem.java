@@ -2,9 +2,9 @@ package com.janeirodigital.solid.interoperability;
 
 import com.janeirodigital.shapetrees.RemoteResource;
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
+import com.janeirodigital.shapetrees.model.ShapeTree;
 import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
-import com.janeirodigital.shapetrees.model.ShapeTreeStep;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -34,12 +34,13 @@ public class SolidInteroperabilityEcosystem implements ShapeTreeEcosystem {
     }
 
     @Override
-    public ShapeTreePlantResult getExistingShapeTreeFromContainer(URI parentContainer, URI shapeTreeURI) {
+    public ShapeTreePlantResult getExistingShapeTreeFromContainer(ShapeTreeContext context, URI parentContainer, List<ShapeTree> shapeTreesToPlant, String requestedName) {
+        // TODO implement specific logic to look for existing ShapeTree plants for the given ShapeTree
         return new ShapeTreePlantResult();
     }
 
     @Override
-    public Graph beforePlantShapeTree(ShapeTreeContext context, URI expectedURI, Graph incomingGraph, List<ShapeTreeStep> shapeTreesToPlant, Map<String, List<String>> linkHeaders) throws URISyntaxException {
+    public Graph beforePlantShapeTree(ShapeTreeContext context, URI expectedURI, Graph incomingGraph, List<ShapeTree> shapeTreesToPlant, Map<String, List<String>> linkHeaders) throws URISyntaxException {
         // If one of the ShapeTrees being planted is a data registration, add the data registration triples to the incoming graph
         if (linkHeaders.get(REL_SHAPE_TREE) != null && linkHeaders.get(REL_SHAPE_TREE).contains(SHAPE_TREE_DATA_REGISTRATION)) {
 
@@ -49,7 +50,7 @@ public class SolidInteroperabilityEcosystem implements ShapeTreeEcosystem {
             triplesToAdd.add(new Triple(NodeFactory.createURI(registrationSubject), NodeFactory.createURI(SolidEcosystem.REGISTERED_BY), NodeFactory.createURI(context.getWebID())));
             triplesToAdd.add(new Triple(NodeFactory.createURI(registrationSubject), NodeFactory.createURI(SolidEcosystem.REGISTERED_WITH), NodeFactory.createURI(context.getOriginatorIRI())));
             triplesToAdd.add(new Triple(NodeFactory.createURI(registrationSubject), NodeFactory.createURI(SolidEcosystem.REGISTERED_AT), NodeFactory.createLiteralByValue(DateTimeUtils.nowAsXSDDateTimeString(), XSDDatatype.XSDdateTime)));
-            for (ShapeTreeStep shapeTreeToPlant : shapeTreesToPlant) {
+            for (ShapeTree shapeTreeToPlant : shapeTreesToPlant) {
                 if (!shapeTreeToPlant.getURI().toString().equals(SHAPE_TREE_DATA_REGISTRATION)) {
                     triplesToAdd.add(new Triple(NodeFactory.createURI(registrationSubject), NodeFactory.createURI(SolidEcosystem.REGISTERED_SHAPE_TREE), NodeFactory.createURI(shapeTreeToPlant.getURI().toString())));
                 }

@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees;
 
-import com.janeirodigital.shapetrees.model.ReferencedShapeTreeStep;
-import com.janeirodigital.shapetrees.model.ShapeTreeStep;
+import com.janeirodigital.shapetrees.model.ReferencedShapeTree;
+import com.janeirodigital.shapetrees.model.ShapeTree;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_URI;
@@ -17,26 +17,19 @@ import java.util.Map;
 
 @Slf4j
 public class ShapeTreeFactory {
-    private static final String EXPECTED_TYPE = "http://www.w3.org/ns/shapetree#expectedType";
-    private static final String REFERENCES = "http://www.w3.org/ns/shapetree#references";
-    private static final String CONTENTS = "http://www.w3.org/ns/shapetree#contents";
-    private static final String TREE_STEP = "http://www.w3.org/ns/shapetree#treeStep";
-    private static final String SHAPE_PATH = "http://www.w3.org/ns/shapetree#shapePath";
-    private static final String SHAPE = "http://www.w3.org/ns/shapetree#shape";
-    private static final String URI_TEMPLATE = "http://www.w3.org/ns/shapetree#uriTemplate";
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
 
-    private static final Map<URI, ShapeTreeStep> localShapeTreeCache = new HashMap<>();
+    private static final Map<URI, ShapeTree> localShapeTreeCache = new HashMap<>();
 
-    public static ShapeTreeStep getShapeTreeStep(URI shapeTreeStepURI) throws URISyntaxException, ShapeTreeException {
-        if (localShapeTreeCache.containsKey(shapeTreeStepURI)) {
-            log.debug("[{}] previously cached -- returning", shapeTreeStepURI.toString());
-            return localShapeTreeCache.get(shapeTreeStepURI);
+    public static ShapeTree getShapeTree(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
+        if (localShapeTreeCache.containsKey(shapeTreeURI)) {
+            log.debug("[{}] previously cached -- returning", shapeTreeURI.toString());
+            return localShapeTreeCache.get(shapeTreeURI);
         }
 
-        dereferenceAndParseShapeTreeResource(shapeTreeStepURI);
+        dereferenceAndParseShapeTreeResource(shapeTreeURI);
 
-        return localShapeTreeCache.get(shapeTreeStepURI);
+        return localShapeTreeCache.get(shapeTreeURI);
     }
 
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
@@ -44,69 +37,69 @@ public class ShapeTreeFactory {
 
         Resource resource = model.getResource(shapeTreeURI.toString());
         if (resource != null) {
-            recursivelyParseShapeTreeStep(model, resource);
+            recursivelyParseShapeTree(model, resource);
         }
     }
 
-    private static void recursivelyParseShapeTreeStep(Model model, Resource resource) throws URISyntaxException, ShapeTreeException {
-        String stepURIString = resource.getURI();
-        log.debug("Entering recursivelyParseShapeTreeStep for [{}]", stepURIString);
-        URI stepURI = new URI(stepURIString);
+    private static void recursivelyParseShapeTree(Model model, Resource resource) throws URISyntaxException, ShapeTreeException {
+        String shapeTreeURIString = resource.getURI();
+        log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
+        URI shapeTreeURI = new URI(shapeTreeURIString);
 
-        if (localShapeTreeCache.containsKey(stepURI)) {
-            log.debug("[{}] previously cached -- returning", stepURIString);
+        if (localShapeTreeCache.containsKey(shapeTreeURI)) {
+            log.debug("[{}] previously cached -- returning", shapeTreeURIString);
             return;
         }
 
-        ShapeTreeStep step = new ShapeTreeStep();
+        ShapeTree shapeTree = new ShapeTree();
         // Set the URI as the ID (string representation)
-        step.setId(stepURIString);
+        shapeTree.setId(shapeTreeURIString);
         // Set the expected resource type
-        step.setRdfResourceType(getStringValue(model, resource, EXPECTED_TYPE));
+        shapeTree.setRdfResourceType(getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE));
         // Set URI Template
-        step.setUriTemplate(getStringValue(model, resource, URI_TEMPLATE));
+        shapeTree.setUriTemplate(getStringValue(model, resource, ShapeTreeVocabulary.MATCHES_URI_TEMPLATE));
         // Set Shape URI
-        step.setShapeUri(getStringValue(model, resource, SHAPE));
+        shapeTree.setShapeUri(getStringValue(model, resource, ShapeTreeVocabulary.VALIDATED_BY));
         // Set Label
-        step.setLabel(getStringValue(model, resource, RDFS_LABEL));
+        shapeTree.setLabel(getStringValue(model, resource, RDFS_LABEL));
         // Set Reference collection
-        step.setReferences(new ArrayList<>());
+        shapeTree.setReferences(new ArrayList<>());
 
-        // Add the step to the cache before any of the recursive processing
-        localShapeTreeCache.put(stepURI, step);
+        // Add the shapeTree to the cache before any of the recursive processing
+        localShapeTreeCache.put(shapeTreeURI, shapeTree);
 
-        Property referencesProperty = model.createProperty(REFERENCES);
+        Property referencesProperty = model.createProperty(ShapeTreeVocabulary.REFERENCES);
         if (resource.hasProperty(referencesProperty)) {
             List<Statement> referenceStatements = resource.listProperties(referencesProperty).toList();
             for (Statement referenceStatement : referenceStatements) {
 
                 Resource referenceResource = referenceStatement.getObject().asResource();
-                URI referenceStepUri = new URI(getStringValue(model, referenceResource, TREE_STEP));
-                String shapePath = getStringValue(model, referenceResource, SHAPE_PATH);
-                if (!localShapeTreeCache.containsKey(referenceStepUri)) {
-                    // If the model contains the referenced ShapeTree Step, go ahead and parse and cache it
-                    if (model.getResource(referenceStepUri.toString()) != null) {
-                        recursivelyParseShapeTreeStep(model, model.getResource(referenceStepUri.toString()));
+                URI referenceShapeTreeUri = new URI(getStringValue(model, referenceResource, ShapeTreeVocabulary.HAS_SHAPE_TREE));
+                String shapePath = getStringValue(model, referenceResource, ShapeTreeVocabulary.TRAVERSE_VIA_SHAPE_PATH);
+                if (!localShapeTreeCache.containsKey(referenceShapeTreeUri)) {
+                    // If the model contains the referenced ShapeTree, go ahead and parse and cache it
+                    if (model.getResource(referenceShapeTreeUri.toString()) != null) {
+                        recursivelyParseShapeTree(model, model.getResource(referenceShapeTreeUri.toString()));
                     }
                 }
 
-                // Create the object that defines there relation between a Step and its children
-                ReferencedShapeTreeStep referencedStep = new ReferencedShapeTreeStep(referenceStepUri, shapePath);
-                step.getReferences().add(referencedStep);
+                // Create the object that defines there relation between a ShapeTree and its children
+                ReferencedShapeTree referencedShapeTree = new ReferencedShapeTree(referenceShapeTreeUri, shapePath);
+                shapeTree.getReferences().add(referencedShapeTree);
             }
         }
 
         // Containers are expected to have contents
-        if (resource.hasProperty(model.createProperty(CONTENTS)) && !step.getRdfResourceType().contains("Container")) {
+        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !shapeTree.getRdfResourceType().contains("Container")) {
             throw new ShapeTreeException(400, "Contents predicate not expected outside of #Container RDF Types");
         }
-        if (step.getRdfResourceType().contains("Container")) {
-            List<URI> uris = getURLListValue(model, resource, CONTENTS);
-            step.setContents(uris);
+        if (shapeTree.getRdfResourceType().contains("Container")) {
+            List<URI> uris = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
+            shapeTree.setContents(uris);
             if (uris != null) {
                 for (URI uri : uris) {
                     if (!localShapeTreeCache.containsKey(uri)) {
-                        recursivelyParseShapeTreeStep(model, model.getResource(uri.toString()));
+                        recursivelyParseShapeTree(model, model.getResource(uri.toString()));
                     }
                 }
             }

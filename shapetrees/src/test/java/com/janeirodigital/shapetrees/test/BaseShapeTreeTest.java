@@ -136,18 +136,18 @@ public abstract class BaseShapeTreeTest {
         return response;
     }
 
-    protected Response plant(URI parentContainer, List<URI> shapeTreeStepURIs, String slug, String focusNode) throws IOException {
-        return plantWithStringContent(parentContainer, shapeTreeStepURIs, slug, null, "text/turtle", focusNode, 201);
+    protected Response plant(URI parentContainer, List<URI> shapeTreeURIs, String slug, String focusNode) throws IOException {
+        return plantWithStringContent(parentContainer, shapeTreeURIs, slug, null, "text/turtle", focusNode, 201);
     }
 
-    protected Response plantWithResourceContent(URI parentContainer, List<URI> shapeTreeStepURIs, String slug, String bodyResourcePath, String contentType, String focusNode, Integer expectedCode) throws IOException {
+    protected Response plantWithResourceContent(URI parentContainer, List<URI> shapeTreeURIs, String slug, String bodyResourcePath, String contentType, String focusNode, Integer expectedCode) throws IOException {
         FileInputStream inputStream = new FileInputStream(bodyResourcePath);
         String bodyString = IOUtils.toString(inputStream, "UTF-8");
 
-        return plantWithStringContent(parentContainer, shapeTreeStepURIs, slug, bodyString, contentType, focusNode, expectedCode);
+        return plantWithStringContent(parentContainer, shapeTreeURIs, slug, bodyString, contentType, focusNode, expectedCode);
     }
 
-    protected Response plantWithStringContent(URI parentContainer, List<URI> shapeTreeStepURIs, String slug, String content, String contentType, String focusNode, Integer expectedCode) throws IOException {
+    protected Response plantWithStringContent(URI parentContainer, List<URI> shapeTreeURIs, String slug, String content, String contentType, String focusNode, Integer expectedCode) throws IOException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         byte[] bytes = new byte[]{};
@@ -159,7 +159,7 @@ public abstract class BaseShapeTreeTest {
                 .url(parentContainer.toString())
                 .addHeader("Authorization", AUTH_HEADER_VALUE);
 
-        for (URI shapeTreeUri : shapeTreeStepURIs) {
+        for (URI shapeTreeUri : shapeTreeURIs) {
             builder.addHeader("Link", "<" + shapeTreeUri.toString() + ">; rel=\"ShapeTree\"");
         }
 
@@ -232,8 +232,8 @@ public abstract class BaseShapeTreeTest {
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }
-        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), instancePathValue);
-        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_ROOT), instanceRootValue);
+        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), instancePathValue);
+        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), instanceRootValue);
     }
 
     protected static void ensureExistingTriple(Graph graph, Object subject, Object predicate, Object object) {

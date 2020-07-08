@@ -2,8 +2,8 @@ package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.enums.RecursionMethod;
-import com.janeirodigital.shapetrees.model.ReferencedShapeTreeStep;
-import com.janeirodigital.shapetrees.model.ShapeTreeStep;
+import com.janeirodigital.shapetrees.model.ReferencedShapeTree;
+import com.janeirodigital.shapetrees.model.ShapeTree;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.Iterator;
-import java.util.List;
 
 @Slf4j
 public class ShapeTreeParsingTests {
@@ -20,34 +19,34 @@ public class ShapeTreeParsingTests {
     @Test
     @DisplayName("Parse Tree")
     void parseShapeTree() {
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#orgs"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#users"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#user"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#orgs"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#users"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#user"));
     }
 
     @SneakyThrows
     @Test
-    @DisplayName("Get ReferencedSteps DepthFirst")
-    void traverseShapeTreeStepsDFS() {
+    @DisplayName("Get ReferencedShapeTrees DepthFirst")
+    void traverseShapeTreeDFS() {
         log.info("Depth-First:");
-        ShapeTreeStep step = ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#org"));
-        Iterator<ReferencedShapeTreeStep> steps = step.getReferencedSteps(RecursionMethod.DEPTH_FIRST);
-        while (steps.hasNext()) {
-            ReferencedShapeTreeStep refStep = steps.next();
-            log.info(refStep.getReferencedStep().toString());
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#org"));
+        Iterator<ReferencedShapeTree> referencedShapeTrees = shapeTree.getReferencedShapeTrees(RecursionMethod.DEPTH_FIRST);
+        while (referencedShapeTrees.hasNext()) {
+            ReferencedShapeTree shapeTreeReference = referencedShapeTrees.next();
+            log.info(shapeTreeReference.getReferencedShapeTree().toString());
         }
     }
 
     @SneakyThrows
     @Test
-    @DisplayName("Get ReferencedSteps BreadthFirst")
-    void traverseShapeTreeStepsBFS() {
+    @DisplayName("Get ReferencedShapeTrees BreadthFirst")
+    void traverseShapeTreeBFS() {
         log.info("Breadth-First:");
-        ShapeTreeStep step = ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#org"));
-        Iterator<ReferencedShapeTreeStep> steps = step.getReferencedSteps(RecursionMethod.BREADTH_FIRST);
-        while (steps.hasNext()) {
-            ReferencedShapeTreeStep refStep = steps.next();
-            log.info(refStep.getReferencedStep().toString());
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#org"));
+        Iterator<ReferencedShapeTree> referencedShapeTrees = shapeTree.getReferencedShapeTrees(RecursionMethod.BREADTH_FIRST);
+        while (referencedShapeTrees.hasNext()) {
+            ReferencedShapeTree shapeTreeReference = referencedShapeTrees.next();
+            log.info(shapeTreeReference.getReferencedShapeTree().toString());
         }
     }
 

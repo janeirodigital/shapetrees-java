@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.net.URI;
 
 @Getter @AllArgsConstructor
-public class ReferencedShapeTreeStep {
-    URI referencedStep;
+public class ReferencedShapeTree {
+    URI referencedShapeTree;
     String shapePath;
 }

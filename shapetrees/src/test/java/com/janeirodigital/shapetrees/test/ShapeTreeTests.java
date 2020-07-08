@@ -60,7 +60,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @Test
     void putTestsplantPUTTests() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-deep/gh-deep-ShapeTree.jsonld#root")), "ShapeMaps-PUT-tests", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
     }
 
     @Order(7)
@@ -102,7 +102,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @SneakyThrows
     void putTestCreateReposEricPrud() {
         postContent(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/"), "ericprud", true, "target/test-classes/test-data/apps/gh-deep/ericprud-org.ttl", "#ericprud");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/"), new URI(ShapeTreeVocabulary.SHAPE_TREE_INSTANCE_PATH), "./repos/ericprud/");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), "./repos/ericprud/");
         ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/"), "./repos/ericprud/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
     }
 

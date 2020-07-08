@@ -1,9 +1,9 @@
 package com.janeirodigital.shapetrees.client;
 
 import com.janeirodigital.shapetrees.*;
+import com.janeirodigital.shapetrees.model.ShapeTree;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
-import com.janeirodigital.shapetrees.model.ShapeTreeStep;
 import okhttp3.Interceptor;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
@@ -43,8 +43,8 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
         List<ShapeTreePlantResult> results = new ArrayList<>();
         for (ShapeTreeLocator locator : shapeTreeLocatorMetadatas) {
 
-            ShapeTreeStep rootShapeTree = ShapeTreeFactory.getShapeTreeStep(new URI(locator.getRootShapeTree()));
-            ShapeTreeStep shapeTree = ShapeTreeFactory.getShapeTreeStep(new URI(locator.getShapeTree()));
+            ShapeTree rootShapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getRootShapeTree()));
+            ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree()));
 
             // Determine the depth based on container and the relative depth
             String containerPath = locator.getShapeTreeInstancePath();

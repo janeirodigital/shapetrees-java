@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.client;
 
 import com.janeirodigital.shapetrees.*;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
-import com.janeirodigital.shapetrees.model.ShapeTreeStep;
+import com.janeirodigital.shapetrees.model.ShapeTree;
 import com.janeirodigital.shapetrees.model.ValidationResult;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
@@ -48,46 +48,50 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
         Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph(parentURI);
 
         URI normalizedBaseURI = normalizeBaseURI(this.requestRemoteResource.getURI(), null, this.requestRemoteResource.isContainer());
-        // Get the shape tree step that manages that container
+        // Get the shape tree that manages that container
         boolean shapeTreeManagedContainer = parentContainerMetadataGraph != null && parentContainerMetadataGraph.contains(null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR), null);
         // If managed, do validation
         if (shapeTreeManagedContainer) {
 
             List<ShapeTreeLocator> shapeTreeLocatorMetadatas = getShapeTreeLocators(parentContainerMetadataGraph);
 
-            List<ShapeTreeStep> shapeTrees = new ArrayList<>();
+            List<ShapeTree> shapeTrees = new ArrayList<>();
             for (ShapeTreeLocator locator : shapeTreeLocatorMetadatas) {
-                shapeTrees.add(ShapeTreeFactory.getShapeTreeStep(new URI(locator.getShapeTree())));
+                shapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree())));
             }
 
-            ShapeTreeStep validatingShapeTree = getShapeTreeWithContents(shapeTrees);
+            ShapeTree validatingShapeTree = getShapeTreeWithContents(shapeTrees);
 
             /* This is the ShapeTree that the container being created must adhere to
-               it is identified by traversing the ShapeTree steps contained within containerShapeTreeStep
+               it is identified by traversing the ShapeTrees contained within containerShapeTree
                and finding the one whose uriTemplate matches the Slug of the container we're about to create
              */
-            ShapeTreeStep targetShapeTreeStep = validatingShapeTree.findMatchingContainsShapeTreeStep(requestedName);
+            ShapeTree targetShapeTree = validatingShapeTree.findMatchingContainsShapeTree(requestedName, requestRemoteResource.isContainer(), this.isNonRdfSource);
 
-            // Get existing resource graph (prior to PATCH)
-            Graph existingResourceGraph = requestRemoteResource.getGraph(normalizedBaseURI);
+            ValidationResult validationResult = null;
+            if (targetShapeTree != null) {
+                // Get existing resource graph (prior to PATCH)
+                Graph existingResourceGraph = requestRemoteResource.getGraph(normalizedBaseURI);
 
-            // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
-            UpdateRequest updateRequest = UpdateFactory.create(this.incomingRequestBody);
-            UpdateAction.execute(updateRequest, existingResourceGraph);
+                // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
+                UpdateRequest updateRequest = UpdateFactory.create(this.incomingRequestBody);
+                UpdateAction.execute(updateRequest, existingResourceGraph);
 
-            if (existingResourceGraph == null) {
-                throw new ShapeTreeException(400, "No graph after update");
+                if (existingResourceGraph == null) {
+                    throw new ShapeTreeException(400, "No graph after update");
+                }
+
+                URI focusNodeURI = getIncomingResolvedFocusNode(normalizedBaseURI, true);
+                validationResult = targetShapeTree.validateContent(this.authorizationHeaderValue, existingResourceGraph, focusNodeURI, this.requestRemoteResource.isContainer());
             }
 
-            URI focusNodeURI = getIncomingResolvedFocusNode(normalizedBaseURI, true);
-            ValidationResult validationResult = targetShapeTreeStep.validateContent(this.authorizationHeaderValue, existingResourceGraph, focusNodeURI, this.requestRemoteResource.isContainer());
-
-            if (validationResult.getValid()) {
+            if (targetShapeTree == null || validationResult.getValid()) {
+                // If there was no targetShapeTree returned to indicate validation should occur, then pass it to the server
                 // If the result of the locally applied PATCH validates, then pass it to the server
                 return chain.proceed(chain.request());
             } else {
                 // Otherwise, return a validation error
-                throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + targetShapeTreeStep.getURI());
+                throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + targetShapeTree.getURI());
             }
         } else {
             // If the parent container is managed, then pass through the PATCH

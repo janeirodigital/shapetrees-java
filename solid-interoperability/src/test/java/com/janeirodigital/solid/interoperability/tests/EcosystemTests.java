@@ -23,14 +23,14 @@ public class EcosystemTests extends BaseShapeTreeTest {
     @DisplayName("Parse Ecosystem ShapeTree")
     @SneakyThrows
     void parseEcosystemShapeTree() {
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#agent-tree"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#registrar-tree"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#application-registry-set-tree"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registry-set-tree"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#application-registry-tree"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#application-registration-tree"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registry-tree"));
-        ShapeTreeFactory.getShapeTreeStep(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#agent-tree"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#registrar-tree"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#application-registry-set-tree"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registry-set-tree"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#application-registry-tree"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#application-registration-tree"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registry-tree"));
+        ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
     }
 
     @Order(2)
@@ -116,4 +116,16 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "gitorgs", "#registration");
     }
+
+    @Order(12)
+    @Test
+    @DisplayName("Plant Git Orgs - Validation SUCCESS")
+    @SneakyThrows
+    void plantGitOrgsSuccessAgain() {
+        List<URI> shapeTreesToPlant = new ArrayList<>();
+        shapeTreesToPlant.add(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#orgs"));
+        shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
+        plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "gitorgs", "#registration");
+    }
+
 }
