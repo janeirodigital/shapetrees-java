@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees;
 
 import com.janeirodigital.shapetrees.model.ReferencedShapeTree;
 import com.janeirodigital.shapetrees.model.ShapeTree;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_URI;
@@ -55,13 +56,15 @@ public class ShapeTreeFactory {
         // Set the URI as the ID (string representation)
         shapeTree.setId(shapeTreeURIString);
         // Set the expected resource type
-        shapeTree.setRdfResourceType(getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE));
+        shapeTree.setExpectedResourceType(getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE));
         // Set URI Template
-        shapeTree.setUriTemplate(getStringValue(model, resource, ShapeTreeVocabulary.MATCHES_URI_TEMPLATE));
+        shapeTree.setMatchesUriTemplate(getStringValue(model, resource, ShapeTreeVocabulary.MATCHES_URI_TEMPLATE));
         // Set Shape URI
-        shapeTree.setShapeUri(getStringValue(model, resource, ShapeTreeVocabulary.VALIDATED_BY));
+        shapeTree.setValidatedByShapeUri(getStringValue(model, resource, ShapeTreeVocabulary.VALIDATED_BY));
         // Set Label
         shapeTree.setLabel(getStringValue(model, resource, RDFS_LABEL));
+        // Set Supports
+        shapeTree.setSupports(getStringValue(model, resource, ShapeTreeVocabulary.SUPPORTS));
         // Set Reference collection
         shapeTree.setReferences(new ArrayList<>());
 
@@ -90,12 +93,12 @@ public class ShapeTreeFactory {
         }
 
         // Containers are expected to have contents
-        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !shapeTree.getRdfResourceType().contains("Container")) {
-            throw new ShapeTreeException(400, "Contents predicate not expected outside of #Container RDF Types");
+        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER)) {
+            throw new ShapeTreeException(400, "Contents predicate not expected outside of #ShapeTreeContainer Types");
         }
-        if (shapeTree.getRdfResourceType().contains("Container")) {
+        if (shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER)) {
             List<URI> uris = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
-            shapeTree.setContents(uris);
+            shapeTree.setContains(uris);
             if (uris != null) {
                 for (URI uri : uris) {
                     if (!localShapeTreeCache.containsKey(uri)) {

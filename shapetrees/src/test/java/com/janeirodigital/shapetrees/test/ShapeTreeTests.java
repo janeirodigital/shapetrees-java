@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.test;
 
-import com.janeirodigital.shapetrees.ShapeTreeVocabulary;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 
@@ -151,6 +151,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PUT Tests - Successful PUT to create managed LDRC")
     @SneakyThrows
     void putTestReplacedManagedLDPC() {
+        // Expected fail due to ESS issue
         putContent(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), true, "target/test-classes/test-data/shape-trees/jsg-put.ttl", "#jsg", 201);
         ensureExistsWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), new URI("http://github.example/ns#updated_at"), "2019-12-18T03:00:00Z^^xsd:dateTime");
         ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), "./repos/ericprud/jsg-put/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
@@ -164,6 +165,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PUT Tests - to unmanaged container")
     @SneakyThrows
     void putTestUnmanagedContainer() {
+        // Expected fail due to ESS issue
         putContent(new URI(ROOT_PATH+"Unmanaged/issues/"), true, "target/test-classes/test-data/shape-trees/jsg-02.ttl", "#jsg", 201);
         ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Unmanaged/issues/"), new URI("http://github.example/ns#updated_at"), "2019-12-18T02:00:00Z^^xsd:dateTime");
     }
@@ -173,6 +175,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @DisplayName("PUT Tests - to replace unmanaged container")
     @SneakyThrows
     void putTestReplaceUnmanagedContainer() {
+        // Expected fail due to ESS issue
         putContent(new URI(ROOT_PATH+"Unmanaged/issues/"), true, "target/test-classes/test-data/shape-trees/jsg-03.ttl", "#jsg", 201);
         ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Unmanaged/issues/"), new URI("http://github.example/ns#updated_at"), "2019-12-18T03:00:00Z^^xsd:dateTime");
     }

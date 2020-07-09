@@ -2,10 +2,11 @@ package com.janeirodigital.shapetrees.client;
 
 import com.janeirodigital.shapetrees.*;
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
-import com.janeirodigital.shapetrees.model.ShapeTree;
-import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
-import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
-import com.janeirodigital.shapetrees.model.ValidationResult;
+import com.janeirodigital.shapetrees.enums.LinkRelations;
+import com.janeirodigital.shapetrees.helper.PlantHelper;
+import com.janeirodigital.shapetrees.model.*;
+import com.janeirodigital.shapetrees.vocabulary.LdpVocabulary;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Response;
@@ -31,8 +32,8 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
         ensureRequestResourceExists("Parent Container not found");
 
         String requestedName = getIncomingHeaderValueWithDefault(HttpHeaders.SLUG.getValue(), "Container");
-        List<String> incomingRequestShapeTreeUris = getIncomingLinkHeaderByRelationValue(REL_SHAPE_TREE);
-        Boolean isContainer = this.incomingRequestLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER);
+        List<String> incomingRequestShapeTreeUris = getIncomingLinkHeaderByRelationValue(LinkRelations.SHAPETREE.getValue());
+        Boolean isContainer = this.incomingRequestLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER);
         URI normalizedBaseURI = normalizeBaseURI(this.requestRemoteResource.getURI(), requestedName, isContainer);
         Graph incomingRequestBodyGraph = getIncomingBodyGraph(normalizedBaseURI);
 
@@ -79,7 +80,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             // At this point all validations have been passed and the ShapeTree can be planted
             List<ShapeTreePlantResult> plantResults = new ArrayList<>();
             for (ShapeTree shapeTreeToPlant : shapeTreesToPlant) {
-                ShapeTreePlantResult plantResult = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, ecosystemUpdatedBodyGraph, shapeTreeToPlant, shapeTreeToPlant, requestedName, ".", 0);
+                ShapeTreePlantResult plantResult = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, ecosystemUpdatedBodyGraph, shapeTreeToPlant, shapeTreeToPlant, requestedName, ".", 0);
                 plantResults.add(plantResult);
                 // Provide to the ecosystem to index
                 this.ecosystem.indexShapeTree(this.getShapeTreeContext(), requestRemoteResource.getURI(), shapeTreeToPlant.getURI(), plantResult.getRootContainer(), this.incomingRequestLinkHeaders);
@@ -87,28 +88,21 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             // Create and return a response
             return createPlantResponse(plantResults, this.request, this.incomingRequestLinkHeaders);
         } else {
-            List<ShapeTreeLocator> shapeTreeLocatorMetadatas = validateAgainstParentContainer(incomingRequestBodyGraph, normalizedBaseURI, this.requestRemoteResource, requestedName, isContainer);
-            if (shapeTreeLocatorMetadatas == null) {
-                // If validation returns no locators, that means the parent container is not managed and the request should be passed through
-                return this.chain.proceed(this.chain.request());
-            }
-            if (!isContainer) {
-                // We're creating a resource and it has already passed validation, pass through
+            ValidationContext validationContext = validateAgainstParentContainer(incomingRequestBodyGraph, normalizedBaseURI, this.requestRemoteResource, requestedName, isContainer);
+            // Two reasons for passing through the request (and not performing validation):
+            // 1. Validation returns no locators, meaning the parent container is not managed
+            // 2. We're creating a resource and it has already passed validation
+            if (validationContext == null || validationContext.getParentContainerLocators() == null || !isContainer) {
                 return this.chain.proceed(this.chain.request());
             }
 
             // We're creating a container, have already passed validation and will now call Plant as it may
-            // lead to nested static content to be created
+            // lead to nested static content to be created.  We will iterate the shapeTreeLocatorMetadatas
+            // which describe the ShapeTrees present on the container.
             List<ShapeTreePlantResult> results = new ArrayList<>();
-            for (ShapeTreeLocator locator : shapeTreeLocatorMetadatas) {
+            for (ShapeTreeLocator locator : validationContext.getParentContainerLocators()) {
 
-                ShapeTree rootShapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getRootShapeTree()));
-                ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree()));
-
-                // Determine the depth based on container and the relative depth
-                String containerPath = locator.getShapeTreeInstancePath();
-                String instanceRoot = locator.getShapeTreeRoot();
-                String pathFromRoot = requestRemoteResource.getURI().toString().replace(instanceRoot, "");
+                String pathFromRoot = requestRemoteResource.getURI().toString().replace(locator.getShapeTreeRoot(), "");
                 // In this case the URI is going to end in a slash for the contain that is being requested to create
                 // because of this extra slash, we just count the slashes instead of adding one as seen in the ValidatingPostHandler
                 int relativeDepth = StringUtils.countMatches(pathFromRoot, "/") + 1;
@@ -116,7 +110,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
                 if (requestedName.endsWith("/")) {
                     requestedName = requestedName.replace("/","");
                 }
-                ShapeTreePlantResult result = plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, rootShapeTree, shapeTree, requestedName, containerPath + requestedName + "/", relativeDepth);
+                ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName, relativeDepth);
                 results.add(result);
             }
 
@@ -129,9 +123,9 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
 
         ValidationResult validationResult = null;
         // If there is a graph to validate...and a ShapeTree indicates it wants to validate the container body
-        if (graphToValidate != null && validatingShapeTree != null && validatingShapeTree.getShapeUri() != null) {
+        if (graphToValidate != null && validatingShapeTree != null && validatingShapeTree.getValidatedByShapeUri() != null) {
             // ...and a focus node was provided via the focusNode header, then we perform our validation
-            URI focusNodeURI = getIncomingResolvedFocusNode(baseURI, true);
+            URI focusNodeURI = getIncomingResolvedFocusNode(baseURI);
             validationResult = validatingShapeTree.validateContent(this.authorizationHeaderValue, graphToValidate, focusNodeURI, true);
         }
 
@@ -146,8 +140,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
         // Determine if the target container exists, if so, retrieve any existing ShapeTrees to validate alongside the newly requested ones
         RemoteResource targetContainer = new RemoteResource(requestURI + requestedName, authorizationHeaderValue);
         if (targetContainer.exists()) {
-            String existingMetaDataURIString = getMetadataResourceURI(targetContainer);
-            RemoteResource targetMetadata = new RemoteResource(existingMetaDataURIString, authorizationHeaderValue);
+            RemoteResource targetMetadata = targetContainer.getMetadataResource(authorizationHeaderValue);
             if (targetMetadata.exists()) {
                 List<ShapeTreeLocator> locators = getShapeTreeLocators(targetMetadata.getGraph(new URI(requestURI.toString() + requestedName)));
                 for (ShapeTreeLocator locator : locators) {
@@ -162,21 +155,21 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
         List<URI> foundContents = null;
 
         for (ShapeTree shapeTree : shapeTreesToPlant) {
-            if (shapeTree.getRdfResourceType().contains("Resource")) {
+            if (!shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER)) {
                 throw new ShapeTreeException(400, "The root of any ShapeTree hierarchy must be of type Container");
             }
-            if (shapeTree.getShapeUri() != null) {
+            if (shapeTree.getValidatedByShapeUri() != null) {
                 if (foundShapeURI == null) {
-                    foundShapeURI = shapeTree.getShapeUri();
+                    foundShapeURI = shapeTree.getValidatedByShapeUri();
                 }
                 else {
                     throw new ShapeTreeException(400, "Only one ShapeTree provided can specify a ShapeURI");
                 }
             }
 
-            if (shapeTree.getContents() != null && shapeTree.getContents().size() > 0) {
+            if (shapeTree.getContains() != null && shapeTree.getContains().size() > 0) {
                 if (foundContents == null) {
-                    foundContents = shapeTree.getContents();
+                    foundContents = shapeTree.getContains();
                 } else {
                     throw new ShapeTreeException(400, "Only one ShapeTree provided can specify Contents");
                 }

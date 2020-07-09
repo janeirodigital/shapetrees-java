@@ -41,8 +41,6 @@
         </dependency>
         <!-- This dependency is added to get UriTemplate -->
         <!-- Tried to slim it down to just the library required -->
-        <!-- TODO: Find a lighter-weight dependency that supports
-                UriTemplate matching -->
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-core</artifactId>

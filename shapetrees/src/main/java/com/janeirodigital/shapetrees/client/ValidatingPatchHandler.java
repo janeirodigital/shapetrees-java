@@ -4,6 +4,7 @@ import com.janeirodigital.shapetrees.*;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.model.ShapeTree;
 import com.janeirodigital.shapetrees.model.ValidationResult;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Response;
@@ -40,10 +41,8 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
         String requestedName = getRequestResourceName();
         // Dereference parent container
         RemoteResource parentContainer = new RemoteResource(parentURI, authorizationHeaderValue);
-        // Get URI of metadata resource for parent container
-        String parentContainerMetaDataURIString = getMetadataResourceURI(parentContainer);
         // Dereference parent container metadata resource
-        RemoteResource parentContainerMetadataResource = new RemoteResource(parentContainerMetaDataURIString, authorizationHeaderValue);
+        RemoteResource parentContainerMetadataResource = parentContainer.getMetadataResource(authorizationHeaderValue);
         // Retrieve graph of parent container metadata resource
         Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph(parentURI);
 
@@ -81,7 +80,7 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
                     throw new ShapeTreeException(400, "No graph after update");
                 }
 
-                URI focusNodeURI = getIncomingResolvedFocusNode(normalizedBaseURI, true);
+                URI focusNodeURI = getIncomingResolvedFocusNode(normalizedBaseURI);
                 validationResult = targetShapeTree.validateContent(this.authorizationHeaderValue, existingResourceGraph, focusNodeURI, this.requestRemoteResource.isContainer());
             }
 

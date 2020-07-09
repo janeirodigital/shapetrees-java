@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.helper;
 
 import com.janeirodigital.shapetrees.ShapeTreeException;
-import com.janeirodigital.shapetrees.enums.Namespaces;
+import com.janeirodigital.shapetrees.vocabulary.Namespaces;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -22,13 +22,17 @@ public class GraphHelper {
         switch (contentType) {
             case "application/ld+json":
                 return Lang.JSONLD;
+            case "application/rdf+xml":
+                return Lang.RDFXML;
+            case "application/n-triples":
+                return Lang.NTRIPLES;
             default:
                 return Lang.TURTLE;
         }
     }
 
     public static Graph readStringIntoGraph(String rawContent, String contentType) throws URISyntaxException, ShapeTreeException {
-        return readStringIntoGraph(rawContent, new URI(Namespaces.SHAPETREE_NAMESPACE.getValue()), contentType);
+        return readStringIntoGraph(rawContent, new URI(Namespaces.SHAPETREE), contentType);
     }
 
     public static Graph readStringIntoGraph(String rawContent, URI baseURI, String contentType) throws ShapeTreeException {
@@ -41,5 +45,4 @@ public class GraphHelper {
             throw new ShapeTreeException(422, "Error processing input - " + rex.getMessage());
         }
     }
-
 }

@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.enums;
 
-public enum RecursionMethod {
+public enum RecursionMethods {
     DEPTH_FIRST,
     BREADTH_FIRST
 }

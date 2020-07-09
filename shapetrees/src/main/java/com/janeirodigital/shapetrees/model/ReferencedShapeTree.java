@@ -8,5 +8,5 @@ import java.net.URI;
 @Getter @AllArgsConstructor
 public class ReferencedShapeTree {
     URI referencedShapeTree;
-    String shapePath;
+    String traverseViaShapePath;
 }

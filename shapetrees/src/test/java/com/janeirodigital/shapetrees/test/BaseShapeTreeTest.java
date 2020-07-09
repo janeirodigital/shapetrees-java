@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.RemoteResource;
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
-import com.janeirodigital.shapetrees.ShapeTreeVocabulary;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import com.janeirodigital.shapetrees.client.ShapeTreeValidatingClientBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public abstract class BaseShapeTreeTest {
 
     protected static final String SERVER_ROOT = "https://ldp.local-ess.inrupt.com/";
     protected static final String ROOT_PATH = SERVER_ROOT+"aHR0cDovL2RldnNlcnZlcjozMDA4Mi9hdXRoL3JlYWxtcy9tYXN0ZXJiMzg4YmJlMV85ZjYzXzRlYmNfYmEzMF80MWY4ZmJjZmM0NTc/shapetree-testing/";
-    protected static final String TOKEN = "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJodHRwczpcL1wvbGRwLmxvY2FsLWVzcy5pbnJ1cHQuY29tXC9hSFIwY0RvdkwyUmxkbk5sY25abGNqb3pNREE0TWk5aGRYUm9MM0psWVd4dGN5OXRZWE4wWlhKaU16ZzRZbUpsTVY4NVpqWXpYelJsWW1OZlltRXpNRjgwTVdZNFptSmpabU0wTlRjXC9wcm9maWxlXC9jYXJkI21lIiwiYXpwIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDAiLCJpc3MiOiJodHRwczpcL1wvb2lkYy5sb2NhbC1lc3MuaW5ydXB0LmNvbVwvIiwiY25mIjp7ImprdCI6Ik01RUlYX0hMbGxvazhOR3U2b0FURGtFaTJNNVFsMEt2TVV4c0pVOTEtSzgifSwiZXhwIjoxNTk0MDc5Mzg3LCJpYXQiOjE1OTM0NzQ1ODcsImp0aSI6ImRlZjRiOGNkLTQ4YzUtNDM5My1iMzQ0LTFmYmRjNThiZDk5MiJ9.OaUV1UrvoM8uThUZ78j4BcgQ8FRjy6aVWkktCLD-blB1wh8imJM97oCfUYuAiE67Wsj7aEJsDk3L58NvkJnX-8A238H8CzlSS1SqywagE3K1taq7iqV2aYUWCHVJ8UAVv2aK8ZzZY1mog3ISgSAthSdQNMNU95PeSrsucro1mJn77s3lMXXOIcKp24IclsvDaHLXcvxVSVHOUr-aArjP1itofvDMaeLVoqSbW8ZsGeAmCr3jaaEVudaL3mI1f7y9aN4I0K3w7qgxxQwLoeoNJd7OftrN4W_I9k0XrHJNQgls6XY6HEL0v63R-rDlWe2i28s2Kqb3adE1nYBGD17cmA";
+    protected static final String TOKEN = "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJodHRwczpcL1wvbGRwLmxvY2FsLWVzcy5pbnJ1cHQuY29tXC9hSFIwY0RvdkwyUmxkbk5sY25abGNqb3pNREE0TWk5aGRYUm9MM0psWVd4dGN5OXRZWE4wWlhKaU16ZzRZbUpsTVY4NVpqWXpYelJsWW1OZlltRXpNRjgwTVdZNFptSmpabU0wTlRjXC9wcm9maWxlXC9jYXJkI21lIiwiYXpwIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDAiLCJpc3MiOiJodHRwczpcL1wvb2lkYy5sb2NhbC1lc3MuaW5ydXB0LmNvbVwvIiwiY25mIjp7ImprdCI6Ik01RUlYX0hMbGxvazhOR3U2b0FURGtFaTJNNVFsMEt2TVV4c0pVOTEtSzgifSwiZXhwIjoxNTk0NjM3NDA4LCJpYXQiOjE1OTQwMzI2MDgsImp0aSI6IjY1MTBjZGZmLWM1NDYtNGJhNS1iOGYzLWU5MzFmMDIxNDhmZSJ9.aL-pNeyy9m8yhSd069yeqGpYzYDlHR-FVnSp_eQIxH-oH1gAoTA4Kmh7m4KcUGSTRNAvXyuizqegEJJvdTu35cZ2e8hvuEMuGsXs1dnM8EvNCBapA9CCVkTboYlP1vOJYIFi206ee7alL_UN_gHux5WkyTJmn_8snJFED8gxpbyvhlvMTAP8NHoHHWonFqm0YNHm2K1Zfwchpc5IGPz2gCwFz6lxNyi6owvLe1vvbGjBM73AamWpejY3I4qqJY_RyTzvi1etnKRkZHTCY3fqsd_TZbREZYxGG1RGG0QNT4107H00cGO_T9I43CY8b_T5KzLmdL4VHivNZZRIgrrFLQ";
     protected static final String AUTH_HEADER_VALUE = "Bearer " + TOKEN;
     private final ShapeTreeEcosystem ecosystem;
 
@@ -291,6 +291,12 @@ public abstract class BaseShapeTreeTest {
     @NotNull
     @SneakyThrows
     protected static URI getMetadataResourceURI(URI primaryResourceURI) {
-        return new URI(primaryResourceURI.toString() + ".meta");
+        String metaResourceName = ".meta";
+
+        if (!primaryResourceURI.toString().endsWith("/")) {
+            metaResourceName = "/" + metaResourceName;
+        }
+
+        return new URI(primaryResourceURI.toString() + metaResourceName);
     }
 }

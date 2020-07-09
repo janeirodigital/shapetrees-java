@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.ShapeTreeFactory;
-import com.janeirodigital.shapetrees.enums.RecursionMethod;
+import com.janeirodigital.shapetrees.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.model.ReferencedShapeTree;
 import com.janeirodigital.shapetrees.model.ShapeTree;
 import lombok.SneakyThrows;
@@ -30,7 +30,7 @@ public class ShapeTreeParsingTests {
     void traverseShapeTreeDFS() {
         log.info("Depth-First:");
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#org"));
-        Iterator<ReferencedShapeTree> referencedShapeTrees = shapeTree.getReferencedShapeTrees(RecursionMethod.DEPTH_FIRST);
+        Iterator<ReferencedShapeTree> referencedShapeTrees = shapeTree.getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
         while (referencedShapeTrees.hasNext()) {
             ReferencedShapeTree shapeTreeReference = referencedShapeTrees.next();
             log.info(shapeTreeReference.getReferencedShapeTree().toString());
@@ -43,7 +43,7 @@ public class ShapeTreeParsingTests {
     void traverseShapeTreeBFS() {
         log.info("Breadth-First:");
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI("http://localhost:9999/static/gh-flat/gh-flat-shapetree.jsonld#org"));
-        Iterator<ReferencedShapeTree> referencedShapeTrees = shapeTree.getReferencedShapeTrees(RecursionMethod.BREADTH_FIRST);
+        Iterator<ReferencedShapeTree> referencedShapeTrees = shapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST);
         while (referencedShapeTrees.hasNext()) {
             ReferencedShapeTree shapeTreeReference = referencedShapeTrees.next();
             log.info(shapeTreeReference.getReferencedShapeTree().toString());

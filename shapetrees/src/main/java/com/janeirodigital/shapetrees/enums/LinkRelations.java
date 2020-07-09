@@ -1,7 +1,11 @@
 package com.janeirodigital.shapetrees.enums;
 
-public enum Namespaces {
-    SHAPETREE_NAMESPACE("http://www.w3.org/ns/shapetree#");
+public enum LinkRelations {
+    DESCRIBED_BY("describedby"),
+    FOCUS_NODE("focusNode"),
+    SHAPETREE("ShapeTree"),
+    TYPE("type");
+
 
     private String value;
 
@@ -9,7 +13,7 @@ public enum Namespaces {
         return this.value;
     }
 
-    Namespaces(String value) {
+    LinkRelations(String value) {
         this.value = value;
     }
 }

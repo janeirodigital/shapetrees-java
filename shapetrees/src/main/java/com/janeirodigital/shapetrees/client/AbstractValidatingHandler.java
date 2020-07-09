@@ -2,25 +2,19 @@ package com.janeirodigital.shapetrees.client;
 
 import com.janeirodigital.shapetrees.*;
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
-import com.janeirodigital.shapetrees.helper.HttpClientHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.model.*;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okio.Buffer;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -33,20 +27,11 @@ public abstract class AbstractValidatingHandler {
     protected final RemoteResource requestRemoteResource;
     protected final Map<String, List<String>> incomingRequestHeaders;
     protected final Map<String, List<String>> incomingRequestLinkHeaders;
-    protected final String incomingRequestContentType;
+    protected String incomingRequestContentType = null;
     protected final String incomingRequestBody;
     protected final boolean isNonRdfSource;
     protected final Set<String> supportedRDFContentTypes;
     protected ShapeTreeEcosystem ecosystem;
-
-    protected static final String LDP_CONTAINER = "http://www.w3.org/ns/ldp#Container";
-    private static final String REL_DESCRIBEDBY = "describedby";
-    protected static final String REL_TYPE = "type";
-    protected static final String REL_SHAPE_TREE = "ShapeTree";
-    private static final String REL_TYPE_CONTAINER = "<" + LDP_CONTAINER + ">; rel=\"" + REL_TYPE + "\"";
-    protected static final String FOCUS_NODE = "focusNode";
-
-
 
     public AbstractValidatingHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         this.chain = chain;
@@ -70,7 +55,9 @@ public abstract class AbstractValidatingHandler {
         // Set the incoming content type
         if (this.incomingRequestHeaders.containsKey(HttpHeaders.CONTENT_TYPE.getValue())) {
             this.incomingRequestContentType = this.incomingRequestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElse(null);
-        } else {
+        }
+        // Ensure a content-type is present
+        if (this.incomingRequestContentType == null) {
             throw new ShapeTreeException(400, "Content-Type is required");
         }
 
@@ -78,7 +65,11 @@ public abstract class AbstractValidatingHandler {
 
         // Set the incoming request body
         Buffer buffer = new Buffer();
-        request.body().writeTo(buffer);
+        if (this.request.body() != null) {
+            this.request.body().writeTo(buffer);
+        }
+
+
         this.incomingRequestBody = buffer.readUtf8();
     }
 
@@ -94,13 +85,6 @@ public abstract class AbstractValidatingHandler {
         } else {
             return defaultValue;
         }
-    }
-
-    protected String getFirstIncomingLinkHeaderByRelationValue(String relation) {
-        if (this.incomingRequestLinkHeaders.containsKey(relation)) {
-            return this.incomingRequestLinkHeaders.get(relation).stream().findFirst().orElse(null);
-        }
-        return null;
     }
 
     protected List<String> getIncomingLinkHeaderByRelationValue(String relation) {
@@ -128,19 +112,19 @@ public abstract class AbstractValidatingHandler {
         return null;
     }
 
-    protected URI getIncomingResolvedFocusNode(URI baseURI, boolean throwIfNotFound) throws IOException {
-        if (this.incomingRequestLinkHeaders.get(FOCUS_NODE) != null) {
-            String focusNode = this.incomingRequestLinkHeaders.get(FOCUS_NODE).get(0);
+    protected URI getIncomingResolvedFocusNode(URI baseURI) throws IOException {
+        if (this.incomingRequestLinkHeaders.get(LinkRelations.FOCUS_NODE.getValue()) != null) {
+            String focusNode = this.incomingRequestLinkHeaders.get(LinkRelations.FOCUS_NODE.getValue()).get(0);
             return baseURI.resolve(focusNode);
-        } else if (throwIfNotFound) {
-            throw new ShapeTreeException(400, "No Link header with relation " + FOCUS_NODE + " supplied, unable to perform Shape validation");
         } else {
-            return null;
+            throw new ShapeTreeException(400, "No Link header with relation " + LinkRelations.FOCUS_NODE.getValue() + " supplied, unable to perform Shape validation");
         }
     }
 
     protected ShapeTreeContext getShapeTreeContext() {
         // TODO - need to not make these values hardcoded
+        // Likely only the auth header needs to come from the shapetree and the other
+        // things can come from the ecosystem
         return new ShapeTreeContext(this.authorizationHeaderValue, "https://auth-agent.example", "https://ldp.local-ess.inrupt.com/aHR0cDovL2RldnNlcnZlcjozMDA4Mi9hdXRoL3JlYWxtcy9tYXN0ZXJiMzg4YmJlMV85ZjYzXzRlYmNfYmEzMF80MWY4ZmJjZmM0NTc/shapetree-testing/profile/id#me");
     }
 
@@ -150,8 +134,8 @@ public abstract class AbstractValidatingHandler {
         // the response to the POST will be for the ShapeTree that was requested first.
         ShapeTreePlantResult primaryPlantResult = null;
         if (plantResults.size() > 1) {
-            if (linkHeaders.containsKey(REL_SHAPE_TREE)) {
-                String primaryShapeTreeURI = linkHeaders.get(REL_SHAPE_TREE).get(0);
+            if (linkHeaders.containsKey(LinkRelations.SHAPETREE.getValue())) {
+                String primaryShapeTreeURI = linkHeaders.get(LinkRelations.SHAPETREE.getValue()).get(0);
                 for (ShapeTreePlantResult plantResult : plantResults) {
                     if (plantResult.getShapeTreeURI().toString().equals(primaryShapeTreeURI)) {
                         primaryPlantResult = plantResult;
@@ -170,7 +154,7 @@ public abstract class AbstractValidatingHandler {
         return new Response.Builder()
                 .code(201)
                 .addHeader(HttpHeaders.LOCATION.getValue(), primaryPlantResult.getRootContainer().toString())
-                .addHeader(HttpHeaders.LINK.getValue(), "<" + primaryPlantResult.getRootContainerMetadata().toString() + ">; rel=\"" + REL_DESCRIBEDBY + "\"")
+                .addHeader(HttpHeaders.LINK.getValue(), "<" + primaryPlantResult.getRootContainerMetadata().toString() + ">; rel=\"" + LinkRelations.DESCRIBED_BY.getValue() + "\"")
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
                 .body(ResponseBody.create("", MediaType.get("text/turtle")))
                 .request(request)
@@ -179,144 +163,8 @@ public abstract class AbstractValidatingHandler {
                 .build();
     }
 
-    protected static ShapeTreePlantResult plantShapeTree(String authorizationHeaderValue, RemoteResource parentContainer, Graph bodyGraph, ShapeTree rootShapeTree, ShapeTree shapeTree, String requestedName, String shapeTreePath, int depth) throws IOException, URISyntaxException {
-        StringWriter sw = new StringWriter();
-        if (bodyGraph != null) {
-            RDFDataMgr.write(sw, bodyGraph, Lang.TURTLE);
-        }
-        return plantShapeTree(authorizationHeaderValue, parentContainer, sw.toString(), rootShapeTree, shapeTree, requestedName, shapeTreePath, depth);
-    }
-
-    protected static ShapeTreePlantResult plantShapeTree(String authorizationHeaderValue, RemoteResource parentContainer, String body, ShapeTree rootShapeTree, ShapeTree shapeTree, String requestedName, String shapeTreePath, int depth) throws IOException, URISyntaxException {
-        log.debug("plantShapeTree: parent [{}], root tree [{}], tree [{}], slug [{}], path [{}], depth [{}]", parentContainer.getURI(), rootShapeTree.getId(), shapeTree.getId(), requestedName, shapeTreePath, depth);
-
-        String metaDataURIString;
-        RemoteResource plantedContainer;
-
-        // First determine if we're looking to plant a ShapeTree in an existing container
-        RemoteResource targetContainer = new RemoteResource(parentContainer.getURI() + requestedName, authorizationHeaderValue);
-        if (targetContainer.exists()) {
-            // If the container already exists, it will not be created again and we will plan
-            // to use the metadata for that existing container for the planting
-            metaDataURIString = getMetadataResourceURI(targetContainer);
-            plantedContainer = targetContainer;
-        } else {
-            // Create new container with the Slug/Requested Name
-            RemoteResource shapeTreeContainer = createContainer(authorizationHeaderValue, parentContainer.getURI(), requestedName, body);
-            // Depending on server implementation, after a POST the response header may pertain to the parent container (the URI)
-            // as opposed to the newly created resource.  To ensure we get the proper headers, we reload the contents of the
-            // newly created container with a GET.
-            shapeTreeContainer = new RemoteResource(shapeTreeContainer.getURI(), authorizationHeaderValue);
-
-            metaDataURIString = getMetadataResourceURI(shapeTreeContainer);
-            plantedContainer = shapeTreeContainer;
-        }
-
-        RemoteResource shapeTreeContainerMetadataResource = new RemoteResource(metaDataURIString, authorizationHeaderValue);
-
-        // Get the existing graph and reuse it, if possible, if not, create a new graph
-        Graph shapeTreeContainerMetadataGraph;
-        if (shapeTreeContainerMetadataResource.exists()) {
-            shapeTreeContainerMetadataGraph = shapeTreeContainerMetadataResource.getGraph(plantedContainer.getURI());
-        } else {
-            shapeTreeContainerMetadataGraph = ModelFactory.createDefaultModel().getGraph();
-        }
-
-        // Generate a UUID for the ShapeTree
-        UUID shapeTreeLocatorUUID = UUID.randomUUID();
-
-        List<Triple> triplesToAdd = new ArrayList<>();
-        // Add the triple for the new tree:hasShapeTreeLocator
-        String plantedContainerURI = plantedContainer.getURI().toString() + (plantedContainer.getURI().toString().endsWith("/")? "":"/");
-        String shapeTreeLocatorURI = plantedContainerURI + "#" + shapeTreeLocatorUUID;
-        triplesToAdd.add(new Triple(NodeFactory.createURI(plantedContainerURI), NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR), NodeFactory.createURI(shapeTreeLocatorURI)));
-
-        // Add the triples for the locator itself
-        triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeLocatorURI), NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE), NodeFactory.createURI(shapeTree.getId())));
-        triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeLocatorURI), NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), NodeFactory.createLiteral(shapeTreePath)));
-        String relativePath = (depth==0) ? "./" : StringUtils.repeat("../", depth);
-        triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeLocatorURI), NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), NodeFactory.createURI(relativePath)));
-        triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeLocatorURI), NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_ROOT), NodeFactory.createURI(rootShapeTree.getId())));
-        GraphUtil.add(shapeTreeContainerMetadataGraph, triplesToAdd);
-        // Write the updates back to the resource
-        shapeTreeContainerMetadataResource.updateGraph(shapeTreeContainerMetadataGraph,false, authorizationHeaderValue);
-
-        List<URI> nestedContainersCreated = new ArrayList<>();
-
-        depth++;
-        // Recursively call plantShapeTree for any static, nested container contents -- resources and dynamically named containers are ignored
-        for (URI contentShapeTreeURI : shapeTree.getContents()) {
-            ShapeTree contentShapeTree = ShapeTreeFactory.getShapeTree(contentShapeTreeURI);
-            if (contentShapeTree.getLabel() != null) {
-                // the return URI is discarded for recursive calls
-                // Add a trailing slash so recursion lines up nicely to paths
-                if (shapeTreePath.equals(".")) shapeTreePath = "./";
-                ShapeTreePlantResult nestedResult = plantShapeTree(authorizationHeaderValue, plantedContainer, (String)null, rootShapeTree, contentShapeTree, contentShapeTree.getLabel(), shapeTreePath + contentShapeTree.getLabel() +"/", depth);
-                nestedContainersCreated.add(nestedResult.getRootContainer());
-            }
-        }
-
-        return new ShapeTreePlantResult(shapeTree.getURI(), plantedContainer.getURI(), shapeTreeContainerMetadataResource.getURI(), nestedContainersCreated);
-    }
-
-    private static RemoteResource createContainer(String authorizationHeaderValue, URI parentURI, String requestedName, String body) throws IOException, URISyntaxException {
-        log.debug("createContainer: parent [{}], slug [{}]", parentURI, requestedName);
-
-        if (body == null) {
-            body = "";
-        }
-
-        OkHttpClient httpClient = HttpClientHelper.getClient();
-        Request createContainerPost = new Request.Builder()
-                .addHeader(HttpHeaders.SLUG.getValue(), requestedName)
-                .addHeader(HttpHeaders.LINK.getValue(), REL_TYPE_CONTAINER)
-                .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
-                .addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue)
-                .post(RequestBody.create(body, MediaType.get("text/turtle")))
-                .url(parentURI.toURL()).build();
-
-        Response response = httpClient.newCall(createContainerPost).execute();
-        return new RemoteResource(response);
-    }
-
     private boolean determineIsNonRdfSource(String incomingRequestContentType) {
         return !this.supportedRDFContentTypes.contains(incomingRequestContentType.toLowerCase());
-    }
-
-
-    @NotNull
-    protected static String getMetadataResourceURI(RemoteResource shapeTreeContainer) throws IOException {
-        // This header approach is not currently working, instead, we're going to use a separate metadata file
-        /*
-        String metaDataURIString = shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
-        if (metaDataURIString.startsWith("/")) {
-            // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
-            URI shapeTreeContainerURI = shapeTreeContainer.getURI();
-            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
-        }*/
-
-        String metaResourceName = ".meta";
-
-        if (shapeTreeContainer.isContainer() && !shapeTreeContainer.getURI().toString().endsWith("/")) {
-            metaResourceName = "/" + metaResourceName;
-        }
-
-        return shapeTreeContainer.getURI() + metaResourceName;
-    }
-
-    protected static String getValueFromGraphByPredicate(Graph graph, String predicate) throws ShapeTreeException {
-        List<Triple> triples = graph.find(null, NodeFactory.createURI(predicate), null).toList();
-        if (triples == null || triples.size() == 0) {
-            throw new ShapeTreeException(500, "No triples containing " + predicate + " - one expected");
-        }
-        if (triples.size() > 1) {
-            throw new ShapeTreeException(500, "Multiple triples containing " + predicate + " - only one expected");
-        }
-        if (triples.get(0).getObject().isURI()) {
-            return triples.get(0).getObject().getURI();
-        } else {
-            return triples.get(0).getObject().getLiteralValue().toString();
-        }
     }
 
     protected URI getParentContainerURI() throws IOException {
@@ -355,7 +203,7 @@ public abstract class AbstractValidatingHandler {
 
     protected ShapeTree getShapeTreeWithShapeURI(List<ShapeTree> shapeTreesToPlant) {
         for (ShapeTree shapeTree : shapeTreesToPlant) {
-            if (shapeTree.getShapeUri() != null) {
+            if (shapeTree.getValidatedByShapeUri() != null) {
                 return shapeTree;
             }
         }
@@ -364,17 +212,16 @@ public abstract class AbstractValidatingHandler {
 
     protected ShapeTree getShapeTreeWithContents(List<ShapeTree> shapeTreesToPlant) {
         for (ShapeTree shapeTree : shapeTreesToPlant) {
-            if (shapeTree.getContents() != null && shapeTree.getContents().size() > 0) {
+            if (shapeTree.getContains() != null && shapeTree.getContains().size() > 0) {
                 return shapeTree;
             }
         }
         return null;
     }
 
-    protected List<ShapeTreeLocator> validateAgainstParentContainer(Graph graphToValidate, URI baseURI, RemoteResource parentContainer, String resourceName, Boolean isAContainer) throws IOException, URISyntaxException {
+    protected ValidationContext validateAgainstParentContainer(Graph graphToValidate, URI baseURI, RemoteResource parentContainer, String resourceName, Boolean isAContainer) throws IOException, URISyntaxException {
 
-        String parentContainerMetadataURI = getMetadataResourceURI(parentContainer);
-        RemoteResource parentContainerMetadata = new RemoteResource(parentContainerMetadataURI, this.authorizationHeaderValue);
+        RemoteResource parentContainerMetadata = parentContainer.getMetadataResource(this.authorizationHeaderValue);
         // If there is no metadata for the parent container, it is not managed
         if (!parentContainerMetadata.exists()) return null;
 
@@ -393,12 +240,13 @@ public abstract class AbstractValidatingHandler {
         ShapeTree targetShapeTree = shapeTreeWithContents.findMatchingContainsShapeTree(resourceName, isAContainer, this.isNonRdfSource);
 
         // If no targetShapeTree is returned, it can be assumed that no validation is required
+        ValidationResult validationResult = null;
         if (targetShapeTree != null) {
-            ValidationResult validationResult = null;
+
             // If there is a graph to validate...and a ShapeTree indicates it wants to validate the container body
-            if (graphToValidate != null && targetShapeTree != null && targetShapeTree.getShapeUri() != null) {
+            if (graphToValidate != null && targetShapeTree.getValidatedByShapeUri() != null) {
                 // ...and a focus node was provided via the focusNode header, then we perform our validation
-                URI focusNodeURI = getIncomingResolvedFocusNode(baseURI, true);
+                URI focusNodeURI = getIncomingResolvedFocusNode(baseURI);
                 validationResult = targetShapeTree.validateContent(this.authorizationHeaderValue, graphToValidate, focusNodeURI, isAContainer);
             }
 
@@ -408,8 +256,6 @@ public abstract class AbstractValidatingHandler {
             }
         }
 
-        return locators;
+        return new ValidationContext(targetShapeTree, validationResult, locators);
     }
-
-
 }

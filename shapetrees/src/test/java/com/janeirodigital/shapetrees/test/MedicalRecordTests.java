@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.test;
 
-import com.janeirodigital.shapetrees.ShapeTreeVocabulary;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.MethodOrderer;
@@ -23,7 +23,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
     @Test
     @Label("Plant Medical Record")
     void plantMedicalRecord() {
-        plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/medicalrecord/nhs-shapetree.jsonld#medicalRecord")), "medical-record", null);
+        plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/medicalrecord/nhs-shapetree.ttl#medicalRecord")), "medical-record", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "medical-record"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
 
     }

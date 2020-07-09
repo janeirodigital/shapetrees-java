@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.test;
 
-import com.janeirodigital.shapetrees.ShapeTreeVocabulary;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 

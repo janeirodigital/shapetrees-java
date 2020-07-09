@@ -1,6 +1,6 @@
 package com.janeirodigital.solid.interoperability.tests;
 
-import com.janeirodigital.shapetrees.ShapeTreeVocabulary;
+import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import com.janeirodigital.shapetrees.test.BaseShapeTreeTest;
 import com.janeirodigital.shapetrees.test.MockEcosystem;
 import lombok.SneakyThrows;

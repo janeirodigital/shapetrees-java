@@ -9,6 +9,7 @@ import okhttp3.*;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -117,38 +118,6 @@ public class RemoteResource {
         return headerValues.get(0);
     }
 
-    public List<String> getHeaderValues(String headerName) throws IOException {
-        if (this.invalidated) {
-            log.debug("RemoteResource#getHeaderValues({}) - Resource Invalidated - Refreshing", this.URI);
-            dereferenceURI();
-        }
-
-        return responseHeaders.get(headerName);
-    }
-
-    public List<String> getLinkHeaderValuesByRel(String relation) throws IOException {
-        if (this.invalidated) {
-            log.debug("RemoteResource#getLinkHeaderValuesByRel({}) - Resource Invalidated - Refreshing", this.URI);
-            dereferenceURI();
-        }
-
-        return parsedLinkHeaders.get(relation);
-    }
-
-    public String getFirstLinkHeaderValueByRel(String relation) throws IOException {
-        if (this.invalidated) {
-            log.debug("RemoteResource#getFirstLinkHeaderValueByRel({}) - Resource Invalidated - Refreshing", this.URI);
-            dereferenceURI();
-        }
-
-        List<String> headerValues = parsedLinkHeaders.get(relation);
-        if (headerValues == null) {
-            return null;
-        }
-
-        return headerValues.get(0);
-    }
-
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
         log.debug("RemoteResource#updateGraph({})", this.URI);
 
@@ -167,7 +136,6 @@ public class RemoteResource {
                 .put(RequestBody.create(sw.toString(), MediaType.get("text/turtle")))
                 .build();
 
-        // TODO should probably handle the response and throw error if failure
         httpClient.newCall(request).execute();
 
         if (refreshResourceAfterUpdate) {
@@ -176,6 +144,30 @@ public class RemoteResource {
             this.invalidated = true;
             log.debug("RemoteResource#updateGraph({}) - Invalidating Resource", this.URI);
         }
+    }
+
+    public RemoteResource getMetadataResource(String authorizationHeaderValue) throws IOException {
+        return new RemoteResource(this.getMetadataURI(), authorizationHeaderValue);
+    }
+
+    @NotNull
+    public String getMetadataURI() throws IOException {
+        // This header approach is not currently working, instead, we're going to use a separate metadata file
+        /*
+        String metaDataURIString = shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
+        if (metaDataURIString.startsWith("/")) {
+            // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
+            URI shapeTreeContainerURI = shapeTreeContainer.getURI();
+            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
+        }*/
+
+        String metaResourceName = ".meta";
+
+        if (this.isContainer() && !this.getURI().toString().endsWith("/")) {
+            metaResourceName = "/" + metaResourceName;
+        }
+
+        return this.getURI() + metaResourceName;
     }
 
     private void dereferenceURI() throws IOException {
