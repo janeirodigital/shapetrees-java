@@ -37,7 +37,7 @@ public class MockEcosystem implements ShapeTreeEcosystem {
     }
 
     @Override
-    public void indexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI) {
+    public void indexShapeTreeDataInstance(ShapeTreeContext context, URI parentContainer, URI shapeTreeURI, URI instanceURI) {
 
     }
 

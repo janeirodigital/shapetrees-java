@@ -106,7 +106,7 @@ public abstract class AbstractValidatingHandler {
     }
 
     protected Graph getIncomingBodyGraph(URI baseURI) throws ShapeTreeException {
-        if (this.incomingRequestBody != null && this.incomingRequestBody.length() > 0) {
+        if (!this.isNonRdfSource && this.incomingRequestBody != null && this.incomingRequestBody.length() > 0) {
             return GraphHelper.readStringIntoGraph(this.incomingRequestBody, baseURI, this.incomingRequestContentType);
         }
         return null;

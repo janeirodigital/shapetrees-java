@@ -88,6 +88,10 @@ public abstract class BaseShapeTreeTest {
     }
 
     protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
+        return postContent(parentContainer, slug, isContainer, bodyResourcePath, focusNode, "text/turtle", expectedCode);
+    }
+
+    protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, String contentType, Integer expectedCode) throws IOException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
@@ -101,7 +105,7 @@ public abstract class BaseShapeTreeTest {
                 .addHeader("Link", "<" + resourceTypeUri + ">; rel=\"type\"")
                 .addHeader("Slug", slug)
                 .addHeader("Link", "<" + focusNode + ">; rel=\"focusNode\"")
-                .addHeader("Content-Type", "text/turtle")
+                .addHeader("Content-Type", contentType)
                 .post(RequestBody.create(bodyString, MediaType.get("text/turtle")))
                 .build();
 

@@ -5,8 +5,8 @@ import lombok.Getter;
 
 @Getter @AllArgsConstructor
 public class ShapeTreeLocator {
-    private String rootShapeTree;
-    private String shapeTree;
-    private String shapeTreeInstancePath;
-    private String shapeTreeRoot;
+    private final String rootShapeTree;
+    private final String shapeTree;
+    private final String shapeTreeInstancePath;
+    private final String shapeTreeRoot;
 }

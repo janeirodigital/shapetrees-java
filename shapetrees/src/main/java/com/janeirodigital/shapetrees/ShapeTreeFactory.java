@@ -23,6 +23,10 @@ public class ShapeTreeFactory {
     private static final Map<URI, ShapeTree> localShapeTreeCache = new HashMap<>();
 
     public static ShapeTree getShapeTree(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
+        if (isShapeTreeAllowIRI(shapeTreeURI)) {
+            return null;
+        }
+
         if (localShapeTreeCache.containsKey(shapeTreeURI)) {
             log.debug("[{}] previously cached -- returning", shapeTreeURI.toString());
             return localShapeTreeCache.get(shapeTreeURI);
@@ -101,12 +105,22 @@ public class ShapeTreeFactory {
             shapeTree.setContains(uris);
             if (uris != null) {
                 for (URI uri : uris) {
-                    if (!localShapeTreeCache.containsKey(uri)) {
+                    if (!localShapeTreeCache.containsKey(uri) && !isShapeTreeAllowIRI(uri)) {
                         recursivelyParseShapeTree(model, model.getResource(uri.toString()));
                     }
                 }
             }
         }
+    }
+
+    private static boolean isShapeTreeAllowIRI(URI uri) throws URISyntaxException {
+        if (uri.equals(new URI(ShapeTreeVocabulary.ALLOW_ALL)) ||
+                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_NONE)) ||
+                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES)) ||
+                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) ||
+                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES))
+        ) return true;
+        return false;
     }
 
     private static String getStringValue(Model model, Resource resource, String predicate) {

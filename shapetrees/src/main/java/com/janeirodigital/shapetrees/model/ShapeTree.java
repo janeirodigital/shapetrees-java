@@ -105,6 +105,9 @@ public class ShapeTree {
 
         for (URI childShapeTreeURI : this.contains) {
             ShapeTree childShapeTree = ShapeTreeFactory.getShapeTree(childShapeTreeURI);
+            if (childShapeTree == null) {
+                continue;
+            }
             UriTemplate template = new UriTemplate(childShapeTree.getMatchesUriTemplate());
             if (requestedName.endsWith("/")) {
                 requestedName = requestedName.replace("/", "");
@@ -122,12 +125,24 @@ public class ShapeTree {
             return matchingShapeTrees.get(0);
         }
         else {
-            // This means nothing matched according to the URI template.  We must decide what should be allowed.
-            // If ALLOW_NONE was populated in the tree:contains, reject
+            // Within this block of code, it means nothing matched based on the URI template.
+            // At this point it must be decided if an unexpected resource is allowed to be created
+            // Default behavior is assumed to be ALLOW_NONE
+
+            // If ALLOW_NONE is explicitly set, reject
             if (this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NONE))) {
                 throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any tree:contains for [" + this.getId() +"].  Further, the tree:AllowNone was specified within tree:contents");
             }
-            // This means nothing matched according to the URI template.  We must decide what should be allowed.
+
+            // If none of the other ALLOW_* predicates are present, reject by default
+            if (!this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
+                    !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES)) &&
+                    !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) &&
+                    !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))
+            ) {
+                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any tree:contains for [" + this.getId() +"].  Further, no tree:Allows* are specified to mitigate");
+            }
+
             // If it is a non-RDF source and non-RDF sources are not explicitly allowed for...
             if (isNonRdfSource &&
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&

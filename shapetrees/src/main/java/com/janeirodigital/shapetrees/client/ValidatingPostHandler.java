@@ -92,8 +92,13 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             // Two reasons for passing through the request (and not performing validation):
             // 1. Validation returns no locators, meaning the parent container is not managed
             // 2. We're creating a resource and it has already passed validation
-            if (validationContext == null || validationContext.getParentContainerLocators() == null || !isContainer) {
-                return this.chain.proceed(this.chain.request());
+            if (validationContext == null || validationContext.getParentContainerLocators() == null || validationContext.getValidatingShapeTree() == null || !isContainer) {
+                Response response = this.chain.proceed(this.chain.request());
+                // If there is a ShapeTree managing the new resource, register it
+                if (validationContext != null && validationContext.getValidatingShapeTree() != null) {
+                    this.ecosystem.indexShapeTreeDataInstance(this.getShapeTreeContext(), requestRemoteResource.getURI(), validationContext.getValidatingShapeTree().getURI(), new URI(response.header(HttpHeaders.LOCATION.getValue())));
+                }
+                return response;
             }
 
             // We're creating a container, have already passed validation and will now call Plant as it may

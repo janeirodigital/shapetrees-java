@@ -90,7 +90,7 @@ public class PlantHelper {
         // Recursively call plantShapeTree for any static, nested container contents -- resources and dynamically named containers are ignored
         for (URI contentShapeTreeURI : shapeTree.getContains()) {
             ShapeTree contentShapeTree = ShapeTreeFactory.getShapeTree(contentShapeTreeURI);
-            if (contentShapeTree.getLabel() != null) {
+            if (contentShapeTree != null && contentShapeTree.getLabel() != null) {
                 // the return URI is discarded for recursive calls
                 // Add a trailing slash so recursion lines up nicely to paths
                 if (shapeTreePath.equals(".")) shapeTreePath = "./";

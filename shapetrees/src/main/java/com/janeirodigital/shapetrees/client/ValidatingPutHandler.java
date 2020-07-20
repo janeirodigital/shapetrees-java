@@ -25,6 +25,7 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
     @Override
     public Response process() throws IOException, URISyntaxException {
 
+        Boolean resourceAlreadyExists = this.requestRemoteResource.exists();
         URI parentURI = getParentContainerURI();
         boolean isContainer = this.requestRemoteResource.isContainer();
         URI normalizedBaseURI = normalizeBaseURI(this.requestRemoteResource.getURI(), null, isContainer);
@@ -36,7 +37,14 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
         // 1. Validation returns no locators, meaning the parent container is not managed
         // 2. We're creating a resource and it has already passed validation
         if (validationContext == null || validationContext.getParentContainerLocators() == null || !isContainer) {
-            return this.chain.proceed(this.chain.request());
+            Response response = this.chain.proceed(this.chain.request());
+            // If there is a ShapeTree managing the new resource, register it
+            if (validationContext != null && validationContext.getValidatingShapeTree() != null) {
+                if (!resourceAlreadyExists) {
+                    this.ecosystem.indexShapeTreeDataInstance(this.getShapeTreeContext(), parentURI, validationContext.getValidatingShapeTree().getURI(), this.requestRemoteResource.getURI());
+                }
+            }
+            return response;
         }
 
         List<ShapeTreePlantResult> results = new ArrayList<>();

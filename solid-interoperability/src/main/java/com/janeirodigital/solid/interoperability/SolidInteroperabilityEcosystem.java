@@ -79,6 +79,33 @@ public class SolidInteroperabilityEcosystem implements ShapeTreeEcosystem {
         }
     }
 
+    @Override
+    public void unIndexShapeTree(URI parentContainer, URI shapeTreeURI, URI plantedShapeTreeURI) {
+
+    }
+
+    @Override
+    public void indexShapeTreeDataInstance(ShapeTreeContext context, URI parentContainerURI, URI shapeTreeURI, URI instanceURI) throws IOException {
+        log.info("Indexing Instance");
+        RemoteResource parentContainerResource = new RemoteResource(parentContainerURI, context.getAuthorizationHeaderValue());
+        Graph dataRegistrationGraph;
+        if (parentContainerResource.exists()) {
+            dataRegistrationGraph = parentContainerResource.getGraph(parentContainerResource.getURI());
+            // If the parent container is not a registration, stop here
+            if (!dataRegistrationGraph.contains(NodeFactory.createURI(parentContainerResource.getURI() + "#registration"), null, null)) return;
+
+            List<Triple> tripleToAdd = new ArrayList<>();
+            tripleToAdd.add(new Triple(NodeFactory.createURI(parentContainerResource.getURI() + "#registration"), NodeFactory.createURI(SolidEcosystem.HAS_REGISTERED_DATA_INSTANCE), NodeFactory.createURI(instanceURI.toString())));
+            GraphUtil.add(dataRegistrationGraph, tripleToAdd);
+            parentContainerResource.updateGraph(dataRegistrationGraph, false, context.getAuthorizationHeaderValue());
+        }
+    }
+
+    @Override
+    public void unIndexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI) {
+
+    }
+
     private void addRegistrationToRegistry(ShapeTreeContext context, String registrationSubject) throws URISyntaxException, IOException {
         String dataRegistryURI = getDataRegistryURI(context.getWebID(), context.getAuthorizationHeaderValue());
         if (dataRegistryURI != null) {
@@ -123,21 +150,6 @@ public class SolidInteroperabilityEcosystem implements ShapeTreeEcosystem {
             }
         }
         return null;
-    }
-
-    @Override
-    public void unIndexShapeTree(URI parentContainer, URI shapeTreeURI, URI plantedShapeTreeURI) {
-
-    }
-
-    @Override
-    public void indexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI) {
-
-    }
-
-    @Override
-    public void unIndexShapeTreeDataInstance(URI shapeTreeURI, URI instanceURI) {
-
     }
 
 }
