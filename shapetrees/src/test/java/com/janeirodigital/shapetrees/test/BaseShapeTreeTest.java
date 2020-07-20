@@ -28,6 +28,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 public abstract class BaseShapeTreeTest {
@@ -95,9 +96,15 @@ public abstract class BaseShapeTreeTest {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-
+        RequestBody body;
         FileInputStream inputStream = new FileInputStream(bodyResourcePath);
-        String bodyString = IOUtils.toString(inputStream, "UTF-8");
+        if (!Collections.unmodifiableSet(Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json")).contains(contentType)) {
+            resourceTypeUri = "http://www.w3.org/ns/ldp#NonRDFSource";
+            body = RequestBody.create(inputStream.readAllBytes(), MediaType.get(contentType));
+        } else {
+            String bodyString = IOUtils.toString(inputStream, "UTF-8");
+            body = RequestBody.create(bodyString, MediaType.get("text/turtle"));
+        }
 
         Request post = new Request.Builder()
                 .url(parentContainer.toString())
@@ -106,7 +113,7 @@ public abstract class BaseShapeTreeTest {
                 .addHeader("Slug", slug)
                 .addHeader("Link", "<" + focusNode + ">; rel=\"focusNode\"")
                 .addHeader("Content-Type", contentType)
-                .post(RequestBody.create(bodyString, MediaType.get("text/turtle")))
+                .post(body)
                 .build();
 
         Response response = client.newCall(post).execute();
