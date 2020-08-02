@@ -62,7 +62,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @Test
     void putTestsplantPUTTests() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-deep/gh-deep-ShapeTree.jsonld#root")), "ShapeMaps-PUT-tests", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
     }
 
     @Order(7)
@@ -72,12 +72,12 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     void putTestspostUsersEricPrud() {
         postContent(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/"), "ericprud", true, "target/test-classes/test-data/apps/gh-deep/ericprud-user.ttl", "#ericprud");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/users/ericprud/"), new URI("http://github.example/ns#node_id"), "MDQ6VXNlcjU3MzQ3OA==");
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/"), "./users/ericprud/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/followers/"), "./users/ericprud/followers/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/orgs/"), "./users/ericprud/orgs/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/received_events/"), "./users/ericprud/received_events/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/repos/"), "./users/ericprud/repos/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/subscriptions/"), "./users/ericprud/subscriptions/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/followers/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/orgs/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/received_events/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/repos/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/users/ericprud/subscriptions/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
     }
 
     @Order(8)
@@ -104,8 +104,8 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     @SneakyThrows
     void putTestCreateReposEricPrud() {
         postContent(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/"), "ericprud", true, "target/test-classes/test-data/apps/gh-deep/ericprud-org.ttl", "#ericprud");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), "./repos/ericprud/");
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/"), "./repos/ericprud/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
     }
 
     @Test
@@ -115,10 +115,10 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     void putTestcreateJSGRepo() {
         postContent(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/"), "jsg", true, "target/test-classes/test-data/apps/gh-deep/jsg.ttl", "#jsg");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/jsg/"), new URI("http://github.example/ns#id"), 46061512);
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/"), "./repos/ericprud/jsg/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/"), "./repos/ericprud/jsg/issues/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/labels/"), "./repos/ericprud/jsg/labels/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/milestones/"), "./repos/ericprud/jsg/milestones/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/labels/"),  new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg/milestones/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
     }
 
     @Test
@@ -132,6 +132,16 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
 
     @Test
     @Order(13)
+    @DisplayName("PUT Tests - Create /ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/1 with hint")
+    @SneakyThrows
+    void postWithHint() {
+        postContent(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/"), "2.ttl", false, "target/test-classes/test-data/apps/gh-deep/jsg-issue1.ttl", "#issue1", "text/turtle", 201, "http://localhost:9999/static/gh-deep/gh-deep-ShapeTree.jsonld#issue");
+        ensureExistsWithPredicateValue(new URI(ROOT_PATH + "ShapeMaps-PUT-tests/repos/ericprud/jsg/issues/2.ttl"), new URI("http://github.example/ns#author_association"), "OWNER");
+    }
+
+
+    @Test
+    @Order(14)
     @DisplayName("PUT Tests - Successful PUT to replace managed LDPR")
     @SneakyThrows
     void putTestReplaceManagedLDPR() {
@@ -140,7 +150,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     }
 
     @Test
-    @Order(14)
+    @Order(15)
     @DisplayName("PUT Tests - Successful PUT to create managed LDRP")
     @SneakyThrows
     void putTestCreateManagedLDPR() {
@@ -149,21 +159,21 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     }
 
     @Test
-    @Order(15)
+    @Order(16)
     @DisplayName("PUT Tests - Successful PUT to create managed LDRC")
     @SneakyThrows
     void putTestReplacedManagedLDPC() {
         // Expected fail due to ESS issue
         putContent(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), true, "target/test-classes/test-data/shape-trees/jsg-put.ttl", "#jsg", 201);
         ensureExistsWithPredicateValue(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), new URI("http://github.example/ns#updated_at"), "2019-12-18T03:00:00Z^^xsd:dateTime");
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), "./repos/ericprud/jsg-put/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/issues/"), "./repos/ericprud/jsg-put/issues/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/labels/"), "./repos/ericprud/jsg-put/labels/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/milestones/"), "./repos/ericprud/jsg-put/milestones/", new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/issues/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/labels/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"ShapeMaps-PUT-tests/repos/ericprud/jsg-put/milestones/"), new URI(ROOT_PATH+"ShapeMaps-PUT-tests/"));
     }
 
     @Test
-    @Order(16)
+    @Order(17)
     @DisplayName("PUT Tests - to unmanaged container")
     @SneakyThrows
     void putTestUnmanagedContainer() {
@@ -173,7 +183,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     }
 
     @Test
-    @Order(17)
+    @Order(18)
     @DisplayName("PUT Tests - to replace unmanaged container")
     @SneakyThrows
     void putTestReplaceUnmanagedContainer() {
@@ -183,24 +193,22 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     }
 
     @Test
-    @Order(18)
+    @Order(19)
     @DisplayName("PUT Tests - to create unmanaged LDPR")
     @SneakyThrows
     void putTestCreateUnmanagedResource() {
+        // Expected fail due to ESS issue
         putContent(new URI(ROOT_PATH+"Unmanaged/issues/1.ttl"), false, "target/test-classes/test-data/apps/gh-deep/jsg-issue1.ttl", "#issue1", 201);
         ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Unmanaged/issues/1.ttl"), new URI("http://github.example/ns#updated_at"), "2019-12-18T01:00:00Z^^xsd:dateTime");
     }
 
     @Test
-    @Order(19)
+    @Order(20)
     @DisplayName("PUT Tests - to replace unmanaged LDPR")
     @SneakyThrows
     void putTestUpdateUnmanagedResource() {
+        // Expected fail due to ESS issue
         putContent(new URI(ROOT_PATH+"Unmanaged/issues/1.ttl"), false, "target/test-classes/test-data/shape-trees/jsg-issue1-03.ttl", "#issue1", 204);
         ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Unmanaged/issues/1.ttl"), new URI("http://github.example/ns#updated_at"), "2019-12-18T03:00:00Z^^xsd:dateTime");
     }
-
-
-
-
 }

@@ -20,10 +20,9 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
     @SneakyThrows
     void plantGit() {
         plant(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-deep/gh-deep-ShapeTree.jsonld#root")), "Git", null);
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/"), ".", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/"), "./repos/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/"), "./users/", new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/"), new URI(ROOT_PATH+"Git/"));
     }
 
     @Test
@@ -33,12 +32,12 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
     void createUserEricPrud() {
         postContent(new URI(ROOT_PATH + "Git/users/"), "ericprud", true, "target/test-classes/test-data/apps/gh-deep/ericprud-user.ttl", "#ericprud");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git/users/ericprud/"), new URI("http://github.example/ns#node_id"), "MDQ6VXNlcjU3MzQ3OA==");
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/"), "./users/ericprud/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/followers/"), "./users/ericprud/followers/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/orgs/"), "./users/ericprud/orgs/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/received_events/"), "./users/ericprud/received_events/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/repos/"), "./users/ericprud/repos/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/subscriptions/"), "./users/ericprud/subscriptions/", new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/followers/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/orgs/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/received_events/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/repos/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/users/ericprud/subscriptions/"), new URI(ROOT_PATH+"Git/"));
     }
 
     @Test
@@ -57,8 +56,7 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
     @SneakyThrows
     void createEricPrudRepo() {
         postContent(new URI(ROOT_PATH + "Git/repos/"), "ericprud", true, "target/test-classes/test-data/apps/gh-deep/ericprud-org.ttl", "#ericprud");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git/repos/ericprud/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), "./repos/ericprud/");
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/"), "./repos/ericprud/", new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/"), new URI(ROOT_PATH+"Git/"));
     }
 
     @Test
@@ -68,10 +66,10 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
     void createJSGRepo() {
         postContent(new URI(ROOT_PATH + "Git/repos/ericprud/"), "jsg", true, "target/test-classes/test-data/apps/gh-deep/jsg.ttl", "#jsg");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git/repos/ericprud/jsg/"), new URI("http://github.example/ns#id"), 46061512);
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/"), "./repos/ericprud/jsg/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/issues/"), "./repos/ericprud/jsg/issues/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/labels/"), "./repos/ericprud/jsg/labels/", new URI(ROOT_PATH+"Git/"));
-        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/milestones/"), "./repos/ericprud/jsg/milestones/", new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/issues/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/labels/"), new URI(ROOT_PATH+"Git/"));
+        ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/milestones/"), new URI(ROOT_PATH+"Git/"));
     }
 
     @Test

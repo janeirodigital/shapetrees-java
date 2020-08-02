@@ -10,7 +10,6 @@ import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Response;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 
 import java.io.IOException;
@@ -80,7 +79,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             // At this point all validations have been passed and the ShapeTree can be planted
             List<ShapeTreePlantResult> plantResults = new ArrayList<>();
             for (ShapeTree shapeTreeToPlant : shapeTreesToPlant) {
-                ShapeTreePlantResult plantResult = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, ecosystemUpdatedBodyGraph, shapeTreeToPlant, shapeTreeToPlant, requestedName, ".", 0);
+                ShapeTreePlantResult plantResult = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, ecosystemUpdatedBodyGraph, shapeTreeToPlant, null, shapeTreeToPlant, requestedName);
                 plantResults.add(plantResult);
                 // Provide to the ecosystem to index
                 this.ecosystem.indexShapeTree(this.getShapeTreeContext(), requestRemoteResource.getURI(), shapeTreeToPlant.getURI(), plantResult.getRootContainer(), this.incomingRequestLinkHeaders);
@@ -107,15 +106,10 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
             List<ShapeTreePlantResult> results = new ArrayList<>();
             for (ShapeTreeLocator locator : validationContext.getParentContainerLocators()) {
 
-                String pathFromRoot = requestRemoteResource.getURI().toString().replace(locator.getShapeTreeRoot(), "");
-                // In this case the URI is going to end in a slash for the contain that is being requested to create
-                // because of this extra slash, we just count the slashes instead of adding one as seen in the ValidatingPostHandler
-                int relativeDepth = StringUtils.countMatches(pathFromRoot, "/") + 1;
-
                 if (requestedName.endsWith("/")) {
                     requestedName = requestedName.replace("/","");
                 }
-                ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName, relativeDepth);
+                ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName);
                 results.add(result);
             }
 

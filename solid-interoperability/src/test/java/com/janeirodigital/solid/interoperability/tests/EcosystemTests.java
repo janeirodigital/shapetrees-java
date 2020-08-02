@@ -118,7 +118,7 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
 
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "Git-Orgs", "#registration");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Orgs/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Orgs/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "data/Git-Orgs/"));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
 
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "Git-Users", "#registration");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Users/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Users/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "data/Git-Users/"));
     }
 
     @Test
@@ -144,7 +144,7 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
 
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "Git-Repos", "#registration");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Repos/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Repos/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "data/Git-Repos/"));
     }
 
     @Test
@@ -157,7 +157,7 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
 
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "Git-Issues", "#registration");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Issues/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Issues/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "data/Git-Issues/"));
     }
 
     @Test
@@ -170,7 +170,7 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
 
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "Git-Comments", "#registration");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Comments/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Comments/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "data/Git-Comments/"));
     }
 
     @Test
@@ -183,7 +183,7 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
 
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "Git-Events", "#registration");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Events/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Events/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "data/Git-Events/"));
     }
 
     @Test
@@ -196,7 +196,7 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
 
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "Git-Labels", "#registration");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Labels/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Labels/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "data/Git-Labels/"));
     }
 
     @Test
@@ -209,7 +209,7 @@ public class EcosystemTests extends BaseShapeTreeTest {
         shapeTreesToPlant.add(new URI("http://localhost:9999/static/ecosystem/ecosystem-ShapeTree.ttl#data-registration-tree"));
 
         plant(new URI(ROOT_PATH+"data/"), shapeTreesToPlant, "Git-Milestones", "#registration");
-        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Milestones/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), ".");
+        ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "data/Git-Milestones/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "data/Git-Milestones/"));
     }
 
     @Test

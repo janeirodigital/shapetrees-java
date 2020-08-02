@@ -2,8 +2,9 @@ package com.janeirodigital.shapetrees.enums;
 
 public enum LinkRelations {
     DESCRIBED_BY("describedby"),
-    FOCUS_NODE("focusNode"),
-    SHAPETREE("ShapeTree"),
+    FOCUS_NODE("http://shapetrees.org/#FocusNode"),
+    SHAPETREE("http://shapetrees.org/#ShapeTree"),
+    TARGET_SHAPETREE("http://shapetrees.org/#TargetShapeTree"),
     TYPE("type");
 
 

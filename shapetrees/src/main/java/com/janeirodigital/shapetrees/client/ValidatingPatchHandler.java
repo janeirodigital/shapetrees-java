@@ -63,9 +63,12 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
 
             /* This is the ShapeTree that the container being created must adhere to
                it is identified by traversing the ShapeTrees contained within containerShapeTree
-               and finding the one whose uriTemplate matches the Slug of the container we're about to create
+               and finding the one:
+                - whose uriTemplate matches the Slug of the container we're about to create
+                - whose URI matches the target shape tree hint provided via Link header
              */
-            ShapeTree targetShapeTree = validatingShapeTree.findMatchingContainsShapeTree(requestedName, requestRemoteResource.isContainer(), this.isNonRdfSource);
+            URI targetShapeTreeHint = getIncomingTargetShapeTreeHint();
+            ShapeTree targetShapeTree = validatingShapeTree.findMatchingContainsShapeTree(requestedName, targetShapeTreeHint, requestRemoteResource.isContainer(), this.isNonRdfSource);
 
             ValidationResult validationResult = null;
             if (targetShapeTree != null) {

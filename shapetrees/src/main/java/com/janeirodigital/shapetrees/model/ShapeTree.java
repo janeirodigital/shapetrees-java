@@ -92,7 +92,7 @@ public class ShapeTree {
         return new ValidationResult(valid, failedNodes);
     }
 
-    public ShapeTree findMatchingContainsShapeTree(String requestedName, Boolean isContainer, Boolean isNonRdfSource) throws URISyntaxException, ShapeTreeException {
+    public ShapeTree findMatchingContainsShapeTree(String requestedName, URI targetShapeTreeHint, Boolean isContainer, Boolean isNonRdfSource) throws URISyntaxException, ShapeTreeException {
         if (this.contains == null || this.contains.size() == 0) {
             if (this.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_RESOURCE)) {
                 return this;
@@ -108,6 +108,16 @@ public class ShapeTree {
             if (childShapeTree == null) {
                 continue;
             }
+
+            // Allow a target shape tree hint to be passed into matching to skip URITemplate matching
+            if (targetShapeTreeHint != null) {
+                if (this.contains.contains(targetShapeTreeHint)) {
+                    return childShapeTree;
+                } else {
+                    throw new ShapeTreeException(422, "A target shape tree hint was provided (" + targetShapeTreeHint + ") but it did not exist within :contains");
+                }
+            }
+
             UriTemplate template = new UriTemplate(childShapeTree.getMatchesUriTemplate());
             if (requestedName.endsWith("/")) {
                 requestedName = requestedName.replace("/", "");
@@ -131,7 +141,7 @@ public class ShapeTree {
 
             // If ALLOW_NONE is explicitly set, reject
             if (this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NONE))) {
-                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any tree:contains for [" + this.getId() +"].  Further, the tree:AllowNone was specified within tree:contents");
+                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contains for [" + this.getId() +"].  Further, the :AllowNone was specified within :contents");
             }
 
             // If none of the other ALLOW_* predicates are present, reject by default
@@ -140,27 +150,27 @@ public class ShapeTree {
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) &&
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))
             ) {
-                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any tree:contains for [" + this.getId() +"].  Further, no tree:Allows* are specified to mitigate");
+                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contains for [" + this.getId() +"].  Further, no :Allows* are specified to mitigate");
             }
 
             // If it is a non-RDF source and non-RDF sources are not explicitly allowed for...
             if (isNonRdfSource &&
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES))) {
-                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any tree:contains for [" + this.getId() +"].  Further, the requested resource is a NonRDFSource and tree:AllowNonRDFSources was not specified within tree:contents");
+                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contains for [" + this.getId() +"].  Further, the requested resource is a NonRDFSource and :AllowNonRDFSources was not specified within :contents");
             }
             // if it is a Container source and Container sources are not explicitly allowed for...
             if (isContainer &&
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS))) {
-                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any tree:contains for [" + this.getId() +"].  Further, the requested resource is a Container and tree:AllowContainers was not specified within tree:contents");
+                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contains for [" + this.getId() +"].  Further, the requested resource is a Container and :AllowContainers was not specified within :contents");
             }
             //
             if (!isContainer &&
                     !isNonRdfSource &&
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
                     !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))) {
-                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any tree:contents for [" + this.getId() +"].  Further, the requested resource is a Resource and tree:AllowResources was not specified within tree:contents");
+                throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contents for [" + this.getId() +"].  Further, the requested resource is a Resource and :AllowResources was not specified within :contents");
             }
             // If we return null, it will indicate there is nothing to validate against, and that's okay
             // because we've already validated if the type of incoming Resource is allowed in the absence of a

@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees;
 
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
 import com.janeirodigital.shapetrees.helper.HttpClientHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
@@ -152,15 +153,22 @@ public class RemoteResource {
 
     @NotNull
     public String getMetadataURI() throws IOException {
-        // This header approach is not currently working, instead, we're going to use a separate metadata file
-        /*
-        String metaDataURIString = shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
-        if (metaDataURIString.startsWith("/")) {
+        String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE.getValue()).stream().findFirst().orElse(null);
+        if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
-            URI shapeTreeContainerURI = shapeTreeContainer.getURI();
-            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + shapeTreeContainer.getFirstLinkHeaderValueByRel(REL_DESCRIBEDBY);
-        }*/
+            URI shapeTreeContainerURI = this.getURI();
+            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + metaDataURIString;
+        }
 
+        if (metaDataURIString == null) {
+            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
+        }
+
+        return metaDataURIString;
+
+        /*
+        //This is an old implementation when the server didn't support the necessary link headers
+        //Will keep this around for a bit in case we need to switch back.
         String metaResourceName = ".meta";
 
         if (this.isContainer() && !this.getURI().toString().endsWith("/")) {
@@ -168,6 +176,7 @@ public class RemoteResource {
         }
 
         return this.getURI() + metaResourceName;
+         */
     }
 
     private void dereferenceURI() throws IOException {

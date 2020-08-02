@@ -7,7 +7,6 @@ import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
 import com.janeirodigital.shapetrees.model.ValidationContext;
 import okhttp3.Interceptor;
 import okhttp3.Response;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 
 import java.io.IOException;
@@ -50,16 +49,10 @@ public class ValidatingPutHandler extends AbstractValidatingHandler implements V
         List<ShapeTreePlantResult> results = new ArrayList<>();
         for (ShapeTreeLocator locator : validationContext.getParentContainerLocators()) {
 
-            // Determine the depth based on container and the relative depth
-            String pathFromRoot = requestRemoteResource.getURI().toString().replace(locator.getShapeTreeRoot(), "");
-            // In this case the URI is going to end in a slash for the contain that is being requested to create
-            // because of this extra slash, we just count the slashes instead of adding one as seen in the ValidatingPostHandler
-            int relativeDepth = StringUtils.countMatches(pathFromRoot, "/");
-
             if (requestedName.endsWith("/")) {
                 requestedName = requestedName.replace("/","");
             }
-            ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName, relativeDepth);
+            ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName);
             results.add(result);
         }
 

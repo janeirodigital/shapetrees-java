@@ -3,13 +3,13 @@ PREFIX gh: <http://github.example/ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX ldp: <http://www.w3.org/ns/ldp#>
-PREFIX tree: <http://www.w3.org/ns/shapetree#>
+PREFIX st: <http://www.w3.org/ns/shapetree#>
 
 <> a ldp:BasicContainer;
     dcterms:title "nested Container for repos/ericprud/jsg-put";
-    tree:shapeTreeRoot <http://localhost:12345/gh-deep/gh-deep-ShapeTree#root>;
-    tree:shapeTreeInstancePath "repos/ericprud/jsg-put";
-    tree:shapeTreeInstanceRoot <../../../>;
+    st:shapeTreeRoot <http://localhost:12345/gh-deep/gh-deep-ShapeTree#root>;
+    st:shapeTreeInstancePath "repos/ericprud/jsg-put";
+    st:shapeTreeInstanceRoot <../../../>;
     ldp:contains <issues/>, <labels/>, <milestones/>.
 <#jsg>
     gh:id 46061512 ;

@@ -7,6 +7,5 @@ import lombok.Getter;
 public class ShapeTreeLocator {
     private final String rootShapeTree;
     private final String shapeTree;
-    private final String shapeTreeInstancePath;
     private final String shapeTreeRoot;
 }

@@ -121,6 +121,13 @@ public abstract class AbstractValidatingHandler {
         }
     }
 
+    protected URI getIncomingTargetShapeTreeHint() throws URISyntaxException {
+        if (this.incomingRequestLinkHeaders.get(LinkRelations.TARGET_SHAPETREE.getValue()) != null) {
+            return new URI(this.incomingRequestLinkHeaders.get(LinkRelations.TARGET_SHAPETREE.getValue()).get(0));
+        }
+        return null;
+    }
+
     protected ShapeTreeContext getShapeTreeContext() {
         // TODO - need to not make these values hardcoded
         // Likely only the auth header needs to come from the shapetree and the other
@@ -183,19 +190,17 @@ public abstract class AbstractValidatingHandler {
             String locatorURI = hasShapeTreeLocatorTriple.getObject().getURI();
 
             List<Triple> locatorTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(locatorURI), null, null).toList();
-            String instancePath = null, shapeTreeRoot = null, rootShapeTree = null, shapeTree = null;
+            String shapeTreeRoot = null, rootShapeTree = null, shapeTree = null;
             for (Triple locatorTriple : locatorTriples) {
-                if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH)) {
-                    instancePath = locatorTriple.getObject().getLiteralLexicalForm();
-                } else if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_SHAPE_TREE)) {
+                if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_SHAPE_TREE)) {
                     shapeTree = locatorTriple.getObject().getURI();
                 } else if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT)) {
                     shapeTreeRoot = locatorTriple.getObject().getURI();
-                } else if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_SHAPE_TREE_ROOT)) {
+                } else if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE)) {
                     rootShapeTree = locatorTriple.getObject().getURI();
                 }
             }
-            locators.add(new ShapeTreeLocator(rootShapeTree, shapeTree, instancePath, shapeTreeRoot));
+            locators.add(new ShapeTreeLocator(rootShapeTree, shapeTree, shapeTreeRoot));
         }
 
         return locators;
@@ -237,7 +242,9 @@ public abstract class AbstractValidatingHandler {
         }
 
         ShapeTree shapeTreeWithContents = getShapeTreeWithContents(existingShapeTrees);
-        ShapeTree targetShapeTree = shapeTreeWithContents.findMatchingContainsShapeTree(resourceName, isAContainer, this.isNonRdfSource);
+
+        URI targetShapeTreeHint = getIncomingTargetShapeTreeHint();
+        ShapeTree targetShapeTree = shapeTreeWithContents.findMatchingContainsShapeTree(resourceName, targetShapeTreeHint, isAContainer, this.isNonRdfSource);
 
         // If no targetShapeTree is returned, it can be assumed that no validation is required
         ValidationResult validationResult = null;

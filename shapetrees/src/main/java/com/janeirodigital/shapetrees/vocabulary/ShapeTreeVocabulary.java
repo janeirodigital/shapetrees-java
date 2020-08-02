@@ -1,8 +1,7 @@
 package com.janeirodigital.shapetrees.vocabulary;
 
 public class ShapeTreeVocabulary {
-    public static final String HAS_SHAPE_TREE_ROOT = Namespaces.SHAPETREE + "hasRootShapeTree";
-    public static final String HAS_SHAPE_TREE_INSTANCE_PATH = Namespaces.SHAPETREE + "hasShapeTreeInstancePath";
+    public static final String HAS_ROOT_SHAPE_TREE = Namespaces.SHAPETREE + "hasRootShapeTree";
     public static final String HAS_SHAPE_TREE_INSTANCE_ROOT = Namespaces.SHAPETREE + "hasShapeTreeInstanceRoot";
     public static final String HAS_SHAPE_TREE = Namespaces.SHAPETREE + "hasShapeTree";
     public static final String HAS_SHAPE_TREE_LOCATOR = Namespaces.SHAPETREE + "hasShapeTreeLocator";

@@ -2,12 +2,15 @@ package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.RemoteResource;
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
+import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import com.janeirodigital.shapetrees.client.ShapeTreeValidatingClientBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.auth.AUTH;
+import org.apache.http.client.methods.RequestBuilder;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
@@ -35,7 +38,7 @@ public abstract class BaseShapeTreeTest {
 
     protected static final String SERVER_ROOT = "https://ldp.local-ess.inrupt.com/";
     protected static final String ROOT_PATH = SERVER_ROOT+"aHR0cDovL2RldnNlcnZlcjozMDA4Mi9hdXRoL3JlYWxtcy9tYXN0ZXJiMzg4YmJlMV85ZjYzXzRlYmNfYmEzMF80MWY4ZmJjZmM0NTc/shapetree-testing/";
-    protected static final String TOKEN = "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJodHRwczpcL1wvbGRwLmxvY2FsLWVzcy5pbnJ1cHQuY29tXC9hSFIwY0RvdkwyUmxkbk5sY25abGNqb3pNREE0TWk5aGRYUm9MM0psWVd4dGN5OXRZWE4wWlhKaU16ZzRZbUpsTVY4NVpqWXpYelJsWW1OZlltRXpNRjgwTVdZNFptSmpabU0wTlRjXC9wcm9maWxlXC9jYXJkI21lIiwiYXpwIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDAiLCJpc3MiOiJodHRwczpcL1wvb2lkYy5sb2NhbC1lc3MuaW5ydXB0LmNvbVwvIiwiY25mIjp7ImprdCI6Ik01RUlYX0hMbGxvazhOR3U2b0FURGtFaTJNNVFsMEt2TVV4c0pVOTEtSzgifSwiZXhwIjoxNTk1MzQyMzIyLCJpYXQiOjE1OTQ3Mzc1MjIsImp0aSI6IjQ3MjU2ZGYwLTI2NTYtNDE2MC1iMGYxLTZjOTlmOWEyYmE0NyJ9.kVv2ywCX1wFmXj2R1l_O7Tq_9jNvVgDCNo-zgYNGtHpP5w8VB8ZspbiDZj6hBSVrR41dyd8koIKw_1MwtvbVFCC4zpAYrMvdGgqGh8c6wCEv32q_2Yc4JA9G38x1eGvZJEJ7Lxq1qAJqzVPBecvj4nZ1s08BE-aFN11ir-4AF5NeAgL1d3wdhVI23TyDOM5tvxNYKJTRYm2noUHVIGomBioKBkTBgJrJznaTYGeTYpny-5flmvoilhB__wMKvY8senaA5ORKUvR4pOipRLZFHsjWxS4nn4LI5eAGd0UHd5_fnyIgz-w2HnkqWZbm5JDE6ECL1NJoP8gh_u2M4vQaNg";
+    protected static final String TOKEN = "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJodHRwczpcL1wvbGRwLmxvY2FsLWVzcy5pbnJ1cHQuY29tXC9hSFIwY0RvdkwyUmxkbk5sY25abGNqb3pNREE0TWk5aGRYUm9MM0psWVd4dGN5OXRZWE4wWlhKaU16ZzRZbUpsTVY4NVpqWXpYelJsWW1OZlltRXpNRjgwTVdZNFptSmpabU0wTlRjXC9wcm9maWxlXC9jYXJkI21lIiwiYXpwIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDAiLCJpc3MiOiJodHRwczpcL1wvb2lkYy5sb2NhbC1lc3MuaW5ydXB0LmNvbVwvIiwiY25mIjp7ImprdCI6Ik01RUlYX0hMbGxvazhOR3U2b0FURGtFaTJNNVFsMEt2TVV4c0pVOTEtSzgifSwiZXhwIjoxNTk2NTQwNzM1LCJpYXQiOjE1OTU5MzU5MzUsImp0aSI6IjFhZDIyZjQzLTAwNmUtNDA3My1iN2U1LTNkYzU5ZGU0YWI3MyJ9.qhAS7qN3cQJxVxqpwdxxS3I5juak5sw06Ghiy9sijF956TSLSPyTubLgxthWzPtArc9Az3xckbk5ZjFvxgK83GkHbVvF0emzaM8p9gaISrfc7r8_z9uNa0RQ5IcK75F_T2oAIkKZVTet6YXW_ZiFUIN3TkyNb-5TIiBEdjUHKVr0ZFZaRfj_sL6n88C4qNTmNtizt7ijYjN_py06IJfDJvGASqqcd1YQs7lPcgnWHya0jIwMtKiz0Q2uWo-FYL1TpALFuLf6irUmgzpyLbjzT3uksA0H6iTYusOYmMsvLalN2FVkc9IAZTVYweJ8Q6lLBa7EB2cW9UWzgMeqgTWeTw";
     protected static final String AUTH_HEADER_VALUE = "Bearer " + TOKEN;
     private final ShapeTreeEcosystem ecosystem;
 
@@ -74,7 +77,7 @@ public abstract class BaseShapeTreeTest {
         Request patch = new Request.Builder()
                 .url(patchResource.toString())
                 .addHeader("Authorization", AUTH_HEADER_VALUE)
-                .addHeader("Link", "<" + focusNode + ">; rel=\"focusNode\"")
+                .addHeader("Link", "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"")
                 .addHeader("Content-Type", "application/sparql-update")
                 .patch(RequestBody.create(sparqlUpdateBytes))
                 .build();
@@ -89,10 +92,10 @@ public abstract class BaseShapeTreeTest {
     }
 
     protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
-        return postContent(parentContainer, slug, isContainer, bodyResourcePath, focusNode, "text/turtle", expectedCode);
+        return postContent(parentContainer, slug, isContainer, bodyResourcePath, focusNode, "text/turtle", expectedCode, null);
     }
 
-    protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, String contentType, Integer expectedCode) throws IOException {
+    protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, String contentType, Integer expectedCode, String shapeTreeHint) throws IOException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
@@ -106,15 +109,20 @@ public abstract class BaseShapeTreeTest {
             body = RequestBody.create(bodyString, MediaType.get("text/turtle"));
         }
 
-        Request post = new Request.Builder()
+        Request.Builder postBuilder = new Request.Builder()
                 .url(parentContainer.toString())
                 .addHeader("Authorization", AUTH_HEADER_VALUE)
                 .addHeader("Link", "<" + resourceTypeUri + ">; rel=\"type\"")
                 .addHeader("Slug", slug)
-                .addHeader("Link", "<" + focusNode + ">; rel=\"focusNode\"")
+                .addHeader("Link", "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"")
                 .addHeader("Content-Type", contentType)
-                .post(body)
-                .build();
+                .post(body);
+
+        if (shapeTreeHint != null) {
+            postBuilder.addHeader("Link", "<" + shapeTreeHint + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
+        }
+
+        Request post = postBuilder.build();
 
         Response response = client.newCall(post).execute();
         assertEquals(expectedCode, response.code());
@@ -137,7 +145,7 @@ public abstract class BaseShapeTreeTest {
                 .url(resourceURI.toString())
                 .addHeader("Authorization", AUTH_HEADER_VALUE)
                 .addHeader("Link", "<" + resourceTypeUri + ">; rel=\"type\"")
-                .addHeader("Link", "<" + focusNode + ">; rel=\"focusNode\"")
+                .addHeader("Link", "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"")
                 .addHeader("Content-Type", "text/turtle")
                 .put(RequestBody.create(bodyString, MediaType.get("text/turtle")))
                 .build();
@@ -171,12 +179,12 @@ public abstract class BaseShapeTreeTest {
                 .addHeader("Authorization", AUTH_HEADER_VALUE);
 
         for (URI shapeTreeUri : shapeTreeURIs) {
-            builder.addHeader("Link", "<" + shapeTreeUri.toString() + ">; rel=\"ShapeTree\"");
+            builder.addHeader("Link", "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
         }
 
         Request plantPost = builder
                 .addHeader("Link", "<http://www.w3.org/ns/ldp#Container>; rel=\"type\"")
-                .addHeader("Link", "<" + focusNode + ">; rel=\"focusNode\"")
+                .addHeader("Link", "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"")
                 .addHeader("Slug", slug)
                 .addHeader("Content-Type", contentType)
                 .post(RequestBody.create(bytes))
@@ -238,12 +246,11 @@ public abstract class BaseShapeTreeTest {
         ensureExistingTriple(resource.getGraph(baseURI), null, NodeFactory.createURI(predicate.toString()), value);
     }
 
-    protected static void ensureExistsHasMetadataWithValues(URI uri, String instancePathValue, URI instanceRootValue) throws IOException, URISyntaxException{
+    protected static void ensureExistsHasMetadataWithValues(URI uri, URI instanceRootValue) throws IOException, URISyntaxException{
         RemoteResource resource = new RemoteResource(getMetadataResourceURI(uri), AUTH_HEADER_VALUE);
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }
-        ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_PATH), instancePathValue);
         ensureExistingTriple(resource.getGraph(uri), null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), instanceRootValue);
     }
 
@@ -302,12 +309,7 @@ public abstract class BaseShapeTreeTest {
     @NotNull
     @SneakyThrows
     protected static URI getMetadataResourceURI(URI primaryResourceURI) {
-        String metaResourceName = ".meta";
-
-        if (!primaryResourceURI.toString().endsWith("/")) {
-            metaResourceName = "/" + metaResourceName;
-        }
-
-        return new URI(primaryResourceURI.toString() + metaResourceName);
+        RemoteResource resource = new RemoteResource(primaryResourceURI, AUTH_HEADER_VALUE);
+        return new URI(resource.getMetadataURI());
     }
 }
