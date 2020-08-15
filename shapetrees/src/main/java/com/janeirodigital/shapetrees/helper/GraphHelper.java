@@ -10,6 +10,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RiotException;
 
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -29,6 +30,14 @@ public class GraphHelper {
             default:
                 return Lang.TURTLE;
         }
+    }
+
+    public static String writeGraphToTurtleString(Graph graph) {
+        if (graph == null) return null;
+
+        StringWriter sw = new StringWriter();
+        RDFDataMgr.write(sw, graph, Lang.TURTLE);
+        return sw.toString();
     }
 
     public static Graph readStringIntoGraph(String rawContent, String contentType) throws URISyntaxException, ShapeTreeException {

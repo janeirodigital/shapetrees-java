@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client;
+package com.janeirodigital.shapetrees.client.impl;
 
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
 import com.janeirodigital.shapetrees.helper.HttpClientHelper;

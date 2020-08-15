@@ -1,6 +1,7 @@
-package com.janeirodigital.shapetrees.client;
+package com.janeirodigital.shapetrees.client.impl;
 
 import com.janeirodigital.shapetrees.*;
+import com.janeirodigital.shapetrees.client.ValidatingMethodHandler;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
         Request request = chain.request();
 
         // Get the handler
-        ValidatingHandler handler = getHandler(request.method(), chain, this.ecosystem);
+        ValidatingMethodHandler handler = getHandler(request.method(), chain, this.ecosystem);
         if (handler != null) {
             try {
                 return handler.process();
@@ -52,14 +53,14 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
      * @return The appropriate handler class.  If no handler is found, return null.
      * @throws IOException I/O exception from construction of ValidationHandler
      */
-    private ValidatingHandler getHandler(String method, Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
+    private ValidatingMethodHandler getHandler(String method, Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         switch (method) {
             case POST:
-                return new ValidatingPostHandler(chain, ecosystem);
+                return new ValidatingPostMethodHandler(chain, ecosystem);
             case PUT:
-                return new ValidatingPutHandler(chain, ecosystem);
+                return new ValidatingPutMethodHandler(chain, ecosystem);
             case PATCH:
-                return new ValidatingPatchHandler(chain, ecosystem);
+                return new ValidatingPatchMethodHandler(chain, ecosystem);
         }
         return null;
     }

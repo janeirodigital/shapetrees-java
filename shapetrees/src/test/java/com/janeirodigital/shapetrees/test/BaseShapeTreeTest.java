@@ -2,15 +2,16 @@ package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.RemoteResource;
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
+import com.janeirodigital.shapetrees.client.ShapeTreeClient;
+import com.janeirodigital.shapetrees.client.impl.ShapeTreeClientImpl;
 import com.janeirodigital.shapetrees.enums.LinkRelations;
+import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
-import com.janeirodigital.shapetrees.client.ShapeTreeValidatingClientBuilder;
+import com.janeirodigital.shapetrees.client.impl.ShapeTreeValidatingClientBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.auth.AUTH;
-import org.apache.http.client.methods.RequestBuilder;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
@@ -25,9 +26,11 @@ import org.opentest4j.AssertionFailedError;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,12 +41,18 @@ public abstract class BaseShapeTreeTest {
 
     protected static final String SERVER_ROOT = "https://ldp.local-ess.inrupt.com/";
     protected static final String ROOT_PATH = SERVER_ROOT+"aHR0cDovL2RldnNlcnZlcjozMDA4Mi9hdXRoL3JlYWxtcy9tYXN0ZXJiMzg4YmJlMV85ZjYzXzRlYmNfYmEzMF80MWY4ZmJjZmM0NTc/shapetree-testing/";
-    protected static final String TOKEN = "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJodHRwczpcL1wvbGRwLmxvY2FsLWVzcy5pbnJ1cHQuY29tXC9hSFIwY0RvdkwyUmxkbk5sY25abGNqb3pNREE0TWk5aGRYUm9MM0psWVd4dGN5OXRZWE4wWlhKaU16ZzRZbUpsTVY4NVpqWXpYelJsWW1OZlltRXpNRjgwTVdZNFptSmpabU0wTlRjXC9wcm9maWxlXC9jYXJkI21lIiwiYXpwIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDAiLCJpc3MiOiJodHRwczpcL1wvb2lkYy5sb2NhbC1lc3MuaW5ydXB0LmNvbVwvIiwiY25mIjp7ImprdCI6Ik01RUlYX0hMbGxvazhOR3U2b0FURGtFaTJNNVFsMEt2TVV4c0pVOTEtSzgifSwiZXhwIjoxNTk2NTQwNzM1LCJpYXQiOjE1OTU5MzU5MzUsImp0aSI6IjFhZDIyZjQzLTAwNmUtNDA3My1iN2U1LTNkYzU5ZGU0YWI3MyJ9.qhAS7qN3cQJxVxqpwdxxS3I5juak5sw06Ghiy9sijF956TSLSPyTubLgxthWzPtArc9Az3xckbk5ZjFvxgK83GkHbVvF0emzaM8p9gaISrfc7r8_z9uNa0RQ5IcK75F_T2oAIkKZVTet6YXW_ZiFUIN3TkyNb-5TIiBEdjUHKVr0ZFZaRfj_sL6n88C4qNTmNtizt7ijYjN_py06IJfDJvGASqqcd1YQs7lPcgnWHya0jIwMtKiz0Q2uWo-FYL1TpALFuLf6irUmgzpyLbjzT3uksA0H6iTYusOYmMsvLalN2FVkc9IAZTVYweJ8Q6lLBa7EB2cW9UWzgMeqgTWeTw";
+    protected static final String TOKEN = "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJodHRwczpcL1wvbGRwLmxvY2FsLWVzcy5pbnJ1cHQuY29tXC9hSFIwY0RvdkwyUmxkbk5sY25abGNqb3pNREE0TWk5aGRYUm9MM0psWVd4dGN5OXRZWE4wWlhKaU16ZzRZbUpsTVY4NVpqWXpYelJsWW1OZlltRXpNRjgwTVdZNFptSmpabU0wTlRjXC9wcm9maWxlXC9jYXJkI21lIiwiYXpwIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDAiLCJpc3MiOiJodHRwczpcL1wvb2lkYy5sb2NhbC1lc3MuaW5ydXB0LmNvbVwvIiwiY25mIjp7ImprdCI6Ik01RUlYX0hMbGxvazhOR3U2b0FURGtFaTJNNVFsMEt2TVV4c0pVOTEtSzgifSwiZXhwIjoxNTk4MDM0NjM2LCJpYXQiOjE1OTc0Mjk4MzYsImp0aSI6ImE5OGVlMWExLTFkNmYtNGIwNi1hNjk5LWVmM2RlMGRkY2ZkNiJ9.qjBC8DVXiDmvBVfwtOJT2mLRZw8-VKghieWhvtCW1FqyNzAo4QauRuAUuurCgNj2t2ElHas5vT2niUhYvJ-3AvOkUE3F2LcHjepfe2uqhMdyZQc8es2Gudkm8naz8hkzqK3yFLr8vZqjduUuFVWj1eh1cxVzeV_JJpyxurwAMGS4xSTH2nzbiFG92b99M_zvOkfq2gOeRIstSFb5BxdJy5f_4ig8SvOI7l3482A6Of83ApBAZCxbI-d0reZi0ndYz-7KhysBtMVl35Lajnr9cKVlfim6Yvzx75GzpER0Jp08Lf0u1gqgKjf330t4uOEDel3RXlWIbUvdXAneZLVJvA";
     protected static final String AUTH_HEADER_VALUE = "Bearer " + TOKEN;
     private final ShapeTreeEcosystem ecosystem;
+    protected final ShapeTreeClient shapeTreeClient;
 
     public BaseShapeTreeTest(ShapeTreeEcosystem ecosystem) {
         this.ecosystem = ecosystem;
+
+        ShapeTreeContext context = new ShapeTreeContext();
+        context.setAuthorizationHeaderValue(AUTH_HEADER_VALUE);
+
+        this.shapeTreeClient = new ShapeTreeClientImpl(this.ecosystem, context);
     }
 
 
@@ -64,6 +73,12 @@ public abstract class BaseShapeTreeTest {
             SolidTestHelper.deleteResource(AUTH_HEADER_VALUE, url);
         }
     }
+
+    protected String getResourceContent(String bodyResourcePath) throws IOException {
+        FileInputStream inputStream = new FileInputStream(bodyResourcePath);
+        return IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+    }
+
 
     protected Response patchContent(URI patchResource, boolean isContainer, String sparqlUpdate, String focusNode) throws IOException {
         return patchContent(patchResource, isContainer, sparqlUpdate, focusNode, 204);

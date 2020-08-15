@@ -6,13 +6,10 @@ import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.model.*;
-import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okio.Buffer;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 
 import java.io.IOException;
 import java.net.URI;
@@ -20,7 +17,7 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 @Slf4j
-public abstract class AbstractValidatingHandler {
+public abstract class AbstractValidatingMethodHandler {
     protected final Interceptor.Chain chain;
     protected final Request request;
     protected final String authorizationHeaderValue;
@@ -33,7 +30,7 @@ public abstract class AbstractValidatingHandler {
     protected final Set<String> supportedRDFContentTypes;
     protected ShapeTreeEcosystem ecosystem;
 
-    public AbstractValidatingHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
+    public AbstractValidatingMethodHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         this.chain = chain;
         this.ecosystem = ecosystem;
         this.request = chain.request();
@@ -182,29 +179,7 @@ public abstract class AbstractValidatingHandler {
         return requestRemoteResource.getURI().toString().replace(getParentContainerURI().toString(), "");
     }
 
-    protected List<ShapeTreeLocator> getShapeTreeLocators(Graph shapeTreeMetadataGraph) {
-        List<ShapeTreeLocator> locators = new ArrayList<>();
 
-        List<Triple> hasShapeTreeLocatorTriples = shapeTreeMetadataGraph.find(null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR), null).toList();
-        for (Triple hasShapeTreeLocatorTriple : hasShapeTreeLocatorTriples) {
-            String locatorURI = hasShapeTreeLocatorTriple.getObject().getURI();
-
-            List<Triple> locatorTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(locatorURI), null, null).toList();
-            String shapeTreeRoot = null, rootShapeTree = null, shapeTree = null;
-            for (Triple locatorTriple : locatorTriples) {
-                if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_SHAPE_TREE)) {
-                    shapeTree = locatorTriple.getObject().getURI();
-                } else if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT)) {
-                    shapeTreeRoot = locatorTriple.getObject().getURI();
-                } else if (locatorTriple.getPredicate().getURI().equals(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE)) {
-                    rootShapeTree = locatorTriple.getObject().getURI();
-                }
-            }
-            locators.add(new ShapeTreeLocator(rootShapeTree, shapeTree, shapeTreeRoot));
-        }
-
-        return locators;
-    }
 
     protected ShapeTree getShapeTreeWithShapeURI(List<ShapeTree> shapeTreesToPlant) {
         for (ShapeTree shapeTree : shapeTreesToPlant) {
@@ -230,7 +205,7 @@ public abstract class AbstractValidatingHandler {
         // If there is no metadata for the parent container, it is not managed
         if (!parentContainerMetadata.exists()) return null;
 
-        List<ShapeTreeLocator> locators = getShapeTreeLocators(parentContainerMetadata.getGraph(parentContainer.getURI()));
+        List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadata.getGraph(parentContainer.getURI()));
 
         // If there are no ShapeTree locators in the metadata graph, it is not managed
         if (locators == null || locators.size() == 0) return null;

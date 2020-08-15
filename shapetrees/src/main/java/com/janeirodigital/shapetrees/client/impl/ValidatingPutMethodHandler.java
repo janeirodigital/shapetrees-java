@@ -1,6 +1,8 @@
-package com.janeirodigital.shapetrees.client;
+package com.janeirodigital.shapetrees.client.impl;
 
 import com.janeirodigital.shapetrees.*;
+import com.janeirodigital.shapetrees.client.AbstractValidatingMethodHandler;
+import com.janeirodigital.shapetrees.client.ValidatingMethodHandler;
 import com.janeirodigital.shapetrees.helper.PlantHelper;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
@@ -15,9 +17,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ValidatingPutHandler extends AbstractValidatingHandler implements ValidatingHandler {
+public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
-    public ValidatingPutHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
+    public ValidatingPutMethodHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         super(chain, ecosystem);
     }
 

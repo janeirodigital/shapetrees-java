@@ -1,6 +1,8 @@
-package com.janeirodigital.shapetrees.client;
+package com.janeirodigital.shapetrees.client.impl;
 
 import com.janeirodigital.shapetrees.*;
+import com.janeirodigital.shapetrees.client.AbstractValidatingMethodHandler;
+import com.janeirodigital.shapetrees.client.ValidatingMethodHandler;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.model.ShapeTree;
 import com.janeirodigital.shapetrees.model.ValidationResult;
@@ -21,9 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class ValidatingPatchHandler extends AbstractValidatingHandler implements ValidatingHandler {
+public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
-    public ValidatingPatchHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
+    public ValidatingPatchMethodHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         super(chain, ecosystem);
     }
 
@@ -52,7 +54,7 @@ public class ValidatingPatchHandler extends AbstractValidatingHandler implements
         // If managed, do validation
         if (shapeTreeManagedContainer) {
 
-            List<ShapeTreeLocator> shapeTreeLocatorMetadatas = getShapeTreeLocators(parentContainerMetadataGraph);
+            List<ShapeTreeLocator> shapeTreeLocatorMetadatas = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadataGraph);
 
             List<ShapeTree> shapeTrees = new ArrayList<>();
             for (ShapeTreeLocator locator : shapeTreeLocatorMetadatas) {

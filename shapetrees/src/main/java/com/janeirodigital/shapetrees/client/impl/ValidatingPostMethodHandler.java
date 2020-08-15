@@ -1,6 +1,8 @@
-package com.janeirodigital.shapetrees.client;
+package com.janeirodigital.shapetrees.client.impl;
 
 import com.janeirodigital.shapetrees.*;
+import com.janeirodigital.shapetrees.client.AbstractValidatingMethodHandler;
+import com.janeirodigital.shapetrees.client.ValidatingMethodHandler;
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.PlantHelper;
@@ -20,9 +22,9 @@ import java.util.Collections;
 import java.util.List;
 
 @Slf4j
-public class ValidatingPostHandler extends AbstractValidatingHandler implements ValidatingHandler {
+public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
-    public ValidatingPostHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
+    public ValidatingPostMethodHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         super(chain, ecosystem);
     }
 
@@ -141,7 +143,7 @@ public class ValidatingPostHandler extends AbstractValidatingHandler implements 
         if (targetContainer.exists()) {
             RemoteResource targetMetadata = targetContainer.getMetadataResource(authorizationHeaderValue);
             if (targetMetadata.exists()) {
-                List<ShapeTreeLocator> locators = getShapeTreeLocators(targetMetadata.getGraph(new URI(requestURI.toString() + requestedName)));
+                List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetMetadata.getGraph(new URI(requestURI.toString() + requestedName)));
                 for (ShapeTreeLocator locator : locators) {
                     ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree()));
                     log.debug("Found ShapeTree [{}] already planted in existing container, adding to list to validate", shapeTree.getURI());
