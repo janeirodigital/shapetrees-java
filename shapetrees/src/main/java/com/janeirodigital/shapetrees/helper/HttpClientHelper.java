@@ -15,9 +15,11 @@ public class HttpClientHelper {
         if (shouldIgnoreSSL()) {
             return getUnsafeOkHttpClient(interceptor);
         } else {
-            return new OkHttpClient.Builder()
-                    .addInterceptor(interceptor)
-                    .build();
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            if (interceptor != null) {
+                builder.addInterceptor(interceptor);
+            }
+            return builder.build();
         }
     }
 

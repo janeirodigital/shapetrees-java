@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_URI;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
 import java.net.URI;
@@ -38,7 +39,7 @@ public class ShapeTreeFactory {
     }
 
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
-        Model model = RDFDataMgr.loadModel(shapeTreeURI.toString());
+        Model model = RDFDataMgr.loadModel(shapeTreeURI.toString(), Lang.TURTLE);
 
         Resource resource = model.getResource(shapeTreeURI.toString());
         if (resource != null) {

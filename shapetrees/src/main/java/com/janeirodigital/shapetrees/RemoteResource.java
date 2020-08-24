@@ -183,10 +183,14 @@ public class RemoteResource {
         log.debug("RemoteResource#dereferencingURI({})", this.URI);
 
         OkHttpClient httpClient = HttpClientHelper.getClient();
-        Request request = new Request.Builder()
-                .url(this.URI.toURL())
-                .addHeader(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue)
-                .build();
+        Request.Builder requestBuilder = new Request.Builder()
+                .url(this.URI.toURL());
+
+        if (this.authorizationHeaderValue != null) {
+            requestBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);
+        }
+
+        Request request = requestBuilder.build();
 
         Response response = httpClient.newCall(request).execute();
 

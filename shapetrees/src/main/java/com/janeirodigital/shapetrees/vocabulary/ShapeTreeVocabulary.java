@@ -19,5 +19,19 @@ public class ShapeTreeVocabulary {
     public static final String ALLOW_NONE = Namespaces.SHAPETREE + "AllowNone";
     public static final String SHAPETREE_CONTAINER = Namespaces.SHAPETREE + "ShapeTreeContainer";
     public static final String SHAPETREE_RESOURCE = Namespaces.SHAPETREE + "ShapeTreeResource";
+    public static final String HAS_SHAPETREE_DECORATOR_INDEX = Namespaces.SHAPETREE + "hasShapeTreeDecoratorIndex";
+    public static final String SHAPETREE_DECORATOR_INDEX = Namespaces.SHAPETREE + "ShapeTreeDecoratorIndex";
+    public static final String DEFAULT_LANGUAGE = Namespaces.SHAPETREE + "defaultLanguage";
+    public static final String HAS_SERIES = Namespaces.SHAPETREE + "hasSeries";
+    public static final String SHAPETREE_DECORATOR_SERIES = Namespaces.SHAPETREE + "ShapeTreeDecoratorSeries";
+    public static final String USES_LANGUAGE = Namespaces.SHAPETREE + "usesLanguage";
+    public static final String HAS_VERSION = Namespaces.SHAPETREE + "hasVersion";
+    public static final String SHAPETREE_DECORATOR_VERSION = Namespaces.SHAPETREE + "ShapeTreeDecoratorVersion";
+    public static final String HAS_SHAPETREE_DECORATOR_RESOURCE = Namespaces.SHAPETREE + "hasShapeTreeDecoratorResource";
+    public static final String IS_VERSION = Namespaces.SHAPETREE + "isVersion";
+    public static final String HAS_SHA256 = Namespaces.SHAPETREE + "hasSHA256";
+    public static final String SHAPETREE_DECORATOR = Namespaces.SHAPETREE + "ShapeTreeDecorator";
+    public static final String PREF_LABEL = Namespaces.SHAPETREE + "prefLabel";
+    public static final String DEFINITION = Namespaces.SHAPETREE + "definition";
 
 }
