@@ -31,7 +31,5 @@ public class ShapeTreeVocabulary {
     public static final String IS_VERSION = Namespaces.SHAPETREE + "isVersion";
     public static final String HAS_SHA256 = Namespaces.SHAPETREE + "hasSHA256";
     public static final String SHAPETREE_DECORATOR = Namespaces.SHAPETREE + "ShapeTreeDecorator";
-    public static final String PREF_LABEL = Namespaces.SHAPETREE + "prefLabel";
-    public static final String DEFINITION = Namespaces.SHAPETREE + "definition";
 
 }
