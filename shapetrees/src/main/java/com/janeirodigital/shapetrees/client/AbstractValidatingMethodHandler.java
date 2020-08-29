@@ -125,13 +125,6 @@ public abstract class AbstractValidatingMethodHandler {
         return null;
     }
 
-    protected ShapeTreeContext getShapeTreeContext() {
-        // TODO - need to not make these values hardcoded
-        // Likely only the auth header needs to come from the shapetree and the other
-        // things can come from the ecosystem
-        return new ShapeTreeContext(this.authorizationHeaderValue, "https://auth-agent.example", "https://ldp.local-ess.inrupt.com/aHR0cDovL2RldnNlcnZlcjozMDA4Mi9hdXRoL3JlYWxtcy9tYXN0ZXJiMzg4YmJlMV85ZjYzXzRlYmNfYmEzMF80MWY4ZmJjZmM0NTc/shapetree-testing/profile/id#me");
-    }
-
     protected static Response createPlantResponse(List<ShapeTreePlantResult> plantResults, Request request, Map<String, List<String>> linkHeaders) {
 
         // As multiple ShapeTrees can be planted at once, if there is more than ShapeTree relation Link header,
@@ -229,7 +222,7 @@ public abstract class AbstractValidatingMethodHandler {
             if (graphToValidate != null && targetShapeTree.getValidatedByShapeUri() != null) {
                 // ...and a focus node was provided via the focusNode header, then we perform our validation
                 URI focusNodeURI = getIncomingResolvedFocusNode(baseURI);
-                validationResult = targetShapeTree.validateContent(this.authorizationHeaderValue, graphToValidate, focusNodeURI, isAContainer);
+                validationResult = targetShapeTree.validateContent(graphToValidate, focusNodeURI, isAContainer);
             }
 
             // If there is a body graph and it did not pass validation, return an error

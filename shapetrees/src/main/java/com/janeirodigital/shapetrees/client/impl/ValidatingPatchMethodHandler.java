@@ -86,7 +86,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 }
 
                 URI focusNodeURI = getIncomingResolvedFocusNode(normalizedBaseURI);
-                validationResult = targetShapeTree.validateContent(this.authorizationHeaderValue, existingResourceGraph, focusNodeURI, this.requestRemoteResource.isContainer());
+                validationResult = targetShapeTree.validateContent(existingResourceGraph, focusNodeURI, this.requestRemoteResource.isContainer());
             }
 
             if (targetShapeTree == null || validationResult.getValid()) {

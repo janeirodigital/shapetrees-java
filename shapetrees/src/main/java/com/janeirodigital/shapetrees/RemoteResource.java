@@ -153,6 +153,10 @@ public class RemoteResource {
 
     @NotNull
     public String getMetadataURI() throws IOException {
+        if (!this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE.getValue())) {
+            log.error("The resource {} does not contain a link header of {}", this.getURI(), LinkRelations.SHAPETREE.getValue());
+            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
+        }
         String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE.getValue()).stream().findFirst().orElse(null);
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container

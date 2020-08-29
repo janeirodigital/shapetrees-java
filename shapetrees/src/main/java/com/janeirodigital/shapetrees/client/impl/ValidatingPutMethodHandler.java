@@ -42,7 +42,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
             // If there is a ShapeTree managing the new resource, register it
             if (validationContext != null && validationContext.getValidatingShapeTree() != null) {
                 if (!resourceAlreadyExists) {
-                    this.ecosystem.indexShapeTreeDataInstance(this.getShapeTreeContext(), parentURI, validationContext.getValidatingShapeTree().getURI(), this.requestRemoteResource.getURI());
+                    this.ecosystem.indexShapeTreeDataInstance(parentURI, validationContext.getValidatingShapeTree().getURI(), this.requestRemoteResource.getURI());
                 }
             }
             return response;

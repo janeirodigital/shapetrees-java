@@ -47,7 +47,7 @@ public class ShapeTree {
         return this.getExpectedResourceType() != null && this.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER);
     }
 
-    public ValidationResult validateContent(String authorizationHeaderValue, Graph graph, URI focusNodeURI, Boolean isAContainer) throws IOException {
+    public ValidationResult validateContent(Graph graph, URI focusNodeURI, Boolean isAContainer) throws IOException {
         if (this.isContainer() != isAContainer) {
             throw new ShapeTreeException(400, "The resource type being validated does not match the type expected by the ShapeTree");
         }
@@ -56,9 +56,10 @@ public class ShapeTree {
             throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") that does not have an associated Shape");
         }
         URI resolvedShapeURI = URI.create(this.id).resolve(this.validatedByShapeUri);
-        RemoteResource shexShapeSchema = new RemoteResource(resolvedShapeURI, authorizationHeaderValue);
+        // Retrieve with no authorization as shapes must be available in an unauthenticated scope
+        RemoteResource shexShapeSchema = new RemoteResource(resolvedShapeURI, null);
         if (!shexShapeSchema.exists() || shexShapeSchema.getBody() == null) {
-            throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + this.validatedByShapeUri + ") is not found or is empty");
+            throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
         }
 
         // Tell ShExJava we want to use Jena as our graph library

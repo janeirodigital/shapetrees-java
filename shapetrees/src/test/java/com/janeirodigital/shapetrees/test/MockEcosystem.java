@@ -22,22 +22,22 @@ public class MockEcosystem implements ShapeTreeEcosystem {
     }
 
     @Override
-    public ShapeTreePlantResult getExistingShapeTreeFromContainer(ShapeTreeContext context, URI parentContainer, List<ShapeTree> shapeTreesToPlant, String requestedName) {
+    public ShapeTreePlantResult getExistingShapeTreeFromContainer(URI parentContainer, List<ShapeTree> shapeTreesToPlant, String requestedName) {
         return new ShapeTreePlantResult();
     }
 
     @Override
-    public Graph beforePlantShapeTree(ShapeTreeContext context, URI expectedURI, Graph graph, List<ShapeTree> shapeTreesToPlant, Map<String, List<String>> linkHeaders) throws URISyntaxException {
+    public Graph beforePlantShapeTree(URI expectedURI, Graph graph, List<ShapeTree> shapeTreesToPlant, Map<String, List<String>> linkHeaders) throws URISyntaxException {
         return graph;
     }
 
     @Override
-    public void indexShapeTree(ShapeTreeContext context, URI parentContainer, URI shapeTreeURI, URI plantedShapeTreeURI, Map<String, List<String>> linkHeaders) throws IOException, URISyntaxException {
+    public void indexShapeTree(URI parentContainer, URI shapeTreeURI, URI plantedShapeTreeURI, Map<String, List<String>> linkHeaders) throws IOException, URISyntaxException {
 
     }
 
     @Override
-    public void indexShapeTreeDataInstance(ShapeTreeContext context, URI parentContainer, URI shapeTreeURI, URI instanceURI) {
+    public void indexShapeTreeDataInstance(URI parentContainer, URI shapeTreeURI, URI instanceURI) {
 
     }
 

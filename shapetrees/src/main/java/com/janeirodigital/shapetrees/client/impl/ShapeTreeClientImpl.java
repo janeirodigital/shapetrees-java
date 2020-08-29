@@ -9,6 +9,7 @@ import com.janeirodigital.shapetrees.helper.GraphHelper;
 import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.jena.graph.Graph;
 
@@ -17,6 +18,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+@Slf4j
 public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Getter
@@ -32,6 +34,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public List<ShapeTreeLocator> discoverShapeTree(URI targetContainer) throws IOException {
+        log.info("Discovering Shape Trees present at {}", targetContainer);
         RemoteResource targetContainerResource = new RemoteResource(targetContainer, context.getAuthorizationHeaderValue());
         RemoteResource targetContainerMetadataResource = targetContainerResource.getMetadataResource(context.getAuthorizationHeaderValue());
         return ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetContainerMetadataResource.getGraph(targetContainerResource.getURI()));
@@ -39,6 +42,14 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public URI plantShapeTree(URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, Graph bodyGraph) throws IOException, URISyntaxException {
+        String shapeTreeCommaDelimited = "";
+        if (shapeTreeURIs != null) {
+            for(URI shapeTreeURI : shapeTreeURIs) {
+                shapeTreeCommaDelimited += "," + shapeTreeURI;
+            }
+        }
+
+        log.info("Planting shape tree [Parent container={}], [Shape Trees={}], [FocusNode={}], [ShapeTreeHint={}], [ProposedResourceName={}]", parentContainer, shapeTreeCommaDelimited, focusNode, shapeTreeHint, proposedResourceName);
         String turtleString = GraphHelper.writeGraphToTurtleString(bodyGraph);
         return plantShapeTree(parentContainer, shapeTreeURIs, focusNode, shapeTreeHint, proposedResourceName, turtleString, "text/turtle");
     }

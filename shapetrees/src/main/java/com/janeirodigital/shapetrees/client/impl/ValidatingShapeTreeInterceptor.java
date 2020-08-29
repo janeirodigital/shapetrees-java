@@ -33,6 +33,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
             try {
                 return handler.process();
             } catch (Exception ex) {
+                log.error("Error processing shape tree request: ", ex);
                 if (ex instanceof ShapeTreeException) {
                     return createErrorResponse((ShapeTreeException)ex, request);
                 } else {
