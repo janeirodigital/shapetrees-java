@@ -55,15 +55,13 @@
         <dependency>
             <groupId>fr.inria.lille.shexjava</groupId>
             <artifactId>shexjava-core</artifactId>
-            <!--
-            <exclusions>
-
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-rdf-jena</artifactId>
-                </exclusion>
-            </exclusions>
-            -->
+        </dependency>
+        <!-- jena-osgi is a dependency of RDF4J-Jena, but that package uses and old version
+             this explicit dependency forces the use of the latest version as defined
+             in the parent POM -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-osgi</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

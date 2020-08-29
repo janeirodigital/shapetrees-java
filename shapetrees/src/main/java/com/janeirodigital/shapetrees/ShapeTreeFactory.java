@@ -49,11 +49,11 @@ public class ShapeTreeFactory {
 
     private static void recursivelyParseShapeTree(Model model, Resource resource) throws URISyntaxException, ShapeTreeException {
         String shapeTreeURIString = resource.getURI();
-        log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
+        log.info("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
         URI shapeTreeURI = new URI(shapeTreeURIString);
 
         if (localShapeTreeCache.containsKey(shapeTreeURI)) {
-            log.debug("[{}] previously cached -- returning", shapeTreeURIString);
+            log.info("[{}] previously cached -- returning", shapeTreeURIString);
             return;
         }
 
@@ -61,7 +61,9 @@ public class ShapeTreeFactory {
         // Set the URI as the ID (string representation)
         shapeTree.setId(shapeTreeURIString);
         // Set the expected resource type
-        shapeTree.setExpectedResourceType(getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE));
+        String expectsType = getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE);
+        if (expectsType == null) throw new ShapeTreeException(500, "Shape Tree :expectsType not found");
+        shapeTree.setExpectedResourceType(expectsType);
         // Set URI Template
         shapeTree.setMatchesUriTemplate(getStringValue(model, resource, ShapeTreeVocabulary.MATCHES_URI_TEMPLATE));
         // Set Shape URI
