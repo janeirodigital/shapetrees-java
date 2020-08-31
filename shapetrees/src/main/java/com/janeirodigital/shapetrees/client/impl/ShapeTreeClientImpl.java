@@ -95,6 +95,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public void createDataInstance(URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
+        log.info("Creating data instance {} in {} with hint {}", parentContainer, proposedResourceName, shapeTreeHint);
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         byte[] bytes = new byte[]{};
@@ -102,13 +103,21 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
             bytes = bodyString.getBytes();
         }
 
-        Request.Builder postBuilder = new Request.Builder()
-                .url(parentContainer.toString())
-                .post(RequestBody.create(bytes));
+        String resourceURI = parentContainer.toString();
+        if (!resourceURI.endsWith("/")) {
+            resourceURI += "/";
+        }
+        resourceURI += proposedResourceName;
+        log.info("Build Resource URI {}", resourceURI);
 
-        applyCommonHeaders(postBuilder, focusNode, shapeTreeHint, isContainer, proposedResourceName, contentType);
+        Request.Builder putBuilder = new Request.Builder()
+                .url(resourceURI)
+                .put(RequestBody.create(bytes));
 
-        client.newCall(postBuilder.build()).execute();
+        // proposed resource is name is nulled since a Slug will not be used
+        applyCommonHeaders(putBuilder, focusNode, shapeTreeHint, isContainer, null, contentType);
+
+        client.newCall(putBuilder.build()).execute();
     }
 
     @Override

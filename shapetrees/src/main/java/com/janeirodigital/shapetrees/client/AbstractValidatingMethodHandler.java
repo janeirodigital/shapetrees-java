@@ -103,6 +103,7 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     protected Graph getIncomingBodyGraph(URI baseURI) throws ShapeTreeException {
+        log.info("Reading request body into graph with baseURI {}", baseURI);
         if (!this.isNonRdfSource && this.incomingRequestBody != null && this.incomingRequestBody.length() > 0) {
             return GraphHelper.readStringIntoGraph(this.incomingRequestBody, baseURI, this.incomingRequestContentType);
         }
@@ -193,7 +194,6 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     protected ValidationContext validateAgainstParentContainer(Graph graphToValidate, URI baseURI, RemoteResource parentContainer, String resourceName, Boolean isAContainer) throws IOException, URISyntaxException {
-
         RemoteResource parentContainerMetadata = parentContainer.getMetadataResource(this.authorizationHeaderValue);
         // If there is no metadata for the parent container, it is not managed
         if (!parentContainerMetadata.exists()) return null;
@@ -222,6 +222,7 @@ public abstract class AbstractValidatingMethodHandler {
             if (graphToValidate != null && targetShapeTree.getValidatedByShapeUri() != null) {
                 // ...and a focus node was provided via the focusNode header, then we perform our validation
                 URI focusNodeURI = getIncomingResolvedFocusNode(baseURI);
+                log.info("Validating against parent container.  ST with Contents {}, Focus Node {}", shapeTreeWithContents.getURI(), focusNodeURI);
                 validationResult = targetShapeTree.validateContent(graphToValidate, focusNodeURI, isAContainer);
             }
 

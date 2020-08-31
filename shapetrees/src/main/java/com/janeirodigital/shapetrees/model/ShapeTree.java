@@ -15,6 +15,7 @@ import fr.inria.lille.shexjava.validation.RecursiveValidation;
 import fr.inria.lille.shexjava.validation.Status;
 import fr.inria.lille.shexjava.validation.ValidationAlgorithm;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.jena.JenaRDF;
@@ -29,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Slf4j
 public class ShapeTree {
     private String id;
     private String expectedResourceType;
@@ -78,6 +80,7 @@ public class ShapeTree {
         ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
         Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.validatedByShapeUri));
         IRI focusNode = GlobalFactory.RDFFactory.createIRI(focusNodeURI.toString());
+        log.info("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
         validation.validate(focusNode, shapeLabel);
 
         boolean valid = validation.getTyping().isConformant(focusNode, shapeLabel);
@@ -86,6 +89,7 @@ public class ShapeTree {
             for (Pair<RDFTerm, Label> entry :  validation.getTyping().getStatusMap().keySet()) {
                 if (validation.getTyping().getStatusMap().get(entry).equals(Status.NONCONFORMANT)) {
                     failedNodes.add(entry.one + " - " + entry.two);
+                    log.error("Nonconformant Nodes {} - {}", entry.one.toString(), entry.two.toPrettyString());
                 }
             }
         }
