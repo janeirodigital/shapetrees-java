@@ -37,6 +37,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
             throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");
         }
 
+        Boolean resourceAlreadyExists = this.requestRemoteResource.exists();
         // Get the parent container URI
         URI parentURI = getParentContainerURI();
         // Get requested name (resource being PATCHed)
@@ -95,7 +96,14 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
             if (targetShapeTree == null || validationResult.getValid()) {
                 // If there was no targetShapeTree returned to indicate validation should occur, then pass it to the server
                 // If the result of the locally applied PATCH validates, then pass it to the server
-                return chain.proceed(chain.request());
+                Response response = this.chain.proceed(this.chain.request());
+                // If there is a ShapeTree managing the new resource, register it
+                if (targetShapeTree != null) {
+                    if (!resourceAlreadyExists) {
+                        this.ecosystem.indexShapeTreeDataInstance(parentURI, targetShapeTree.getURI(), this.requestRemoteResource.getURI());
+                    }
+                }
+                return response;
             } else {
                 // Otherwise, return a validation error
                 throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + targetShapeTree.getURI());
