@@ -12,6 +12,7 @@ import okhttp3.Interceptor;
 import okhttp3.Response;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
@@ -31,7 +32,6 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
 
     @Override
     public Response process() throws  IOException, URISyntaxException {
-        ensureRequestResourceExists("Resource being PATCHed does not exist");
         if (this.incomingRequestContentType == null || !this.incomingRequestContentType.toLowerCase().equals("application/sparql-update")) {
             log.error("Received a patch without a content type of application/sparql-update");
             throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");
@@ -76,6 +76,9 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
             if (targetShapeTree != null) {
                 // Get existing resource graph (prior to PATCH)
                 Graph existingResourceGraph = requestRemoteResource.getGraph(normalizedBaseURI);
+                if (existingResourceGraph == null) {
+                    existingResourceGraph = ModelFactory.createDefaultModel().getGraph();
+                }
 
                 // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
                 UpdateRequest updateRequest = UpdateFactory.create(this.incomingRequestBody);
@@ -102,5 +105,4 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
             return chain.proceed(chain.request());
         }
     }
-
 }
