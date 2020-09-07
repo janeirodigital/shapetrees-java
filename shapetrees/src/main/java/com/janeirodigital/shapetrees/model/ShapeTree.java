@@ -3,6 +3,7 @@ package com.janeirodigital.shapetrees.model;
 import com.janeirodigital.shapetrees.RemoteResource;
 import com.janeirodigital.shapetrees.ShapeTreeException;
 import com.janeirodigital.shapetrees.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.SchemaCache;
 import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import com.janeirodigital.shapetrees.enums.RecursionMethods;
 import com.sun.jersey.api.uri.UriTemplate;
@@ -20,10 +21,13 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.jena.JenaRDF;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -58,24 +62,33 @@ public class ShapeTree {
             throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") that does not have an associated Shape");
         }
         URI resolvedShapeURI = URI.create(this.id).resolve(this.validatedByShapeUri);
-        // Retrieve with no authorization as shapes must be available in an unauthenticated scope
-        RemoteResource shexShapeSchema = new RemoteResource(resolvedShapeURI, null);
-        if (!shexShapeSchema.exists() || shexShapeSchema.getBody() == null) {
-            throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
+
+        ShexSchema schema;
+        if (SchemaCache.isInitialized() && SchemaCache.containsSchema(resolvedShapeURI)) {
+            schema = SchemaCache.getSchema(resolvedShapeURI);
+        } else {
+            // Retrieve with no authorization as shapes must be available in an unauthenticated scope
+            RemoteResource shexShapeSchema = new RemoteResource(resolvedShapeURI, null);
+            if (!shexShapeSchema.exists() || shexShapeSchema.getBody() == null) {
+                throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
+            }
+
+            String shapeBody = shexShapeSchema.getBody();
+            InputStream stream = new ByteArrayInputStream(shapeBody.getBytes());
+            ShExCParser shexCParser = new ShExCParser();
+            try {
+                schema = new ShexSchema(GlobalFactory.RDFFactory,shexCParser.getRules(stream),shexCParser.getStart());
+                if (SchemaCache.isInitialized()) {
+                    SchemaCache.putSchema(resolvedShapeURI, schema);
+                }
+            } catch (Exception ex) {
+                throw new ShapeTreeException(500, "Error parsing ShEx schema - " + ex.getMessage());
+            }
         }
 
         // Tell ShExJava we want to use Jena as our graph library
         JenaRDF jenaRDF = new org.apache.commons.rdf.jena.JenaRDF();
         GlobalFactory.RDFFactory = jenaRDF;
-        String shapeBody = shexShapeSchema.getBody();
-        InputStream stream = new ByteArrayInputStream(shapeBody.getBytes());
-        ShExCParser shexCParser = new ShExCParser();
-        ShexSchema schema;
-        try {
-            schema = new ShexSchema(GlobalFactory.RDFFactory,shexCParser.getRules(stream),shexCParser.getStart());
-        } catch (Exception ex) {
-            throw new ShapeTreeException(500, "Error parsing ShEx schema - " + ex.getMessage());
-        }
 
         ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
         Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.validatedByShapeUri));
@@ -92,6 +105,9 @@ public class ShapeTree {
                     log.error("Nonconformant Nodes {} - {}", entry.one.toString(), entry.two.toPrettyString());
                 }
             }
+            StringWriter sw = new StringWriter();
+            RDFDataMgr.write(sw, graph, Lang.TURTLE);
+            log.info("Failing RDF is: {}", sw.toString());
         }
 
         return new ValidationResult(valid, failedNodes);

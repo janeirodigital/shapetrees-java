@@ -5,6 +5,7 @@ import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
 import com.janeirodigital.shapetrees.client.ShapeTreeClient;
 import com.janeirodigital.shapetrees.client.impl.ShapeTreeClientImpl;
 import com.janeirodigital.shapetrees.enums.LinkRelations;
+import com.janeirodigital.shapetrees.SchemaCache;
 import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import com.janeirodigital.shapetrees.client.impl.ShapeTreeValidatingClientBuilder;
@@ -26,22 +27,18 @@ import org.opentest4j.AssertionFailedError;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 public abstract class BaseShapeTreeTest {
 
-    protected static final String SERVER_ROOT = "https://ldp.accenture-jd-internal.janeirodigital.net/";
-    protected static final String ROOT_PATH = SERVER_ROOT+"aHR0cHM6Ly94ZmgtYXV0aC5hY2NlbnR1cmUtamQtaW50ZXJuYWwuamFuZWlyb2RpZ2l0YWwubmV0L2F1dGgvcmVhbG1zL21hc3RlcjdjZGU5YzkxX2ZmZjBfNDIzOF84MDc1XzkwNDljYzhlMTFjNA/";
-    protected static final String TOKEN = "eyJraWQiOiJmOGJjNTc3MGNlNjUyOTYxNDc4Y2ZhYTJlNzQ0MTZhOCIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJodHRwczpcL1wvbGRwLmFjY2VudHVyZS1qZC1pbnRlcm5hbC5qYW5laXJvZGlnaXRhbC5uZXRcL2FIUjBjSE02THk5NFptZ3RZWFYwYUM1aFkyTmxiblIxY21VdGFtUXRhVzUwWlhKdVlXd3VhbUZ1WldseWIyUnBaMmwwWVd3dWJtVjBMMkYxZEdndmNtVmhiRzF6TDIxaGMzUmxjamRqWkdVNVl6a3hYMlptWmpCZk5ESXpPRjg0TURjMVh6a3dORGxqWXpobE1URmpOQVwvcHJvZmlsZVwvY2FyZCNtZSIsImNsaWVudF93ZWJpZCI6Imh0dHA6XC9cL2xvY2FsaG9zdDo0MjAwIiwiYXpwIjoiODMyZTE3YWUtYmJhZi00OWJlLWJkNzItYWYxNGJlYWIyYmQwIiwiaXNzIjoiaHR0cHM6XC9cL29pZGMuYWNjZW50dXJlLWpkLWludGVybmFsLmphbmVpcm9kaWdpdGFsLm5ldFwvIiwiY25mIjp7ImprdCI6IjI3ZFM2b0tSRE1xUUxVQUVxM1lyeklZdnZweTdINk9DV0V2aEU1SG9IZ28ifSwiZXhwIjoxNTk5MTY3NjQ2LCJpYXQiOjE1OTg1NjI4NDYsImp0aSI6Ijc4MTc5MjJlLWRjMGYtNDk0Ny04MGY1LWNkMDM2ZWY3YzQzMyJ9.Z_ro_pypNjTIru0kc3egQU8OqvW6ed3wzIYBfW2PtnJcQgT1XH0VoCMIKjQ9WNHeqlG0Ve0ZYHOhMeQ4qVnPxybTQQQVSFXJr056MzWu14v4WS3tHH--0cGGbk9YdHVl8MsYv2a7b86rCijIGA4I77-U38tRUsh0M-mFWD75daKQ8pBtYbzOXhOVb6Nn6X1Y_vDmV01FYGKREH26LohsT8UwvS6eIjbVGIRX8PeIU9Dtev13SQvBK1cQPKqd1LDPFUGzhvbby_ZR01-u-A7_GBn7eAXUG-59TkGgRlwmCmYtdP3qDmzIyoBpFx2zPgMFdj6LO6l51nplzEL_8ohz7xWh2YKuDCqvz2v_nZhNPaYMMiw9fAvGtWT02E937cyGKynojUTrCZsEBD_OrZiMV7D788E2E-V_0I0hAu1IAtzHKE2XuGY6MLUy5lx5fmodQWLj-faZCz1yOe0O_p6RrQ2E4rQhLQ-nEpxTRBiUOtzvUeAKMwbKkmE8dXRyQFW9m36vZFu3T8ckBCD_fH_cazAlP_uRDICgJlBiEyCEc83sa7J1dSAVeSRT_BsgyJyyJ5VJ-Hx42-jjU-VwCBiq-fPjY_U6JaEN57brs_YPGNM35sBlsTJoPMi2soB0ahfim-UsTAlWsB_9iqqFF7p0KfP3UweStYWa8HPvCGEmDzU";
+    protected static final String SERVER_ROOT = "https://ldp.local-ess.inrupt.com/";
+    protected static final String ROOT_PATH = SERVER_ROOT+"aHR0cDovL2RldnNlcnZlcjozMDA4Mi9hdXRoL3JlYWxtcy9tYXN0ZXJiMzg4YmJlMV85ZjYzXzRlYmNfYmEzMF80MWY4ZmJjZmM0NTc/shapetree-testing/";
+    protected static final String TOKEN = "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJodHRwczpcL1wvbGRwLmxvY2FsLWVzcy5pbnJ1cHQuY29tXC9hSFIwY0RvdkwyUmxkbk5sY25abGNqb3pNREE0TWk5aGRYUm9MM0psWVd4dGN5OXRZWE4wWlhKaU16ZzRZbUpsTVY4NVpqWXpYelJsWW1OZlltRXpNRjgwTVdZNFptSmpabU0wTlRjXC9wcm9maWxlXC9jYXJkI21lIiwiYXpwIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDAiLCJpc3MiOiJodHRwczpcL1wvb2lkYy5sb2NhbC1lc3MuaW5ydXB0LmNvbVwvIiwiY25mIjp7ImprdCI6IjI3ZFM2b0tSRE1xUUxVQUVxM1lyeklZdnZweTdINk9DV0V2aEU1SG9IZ28ifSwiZXhwIjoxNjAwMDkxMDU3LCJpYXQiOjE1OTk0ODYyNTcsImp0aSI6ImQ5YjBiNTViLTRmOGUtNDVjYy04YzJmLTI2ZjAwOWM3YjRjOSJ9.VVTbaA-wNEgXGi5yy0omF4NyP00OycxIcAeIaS5X0_3kk7Z_uYvtQa4lyADAU9yPxcZexebgBbPExDx_25s0dI2U3Oy4TtfE91SzJTWd1pSJWbgaQ6GxQ5v3ZVkJff1lfyPs6Fc0JNsEEfP_2bBAZgVIUB5wXtkOgEjmZc50EU33vko-GqDhTNZ2LmGFRdcATDVh0rDpQI2TF1B-noaQK98KvRYTIZPt4JmvZV8rfuxAq9hYZqON7wc09Td0BREDAb0kkw9bvJcgI-xYKIe-kilBWYuUbIVsMqOI8-l9mxfTxLBbpfQmFCx2Zim_rLJYYhy_jhfStGD2A20PVadHiw";
     protected static final String AUTH_HEADER_VALUE = "Bearer " + TOKEN;
     private final ShapeTreeEcosystem ecosystem;
     protected final ShapeTreeClient shapeTreeClient;
@@ -59,6 +56,7 @@ public abstract class BaseShapeTreeTest {
     @SneakyThrows
     @BeforeAll
     public static void ensureTestPath() {
+        SchemaCache.initializeCache();
         ensureExists(new URI(ROOT_PATH));
     }
 

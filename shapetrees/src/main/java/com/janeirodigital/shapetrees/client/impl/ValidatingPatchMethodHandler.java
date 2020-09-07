@@ -78,11 +78,12 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 // Get existing resource graph (prior to PATCH)
                 Graph existingResourceGraph = requestRemoteResource.getGraph(normalizedBaseURI);
                 if (existingResourceGraph == null) {
+                    log.info("Existing graph to patch does not exist.  Creating an empty graph.");
                     existingResourceGraph = ModelFactory.createDefaultModel().getGraph();
                 }
 
                 // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
-                UpdateRequest updateRequest = UpdateFactory.create(this.incomingRequestBody);
+                UpdateRequest updateRequest = UpdateFactory.create(this.incomingRequestBody, normalizedBaseURI.toString());
                 UpdateAction.execute(updateRequest, existingResourceGraph);
 
                 if (existingResourceGraph == null) {

@@ -140,7 +140,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public void updateDataInstanceWithPatch(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder((this.ecosystem)).get();
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         byte[] sparqlUpdateBytes = bodyString.getBytes();
 
