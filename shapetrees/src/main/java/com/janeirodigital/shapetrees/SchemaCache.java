@@ -1,11 +1,13 @@
 package com.janeirodigital.shapetrees;
 
 import fr.inria.lille.shexjava.schema.ShexSchema;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class SchemaCache {
     private static Map<URI, ShexSchema> schemaCache = null;
 
@@ -18,16 +20,23 @@ public class SchemaCache {
     }
 
     public static boolean isInitialized() {
-        return schemaCache != null;
+        boolean initialized = schemaCache != null;
+        log.info("Cache initialized {}", initialized);
+        return initialized;
     }
 
-    public static boolean containsSchema(URI schemaURI) { return schemaCache.containsKey(schemaURI); }
+    public static boolean containsSchema(URI schemaURI) {
+        log.info("Determining if cache contains schema {}", schemaURI);
+        return schemaCache.containsKey(schemaURI);
+    }
 
     public static ShexSchema getSchema(URI schemaURI) {
+        log.info("Getting schema {}", schemaURI);
         return schemaCache.get(schemaURI);
     }
 
     public static void putSchema(URI schemaURI, ShexSchema schema) {
+        log.info("Caching schema {}", schemaURI.toString());
         schemaCache.put(schemaURI, schema);
     }
 

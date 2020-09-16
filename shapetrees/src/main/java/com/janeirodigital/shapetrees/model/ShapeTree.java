@@ -53,7 +53,7 @@ public class ShapeTree {
         return this.getExpectedResourceType() != null && this.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER);
     }
 
-    public ValidationResult validateContent(Graph graph, URI focusNodeURI, Boolean isAContainer) throws IOException {
+    public ValidationResult validateContent(Graph graph, URI focusNodeURI, Boolean isAContainer) throws IOException, URISyntaxException {
         if (this.isContainer() != isAContainer) {
             throw new ShapeTreeException(400, "The resource type being validated does not match the type expected by the ShapeTree");
         }
@@ -63,12 +63,19 @@ public class ShapeTree {
         }
         URI resolvedShapeURI = URI.create(this.id).resolve(this.validatedByShapeUri);
 
+        URI shapeResourceURI = resolvedShapeURI;
+        if (resolvedShapeURI.toString().contains("#")) {
+            shapeResourceURI = new URI(shapeResourceURI.toString().substring(0, shapeResourceURI.toString().indexOf("#")));
+        }
+
         ShexSchema schema;
-        if (SchemaCache.isInitialized() && SchemaCache.containsSchema(resolvedShapeURI)) {
-            schema = SchemaCache.getSchema(resolvedShapeURI);
+        if (SchemaCache.isInitialized() && SchemaCache.containsSchema(shapeResourceURI)) {
+            log.info("Found cached schema");
+            schema = SchemaCache.getSchema(shapeResourceURI);
         } else {
+            log.info("Did not find schema in cache");
             // Retrieve with no authorization as shapes must be available in an unauthenticated scope
-            RemoteResource shexShapeSchema = new RemoteResource(resolvedShapeURI, null);
+            RemoteResource shexShapeSchema = new RemoteResource(shapeResourceURI, null);
             if (!shexShapeSchema.exists() || shexShapeSchema.getBody() == null) {
                 throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
             }
@@ -79,7 +86,7 @@ public class ShapeTree {
             try {
                 schema = new ShexSchema(GlobalFactory.RDFFactory,shexCParser.getRules(stream),shexCParser.getStart());
                 if (SchemaCache.isInitialized()) {
-                    SchemaCache.putSchema(resolvedShapeURI, schema);
+                    SchemaCache.putSchema(shapeResourceURI, schema);
                 }
             } catch (Exception ex) {
                 throw new ShapeTreeException(500, "Error parsing ShEx schema - " + ex.getMessage());
