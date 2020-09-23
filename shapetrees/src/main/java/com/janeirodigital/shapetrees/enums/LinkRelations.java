@@ -5,7 +5,9 @@ public enum LinkRelations {
     FOCUS_NODE("http://shapetrees.org/#FocusNode"),
     SHAPETREE("http://shapetrees.org/#ShapeTree"),
     TARGET_SHAPETREE("http://shapetrees.org/#TargetShapeTree"),
-    TYPE("type");
+    TYPE("type"),
+    ACL("acl");
+
 
 
     private String value;

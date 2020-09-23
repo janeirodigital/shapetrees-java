@@ -15,6 +15,6 @@ public interface ShapeTreeClient {
     void createDataInstance(URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
     void updateDataInstance(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException;
     void updateDataInstanceWithPatch(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException;
-    void deleteDataInstance(URI resourceURI, URI shapeTreeURI);
+    void deleteDataInstance(URI resourceURI, URI shapeTreeURI) throws IOException;
     void unplantShapeTree(URI containerURI, URI shapeTreeURI);
 }

@@ -154,8 +154,16 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     }
 
     @Override
-    public void deleteDataInstance(URI resourceURI, URI shapeTreeURI) {
+    public void deleteDataInstance(URI resourceURI, URI shapeTreeURI) throws IOException {
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
+        Request.Builder deleteBuilder = new Request.Builder()
+                .url(resourceURI.toString())
+                .delete();
+
+        applyCommonHeaders(deleteBuilder, null, null, null, null, null);
+
+        client.newCall(deleteBuilder.build()).execute();
     }
 
     @Override

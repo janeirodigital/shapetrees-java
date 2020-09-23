@@ -105,6 +105,10 @@ public class RemoteResource {
         return false;
     }
 
+    public Map<String, List<String>> getLinkHeaders() {
+        return this.parsedLinkHeaders;
+    }
+
     public String getFirstHeaderByName(String headerName) throws IOException {
         if (this.invalidated) {
             log.debug("RemoteResource#getFirstHeaderByName({}) - Resource Invalidated - Refreshing", this.URI);
