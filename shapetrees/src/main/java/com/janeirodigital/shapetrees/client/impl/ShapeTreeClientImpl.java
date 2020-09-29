@@ -117,7 +117,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         // proposed resource is name is nulled since a Slug will not be used
         applyCommonHeaders(putBuilder, focusNode, shapeTreeHint, isContainer, null, contentType);
 
-        client.newCall(putBuilder.build()).execute();
+        Response response = client.newCall(putBuilder.build()).execute();
     }
 
     @Override
@@ -135,7 +135,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         applyCommonHeaders(putBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
-        client.newCall(putBuilder.build()).execute();
+        Response response = client.newCall(putBuilder.build()).execute();
     }
 
     @Override
@@ -150,7 +150,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         applyCommonHeaders(patchBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
-        client.newCall(patchBuilder.build()).execute();
+        Response response = client.newCall(patchBuilder.build()).execute();
     }
 
     @Override
@@ -163,7 +163,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         applyCommonHeaders(deleteBuilder, null, null, null, null, null);
 
-        client.newCall(deleteBuilder.build()).execute();
+        Response response = client.newCall(deleteBuilder.build()).execute();
     }
 
     @Override

@@ -96,7 +96,14 @@ public class RemoteResource {
 
     public Boolean isContainer() {
         if (!this.exists()) {
-            return this.URI.toString().endsWith("/");
+            // If this is a framented URI, remove the fragment to handle cases where it is a container
+            // with a container graph
+            String uri = this.URI.toString();
+            if (uri.contains("#")) {
+                uri = uri.substring(0, uri.indexOf("#"));
+            }
+
+            return uri.endsWith("/");
         }
 
         if (this.parsedLinkHeaders != null && this.parsedLinkHeaders.get(REL_TYPE) != null) {
