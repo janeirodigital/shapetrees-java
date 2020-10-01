@@ -14,7 +14,7 @@
         <jena.version>3.16.0</jena.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <lombok.version>1.18.12</lombok.version>
-        <slf4j.version>1.7.21</slf4j.version>
+        <slf4j.version>1.7.30</slf4j.version>
         <okhttp.version>4.7.2</okhttp.version>
         <shexjava.version>1.3beta</shexjava.version>
         <commons-rdf.version>0.5.0</commons-rdf.version>
