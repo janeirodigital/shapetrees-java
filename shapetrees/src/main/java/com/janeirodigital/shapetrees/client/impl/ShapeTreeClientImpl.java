@@ -94,7 +94,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     }
 
     @Override
-    public void createDataInstance(URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
+    public Response createDataInstance(URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
         log.info("Creating data instance {} in {} with hint {}", parentContainer, proposedResourceName, shapeTreeHint);
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
@@ -118,10 +118,11 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         applyCommonHeaders(putBuilder, focusNode, shapeTreeHint, isContainer, null, contentType);
 
         Response response = client.newCall(putBuilder.build()).execute();
+        return response;
     }
 
     @Override
-    public void updateDataInstance(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
+    public Response updateDataInstance(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         byte[] bytes = new byte[]{};
@@ -136,10 +137,11 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         applyCommonHeaders(putBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
         Response response = client.newCall(putBuilder.build()).execute();
+        return response;
     }
 
     @Override
-    public void updateDataInstanceWithPatch(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException {
+    public Response updateDataInstanceWithPatch(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         byte[] sparqlUpdateBytes = bodyString.getBytes();
@@ -151,10 +153,11 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         applyCommonHeaders(patchBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
         Response response = client.newCall(patchBuilder.build()).execute();
+        return response;
     }
 
     @Override
-    public void deleteDataInstance(URI resourceURI, URI shapeTreeURI) throws IOException {
+    public Response deleteDataInstance(URI resourceURI, URI shapeTreeURI) throws IOException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
 
         Request.Builder deleteBuilder = new Request.Builder()
@@ -164,6 +167,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         applyCommonHeaders(deleteBuilder, null, null, null, null, null);
 
         Response response = client.newCall(deleteBuilder.build()).execute();
+        return response;
     }
 
     @Override
