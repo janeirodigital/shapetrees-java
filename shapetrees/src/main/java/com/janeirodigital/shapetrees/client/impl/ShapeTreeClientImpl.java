@@ -27,9 +27,21 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     @Getter
     private final ShapeTreeContext context;
 
+    private boolean skipValidation = false;
+
     public ShapeTreeClientImpl(ShapeTreeEcosystem ecosystem, ShapeTreeContext context) {
         this.ecosystem = ecosystem;
         this.context = context;
+    }
+
+    @Override
+    public boolean isSkipValidation() {
+        return skipValidation;
+    }
+
+    @Override
+    public void setSkipValidation(boolean skipValidation) {
+        this.skipValidation = skipValidation;
     }
 
     @Override
@@ -56,7 +68,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public URI plantShapeTree(URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, String bodyString, String contentType) throws IOException, URISyntaxException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
@@ -96,7 +108,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     @Override
     public Response createDataInstance(URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
         log.info("Creating data instance {} in {} with hint {}", parentContainer, proposedResourceName, shapeTreeHint);
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
@@ -123,7 +135,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public Response updateDataInstance(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
@@ -142,7 +154,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public Response updateDataInstanceWithPatch(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         byte[] sparqlUpdateBytes = bodyString.getBytes();
 
@@ -158,7 +170,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public Response deleteDataInstance(URI resourceURI, URI shapeTreeURI) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         Request.Builder deleteBuilder = new Request.Builder()
                 .url(resourceURI.toString())

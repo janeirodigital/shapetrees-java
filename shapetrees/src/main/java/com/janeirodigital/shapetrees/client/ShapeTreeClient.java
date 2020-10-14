@@ -18,4 +18,6 @@ public interface ShapeTreeClient {
     Response updateDataInstanceWithPatch(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException;
     Response deleteDataInstance(URI resourceURI, URI shapeTreeURI) throws IOException;
     void unplantShapeTree(URI containerURI, URI shapeTreeURI);
+    boolean isSkipValidation();
+    void setSkipValidation(boolean skipValidation);
 }
