@@ -180,18 +180,6 @@ public class RemoteResource {
         }
 
         return metaDataURIString;
-
-        /*
-        //This is an old implementation when the server didn't support the necessary link headers
-        //Will keep this around for a bit in case we need to switch back.
-        String metaResourceName = ".meta";
-
-        if (this.isContainer() && !this.getURI().toString().endsWith("/")) {
-            metaResourceName = "/" + metaResourceName;
-        }
-
-        return this.getURI() + metaResourceName;
-         */
     }
 
     private void dereferenceURI() throws IOException {

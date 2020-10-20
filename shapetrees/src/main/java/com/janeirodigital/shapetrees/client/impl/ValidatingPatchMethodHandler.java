@@ -71,7 +71,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 - whose URI matches the target shape tree hint provided via Link header
              */
             URI targetShapeTreeHint = getIncomingTargetShapeTreeHint();
-            ShapeTree targetShapeTree = validatingShapeTree.findMatchingContainsShapeTree(requestedName, targetShapeTreeHint, requestRemoteResource.isContainer(), this.isNonRdfSource);
+            ShapeTree targetShapeTree = validatingShapeTree.findMatchingContainsShapeTree(requestedName, targetShapeTreeHint, requestRemoteResource.isContainer(), this.isIncomingNonRdfSource);
 
             ValidationResult validationResult = null;
             if (targetShapeTree != null) {

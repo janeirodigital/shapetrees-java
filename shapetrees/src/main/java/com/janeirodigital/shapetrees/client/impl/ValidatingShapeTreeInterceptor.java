@@ -62,6 +62,8 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
                 return new ValidatingPutMethodHandler(chain, ecosystem);
             case PATCH:
                 return new ValidatingPatchMethodHandler(chain, ecosystem);
+            case DELETE:
+                return new ValidatingDeleteMethodHandler(chain, ecosystem);
         }
         return null;
     }

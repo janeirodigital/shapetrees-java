@@ -26,7 +26,7 @@ public abstract class AbstractValidatingMethodHandler {
     protected final Map<String, List<String>> incomingRequestLinkHeaders;
     protected String incomingRequestContentType = null;
     protected final String incomingRequestBody;
-    protected final boolean isNonRdfSource;
+    protected final boolean isIncomingNonRdfSource;
     protected final Set<String> supportedRDFContentTypes;
     protected ShapeTreeEcosystem ecosystem;
 
@@ -49,25 +49,29 @@ public abstract class AbstractValidatingMethodHandler {
 
         this.supportedRDFContentTypes = Collections.unmodifiableSet(Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json"));
 
-        // Set the incoming content type
-        if (this.incomingRequestHeaders.containsKey(HttpHeaders.CONTENT_TYPE.getValue())) {
-            this.incomingRequestContentType = this.incomingRequestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElse(null);
+        if (!this.request.method().equals("DELETE")) {
+            // Set the incoming content type
+            if (this.incomingRequestHeaders.containsKey(HttpHeaders.CONTENT_TYPE.getValue())) {
+                this.incomingRequestContentType = this.incomingRequestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElse(null);
+            }
+            // Ensure a content-type is present
+            if (this.incomingRequestContentType == null) {
+                throw new ShapeTreeException(400, "Content-Type is required");
+            }
+
+            this.isIncomingNonRdfSource = determineIsNonRdfSource(this.incomingRequestContentType);
+
+            // Set the incoming request body
+            Buffer buffer = new Buffer();
+            if (this.request.body() != null) {
+                this.request.body().writeTo(buffer);
+            }
+
+            this.incomingRequestBody = buffer.readUtf8();
+        } else {
+            this.incomingRequestBody = null;
+            this.isIncomingNonRdfSource = false;
         }
-        // Ensure a content-type is present
-        if (this.incomingRequestContentType == null) {
-            throw new ShapeTreeException(400, "Content-Type is required");
-        }
-
-        this.isNonRdfSource = determineIsNonRdfSource(this.incomingRequestContentType);
-
-        // Set the incoming request body
-        Buffer buffer = new Buffer();
-        if (this.request.body() != null) {
-            this.request.body().writeTo(buffer);
-        }
-
-
-        this.incomingRequestBody = buffer.readUtf8();
     }
 
     protected void ensureRequestResourceExists(String message) throws ShapeTreeException {
@@ -104,7 +108,7 @@ public abstract class AbstractValidatingMethodHandler {
 
     protected Graph getIncomingBodyGraph(URI baseURI) throws ShapeTreeException {
         log.info("Reading request body into graph with baseURI {}", baseURI);
-        if (!this.isNonRdfSource && this.incomingRequestBody != null && this.incomingRequestBody.length() > 0) {
+        if (!this.isIncomingNonRdfSource && this.incomingRequestBody != null && this.incomingRequestBody.length() > 0) {
             return GraphHelper.readStringIntoGraph(this.incomingRequestBody, baseURI, this.incomingRequestContentType);
         }
         return null;
@@ -152,7 +156,7 @@ public abstract class AbstractValidatingMethodHandler {
         return new Response.Builder()
                 .code(201)
                 .addHeader(HttpHeaders.LOCATION.getValue(), primaryPlantResult.getRootContainer().toString())
-                .addHeader(HttpHeaders.LINK.getValue(), "<" + primaryPlantResult.getRootContainerMetadata().toString() + ">; rel=\"" + LinkRelations.DESCRIBED_BY.getValue() + "\"")
+                .addHeader(HttpHeaders.LINK.getValue(), "<" + primaryPlantResult.getRootContainerMetadata().toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"")
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
                 .body(ResponseBody.create("", MediaType.get("text/turtle")))
                 .request(request)
@@ -161,7 +165,7 @@ public abstract class AbstractValidatingMethodHandler {
                 .build();
     }
 
-    private boolean determineIsNonRdfSource(String incomingRequestContentType) {
+    protected boolean determineIsNonRdfSource(String incomingRequestContentType) {
         return !this.supportedRDFContentTypes.contains(incomingRequestContentType.toLowerCase());
     }
 
@@ -193,6 +197,21 @@ public abstract class AbstractValidatingMethodHandler {
         return null;
     }
 
+    protected ShapeTree getShapeTreeWithContentsFromShapeTreeLocators(List<ShapeTreeLocator> shapeTreeLocators) throws URISyntaxException, ShapeTreeException {
+        List<ShapeTree> existingShapeTrees = new ArrayList<>();
+        for (ShapeTreeLocator locator : shapeTreeLocators) {
+            existingShapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree())));
+        }
+
+        for (ShapeTree shapeTree : existingShapeTrees) {
+            if (shapeTree.getContains() != null && shapeTree.getContains().size() > 0) {
+                return shapeTree;
+            }
+        }
+        return null;
+    }
+
+
     protected ValidationContext validateAgainstParentContainer(Graph graphToValidate, URI baseURI, RemoteResource parentContainer, String resourceName, Boolean isAContainer) throws IOException, URISyntaxException {
         RemoteResource parentContainerMetadata = parentContainer.getMetadataResource(this.authorizationHeaderValue);
         // If there is no metadata for the parent container, it is not managed
@@ -212,7 +231,7 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTree shapeTreeWithContents = getShapeTreeWithContents(existingShapeTrees);
 
         URI targetShapeTreeHint = getIncomingTargetShapeTreeHint();
-        ShapeTree targetShapeTree = shapeTreeWithContents.findMatchingContainsShapeTree(resourceName, targetShapeTreeHint, isAContainer, this.isNonRdfSource);
+        ShapeTree targetShapeTree = shapeTreeWithContents.findMatchingContainsShapeTree(resourceName, targetShapeTreeHint, isAContainer, this.isIncomingNonRdfSource);
 
         // If no targetShapeTree is returned, it can be assumed that no validation is required
         ValidationResult validationResult = null;
