@@ -6,14 +6,13 @@
 
     <groupId>com.janeirodigital</groupId>
     <artifactId>shapetrees</artifactId>
-    <version>0.4.0</version>
 
     <packaging>jar</packaging>
 
     <parent>
         <groupId>com.janeirodigital</groupId>
         <artifactId>shapetrees-java</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
 
     <dependencies>

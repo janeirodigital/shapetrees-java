@@ -191,17 +191,17 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         builder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), this.context.getAuthorizationHeaderValue());
 
+        if (isContainer != null) {
+            String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
+        }
+
         if (focusNode != null) {
             builder.addHeader(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
         }
 
         if (shapeTreeHint != null) {
             builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeHint + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE + "\"");
-        }
-
-        if (isContainer != null) {
-            String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
         }
 
         if (proposedResourceName != null) {
