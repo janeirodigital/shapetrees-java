@@ -11,7 +11,7 @@ public class ContainerMembershipTests extends BaseShapeTreeTest {
     public ContainerMembershipTests() {
         super(new MockEcosystem());
     }
-
+/*
     @Order(1)
     @SneakyThrows
     @DisplayName("Default Behavior")
@@ -83,5 +83,5 @@ public class ContainerMembershipTests extends BaseShapeTreeTest {
         postContent(new URI(ROOT_PATH+"things-6/"), "stuff-container", true, "target/test-classes/test-data/apps/gh-deep/ericprud-user.ttl", "#ericprud", 422);
         postContent(new URI(ROOT_PATH+"things-6/"), "stuff-nonrdf", false, "target/test-classes/test-data/apps/nevernote/img-M33_IR.jpg", null, "image/jpeg", 201, null);
     }
-
+*/
 }

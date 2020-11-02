@@ -13,7 +13,7 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     public ShapeTreeTests() {
         super(new MockEcosystem());
     }
-
+/*
     @Order(1)
     @SneakyThrows
     @DisplayName("Attempt Delete Root")
@@ -198,6 +198,6 @@ public class ShapeTreeTests extends BaseShapeTreeTest {
     }
 
 
-
+*/
 
 }

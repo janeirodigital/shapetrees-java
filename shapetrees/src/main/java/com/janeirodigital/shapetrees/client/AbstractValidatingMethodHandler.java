@@ -20,7 +20,6 @@ import java.util.*;
 public abstract class AbstractValidatingMethodHandler {
     protected final Interceptor.Chain chain;
     protected final Request request;
-    protected final String authorizationHeaderValue;
     protected final RemoteResource requestRemoteResource;
     protected final Map<String, List<String>> incomingRequestHeaders;
     protected final Map<String, List<String>> incomingRequestLinkHeaders;
@@ -29,17 +28,17 @@ public abstract class AbstractValidatingMethodHandler {
     protected final boolean isIncomingNonRdfSource;
     protected final Set<String> supportedRDFContentTypes;
     protected ShapeTreeEcosystem ecosystem;
+    protected ShapeTreeContext shapeTreeContext = null;
 
     public AbstractValidatingMethodHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         this.chain = chain;
         this.ecosystem = ecosystem;
         this.request = chain.request();
 
-        // Extract the authorization header so it can be used on other requests
-        this.authorizationHeaderValue = this.request.header(HttpHeaders.AUTHORIZATION.getValue());
+        this.shapeTreeContext = buildShapeTreeContextFromHeaders();
 
         // Dereference incoming URI
-        this.requestRemoteResource = new RemoteResource(this.request.url().uri(), this.authorizationHeaderValue);
+        this.requestRemoteResource = new RemoteResource(this.request.url().uri(), this.shapeTreeContext.getAuthorizationHeaderValue());
 
         // Parse the incoming headers
         this.incomingRequestHeaders = this.request.headers().toMultimap();
@@ -72,6 +71,15 @@ public abstract class AbstractValidatingMethodHandler {
             this.incomingRequestBody = null;
             this.isIncomingNonRdfSource = false;
         }
+    }
+
+    private ShapeTreeContext buildShapeTreeContextFromHeaders() {
+        ShapeTreeContext context = new ShapeTreeContext();
+        context.setAuthorizationHeaderValue(this.request.header(HttpHeaders.AUTHORIZATION.getValue()));
+        context.setOriginatorIRI(this.request.header(HttpHeaders.INTEROP_ORIGINATOR.getValue()));
+        context.setWebID(this.request.header(HttpHeaders.INTEROP_WEBID.getValue()));
+
+        return context;
     }
 
     protected void ensureRequestResourceExists(String message) throws ShapeTreeException {
@@ -107,7 +115,7 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     protected Graph getIncomingBodyGraph(URI baseURI) throws ShapeTreeException {
-        log.info("Reading request body into graph with baseURI {}", baseURI);
+        log.debug("Reading request body into graph with baseURI {}", baseURI);
         if (!this.isIncomingNonRdfSource && this.incomingRequestBody != null && this.incomingRequestBody.length() > 0) {
             return GraphHelper.readStringIntoGraph(this.incomingRequestBody, baseURI, this.incomingRequestContentType);
         }
@@ -213,7 +221,7 @@ public abstract class AbstractValidatingMethodHandler {
 
 
     protected ValidationContext validateAgainstParentContainer(Graph graphToValidate, URI baseURI, RemoteResource parentContainer, String resourceName, Boolean isAContainer) throws IOException, URISyntaxException {
-        RemoteResource parentContainerMetadata = parentContainer.getMetadataResource(this.authorizationHeaderValue);
+        RemoteResource parentContainerMetadata = parentContainer.getMetadataResource(this.shapeTreeContext.getAuthorizationHeaderValue());
         // If there is no metadata for the parent container, it is not managed
         if (!parentContainerMetadata.exists()) return null;
 
@@ -241,7 +249,7 @@ public abstract class AbstractValidatingMethodHandler {
             if (graphToValidate != null && targetShapeTree.getValidatedByShapeUri() != null) {
                 // ...and a focus node was provided via the focusNode header, then we perform our validation
                 URI focusNodeURI = getIncomingResolvedFocusNode(baseURI);
-                log.info("Validating against parent container.  ST with Contents {}, Focus Node {}", shapeTreeWithContents.getURI(), focusNodeURI);
+                log.debug("Validating against parent container.  ST with Contents {}, Focus Node {}", shapeTreeWithContents.getURI(), focusNodeURI);
                 validationResult = targetShapeTree.validateContent(graphToValidate, focusNodeURI, isAContainer);
             }
 

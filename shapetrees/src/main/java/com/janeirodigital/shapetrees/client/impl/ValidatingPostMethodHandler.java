@@ -61,14 +61,14 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             validateShapeTrees(this.requestRemoteResource.getURI(), requestedName, shapeTreesToPlant);
 
             // Determine if the ecosystem already has a planted ShapeTree we can reuse
-            ShapeTreePlantResult existingPlantedShapeTree = this.ecosystem.getExistingShapeTreeFromContainer(this.requestRemoteResource.getURI(), shapeTreesToPlant, requestedName);
+            ShapeTreePlantResult existingPlantedShapeTree = this.ecosystem.getExistingShapeTreeFromContainer(this.shapeTreeContext, this.requestRemoteResource.getURI(), shapeTreesToPlant, requestedName);
             if (existingPlantedShapeTree != null && existingPlantedShapeTree.getRootContainer() != null) {
                 // If an existing ShapeTree exists, nothing to do here
                 return createPlantResponse(Collections.singletonList(existingPlantedShapeTree), this.request, this.incomingRequestLinkHeaders);
             }
 
             // Before doing validation, ensure the ecosystem has the ability to transmogrify the body graph
-            Graph ecosystemUpdatedBodyGraph = ecosystem.beforePlantShapeTree(normalizedBaseURI, incomingRequestBodyGraph, shapeTreesToPlant, this.incomingRequestLinkHeaders);
+            Graph ecosystemUpdatedBodyGraph = ecosystem.beforePlantShapeTree(this.shapeTreeContext, normalizedBaseURI, incomingRequestBodyGraph, shapeTreesToPlant, this.incomingRequestLinkHeaders);
 
             // 2. Validate the request body using the appropriate ShapeTree
             validateRequestBody(ecosystemUpdatedBodyGraph, normalizedBaseURI, shapeTreesToPlant);
@@ -79,10 +79,10 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             // At this point all validations have been passed and the ShapeTree can be planted
             List<ShapeTreePlantResult> plantResults = new ArrayList<>();
             for (ShapeTree shapeTreeToPlant : shapeTreesToPlant) {
-                ShapeTreePlantResult plantResult = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, ecosystemUpdatedBodyGraph, shapeTreeToPlant, null, shapeTreeToPlant, requestedName);
+                ShapeTreePlantResult plantResult = PlantHelper.plantShapeTree(this.shapeTreeContext.getAuthorizationHeaderValue(), this.requestRemoteResource, ecosystemUpdatedBodyGraph, shapeTreeToPlant, null, shapeTreeToPlant, requestedName);
                 plantResults.add(plantResult);
                 // Provide to the ecosystem to index
-                this.ecosystem.indexShapeTree(requestRemoteResource.getURI(), shapeTreeToPlant.getURI(), plantResult.getRootContainer(), this.incomingRequestLinkHeaders);
+                this.ecosystem.indexShapeTree(this.shapeTreeContext, requestRemoteResource.getURI(), shapeTreeToPlant.getURI(), plantResult.getRootContainer(), this.incomingRequestLinkHeaders);
             }
             // Create and return a response
             return createPlantResponse(plantResults, this.request, this.incomingRequestLinkHeaders);
@@ -95,7 +95,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 Response response = this.chain.proceed(this.chain.request());
                 // If there is a ShapeTree managing the new resource, register it
                 if (validationContext != null && validationContext.getValidatingShapeTree() != null) {
-                    this.ecosystem.indexShapeTreeDataInstance(requestRemoteResource.getURI(), validationContext.getValidatingShapeTree().getURI(), new URI(response.header(HttpHeaders.LOCATION.getValue())));
+                    this.ecosystem.indexShapeTreeDataInstance(this.shapeTreeContext, requestRemoteResource.getURI(), validationContext.getValidatingShapeTree().getURI(), new URI(response.header(HttpHeaders.LOCATION.getValue())));
                 }
                 return response;
             }
@@ -109,7 +109,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 if (requestedName.endsWith("/")) {
                     requestedName = requestedName.replace("/","");
                 }
-                ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName);
+                ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.shapeTreeContext.getAuthorizationHeaderValue(), this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName);
                 results.add(result);
             }
 
@@ -137,9 +137,9 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     private void validateShapeTrees(URI requestURI, String requestedName, List<ShapeTree> shapeTreesToPlant) throws IOException, URISyntaxException {
 
         // Determine if the target container exists, if so, retrieve any existing ShapeTrees to validate alongside the newly requested ones
-        RemoteResource targetContainer = new RemoteResource(requestURI + requestedName, authorizationHeaderValue);
+        RemoteResource targetContainer = new RemoteResource(requestURI + requestedName, this.shapeTreeContext.getAuthorizationHeaderValue());
         if (targetContainer.exists()) {
-            RemoteResource targetMetadata = targetContainer.getMetadataResource(authorizationHeaderValue);
+            RemoteResource targetMetadata = targetContainer.getMetadataResource(this.shapeTreeContext.getAuthorizationHeaderValue());
             if (targetMetadata.exists()) {
                 List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetMetadata.getGraph(new URI(requestURI.toString() + requestedName)));
                 for (ShapeTreeLocator locator : locators) {

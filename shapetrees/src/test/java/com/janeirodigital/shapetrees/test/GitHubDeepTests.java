@@ -13,7 +13,7 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
     public GitHubDeepTests() {
         super(new MockEcosystem());
     }
-
+/*
     @Test
     @Order(1)
     @DisplayName("Create /Git/")
@@ -81,5 +81,5 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git/repos/ericprud/jsg/issues/1.ttl"), new URI("http://github.example/ns#author_association"), "OWNER");
         //ensureExistsHasMetadataWithValues(new URI(ROOT_PATH+"Git/repos/ericprud/jsg/issues/1.ttl"), "./repos/ericprud/jsg/", new URI(ROOT_PATH+"Git/"));
     }
-
+*/
 }

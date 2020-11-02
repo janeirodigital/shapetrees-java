@@ -35,9 +35,9 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
         // Is resource being deleted a non-RDF source?
         boolean isNonRdfSource = determineIsNonRdfSource(this.requestRemoteResource.getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
         // Dereference parent container
-        RemoteResource parentContainer = new RemoteResource(parentURI, authorizationHeaderValue);
+        RemoteResource parentContainer = new RemoteResource(parentURI, this.shapeTreeContext.getAuthorizationHeaderValue());
         // Dereference parent container metadata resource
-        RemoteResource parentContainerMetadataResource = parentContainer.getMetadataResource(authorizationHeaderValue);
+        RemoteResource parentContainerMetadataResource = parentContainer.getMetadataResource(this.shapeTreeContext.getAuthorizationHeaderValue());
         if (!parentContainerMetadataResource.exists()) {
             // If the parent container is doesn't have a metadata resource it is not managed
             return chain.proceed(chain.request());
@@ -58,7 +58,7 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
         Response deleteResponse = chain.proceed(chain.request());
         if (deleteResponse.isSuccessful()) {
             // Allow the ecosystem to do any bookkeeping as a result of resource being deleted
-            ecosystem.unIndexShapeTreeDataInstance(targetShapeTree.getURI(), this.requestRemoteResource.getURI());
+            ecosystem.unIndexShapeTreeDataInstance(this.shapeTreeContext, targetShapeTree.getURI(), this.requestRemoteResource.getURI());
         }
         return deleteResponse;
     }

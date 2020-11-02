@@ -123,15 +123,17 @@ public class PlantHelper {
         }
 
         OkHttpClient httpClient = HttpClientHelper.getClient();
-        Request createContainerPost = new Request.Builder()
-                .addHeader(HttpHeaders.SLUG.getValue(), requestedName)
+        Request.Builder createContainerPostBuilder = new Request.Builder();
+        createContainerPostBuilder.addHeader(HttpHeaders.SLUG.getValue(), requestedName)
                 .addHeader(HttpHeaders.LINK.getValue(), REL_TYPE_CONTAINER)
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
-                .addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue)
                 .post(RequestBody.create(body, MediaType.get("text/turtle")))
-                .url(parentURI.toURL()).build();
+                .url(parentURI.toURL());
+        if (authorizationHeaderValue != null) {
+            createContainerPostBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+        }
 
-        Response response = httpClient.newCall(createContainerPost).execute();
+        Response response = httpClient.newCall(createContainerPostBuilder.build()).execute();
         return new RemoteResource(response);
     }
 }

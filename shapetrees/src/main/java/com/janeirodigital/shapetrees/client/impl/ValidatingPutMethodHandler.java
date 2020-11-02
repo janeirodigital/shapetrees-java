@@ -32,7 +32,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
         URI normalizedBaseURI = normalizeBaseURI(this.requestRemoteResource.getURI(), null, isContainer);
         Graph incomingRequestBodyGraph = getIncomingBodyGraph(normalizedBaseURI);
         String requestedName = getRequestResourceName();
-        RemoteResource parentContainer = new RemoteResource(parentURI, this.authorizationHeaderValue);
+        RemoteResource parentContainer = new RemoteResource(parentURI, this.shapeTreeContext.getAuthorizationHeaderValue());
         ValidationContext validationContext = validateAgainstParentContainer(incomingRequestBodyGraph, normalizedBaseURI, parentContainer, requestedName, isContainer);
         // Two reasons for passing through the request (and not performing validation):
         // 1. Validation returns no locators, meaning the parent container is not managed
@@ -42,7 +42,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
             // If there is a ShapeTree managing the new resource, register it
             if (validationContext != null && validationContext.getValidatingShapeTree() != null) {
                 if (!resourceAlreadyExists) {
-                    this.ecosystem.indexShapeTreeDataInstance(parentURI, validationContext.getValidatingShapeTree().getURI(), this.requestRemoteResource.getURI());
+                    this.ecosystem.indexShapeTreeDataInstance(this.shapeTreeContext, parentURI, validationContext.getValidatingShapeTree().getURI(), this.requestRemoteResource.getURI());
                 }
             }
             return response;
@@ -54,7 +54,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
             if (requestedName.endsWith("/")) {
                 requestedName = requestedName.replace("/","");
             }
-            ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.authorizationHeaderValue, this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName);
+            ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.shapeTreeContext.getAuthorizationHeaderValue(), this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName);
             results.add(result);
         }
 

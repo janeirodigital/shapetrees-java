@@ -70,10 +70,10 @@ public class ShapeTree {
 
         ShexSchema schema;
         if (SchemaCache.isInitialized() && SchemaCache.containsSchema(shapeResourceURI)) {
-            log.info("Found cached schema");
+            log.debug("Found cached schema {}", shapeResourceURI);
             schema = SchemaCache.getSchema(shapeResourceURI);
         } else {
-            log.info("Did not find schema in cache");
+            log.debug("Did not find schema in cache {} will retrieve and parse", shapeResourceURI);
             // Retrieve with no authorization as shapes must be available in an unauthenticated scope
             RemoteResource shexShapeSchema = new RemoteResource(shapeResourceURI, null);
             if (!shexShapeSchema.exists() || shexShapeSchema.getBody() == null) {
@@ -100,10 +100,11 @@ public class ShapeTree {
         ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
         Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.validatedByShapeUri));
         IRI focusNode = GlobalFactory.RDFFactory.createIRI(focusNodeURI.toString());
-        log.info("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
+        log.debug("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
         validation.validate(focusNode, shapeLabel);
 
         boolean valid = validation.getTyping().isConformant(focusNode, shapeLabel);
+        /*
         List<String> failedNodes = new ArrayList<>();
         if (!valid) {
             for (Pair<RDFTerm, Label> entry :  validation.getTyping().getStatusMap().keySet()) {
@@ -116,8 +117,8 @@ public class ShapeTree {
             RDFDataMgr.write(sw, graph, Lang.TURTLE);
             log.info("Failing RDF is: {}", sw.toString());
         }
-
-        return new ValidationResult(valid, failedNodes);
+        */
+        return new ValidationResult(valid);
     }
 
     public ShapeTree findMatchingContainsShapeTree(String requestedName, URI targetShapeTreeHint, Boolean isContainer, Boolean isNonRdfSource) throws URISyntaxException, ShapeTreeException {
