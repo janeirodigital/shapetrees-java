@@ -6,7 +6,9 @@ public enum HttpHeaders {
     CONTENT_TYPE("Content-Type"),
     LINK("Link"),
     LOCATION("Location"),
-    SLUG("Slug");
+    SLUG("Slug"),
+    INTEROP_ORIGINATOR("InteropOrigin"),
+    INTEROP_WEBID("InteropWebID");
 
     public String getValue() {
         return this.value;

@@ -13,14 +13,14 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     public GitHubFlatTests() {
         super(new MockEcosystem());
     }
-
+/*
     @Test
     @DisplayName("Create Git-Orgs")
     @SneakyThrows
     @Order(1)
     void createGitOrgs()
     {
-        this.shapeTreeClient.plantShapeTree(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#orgs")), null, null, "Git-Orgs", null);
+        this.shapeTreeClient.plantShapeTree(this.context, new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#orgs")), null, null, "Git-Orgs", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Orgs/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "Git-Orgs/"));
     }
 
@@ -29,7 +29,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(2)
     void createGitUsers() {
-        this.shapeTreeClient.plantShapeTree(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#users")), null, null, "Git-Users", null);
+        this.shapeTreeClient.plantShapeTree(this.context, new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#users")), null, null, "Git-Users", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Users/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "Git-Users/"));
     }
 
@@ -38,7 +38,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(3)
     void createGitRepos() {
-        this.shapeTreeClient.plantShapeTree(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#repos")), null, null, "Git-Repos", null);
+        this.shapeTreeClient.plantShapeTree(this.context, new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#repos")), null, null, "Git-Repos", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Repos/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "Git-Repos/"));
     }
 
@@ -47,7 +47,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(4)
     void createGitIssues() {
-        this.shapeTreeClient.plantShapeTree(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#issues")), null, null, "Git-Issues", null);
+        this.shapeTreeClient.plantShapeTree(this.context, new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#issues")), null, null, "Git-Issues", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Issues/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "Git-Issues/"));
     }
 
@@ -56,7 +56,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(5)
     void createGitComments() {
-        this.shapeTreeClient.plantShapeTree(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#cmnt_C")), null, null, "Git-Comments", null);
+        this.shapeTreeClient.plantShapeTree(this.context, new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#cmnt_C")), null, null, "Git-Comments", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Comments/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "Git-Comments/"));
     }
 
@@ -65,7 +65,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(6)
     void createGitEvents() {
-        this.shapeTreeClient.plantShapeTree(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#evt_C")), null, null, "Git-Events", null);
+        this.shapeTreeClient.plantShapeTree(this.context, new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#evt_C")), null, null, "Git-Events", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Events/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "Git-Events/"));
     }
 
@@ -74,7 +74,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(7)
     void createGitLabels() {
-        this.shapeTreeClient.plantShapeTree(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#lbl_C")), null, null, "Git-Labels", null);
+        this.shapeTreeClient.plantShapeTree(this.context, new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#lbl_C")), null, null, "Git-Labels", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Labels/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "Git-Labels/"));
     }
 
@@ -83,7 +83,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(8)
     void createGitMilestones() {
-        this.shapeTreeClient.plantShapeTree(new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#mlt_C")), null, null, "Git-Milestones", null);
+        this.shapeTreeClient.plantShapeTree(this.context, new URI(ROOT_PATH), Collections.singletonList(new URI("http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#mlt_C")), null, null, "Git-Milestones", null);
         ensureExistsHasMetadataWithPredicateValue(new URI(ROOT_PATH + "Git-Milestones/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), new URI(ROOT_PATH + "Git-Milestones/"));
     }
 
@@ -92,7 +92,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(9)
     void createGitOrgs_ShapeTreesTTL() {
-        this.shapeTreeClient.createDataInstance(new URI(ROOT_PATH + "Git-Orgs/"), "#shapetrees", null, "shapetrees.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/shapetrees-org.ttl"), "text/turtle");
+        this.shapeTreeClient.createDataInstance(this.context, new URI(ROOT_PATH + "Git-Orgs/"), "#shapetrees", null, "shapetrees.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/shapetrees-org.ttl"), "text/turtle");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git-Orgs/shapetrees.ttl"), new URI("http://github.example/ns#node_id"), "MDEyOk9yZ2FuaXphdGlvbjY0NDk0NjU5");
     }
 
@@ -101,7 +101,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(10)
     void createGitUsers_ericprudTTL() {
-        this.shapeTreeClient.createDataInstance(new URI(ROOT_PATH + "Git-Users/"), "#ericprud", null, "ericprud.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/ericprud-user.ttl"), "text/turtle");
+        this.shapeTreeClient.createDataInstance(this.context, new URI(ROOT_PATH + "Git-Users/"), "#ericprud", null, "ericprud.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/ericprud-user.ttl"), "text/turtle");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git-Users/ericprud.ttl"), new URI("http://github.example/ns#node_id"), "MDQ6VXNlcjU3MzQ3OA==");
     }
 
@@ -110,7 +110,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(11)
     void createGitRepos_shapetreejs() {
-        this.shapeTreeClient.createDataInstance(new URI(ROOT_PATH + "Git-Repos/"), "#shapetree.js", null, "shapetree.js.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/shapetree.js-repo.ttl"), "text/turtle");
+        this.shapeTreeClient.createDataInstance(this.context, new URI(ROOT_PATH + "Git-Repos/"), "#shapetree.js", null, "shapetree.js.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/shapetree.js-repo.ttl"), "text/turtle");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git-Repos/shapetree.js.ttl"), new URI("http://github.example/ns#node_id"),  "MDEwOlJlcG9zaXRvcnkyNTI0MDUwOTE=");
     }
 
@@ -119,7 +119,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(12)
     void addShapetreeJSRepoToGitOrgs_shapetrees() {
-        this.shapeTreeClient.updateDataInstanceWithPatch(new URI(ROOT_PATH+"Git-Orgs/shapetrees.ttl"), "#shapetrees", null, "INSERT DATA { <" + ROOT_PATH + "Git-Orgs/shapetrees.ttl#shapetrees> <http://github.example/ns#repo> <../Git-Repos/shapetrees.js.ttl> }", "application/sparql-update");
+        this.shapeTreeClient.updateDataInstanceWithPatch(this.context, new URI(ROOT_PATH+"Git-Orgs/shapetrees.ttl"), "#shapetrees", null, "INSERT DATA { <" + ROOT_PATH + "Git-Orgs/shapetrees.ttl#shapetrees> <http://github.example/ns#repo> <../Git-Repos/shapetrees.js.ttl> }", "application/sparql-update");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH+"Git-Orgs/shapetrees.ttl"), new URI("http://github.example/ns#repo"), new URI(ROOT_PATH+"Git-Repos/shapetrees.js.ttl"));
     }
 
@@ -128,7 +128,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(13)
     void createGitReposJSG() {
-        this.shapeTreeClient.createDataInstance(new URI(ROOT_PATH + "Git-Repos/"), "#jsg", null, "jsg.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/jsg.ttl"), "text/turtle");
+        this.shapeTreeClient.createDataInstance(this.context, new URI(ROOT_PATH + "Git-Repos/"), "#jsg", null, "jsg.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/jsg.ttl"), "text/turtle");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git-Repos/jsg.ttl"), new URI("http://github.example/ns#node_id"),  "MDEwOlJlcG9zaXRvcnk0NjA2MTUxMg==");
     }
 
@@ -155,7 +155,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(16)
     void createGitReposLibxmlAnnot() {
-        this.shapeTreeClient.createDataInstance(new URI(ROOT_PATH + "Git-Repos/"), "#libxml-annot", null, "libxml-annot.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/libxml-annot-repo.ttl"), "text/turtle");
+        this.shapeTreeClient.createDataInstance(this.context, new URI(ROOT_PATH + "Git-Repos/"), "#libxml-annot", null, "libxml-annot.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/libxml-annot-repo.ttl"), "text/turtle");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git-Repos/libxml-annot.ttl"), new URI("http://github.example/ns#node_id"),  "MDc6TGljZW5zZTA=");
     }
 
@@ -173,7 +173,7 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
     @SneakyThrows
     @Order(18)
     void createGitIssuesIssue1() {
-        this.shapeTreeClient.createDataInstance(new URI(ROOT_PATH + "Git-Issues/"), "#issue1", null, "issue1.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/jsg-issue1.ttl"), "text/turtle");
+        this.shapeTreeClient.createDataInstance(this.context, new URI(ROOT_PATH + "Git-Issues/"), "#issue1", null, "issue1.ttl", false, getResourceContent("target/test-classes/test-data/apps/gh-deep/jsg-issue1.ttl"), "text/turtle");
         ensureExistsWithPredicateValue(new URI(ROOT_PATH + "Git-Issues/issue1.ttl"), new URI("http://github.example/ns#author_association"),  "OWNER");
     }
 
@@ -185,4 +185,6 @@ public class GitHubFlatTests extends BaseShapeTreeTest {
         //H.patch({path: `/${Shared}/Git-Users/ericprud.ttl`, mediaType: 'application/sparql-query',body: `INSERT DATA { <#ericprud> <${NS_gh}issue> <../Git-Orgs/issue1.ttl> }`,status: 204});
         //H.find([{path: `/${Shared}/Git-Users/ericprud.ttl`, accept: 'text/turtle', entries: ['gh:issue <../Git-Orgs/issue1.ttl>']},])
     }
+
+ */
 }

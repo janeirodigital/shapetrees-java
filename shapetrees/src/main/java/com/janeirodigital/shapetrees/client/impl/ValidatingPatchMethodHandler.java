@@ -43,9 +43,9 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
         // Get requested name (resource being PATCHed)
         String requestedName = getRequestResourceName();
         // Dereference parent container
-        RemoteResource parentContainer = new RemoteResource(parentURI, authorizationHeaderValue);
+        RemoteResource parentContainer = new RemoteResource(parentURI, this.shapeTreeContext.getAuthorizationHeaderValue());
         // Dereference parent container metadata resource
-        RemoteResource parentContainerMetadataResource = parentContainer.getMetadataResource(authorizationHeaderValue);
+        RemoteResource parentContainerMetadataResource = parentContainer.getMetadataResource(this.shapeTreeContext.getAuthorizationHeaderValue());
         // Retrieve graph of parent container metadata resource
         Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph(parentURI);
 
@@ -78,7 +78,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 // Get existing resource graph (prior to PATCH)
                 Graph existingResourceGraph = requestRemoteResource.getGraph(normalizedBaseURI);
                 if (existingResourceGraph == null) {
-                    log.info("Existing graph to patch does not exist.  Creating an empty graph.");
+                    log.debug("Existing graph to patch does not exist.  Creating an empty graph.");
                     existingResourceGraph = ModelFactory.createDefaultModel().getGraph();
                 }
 
@@ -101,7 +101,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 // If there is a ShapeTree managing the new resource, register it
                 if (targetShapeTree != null) {
                     if (!resourceAlreadyExists) {
-                        this.ecosystem.indexShapeTreeDataInstance(parentURI, targetShapeTree.getURI(), this.requestRemoteResource.getURI());
+                        this.ecosystem.indexShapeTreeDataInstance(this.shapeTreeContext, parentURI, targetShapeTree.getURI(), this.requestRemoteResource.getURI());
                     }
                 }
                 return response;

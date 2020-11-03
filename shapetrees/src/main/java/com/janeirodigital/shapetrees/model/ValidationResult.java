@@ -8,5 +8,5 @@ import java.util.List;
 @Getter @AllArgsConstructor
 public class ValidationResult {
     private final Boolean valid;
-    private final List<String> nonConformingNodes;
+    //private final List<String> nonConformingNodes;
 }

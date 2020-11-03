@@ -21,22 +21,22 @@ public class SchemaCache {
 
     public static boolean isInitialized() {
         boolean initialized = schemaCache != null;
-        log.info("Cache initialized {}", initialized);
+        log.debug("Cache initialized {}", initialized);
         return initialized;
     }
 
     public static boolean containsSchema(URI schemaURI) {
-        log.info("Determining if cache contains schema {}", schemaURI);
+        log.debug("Determining if cache contains schema {}", schemaURI);
         return schemaCache.containsKey(schemaURI);
     }
 
     public static ShexSchema getSchema(URI schemaURI) {
-        log.info("Getting schema {}", schemaURI);
+        log.debug("Getting schema {}", schemaURI);
         return schemaCache.get(schemaURI);
     }
 
     public static void putSchema(URI schemaURI, ShexSchema schema) {
-        log.info("Caching schema {}", schemaURI.toString());
+        log.debug("Caching schema {}", schemaURI.toString());
         schemaCache.put(schemaURI, schema);
     }
 

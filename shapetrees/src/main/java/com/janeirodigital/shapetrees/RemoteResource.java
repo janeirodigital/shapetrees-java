@@ -141,14 +141,16 @@ public class RemoteResource {
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
         OkHttpClient httpClient = HttpClientHelper.getClient();
-        Request request = new Request.Builder()
+        Request.Builder requestBuilder = new Request.Builder()
                 .url(this.URI.toURL())
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
-                .addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue)
-                .put(RequestBody.create(sw.toString(), MediaType.get("text/turtle")))
-                .build();
+                .put(RequestBody.create(sw.toString(), MediaType.get("text/turtle")));
 
-        httpClient.newCall(request).execute();
+        if (authorizationHeaderValue != null) {
+            requestBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+        }
+
+        httpClient.newCall(requestBuilder.build()).execute();
 
         if (refreshResourceAfterUpdate) {
             dereferenceURI();
@@ -172,7 +174,13 @@ public class RemoteResource {
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
             URI shapeTreeContainerURI = this.getURI();
-            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + metaDataURIString;
+            String portFragment;
+            if (shapeTreeContainerURI.getPort() > 0) {
+                portFragment = ":" + shapeTreeContainerURI.getPort();
+            } else {
+                portFragment = "";
+            }
+            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + portFragment + metaDataURIString;
         }
 
         if (metaDataURIString == null) {
@@ -195,10 +203,12 @@ public class RemoteResource {
 
         Request request = requestBuilder.build();
 
-        Response response = httpClient.newCall(request).execute();
-
-        parseResponseToRemoteResource(response);
-        this.invalidated = false;
+        try (Response response = httpClient.newCall(request).execute()) {
+            parseResponseToRemoteResource(response);
+            this.invalidated = false;
+        } catch (Exception e) {
+            log.error("Error dereferencing URI", e);
+        }
     }
 
     private void parseResponseToRemoteResource(Response response) throws IOException {
@@ -213,9 +223,10 @@ public class RemoteResource {
         }
 
         // Save raw body
-        if (response.body() != null) {
-            this.rawBody = response.body().string();
+        try (ResponseBody body = response.body()) {
+            if (body != null) {
+                this.rawBody = body.string();
+            }
         }
     }
-
 }

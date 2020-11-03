@@ -37,6 +37,9 @@ public class GraphHelper {
 
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, graph, Lang.TURTLE);
+        if (!graph.isClosed()) {
+            graph.close();
+        }
         return sw.toString();
     }
 

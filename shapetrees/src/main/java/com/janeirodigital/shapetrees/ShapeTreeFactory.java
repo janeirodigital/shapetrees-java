@@ -49,11 +49,11 @@ public class ShapeTreeFactory {
 
     private static void recursivelyParseShapeTree(Model model, Resource resource) throws URISyntaxException, ShapeTreeException {
         String shapeTreeURIString = resource.getURI();
-        log.info("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
+        log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
         URI shapeTreeURI = new URI(shapeTreeURIString);
 
         if (localShapeTreeCache.containsKey(shapeTreeURI)) {
-            log.info("[{}] previously cached -- returning", shapeTreeURIString);
+            log.debug("[{}] previously cached -- returning", shapeTreeURIString);
             return;
         }
 

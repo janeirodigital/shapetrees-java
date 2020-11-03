@@ -24,14 +24,10 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     @Getter
     private final ShapeTreeEcosystem ecosystem;
 
-    @Getter
-    private final ShapeTreeContext context;
-
     private boolean skipValidation = false;
 
-    public ShapeTreeClientImpl(ShapeTreeEcosystem ecosystem, ShapeTreeContext context) {
+    public ShapeTreeClientImpl(ShapeTreeEcosystem ecosystem) {
         this.ecosystem = ecosystem;
-        this.context = context;
     }
 
     @Override
@@ -45,29 +41,29 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     }
 
     @Override
-    public List<ShapeTreeLocator> discoverShapeTree(URI targetContainer) throws IOException {
-        log.info("Discovering Shape Trees present at {}", targetContainer);
+    public List<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URI targetContainer) throws IOException {
+        log.debug("Discovering Shape Trees present at {}", targetContainer);
         RemoteResource targetContainerResource = new RemoteResource(targetContainer, context.getAuthorizationHeaderValue());
         RemoteResource targetContainerMetadataResource = targetContainerResource.getMetadataResource(context.getAuthorizationHeaderValue());
         return ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetContainerMetadataResource.getGraph(targetContainerResource.getURI()));
     }
 
     @Override
-    public URI plantShapeTree(URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, Graph bodyGraph) throws IOException, URISyntaxException {
-        String shapeTreeCommaDelimited = "";
+    public URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, Graph bodyGraph) throws IOException, URISyntaxException {
+        StringBuilder shapeTreeCommaDelimited = new StringBuilder();
         if (shapeTreeURIs != null) {
             for(URI shapeTreeURI : shapeTreeURIs) {
-                shapeTreeCommaDelimited += "," + shapeTreeURI;
+                shapeTreeCommaDelimited.append(",").append(shapeTreeURI);
             }
         }
 
-        log.info("Planting shape tree [Parent container={}], [Shape Trees={}], [FocusNode={}], [ShapeTreeHint={}], [ProposedResourceName={}]", parentContainer, shapeTreeCommaDelimited, focusNode, shapeTreeHint, proposedResourceName);
+        log.debug("Planting shape tree [Parent container={}], [Shape Trees={}], [FocusNode={}], [ShapeTreeHint={}], [ProposedResourceName={}]", parentContainer, shapeTreeCommaDelimited.toString(), focusNode, shapeTreeHint, proposedResourceName);
         String turtleString = GraphHelper.writeGraphToTurtleString(bodyGraph);
-        return plantShapeTree(parentContainer, shapeTreeURIs, focusNode, shapeTreeHint, proposedResourceName, turtleString, "text/turtle");
+        return plantShapeTree(context, parentContainer, shapeTreeURIs, focusNode, shapeTreeHint, proposedResourceName, turtleString, "text/turtle");
     }
 
     @Override
-    public URI plantShapeTree(URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, String bodyString, String contentType) throws IOException, URISyntaxException {
+    public URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, String bodyString, String contentType) throws IOException, URISyntaxException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         byte[] bytes = new byte[]{};
@@ -82,7 +78,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
             builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
         }
 
-        applyCommonHeaders(builder, focusNode, shapeTreeHint, true, proposedResourceName, contentType);
+        applyCommonHeaders(context, builder, focusNode, shapeTreeHint, true, proposedResourceName, contentType);
 
         Request plantPost = builder
                 .post(RequestBody.create(bytes))
@@ -98,16 +94,19 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
             }
         } else {
             String responseBodyString = null;
-            if (response.body() != null) {
-                responseBodyString = response.body().string();
+            try (ResponseBody body = response.body()) {
+                if (body != null) {
+                    responseBodyString = body.string();
+                    body.close();
+                }
             }
             throw new IOException(response.code() + " " + responseBodyString);
         }
     }
 
     @Override
-    public Response createDataInstance(URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
-        log.info("Creating data instance {} in {} with hint {}", parentContainer, proposedResourceName, shapeTreeHint);
+    public Response createDataInstance(ShapeTreeContext context, URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
+        log.debug("Creating data instance {} in {} with hint {}", parentContainer, proposedResourceName, shapeTreeHint);
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         byte[] bytes = new byte[]{};
@@ -120,21 +119,21 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
             resourceURI += "/";
         }
         resourceURI += proposedResourceName;
-        log.info("Build Resource URI {}", resourceURI);
+        log.debug("Build Resource URI {}", resourceURI);
 
         Request.Builder putBuilder = new Request.Builder()
                 .url(resourceURI)
                 .put(RequestBody.create(bytes));
 
         // proposed resource is name is nulled since a Slug will not be used
-        applyCommonHeaders(putBuilder, focusNode, shapeTreeHint, isContainer, null, contentType);
+        applyCommonHeaders(context, putBuilder, focusNode, shapeTreeHint, isContainer, null, contentType);
 
         Response response = client.newCall(putBuilder.build()).execute();
         return response;
     }
 
     @Override
-    public Response updateDataInstance(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
+    public Response updateDataInstance(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         byte[] bytes = new byte[]{};
@@ -146,14 +145,14 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
                 .url(resourceURI.toString())
                 .put(RequestBody.create(bytes));
 
-        applyCommonHeaders(putBuilder, focusNode, shapeTreeHint, null, null, contentType);
+        applyCommonHeaders(context, putBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
         Response response = client.newCall(putBuilder.build()).execute();
         return response;
     }
 
     @Override
-    public Response updateDataInstanceWithPatch(URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException {
+    public Response updateDataInstanceWithPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         byte[] sparqlUpdateBytes = bodyString.getBytes();
@@ -162,34 +161,36 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
                 .url(resourceURI.toString())
                 .patch(RequestBody.create(sparqlUpdateBytes));
 
-        applyCommonHeaders(patchBuilder, focusNode, shapeTreeHint, null, null, contentType);
+        applyCommonHeaders(context, patchBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
         Response response = client.newCall(patchBuilder.build()).execute();
         return response;
     }
 
     @Override
-    public Response deleteDataInstance(URI resourceURI, URI shapeTreeURI) throws IOException {
+    public Response deleteDataInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException {
         OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
 
         Request.Builder deleteBuilder = new Request.Builder()
                 .url(resourceURI.toString())
                 .delete();
 
-        applyCommonHeaders(deleteBuilder, null, null, null, null, null);
+        applyCommonHeaders(context, deleteBuilder, null, null, null, null, null);
 
         Response response = client.newCall(deleteBuilder.build()).execute();
         return response;
     }
 
     @Override
-    public void unplantShapeTree(URI containerURI, URI shapeTreeURI) {
+    public void unplantShapeTree(ShapeTreeContext context, URI containerURI, URI shapeTreeURI) {
 
     }
 
-    private void applyCommonHeaders(Request.Builder builder,  String focusNode, URI shapeTreeHint, Boolean isContainer, String proposedResourceName, String contentType) {
+    private void applyCommonHeaders(ShapeTreeContext context, Request.Builder builder,  String focusNode, URI shapeTreeHint, Boolean isContainer, String proposedResourceName, String contentType) {
 
-        builder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), this.context.getAuthorizationHeaderValue());
+        if (context.getAuthorizationHeaderValue() != null) {
+            builder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        }
 
         if (isContainer != null) {
             String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
@@ -210,6 +211,14 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         if (contentType != null) {
             builder.addHeader(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
+        }
+
+        if (context.getWebID() != null) {
+            builder.addHeader(HttpHeaders.INTEROP_WEBID.getValue(), context.getWebID());
+        }
+
+        if (context.getOriginatorIRI() != null) {
+            builder.addHeader(HttpHeaders.INTEROP_ORIGINATOR.getValue(), context.getOriginatorIRI());
         }
     }
 }

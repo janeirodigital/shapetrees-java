@@ -6,14 +6,14 @@
 
     <groupId>com.janeirodigital</groupId>
     <artifactId>shapetrees-java</artifactId>
-    <version>0.4.1</version>
+    <version>0.5.0</version>
 
     <packaging>pom</packaging>
 
     <properties>
         <jena.version>3.16.0</jena.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <lombok.version>1.18.12</lombok.version>
+        <lombok.version>1.18.16</lombok.version>
         <slf4j.version>1.7.30</slf4j.version>
         <okhttp.version>4.9.0</okhttp.version>
         <shexjava.version>1.3beta</shexjava.version>
@@ -21,6 +21,7 @@
         <jersey-core.version>1.19.4</jersey-core.version>
         <commons-rdf.version>0.5.0</commons-rdf.version>
         <commons-codec.version>1.15</commons-codec.version>
+        <snakeyaml.version>1.27</snakeyaml.version>
     </properties>
 
     <dependencyManagement>
