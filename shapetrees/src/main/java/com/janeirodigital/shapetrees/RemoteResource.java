@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -220,6 +221,8 @@ public class RemoteResource {
         // We especially care about Link headers which require extra parsing of the rel values
         if (this.responseHeaders.get(HttpHeaders.LINK.getValue()) != null) {
             this.parsedLinkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(response.headers(HttpHeaders.LINK.getValue()));
+        } else {
+            this.parsedLinkHeaders = new HashMap<>();
         }
 
         // Save raw body

@@ -32,6 +32,7 @@ body: >
   <#medicalRecord>
     st:validatedBy <medrecord-schema#medicalRecord> ;
     st:matchesUriTemplate "{id}" ;
+    st:contains <#condition>, st:AllowNone ;  # add bogus contains which should throw an exception in parsing
     st:expectsType st:ShapeTreeResource ;
     st:references [
       st:hasShapeTree <#patient> ;
