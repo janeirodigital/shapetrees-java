@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,9 +30,67 @@ public class ShapeTreeParsingTests extends BaseShapeTreeTest {
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
                 new DispatcherEntry(List.of("medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null),
-                new DispatcherEntry(List.of("medical-record-shapetree-invalid-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid", null)
+                new DispatcherEntry(List.of("medical-record-shapetree-invalid-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid", null),
+                new DispatcherEntry(List.of("medical-record-shapetree-invalid-2-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid2", null)
         ));
     }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Reuse previously cached shapetree")
+    void parseShapeTreeReuse() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        ShapeTree medicalRecordsShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
+        assertNotNull(medicalRecordsShapeTree1);
+        ShapeTree medicalRecordsShapeTree2 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
+        assertNotNull(medicalRecordsShapeTree1);
+        assertEquals(medicalRecordsShapeTree1.hashCode(), medicalRecordsShapeTree2.hashCode());
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Attempt to retrieve an Allows* IRI")
+    void retrieveAllowsIri() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        ShapeTree allowAllShapeTree = ShapeTreeFactory.getShapeTree(new URI("http://www.w3.org/ns/shapetree#AllowAll"));
+        assertNull(allowAllShapeTree);
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Invalid shapetree contents within non-container")
+    void validateContainsWithinNonContainer() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        assertThrows(ShapeTreeException.class, () ->
+                ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree-invalid2#medicalRecords"))
+        );
+    }
+
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Ensure reuse within recursion")
+    void ensureCacheWithRecursion() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        // Retrieve the conditions shapetree (which is referred to by the medicalRecords shapetree)
+        ShapeTree conditionsShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"));
+        assertNotNull(conditionsShapeTree1);
+
+        // Retrieve the medical records shapetree which will recursively cache the conditions shapetree
+        ShapeTree medicalRecordsShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
+        assertNotNull(medicalRecordsShapeTree1);
+
+        // Retrieve the conditions shapetree again, ensuring the same instance is used
+        ShapeTree conditionsShapeTree2 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"));
+        assertNotNull(conditionsShapeTree2);
+
+        assertEquals(conditionsShapeTree1.hashCode(), conditionsShapeTree2.hashCode());
+    }
+
 
     @SneakyThrows
     @Test

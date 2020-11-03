@@ -1,12 +1,17 @@
 package com.janeirodigital.shapetrees.test;
 
+import com.janeirodigital.shapetrees.ShapeTreeException;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
 import lombok.SneakyThrows;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GraphHelperTests {
     @Test
@@ -39,6 +44,39 @@ public class GraphHelperTests {
     void handleJsonLD() {
         Lang lang = GraphHelper.getLangForContentType("application/ld+json");
         assertEquals(lang, Lang.JSONLD);
+    }
+
+    @Test
+    @DisplayName("N-Triples content type")
+    @SneakyThrows
+    void hanldeNTriples() {
+        Lang lang = GraphHelper.getLangForContentType("application/n-triples");
+        assertEquals(lang, Lang.NTRIPLES);
+    }
+
+    @Test
+    @DisplayName("rdf+xml content type")
+    @SneakyThrows
+    void hanldeRDFXMLTriples() {
+        Lang lang = GraphHelper.getLangForContentType("application/rdf+xml");
+        assertEquals(lang, Lang.RDFXML);
+    }
+
+    @Test
+    @DisplayName("Parse invalid TTL")
+    @SneakyThrows
+    void parseInvalidTTL() {
+        String invalidTtl = "<#a> b c";
+        assertThrows(ShapeTreeException.class, () -> GraphHelper.readStringIntoGraph(invalidTtl, "text/turtle"));
+    }
+
+    @Test
+    @DisplayName("Write graph to TTL String")
+    @SneakyThrows
+    void writeGraphtoTTLString() {
+        Graph graph = ModelFactory.createDefaultModel().getGraph();
+        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
+        assertNotNull(GraphHelper.writeGraphToTurtleString(graph));
     }
 
 }
