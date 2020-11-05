@@ -29,9 +29,9 @@ public class ShapeTreeParsingTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null),
-                new DispatcherEntry(List.of("medical-record-shapetree-invalid-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid", null),
-                new DispatcherEntry(List.of("medical-record-shapetree-invalid-2-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid2", null)
+                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null),
+                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-invalid-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid", null),
+                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-invalid-2-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid2", null)
         ));
     }
 

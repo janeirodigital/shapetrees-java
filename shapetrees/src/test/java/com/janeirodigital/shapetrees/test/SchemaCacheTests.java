@@ -35,7 +35,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null)
+                new DispatcherEntry(List.of("schemas/fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null)
         ));
     }
 

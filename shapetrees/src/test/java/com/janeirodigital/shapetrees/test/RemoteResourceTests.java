@@ -32,9 +32,9 @@ public class RemoteResourceTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("resource-no-link-headers"), "GET", "/static/resource/resource-no-link-headers", null),
-                new DispatcherEntry(List.of("resource-empty-link-header"), "GET", "/static/resource/resource-empty-link-header", null),
-                new DispatcherEntry(List.of("resource-container-link-header"), "GET", "/static/resource/resource-container-link-header", null)
+                new DispatcherEntry(List.of("remoteResource/resource-no-link-headers"), "GET", "/static/resource/resource-no-link-headers", null),
+                new DispatcherEntry(List.of("remoteResource/resource-empty-link-header"), "GET", "/static/resource/resource-empty-link-header", null),
+                new DispatcherEntry(List.of("remoteResource/resource-container-link-header"), "GET", "/static/resource/resource-container-link-header", null)
         ));
     }
 
