@@ -8,7 +8,6 @@ import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
 import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.jena.graph.Graph;
@@ -21,13 +20,13 @@ import java.util.List;
 @Slf4j
 public class ShapeTreeClientImpl implements ShapeTreeClient {
 
-    @Getter
-    private final ShapeTreeEcosystem ecosystem;
-
     private boolean skipValidation = false;
+    private final ShapeTreeClientConfiguration validatingClientConfig;
+    private final ShapeTreeClientConfiguration nonValidatingClientConfig;
 
     public ShapeTreeClientImpl(ShapeTreeEcosystem ecosystem) {
-        this.ecosystem = ecosystem;
+        this.validatingClientConfig = new ShapeTreeClientConfiguration(ecosystem, true, false);
+        this.nonValidatingClientConfig = new ShapeTreeClientConfiguration(ecosystem, false, false);
     }
 
     @Override
@@ -64,7 +63,8 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
     @Override
     public URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, String bodyString, String contentType) throws IOException, URISyntaxException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
+
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
@@ -107,7 +107,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     @Override
     public Response createDataInstance(ShapeTreeContext context, URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
         log.debug("Creating data instance {} in {} with hint {}", parentContainer, proposedResourceName, shapeTreeHint);
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
@@ -128,13 +128,12 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         // proposed resource is name is nulled since a Slug will not be used
         applyCommonHeaders(context, putBuilder, focusNode, shapeTreeHint, isContainer, null, contentType);
 
-        Response response = client.newCall(putBuilder.build()).execute();
-        return response;
+        return client.newCall(putBuilder.build()).execute();
     }
 
     @Override
     public Response updateDataInstance(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
@@ -147,13 +146,12 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         applyCommonHeaders(context, putBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
-        Response response = client.newCall(putBuilder.build()).execute();
-        return response;
+        return client.newCall(putBuilder.build()).execute();
     }
 
     @Override
-    public Response updateDataInstanceWithPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
+    public Response updateDataInstanceWithPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         byte[] sparqlUpdateBytes = bodyString.getBytes();
 
@@ -163,13 +161,12 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         applyCommonHeaders(context, patchBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
-        Response response = client.newCall(patchBuilder.build()).execute();
-        return response;
+        return client.newCall(patchBuilder.build()).execute();
     }
 
     @Override
     public Response deleteDataInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem, this.skipValidation).get();
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         Request.Builder deleteBuilder = new Request.Builder()
                 .url(resourceURI.toString())
@@ -177,13 +174,20 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         applyCommonHeaders(context, deleteBuilder, null, null, null, null, null);
 
-        Response response = client.newCall(deleteBuilder.build()).execute();
-        return response;
+        return client.newCall(deleteBuilder.build()).execute();
     }
 
     @Override
     public void unplantShapeTree(ShapeTreeContext context, URI containerURI, URI shapeTreeURI) {
 
+    }
+
+    private ShapeTreeClientConfiguration getConfiguration(boolean skipValidation) {
+        if (skipValidation) {
+            return this.nonValidatingClientConfig;
+        } else {
+            return this.validatingClientConfig;
+        }
     }
 
     private void applyCommonHeaders(ShapeTreeContext context, Request.Builder builder,  String focusNode, URI shapeTreeHint, Boolean isContainer, String proposedResourceName, String contentType) {

@@ -1,9 +1,10 @@
 package com.janeirodigital.shapetrees;
 
+import com.janeirodigital.shapetrees.client.impl.ShapeTreeClientConfiguration;
+import com.janeirodigital.shapetrees.client.impl.ShapeTreeHttpClientHolder;
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
-import com.janeirodigital.shapetrees.helper.HttpClientHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -34,6 +35,7 @@ public class RemoteResource {
     private Map<String, List<String>> parsedLinkHeaders;
     private Graph parsedGraph;
     private String rawBody;
+    private final ShapeTreeClientConfiguration clientConfiguration = new ShapeTreeClientConfiguration(null, false, false);
 
     public RemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
         URI requestUri;
@@ -141,7 +143,7 @@ public class RemoteResource {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
-        OkHttpClient httpClient = HttpClientHelper.getClient();
+        OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(this.clientConfiguration);
         Request.Builder requestBuilder = new Request.Builder()
                 .url(this.URI.toURL())
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
@@ -194,7 +196,7 @@ public class RemoteResource {
     private void dereferenceURI() throws IOException {
         log.debug("RemoteResource#dereferencingURI({})", this.URI);
 
-        OkHttpClient httpClient = HttpClientHelper.getClient();
+        OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(this.clientConfiguration);
         Request.Builder requestBuilder = new Request.Builder()
                 .url(this.URI.toURL());
 

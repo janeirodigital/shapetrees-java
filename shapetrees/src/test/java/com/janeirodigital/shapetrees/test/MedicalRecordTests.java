@@ -28,20 +28,22 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null),
-                new DispatcherEntry(List.of("fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null),
-                new DispatcherEntry(List.of("data-container"), "GET", "/ldp/data/", null),
-                new DispatcherEntry(List.of("data-container-metadata"), "GET", "/ldp/data/?ext=shapetree", null),
-                new DispatcherEntry(List.of("medical-record-container"), "GET", "/ldp/data/medical-record", null),
-                new DispatcherEntry(List.of("condition-container"), "GET", "/ldp/data/conditions", null),
-                new DispatcherEntry(List.of("condition-container"), "GET", "/ldp/data/conditions/", null),
-                new DispatcherEntry(List.of("condition-1"), "GET", "/ldp/data/conditions/condition1.ttl", null),
-                new DispatcherEntry(List.of("condition-1-create-response"), "PUT", "/ldp/data/conditions/condition1.ttl", null),
-                new DispatcherEntry(List.of("condition-3-create-response"), "PUT", "/ldp/data/conditions/condition3.ttl", null),
-                new DispatcherEntry(List.of("404","medical-record-container-metadata"), "GET", "/ldp/data/medical-record/?ext=shapetree", null),
-                new DispatcherEntry(List.of("404","conditions-container-metadata"), "GET", "/ldp/data/conditions/?ext=shapetree", null),
-                new DispatcherEntry(List.of("medical-record-plant-response"), "POST", "/ldp/data/", null),
-                new DispatcherEntry(List.of("conditions-plant-response"), "POST", "/ldp/data/", null)
+                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null),
+                new DispatcherEntry(List.of("schemas/fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null),
+                new DispatcherEntry(List.of("medicalRecord/data-container"), "GET", "/ldp/data/", null),
+                new DispatcherEntry(List.of("medicalRecord/data-container-metadata"), "GET", "/ldp/data/?ext=shapetree", null),
+                new DispatcherEntry(List.of("medicalRecord/medical-record-container"), "GET", "/ldp/data/medical-record", null),
+                new DispatcherEntry(List.of("medicalRecord/condition-container"), "GET", "/ldp/data/conditions", null),
+                new DispatcherEntry(List.of("medicalRecord/condition-container"), "GET", "/ldp/data/conditions/", null),
+                new DispatcherEntry(List.of("medicalRecord/condition-1"), "GET", "/ldp/data/conditions/condition1.ttl", null),
+                new DispatcherEntry(List.of("medicalRecord/condition-1-delete-response"), "DELETE", "/ldp/data/conditions/condition1.ttl", null),
+                new DispatcherEntry(List.of("medicalRecord/condition-1-create-response"), "PUT", "/ldp/data/conditions/condition1.ttl", null),
+                new DispatcherEntry(List.of("medicalRecord/condition-3-create-response"), "PUT", "/ldp/data/conditions/condition3.ttl", null),
+                new DispatcherEntry(List.of("errors/404","medicalRecord/medical-record-container-metadata"), "GET", "/ldp/data/medical-record/?ext=shapetree", null),
+                new DispatcherEntry(List.of("errors/404","medicalRecord/conditions-container-metadata"), "GET", "/ldp/data/conditions/?ext=shapetree", null),
+                new DispatcherEntry(List.of("medicalRecord/medical-record-plant-response"), "POST", "/ldp/data/", null),
+                new DispatcherEntry(List.of("medicalRecord/conditions-plant-response"), "POST", "/ldp/data/", null),
+                new DispatcherEntry(List.of("medicalRecord/condition-patch-response"), "PATCH", "/ldp/data/conditions/condition1.ttl", null)
         ));
     }
 
@@ -156,6 +158,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         this.shapeTreeClient.setSkipValidation(true);
+        assertTrue(this.shapeTreeClient.isSkipValidation());
         Response response = this.shapeTreeClient.createDataInstance(this.context,
                 getURI(server,"/ldp/data/conditions/"),
                 "http://hl7.org/fhir/Condition/example",
@@ -167,11 +170,84 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         );
         assertEquals(201, response.code());
         this.shapeTreeClient.setSkipValidation(true);
-
     }
 
+    @Order(7)
+    @SneakyThrows
+    @Test
+    @Label("Update Data Instance - Valid")
+    void updateConditionValid() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
 
-    private String getConditionTtl() {
+        Response response = this.shapeTreeClient.updateDataInstance(this.context,
+                getURI(server,"/ldp/data/conditions/condition1.ttl"),
+                "http://hl7.org/fhir/Condition/example",
+                null,
+                getConditionTtl(),
+                "text/turtle"
+        );
+        assertEquals(201, response.code());
+        RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
+        assertTrue(resource.exists());
+    }
+
+    @Order(8)
+    @SneakyThrows
+    @Test
+    @Label("Update Data Instance via Patch")
+    void updateConditionPatch() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
+        Response response = this.shapeTreeClient.updateDataInstanceWithPatch(this.context,
+                getURI(server,"/ldp/data/conditions/condition1.ttl"),
+                "http://hl7.org/fhir/Condition/example",
+                null,
+                "INSERT DATA { <#a> <#b> <#c> . }",
+                "application/sparql-update"
+                );
+        assertEquals(204, response.code());
+        RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
+        assertTrue(resource.exists());
+    }
+
+    @Order(9)
+    @SneakyThrows
+    @Test
+    @Label("Update Data Instance via Patch - causing validation error")
+    void updateConditionPatchInvalid() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
+        Response response = this.shapeTreeClient.updateDataInstanceWithPatch(this.context,
+                getURI(server,"/ldp/data/conditions/condition1.ttl"),
+                "http://hl7.org/fhir/Condition/example",
+                null,
+                "DELETE DATA { <http://hl7.org/fhir/Condition/example> a <http://hl7.org/fhir/Condition> . }",
+                "application/sparql-update"
+        );
+        assertEquals(422, response.code());
+        RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
+        assertTrue(resource.exists());
+    }
+
+    @Order(10)
+    @SneakyThrows
+    @Test
+    @Label("Delete Data Instance ")
+    void deleteDataInstance() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
+        Response response = this.shapeTreeClient.deleteDataInstance(this.context,
+                getURI(server,"/ldp/data/conditions/condition1.ttl"),
+                getURI(server,"/static/shapetrees/medical-record/shapetree#condition")
+        );
+        assertEquals(204, response.code());
+    }
+
+    public static String getConditionTtl() {
         return "@prefix fhir: <http://hl7.org/fhir/> .\n" +
                 "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n" +
                 "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n" +
@@ -246,7 +322,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
                 "  fhir:Condition.onsetDateTime [ fhir:value \"2012-05-24\"^^xsd:date] .\n";
     }
 
-    private String getInvalidConditionTtl() {
+    public static String getInvalidConditionTtl() {
         return  "@prefix fhir: <http://hl7.org/fhir/> .\n" +
                 "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n" +
                 "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n" +

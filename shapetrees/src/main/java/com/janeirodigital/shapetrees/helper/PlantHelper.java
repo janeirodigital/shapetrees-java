@@ -2,6 +2,8 @@ package com.janeirodigital.shapetrees.helper;
 
 import com.janeirodigital.shapetrees.RemoteResource;
 import com.janeirodigital.shapetrees.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.client.impl.ShapeTreeClientConfiguration;
+import com.janeirodigital.shapetrees.client.impl.ShapeTreeHttpClientHolder;
 import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.vocabulary.LdpVocabulary;
@@ -122,7 +124,7 @@ public class PlantHelper {
             body = "";
         }
 
-        OkHttpClient httpClient = HttpClientHelper.getClient();
+        OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(new ShapeTreeClientConfiguration(null, false, false));
         Request.Builder createContainerPostBuilder = new Request.Builder();
         createContainerPostBuilder.addHeader(HttpHeaders.SLUG.getValue(), requestedName)
                 .addHeader(HttpHeaders.LINK.getValue(), REL_TYPE_CONTAINER)

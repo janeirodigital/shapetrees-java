@@ -4,6 +4,7 @@ import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
 import com.janeirodigital.shapetrees.model.ShapeTree;
 import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 
@@ -14,7 +15,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
+@Slf4j @EqualsAndHashCode
 public class MockEcosystem implements ShapeTreeEcosystem {
     @Override
     public void initializeEcosystem() {

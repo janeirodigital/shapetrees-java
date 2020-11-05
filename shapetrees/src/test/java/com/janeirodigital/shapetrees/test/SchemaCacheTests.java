@@ -35,7 +35,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null)
+                new DispatcherEntry(List.of("schemas/fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null)
         ));
     }
 
@@ -74,7 +74,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
 
     }
 
-    private Map<URI, ShexSchema> buildSchemaCache(List<String> schemasToCache) throws URISyntaxException, IOException {
+    public static Map<URI, ShexSchema> buildSchemaCache(List<String> schemasToCache) throws URISyntaxException, IOException {
         Map<URI, ShexSchema> schemaCache = new HashMap<>();
         log.info("Building schema cache");
         for (String schemaUrl : schemasToCache) {

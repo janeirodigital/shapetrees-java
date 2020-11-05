@@ -42,7 +42,7 @@ public abstract class BaseShapeTreeTest {
     }
 
     protected Response patchContent(URI patchResource, boolean isContainer, String sparqlUpdate, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder((this.ecosystem)).get();
+        OkHttpClient client = new ShapeTreeHttpClientHolder((this.ecosystem)).get();
 
         byte[] sparqlUpdateBytes = sparqlUpdate.getBytes();
 
@@ -68,7 +68,7 @@ public abstract class BaseShapeTreeTest {
     }
 
     protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, String contentType, Integer expectedCode, String shapeTreeHint) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeHttpClientHolder(this.ecosystem).get();
 
         String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
         RequestBody body;
@@ -106,7 +106,7 @@ public abstract class BaseShapeTreeTest {
     }
 
     protected Response putContent(URI resourceURI, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeHttpClientHolder(this.ecosystem).get();
 
         String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
 
@@ -140,7 +140,7 @@ public abstract class BaseShapeTreeTest {
     }
 
     protected Response plantWithStringContent(URI parentContainer, List<URI> shapeTreeURIs, String slug, String content, String contentType, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeHttpClientHolder(this.ecosystem).get();
 
         byte[] bytes = new byte[]{};
         if (content != null) {
@@ -174,7 +174,7 @@ public abstract class BaseShapeTreeTest {
 
     protected Response delete(URI resourceURI, Integer expectedCode) throws IOException
     {
-        OkHttpClient client = new ShapeTreeValidatingClientBuilder(this.ecosystem).get();
+        OkHttpClient client = new ShapeTreeHttpClientHolder(this.ecosystem).get();
 
         Request delete = new Request.Builder()
                 .url(resourceURI.toString())
