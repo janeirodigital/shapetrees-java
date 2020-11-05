@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.test;
 
 import com.janeirodigital.shapetrees.ShapeTreeException;
 import com.janeirodigital.shapetrees.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.model.ShapeTree;
 import com.janeirodigital.shapetrees.test.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.test.fixtures.RequestMatchingFixtureDispatcher;
@@ -123,5 +124,17 @@ public class ShapeTreeParsingTests extends BaseShapeTreeTest {
         assertThrows(ShapeTreeException.class, () ->
             ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree-invalid#medicalRecords"))
         );
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Traverse References")
+    void testTraverseReferences() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        ShapeTree medicalRecordShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecord"));
+        medicalRecordShapeTree.getReferencedShapeTrees();
+        medicalRecordShapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST);
+        medicalRecordShapeTree.getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
     }
 }

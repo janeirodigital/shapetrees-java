@@ -74,7 +74,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
 
     }
 
-    private Map<URI, ShexSchema> buildSchemaCache(List<String> schemasToCache) throws URISyntaxException, IOException {
+    public static Map<URI, ShexSchema> buildSchemaCache(List<String> schemasToCache) throws URISyntaxException, IOException {
         Map<URI, ShexSchema> schemaCache = new HashMap<>();
         log.info("Building schema cache");
         for (String schemaUrl : schemasToCache) {

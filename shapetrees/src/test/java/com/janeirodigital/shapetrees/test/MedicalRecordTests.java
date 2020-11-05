@@ -231,7 +231,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         assertTrue(resource.exists());
     }
 
-    private String getConditionTtl() {
+    public static String getConditionTtl() {
         return "@prefix fhir: <http://hl7.org/fhir/> .\n" +
                 "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n" +
                 "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n" +
@@ -306,7 +306,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
                 "  fhir:Condition.onsetDateTime [ fhir:value \"2012-05-24\"^^xsd:date] .\n";
     }
 
-    private String getInvalidConditionTtl() {
+    public static String getInvalidConditionTtl() {
         return  "@prefix fhir: <http://hl7.org/fhir/> .\n" +
                 "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n" +
                 "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n" +
