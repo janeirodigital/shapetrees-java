@@ -36,6 +36,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
                 new DispatcherEntry(List.of("medicalRecord/condition-container"), "GET", "/ldp/data/conditions", null),
                 new DispatcherEntry(List.of("medicalRecord/condition-container"), "GET", "/ldp/data/conditions/", null),
                 new DispatcherEntry(List.of("medicalRecord/condition-1"), "GET", "/ldp/data/conditions/condition1.ttl", null),
+                new DispatcherEntry(List.of("medicalRecord/condition-1-delete-response"), "DELETE", "/ldp/data/conditions/condition1.ttl", null),
                 new DispatcherEntry(List.of("medicalRecord/condition-1-create-response"), "PUT", "/ldp/data/conditions/condition1.ttl", null),
                 new DispatcherEntry(List.of("medicalRecord/condition-3-create-response"), "PUT", "/ldp/data/conditions/condition3.ttl", null),
                 new DispatcherEntry(List.of("errors/404","medicalRecord/medical-record-container-metadata"), "GET", "/ldp/data/medical-record/?ext=shapetree", null),
@@ -229,6 +230,21 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         assertEquals(422, response.code());
         RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
         assertTrue(resource.exists());
+    }
+
+    @Order(10)
+    @SneakyThrows
+    @Test
+    @Label("Delete Data Instance ")
+    void deleteDataInstance() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
+        Response response = this.shapeTreeClient.deleteDataInstance(this.context,
+                getURI(server,"/ldp/data/conditions/condition1.ttl"),
+                getURI(server,"/static/shapetrees/medical-record/shapetree#condition")
+        );
+        assertEquals(204, response.code());
     }
 
     public static String getConditionTtl() {
