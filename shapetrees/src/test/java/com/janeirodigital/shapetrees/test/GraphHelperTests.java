@@ -71,12 +71,39 @@ public class GraphHelperTests {
     }
 
     @Test
+    @DisplayName("Parse valid TTL")
+    @SneakyThrows
+    void parseValidTTL() {
+        String invalidTtl = "<#a> <#b> <#c> .";
+        assertNotNull(GraphHelper.readStringIntoGraph(invalidTtl, "text/turtle"));
+    }
+
+
+    @Test
     @DisplayName("Write graph to TTL String")
     @SneakyThrows
-    void writeGraphtoTTLString() {
+    void writeGraphToTTLString() {
         Graph graph = ModelFactory.createDefaultModel().getGraph();
         graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
         assertNotNull(GraphHelper.writeGraphToTurtleString(graph));
     }
+
+    @Test
+    @DisplayName("Write null graph to TTL String")
+    @SneakyThrows
+    void writeNullGraphToTTLString() {
+        assertNull(GraphHelper.writeGraphToTurtleString(null));
+    }
+
+    @Test
+    @DisplayName("Write closed graph to TTL String")
+    @SneakyThrows
+    void writeClosedGraphtoTTLString() {
+        Graph graph = ModelFactory.createDefaultModel().getGraph();
+        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
+        graph.close();
+        assertNull(GraphHelper.writeGraphToTurtleString(graph));
+    }
+
 
 }

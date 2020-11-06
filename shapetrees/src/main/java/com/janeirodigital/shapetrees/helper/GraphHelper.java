@@ -34,12 +34,11 @@ public class GraphHelper {
 
     public static String writeGraphToTurtleString(Graph graph) {
         if (graph == null) return null;
+        if (graph.isClosed()) return null;
 
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, graph, Lang.TURTLE);
-        if (!graph.isClosed()) {
-            graph.close();
-        }
+        graph.close();
         return sw.toString();
     }
 
