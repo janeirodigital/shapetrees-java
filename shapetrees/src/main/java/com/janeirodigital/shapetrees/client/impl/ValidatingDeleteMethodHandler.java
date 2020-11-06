@@ -47,7 +47,7 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
         Graph parentContainerMetadataGraph = parentContainerMetadataResource.getGraph(parentURI);
         // Get ShapeTree locators managing parent container
         List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadataGraph);
-        if (locators == null || locators.size() == 0) {
+        if (locators.size() == 0) {
             // If there are no shapetrees present in the metadata, then it is not managed
             return chain.proceed(chain.request());
         }

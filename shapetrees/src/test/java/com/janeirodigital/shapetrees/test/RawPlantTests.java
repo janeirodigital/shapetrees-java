@@ -254,7 +254,30 @@ public class RawPlantTests  extends BaseShapeTreeTest {
 
         Response response = client.newCall(plantPost).execute();
         assertEquals(201, response.code());
-
     }
 
+    @Order(8)
+    @SneakyThrows
+    @Test
+    void testVanillaPostToNonExistingContainer() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
+        ShapeTreeClientConfiguration validatingConfig = new ShapeTreeClientConfiguration(new MockEcosystem(), true, false);
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(validatingConfig);
+
+        byte[] bytes = MedicalRecordTests.getConditionTtl().getBytes();
+
+        Request.Builder builder = new Request.Builder().url(getURI(server, "/ldp/nonexisting/").toString());
+
+        // Note that no shapetree link header is provided, meaning we're just doing a post, not planting
+        applyCommonHeaders(context, builder, "http://hl7.org/fhir/Condition/example", null, false, "condition1", "text/turtle");
+
+        Request plantPost = builder
+                .post(RequestBody.create(bytes))
+                .build();
+
+        Response response = client.newCall(plantPost).execute();
+        assertEquals(404, response.code());
+    }
 }
