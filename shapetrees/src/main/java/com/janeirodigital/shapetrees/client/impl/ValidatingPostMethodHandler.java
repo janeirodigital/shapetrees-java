@@ -7,7 +7,6 @@ import com.janeirodigital.shapetrees.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.PlantHelper;
 import com.janeirodigital.shapetrees.model.*;
-import com.janeirodigital.shapetrees.vocabulary.LdpVocabulary;
 import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
@@ -32,7 +31,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
         String requestedName = getIncomingHeaderValueWithDefault(HttpHeaders.SLUG.getValue(), UUID.randomUUID().toString());
         List<String> incomingRequestShapeTreeUris = getIncomingLinkHeaderByRelationValue(LinkRelations.SHAPETREE.getValue());
-        Boolean isContainer = this.incomingRequestLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER);
+        Boolean isContainer = getIsContainerFromIncomingLinkHeaders();
         URI normalizedBaseURI = normalizeBaseURI(this.requestRemoteResource.getURI(), requestedName, isContainer);
         Graph incomingRequestBodyGraph = getIncomingBodyGraph(normalizedBaseURI);
 
@@ -95,7 +94,12 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 Response response = this.chain.proceed(this.chain.request());
                 // If there is a ShapeTree managing the new resource, register it
                 if (validationContext != null && validationContext.getValidatingShapeTree() != null) {
-                    this.ecosystem.indexShapeTreeDataInstance(this.shapeTreeContext, requestRemoteResource.getURI(), validationContext.getValidatingShapeTree().getURI(), new URI(response.header(HttpHeaders.LOCATION.getValue())));
+                    String locationUrl = response.header(HttpHeaders.LOCATION.getValue());
+                    if (locationUrl != null) {
+                        this.ecosystem.indexShapeTreeDataInstance(this.shapeTreeContext, requestRemoteResource.getURI(), validationContext.getValidatingShapeTree().getURI(), new URI(locationUrl));
+                    } else {
+                        log.warn("POST of validated content did not yield a location response header");
+                    }
                 }
                 return response;
             }
@@ -144,8 +148,12 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetMetadata.getGraph(new URI(requestURI.toString() + requestedName)));
                 for (ShapeTreeLocator locator : locators) {
                     ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree()));
-                    log.debug("Found ShapeTree [{}] already planted in existing container, adding to list to validate", shapeTree.getURI());
-                    shapeTreesToPlant.add(shapeTree);
+                    if (shapeTree != null) {
+                        log.debug("Found ShapeTree [{}] already planted in existing container, adding to list to validate", shapeTree.getURI());
+                        shapeTreesToPlant.add(shapeTree);
+                    } else {
+                        throw new ShapeTreeException(500, "Existing container is managed by a shape tree " + locator.getShapeTree() + " which cannot be found");
+                    }
                 }
             }
         }

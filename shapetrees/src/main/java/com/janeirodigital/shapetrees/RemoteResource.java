@@ -26,6 +26,7 @@ public class RemoteResource {
 
     private static final String REL_TYPE = "type";
     private static final String LDP_CONTAINER = "http://www.w3.org/ns/ldp#Container";
+    private static final String LDP_BASIC_CONTAINER = "http://www.w3.org/ns/ldp#BasicContainer";
 
     private final URI URI;
     private String authorizationHeaderValue;
@@ -110,7 +111,8 @@ public class RemoteResource {
         }
 
         if (this.parsedLinkHeaders != null && this.parsedLinkHeaders.get(REL_TYPE) != null) {
-            return this.parsedLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER);
+            return this.parsedLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER) ||
+                    this.parsedLinkHeaders.get(REL_TYPE).contains(LDP_BASIC_CONTAINER);
         }
         return false;
     }

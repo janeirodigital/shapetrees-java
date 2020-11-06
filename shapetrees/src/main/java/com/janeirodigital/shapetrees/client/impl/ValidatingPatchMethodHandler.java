@@ -110,7 +110,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + targetShapeTree.getURI());
             }
         } else {
-            // If the parent container is managed, then pass through the PATCH
+            // If the parent container is not managed, then pass through the PATCH
             return chain.proceed(chain.request());
         }
     }

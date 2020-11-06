@@ -9,6 +9,7 @@ import org.apache.jena.graph.Node_URI;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RiotNotFoundException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,11 +40,14 @@ public class ShapeTreeFactory {
     }
 
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
-        Model model = RDFDataMgr.loadModel(shapeTreeURI.toString(), Lang.TURTLE);
-
-        Resource resource = model.getResource(shapeTreeURI.toString());
-        if (resource != null) {
-            recursivelyParseShapeTree(model, resource);
+        try {
+            Model model = RDFDataMgr.loadModel(shapeTreeURI.toString(), Lang.TURTLE);
+            Resource resource = model.getResource(shapeTreeURI.toString());
+            if (resource != null) {
+                recursivelyParseShapeTree(model, resource);
+            }
+        } catch (RiotNotFoundException rnfe) {
+            log.error("Unable to load graph at URI {}", shapeTreeURI);
         }
     }
 

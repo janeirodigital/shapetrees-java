@@ -1,9 +1,0 @@
-PREFIX eco: <http://www.w3.org/ns/solid/ecosystem#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-<#registration>
-    a eco:DataRegistration ;
-    eco:registeredBy <../../id#me> ;
-    eco:registeredWith <https://auth.agent/#agent> ;
-    eco:registeredAt  "2020-07-02T20:21:21Z"^^xsd:dateTime ;
-    eco:registeredShapeTree <http://localhost:9999/static/gh-flat/gh-flat-ShapeTree.jsonld#orgs> .

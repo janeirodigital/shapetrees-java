@@ -4,10 +4,13 @@ import com.janeirodigital.shapetrees.RemoteResource;
 import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
 import com.janeirodigital.shapetrees.client.ShapeTreeClient;
 import com.janeirodigital.shapetrees.client.impl.ShapeTreeClientImpl;
+import com.janeirodigital.shapetrees.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.vocabulary.ShapeTreeVocabulary;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Request;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -35,159 +38,6 @@ public abstract class BaseShapeTreeTest {
 
         this.shapeTreeClient = new ShapeTreeClientImpl(ecosystem);
     }
-
-    /*
-    protected Response patchContent(URI patchResource, boolean isContainer, String sparqlUpdate, String focusNode) throws IOException {
-        return patchContent(patchResource, isContainer, sparqlUpdate, focusNode, 204);
-    }
-
-    protected Response patchContent(URI patchResource, boolean isContainer, String sparqlUpdate, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeHttpClientHolder((this.ecosystem)).get();
-
-        byte[] sparqlUpdateBytes = sparqlUpdate.getBytes();
-
-        Request patch = new Request.Builder()
-                .url(patchResource.toString())
-                .addHeader("Authorization", null)
-                .addHeader("Link", "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"")
-                .addHeader("Content-Type", "application/sparql-update")
-                .patch(RequestBody.create(sparqlUpdateBytes))
-                .build();
-
-        Response response = client.newCall(patch).execute();
-        assertEquals(expectedCode, response.code(), response.message());
-        return response;
-    }
-
-    protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode) throws IOException {
-        return postContent(parentContainer, slug, isContainer, bodyResourcePath, focusNode, 201);
-    }
-
-    protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
-        return postContent(parentContainer, slug, isContainer, bodyResourcePath, focusNode, "text/turtle", expectedCode, null);
-    }
-
-    protected Response postContent(URI parentContainer, String slug, boolean isContainer, String bodyResourcePath, String focusNode, String contentType, Integer expectedCode, String shapeTreeHint) throws IOException {
-        OkHttpClient client = new ShapeTreeHttpClientHolder(this.ecosystem).get();
-
-        String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-        RequestBody body;
-        FileInputStream inputStream = new FileInputStream(bodyResourcePath);
-        if (!Collections.unmodifiableSet(Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json")).contains(contentType)) {
-            resourceTypeUri = "http://www.w3.org/ns/ldp#NonRDFSource";
-            body = RequestBody.create(inputStream.readAllBytes(), MediaType.get(contentType));
-        } else {
-            String bodyString = IOUtils.toString(inputStream, "UTF-8");
-            body = RequestBody.create(bodyString, MediaType.get("text/turtle"));
-        }
-
-        Request.Builder postBuilder = new Request.Builder()
-                .url(parentContainer.toString())
-                .addHeader("Authorization", null)
-                .addHeader("Link", "<" + resourceTypeUri + ">; rel=\"type\"")
-                .addHeader("Slug", slug)
-                .addHeader("Link", "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"")
-                .addHeader("Content-Type", contentType)
-                .post(body);
-
-        if (shapeTreeHint != null) {
-            postBuilder.addHeader("Link", "<" + shapeTreeHint + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
-        }
-
-        Request post = postBuilder.build();
-
-        Response response = client.newCall(post).execute();
-        assertEquals(expectedCode, response.code());
-        return response;
-    }
-
-    protected Response putContent(URI resourceURI, boolean isContainer, String bodyResourcePath, String focusNode) throws IOException {
-        return putContent(resourceURI, isContainer, bodyResourcePath, focusNode, 201);
-    }
-
-    protected Response putContent(URI resourceURI, boolean isContainer, String bodyResourcePath, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeHttpClientHolder(this.ecosystem).get();
-
-        String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-
-        FileInputStream inputStream = new FileInputStream(bodyResourcePath);
-        String bodyString = IOUtils.toString(inputStream, "UTF-8");
-
-        Request post = new Request.Builder()
-                .url(resourceURI.toString())
-                .addHeader("Authorization", null)
-                .addHeader("Link", "<" + resourceTypeUri + ">; rel=\"type\"")
-                .addHeader("Link", "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"")
-                .addHeader("Content-Type", "text/turtle")
-                .put(RequestBody.create(bodyString, MediaType.get("text/turtle")))
-                .build();
-
-        Response response = client.newCall(post).execute();
-        assertEquals(expectedCode, response.code());
-        return response;
-    }
-*/
-    /*
-    protected Response plant(URI parentContainer, List<URI> shapeTreeURIs, String slug, String focusNode) throws IOException {
-        return plantWithStringContent(parentContainer, shapeTreeURIs, slug, null, "text/turtle", focusNode, 201);
-    }
-
-    protected Response plantWithResourceContent(URI parentContainer, List<URI> shapeTreeURIs, String slug, String bodyResourcePath, String contentType, String focusNode, Integer expectedCode) throws IOException {
-        FileInputStream inputStream = new FileInputStream(bodyResourcePath);
-        String bodyString = IOUtils.toString(inputStream, "UTF-8");
-
-        return plantWithStringContent(parentContainer, shapeTreeURIs, slug, bodyString, contentType, focusNode, expectedCode);
-    }
-
-    protected Response plantWithStringContent(URI parentContainer, List<URI> shapeTreeURIs, String slug, String content, String contentType, String focusNode, Integer expectedCode) throws IOException {
-        OkHttpClient client = new ShapeTreeHttpClientHolder(this.ecosystem).get();
-
-        byte[] bytes = new byte[]{};
-        if (content != null) {
-            bytes = content.getBytes();
-        }
-
-        Request.Builder builder = new Request.Builder()
-                .url(parentContainer.toString())
-                .addHeader("Authorization", null);
-
-        for (URI shapeTreeUri : shapeTreeURIs) {
-            builder.addHeader("Link", "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
-        }
-
-        Request plantPost = builder
-                .addHeader("Link", "<http://www.w3.org/ns/ldp#Container>; rel=\"type\"")
-                .addHeader("Link", "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"")
-                .addHeader("Slug", slug)
-                .addHeader("Content-Type", contentType)
-                .post(RequestBody.create(bytes))
-                .build();
-
-        Response response = client.newCall(plantPost).execute();
-        assertEquals(expectedCode, response.code(), response.message());
-        return response;
-    }
-/*
-    protected Response delete(URI resourceURI) throws IOException {
-        return delete(resourceURI, 204);
-    }
-
-    protected Response delete(URI resourceURI, Integer expectedCode) throws IOException
-    {
-        OkHttpClient client = new ShapeTreeHttpClientHolder(this.ecosystem).get();
-
-        Request delete = new Request.Builder()
-                .url(resourceURI.toString())
-                .addHeader("Authorization", null)
-                .delete()
-                .build();
-
-        Response response = client.newCall(delete).execute();
-        assertEquals(expectedCode, response.code(), response.message());
-        return response;
-
-    }
-     */
     
     protected static void ensureExists(URI uri) throws IOException {
         RemoteResource resource = new RemoteResource(uri, null);
@@ -290,6 +140,41 @@ public abstract class BaseShapeTreeTest {
 
     protected URI getURI(MockWebServer server, String path) throws URISyntaxException {
         return new URI(server.url(path).toString());
+    }
+
+    protected void applyCommonHeaders(ShapeTreeContext context, Request.Builder builder, String focusNode, URI shapeTreeHint, Boolean isContainer, String proposedResourceName, String contentType) {
+        if (context.getAuthorizationHeaderValue() != null) {
+            builder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        }
+
+        if (isContainer != null) {
+            String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
+        }
+
+        if (focusNode != null) {
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
+        }
+
+        if (shapeTreeHint != null) {
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeHint + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE + "\"");
+        }
+
+        if (proposedResourceName != null) {
+            builder.addHeader(HttpHeaders.SLUG.getValue(), proposedResourceName);
+        }
+
+        if (contentType != null) {
+            builder.addHeader(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
+        }
+
+        if (context.getWebID() != null) {
+            builder.addHeader(HttpHeaders.INTEROP_WEBID.getValue(), context.getWebID());
+        }
+
+        if (context.getOriginatorIRI() != null) {
+            builder.addHeader(HttpHeaders.INTEROP_ORIGINATOR.getValue(), context.getOriginatorIRI());
+        }
     }
 
 }
