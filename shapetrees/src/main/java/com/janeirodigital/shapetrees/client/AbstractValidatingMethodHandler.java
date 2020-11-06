@@ -6,6 +6,7 @@ import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
 import com.janeirodigital.shapetrees.helper.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.model.*;
+import com.janeirodigital.shapetrees.vocabulary.LdpVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okio.Buffer;
@@ -28,7 +29,7 @@ public abstract class AbstractValidatingMethodHandler {
     protected final boolean isIncomingNonRdfSource;
     protected final Set<String> supportedRDFContentTypes;
     protected ShapeTreeEcosystem ecosystem;
-    protected ShapeTreeContext shapeTreeContext = null;
+    protected ShapeTreeContext shapeTreeContext;
 
     public AbstractValidatingMethodHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
         this.chain = chain;
@@ -138,6 +139,14 @@ public abstract class AbstractValidatingMethodHandler {
         return null;
     }
 
+    protected Boolean getIsContainerFromIncomingLinkHeaders() {
+        if (this.incomingRequestLinkHeaders != null) {
+            return (this.incomingRequestLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
+                    this.incomingRequestLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER));
+        }
+        return false;
+    }
+
     protected static Response createPlantResponse(List<ShapeTreePlantResult> plantResults, Request request, Map<String, List<String>> linkHeaders) {
 
         // As multiple ShapeTrees can be planted at once, if there is more than ShapeTree relation Link header,
@@ -185,8 +194,6 @@ public abstract class AbstractValidatingMethodHandler {
         return requestRemoteResource.getURI().toString().replace(getParentContainerURI().toString(), "");
     }
 
-
-
     protected ShapeTree getShapeTreeWithShapeURI(List<ShapeTree> shapeTreesToPlant) {
         for (ShapeTree shapeTree : shapeTreesToPlant) {
             if (shapeTree.getValidatedByShapeUri() != null) {
@@ -228,7 +235,7 @@ public abstract class AbstractValidatingMethodHandler {
         List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadata.getGraph(parentContainer.getURI()));
 
         // If there are no ShapeTree locators in the metadata graph, it is not managed
-        if (locators == null || locators.size() == 0) return null;
+        if (locators.size() == 0) return null;
 
         // This means the existing parent container has one or more ShapeTrees associated with it
         List<ShapeTree> existingShapeTrees = new ArrayList<>();

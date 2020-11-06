@@ -1,5 +1,0 @@
-PREFIX eco: <http://www.w3.org/ns/solid/ecosystem#>
-<#registrar>
-    a eco:Registrar ;
-    eco:hasDataRegistrySet <./data#set> ;
-    eco:hasApplicationRegistrySet <./application#set> .

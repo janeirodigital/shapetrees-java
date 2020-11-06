@@ -9,6 +9,7 @@ import org.apache.jena.graph.Node_URI;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RiotNotFoundException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,11 +40,12 @@ public class ShapeTreeFactory {
     }
 
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
-        Model model = RDFDataMgr.loadModel(shapeTreeURI.toString(), Lang.TURTLE);
-
-        Resource resource = model.getResource(shapeTreeURI.toString());
-        if (resource != null) {
+        try {
+            Model model = RDFDataMgr.loadModel(shapeTreeURI.toString(), Lang.TURTLE);
+            Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);
+        } catch (RiotNotFoundException rnfe) {
+            log.error("Unable to load graph at URI {}", shapeTreeURI);
         }
     }
 
@@ -88,9 +90,7 @@ public class ShapeTreeFactory {
                 String shapePath = getStringValue(model, referenceResource, ShapeTreeVocabulary.TRAVERSE_VIA_SHAPE_PATH);
                 if (!localShapeTreeCache.containsKey(referenceShapeTreeUri)) {
                     // If the model contains the referenced ShapeTree, go ahead and parse and cache it
-                    if (model.getResource(referenceShapeTreeUri.toString()) != null) {
-                        recursivelyParseShapeTree(model, model.getResource(referenceShapeTreeUri.toString()));
-                    }
+                    recursivelyParseShapeTree(model, model.getResource(referenceShapeTreeUri.toString()));
                 }
 
                 // Create the object that defines there relation between a ShapeTree and its children
@@ -106,11 +106,9 @@ public class ShapeTreeFactory {
         if (shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER)) {
             List<URI> uris = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
             shapeTree.setContains(uris);
-            if (uris != null) {
-                for (URI uri : uris) {
-                    if (!localShapeTreeCache.containsKey(uri) && !isShapeTreeAllowIRI(uri)) {
-                        recursivelyParseShapeTree(model, model.getResource(uri.toString()));
-                    }
+            for (URI uri : uris) {
+                if (!localShapeTreeCache.containsKey(uri) && !isShapeTreeAllowIRI(uri)) {
+                    recursivelyParseShapeTree(model, model.getResource(uri.toString()));
                 }
             }
         }

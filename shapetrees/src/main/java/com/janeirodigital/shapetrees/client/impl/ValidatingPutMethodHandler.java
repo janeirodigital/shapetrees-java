@@ -28,7 +28,13 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
 
         Boolean resourceAlreadyExists = this.requestRemoteResource.exists();
         URI parentURI = getParentContainerURI();
-        boolean isContainer = this.requestRemoteResource.isContainer();
+        boolean isContainer = false;
+        if (resourceAlreadyExists) {
+            isContainer = this.requestRemoteResource.isContainer();
+        } else if (this.incomingRequestLinkHeaders != null) {
+            isContainer = getIsContainerFromIncomingLinkHeaders();
+        }
+
         URI normalizedBaseURI = normalizeBaseURI(this.requestRemoteResource.getURI(), null, isContainer);
         Graph incomingRequestBodyGraph = getIncomingBodyGraph(normalizedBaseURI);
         String requestedName = getRequestResourceName();
@@ -54,7 +60,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
             if (requestedName.endsWith("/")) {
                 requestedName = requestedName.replace("/","");
             }
-            ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.shapeTreeContext.getAuthorizationHeaderValue(), this.requestRemoteResource, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName);
+            ShapeTreePlantResult result = PlantHelper.plantShapeTree(this.shapeTreeContext.getAuthorizationHeaderValue(), parentContainer, this.incomingRequestBody, locator, validationContext.getValidatingShapeTree(), requestedName);
             results.add(result);
         }
 
