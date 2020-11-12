@@ -140,7 +140,7 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     protected Boolean getIsContainerFromIncomingLinkHeaders() {
-        if (this.incomingRequestLinkHeaders != null) {
+        if (this.incomingRequestLinkHeaders != null && this.incomingRequestLinkHeaders.get(LinkRelations.TYPE.getValue()) != null) {
             return (this.incomingRequestLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
                     this.incomingRequestLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER));
         }
