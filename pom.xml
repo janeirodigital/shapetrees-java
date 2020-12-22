@@ -6,12 +6,12 @@
 
     <groupId>com.janeirodigital</groupId>
     <artifactId>shapetrees-java</artifactId>
-    <version>0.5.3</version>
+    <version>1.0.0</version>
 
     <packaging>pom</packaging>
 
     <properties>
-        <jena.version>3.16.0</jena.version>
+        <jena.version>3.17.0</jena.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <lombok.version>1.18.16</lombok.version>
         <slf4j.version>1.7.30</slf4j.version>
@@ -53,13 +53,6 @@
                 <artifactId>jena-osgi</artifactId>
                 <version>${jena.version}</version>
             </dependency>
-            <!--
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-rdf-api</artifactId>
-                <version>${commons-rdf.version}</version>
-            </dependency>
-            -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
@@ -74,7 +67,9 @@
     </dependencyManagement>
 
     <modules>
-        <module>shapetrees</module>
+        <module>shapetrees-java-core</module>
+        <module>shapetrees-java-client-core</module>
+        <module>shapetrees-java-client-okhttp</module>
     </modules>
 
     <build>
