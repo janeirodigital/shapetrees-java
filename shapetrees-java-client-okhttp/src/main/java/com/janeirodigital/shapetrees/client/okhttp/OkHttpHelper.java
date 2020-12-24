@@ -18,6 +18,11 @@ import java.util.Objects;
 
 @Slf4j
 public class OkHttpHelper {
+    /**
+     * Converts "multi map" representation of headers to the OkHttp Headers class
+     * @param headers Multi-map representation of headers
+     * @return OkHttp Headers object
+     */
     public static Headers convertHeaders(Map<String, List<String>> headers) {
         Headers.Builder okHttpHeaders = new Headers.Builder();
         for (String key : headers.keySet()) {
@@ -29,6 +34,13 @@ public class OkHttpHelper {
         return okHttpHeaders.build();
     }
 
+    /**
+     * Maps an OkHttp Response object to a ShapeTreeResource object
+     * @param response OkHttp Response object
+     * @param requestURI URI of request associated with response
+     * @param requestHeaders Request headers used in request associated with response
+     * @return ShapeTreeResource instance with contents and response headers from response
+     */
     public static ShapeTreeResource mapOkHttpResponseToShapeTreeResource(Response response, URI requestURI, Map<String, List<String>> requestHeaders) {
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
 
@@ -47,6 +59,11 @@ public class OkHttpHelper {
         return shapeTreeResource;
     }
 
+    /**
+     * Maps an OkHttp Response object to a ShapeTreeResponse object
+     * @param response OkHttp Response object
+     * @return ShapeTreeResponse with values from OkHttp response
+     */
     public static ShapeTreeResponse mapOkHttpResponseToShapeTreeResponse(Response response) {
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {

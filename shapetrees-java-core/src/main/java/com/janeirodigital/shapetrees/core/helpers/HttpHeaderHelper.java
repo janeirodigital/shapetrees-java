@@ -8,11 +8,19 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Convenience methods related to HTTP Headers
+ */
 @Slf4j
 public class HttpHeaderHelper {
 
     private static final Pattern LINK_HEADER_PATTERN = Pattern.compile("^<(.*?)>\\s*;\\s*rel\\s*=\"(.*?)\"\\s*");
 
+    /**
+     * Parse link headers into a map that allows retrieval of one or more values for a given link relation
+     * @param headerValues Header values for Link headers
+     * @return Map of values parsed using the Link Relation as the key
+     */
     public static Map<String, List<String>> parseLinkHeadersToMap(List<String> headerValues) {
         Map<String, List<String>> linkHeaderMap = new HashMap<>();
         for (String headerValue : headerValues) {

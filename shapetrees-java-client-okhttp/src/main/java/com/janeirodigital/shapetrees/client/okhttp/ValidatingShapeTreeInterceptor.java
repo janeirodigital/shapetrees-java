@@ -12,6 +12,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+/**
+ * Interceptor used for client-side validation
+ */
 @Slf4j
 public class ValidatingShapeTreeInterceptor implements Interceptor {
 
@@ -20,6 +23,18 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
     private static final String PATCH = "PATCH";
     private static final String DELETE = "DELETE";
 
+    /**
+     * Key method on Interceptor class which is implemented on an intercepted HTTP call.
+     * Responsible for initializing a shape tree validation handler based on the HTTP method that
+     * was intercepted.
+     *
+     * ShapeTreeResponse is used to determine whether an artificial response from the validation library should
+     * be returned or if the original request should be passed through to the 'real' server.
+     *
+     * @param chain OkHttp request chain
+     * @return Response to return back to intercepting chain
+     * @throws IOException IOException thrown from chain.proceed
+     */
     @NotNull
     @Override
     public Response intercept(@NotNull Chain chain) throws IOException {
@@ -51,13 +66,6 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
         }
     }
 
-    /***
-     * Get the appropriate handler to process the intercepted call based on the incoming HTTP method
-     * @param requestMethod The HTTP verb/method being processed
-     * @param resourceAccessor The accessor providing access to resources
-     * @return The appropriate handler class.  If no handler is found, return null.
-     * @throws IOException I/O exception from construction of ValidationHandler
-     */
     private ValidatingMethodHandler getHandler(String requestMethod, ResourceAccessor resourceAccessor) {
         switch (requestMethod) {
             case POST:

@@ -33,7 +33,7 @@ public abstract class BaseShapeTreeTest {
     public BaseShapeTreeTest() {
         this.context = new ShapeTreeContext();
 
-        this.shapeTreeClient = new ShapeTreeClientImpl();
+        this.shapeTreeClient = new OkHttpShapeTreeClient();
     }
     
     protected static void ensureExists(URI uri) throws IOException {
@@ -163,14 +163,6 @@ public abstract class BaseShapeTreeTest {
 
         if (contentType != null) {
             builder.addHeader(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
-        }
-
-        if (context.getWebID() != null) {
-            builder.addHeader(HttpHeaders.INTEROP_WEBID.getValue(), context.getWebID());
-        }
-
-        if (context.getOriginatorIRI() != null) {
-            builder.addHeader(HttpHeaders.INTEROP_ORIGINATOR.getValue(), context.getOriginatorIRI());
         }
     }
 

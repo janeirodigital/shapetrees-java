@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.core.models;
 
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
-import com.janeirodigital.shapetrees.core.contentloader.DocumentContentsLoader;
+import com.janeirodigital.shapetrees.core.contentloaders.DocumentContentsLoader;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;

@@ -1,17 +1,30 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-import com.janeirodigital.shapetrees.client.core.ShapeTreeClientConfiguration;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.OkHttpClient;
 
 import javax.net.ssl.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * OkHttp documentation (https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#okhttpclients-should-be-shared)
+ * recommends that instance of the client be shared/reused.  This class acts as a point of abstraction where a single
+ * instance of the OkHttpClient can be re-used for multiple configurations (validation on/off, https verification on/off).
+ *
+ * A static map of client references are managed per configuration which can be easily retrieved
+ */
 public class ShapeTreeHttpClientHolder {
 
     private static final OkHttpClient baseClient = new OkHttpClient();
     private static final ConcurrentHashMap<ShapeTreeClientConfiguration, OkHttpClient> clientMap = new ConcurrentHashMap<>();
 
+    /**
+     * Gets an OkHttpClient for a given configuration.  Looks up an instance from the private static clientMap.
+     * If a client hasn't yet been initialized for a given configuration it is built and added to the cache.
+     * @param configuration ShapeTreeClientConfiguration to retrieve a client for
+     * @return OkHttpClient instance for use
+     * @throws ShapeTreeException ShapeTreeException
+     */
     public static synchronized OkHttpClient getForConfig(ShapeTreeClientConfiguration configuration) throws ShapeTreeException {
         if (clientMap.containsKey(configuration)) {
             return clientMap.get(configuration);

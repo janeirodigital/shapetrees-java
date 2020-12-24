@@ -156,8 +156,8 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        this.shapeTreeClient.setSkipValidation(true);
-        assertTrue(this.shapeTreeClient.isSkipValidation());
+        this.shapeTreeClient.skipValidation(true);
+        assertTrue(this.shapeTreeClient.isValidationSkipped());
         ShapeTreeResponse response = this.shapeTreeClient.createDataInstance(this.context,
                 getURI(server,"/ldp/data/conditions/"),
                 "http://hl7.org/fhir/Condition/example",
@@ -168,7 +168,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
                 "text/turtle"
         );
         Assertions.assertEquals(201, response.getStatusCode());
-        this.shapeTreeClient.setSkipValidation(true);
+        this.shapeTreeClient.skipValidation(true);
     }
 
     @Order(7)
@@ -203,9 +203,8 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 "http://hl7.org/fhir/Condition/example",
                 getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
-                "INSERT DATA { <#a> <#b> <#c> . }",
-                "application/sparql-update"
-                );
+                "INSERT DATA { <#a> <#b> <#c> . }"
+        );
         Assertions.assertEquals(204, response.getStatusCode());
         RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
         assertTrue(resource.exists());
@@ -223,8 +222,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 "http://hl7.org/fhir/Condition/example",
                 getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
-                "DELETE DATA { <http://hl7.org/fhir/Condition/example> a <http://hl7.org/fhir/Condition> . }",
-                "application/sparql-update"
+                "DELETE DATA { <http://hl7.org/fhir/Condition/example> a <http://hl7.org/fhir/Condition> . }"
         );
         Assertions.assertEquals(422, response.getStatusCode());
         RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);

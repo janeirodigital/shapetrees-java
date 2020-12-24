@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core.contentloader;
+package com.janeirodigital.shapetrees.core.contentloaders;
 
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -11,6 +11,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Set;
 
+/**
+ * An implementation of DocumentContentsLoader that retrieves resources using
+ * the JDK11 HttpClient with a slight wrinkle of checking against a white/black
+ * list to have tighter control of where resources are retrieved from.
+ */
 public class HttpDocumentContentsLoader implements DocumentContentsLoader {
 
     private final HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
@@ -38,7 +43,7 @@ public class HttpDocumentContentsLoader implements DocumentContentsLoader {
 
             return new DocumentContents(response.body(), response.headers().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle"));
         } catch (IOException | InterruptedException ex) {
-            throw new ShapeTreeException(500, "Error retrieving resource");
+            throw new ShapeTreeException(500, "Error retrieving resource " + ex.getMessage());
         }
     }
 }

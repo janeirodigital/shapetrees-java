@@ -8,6 +8,4 @@ import lombok.Setter;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class ShapeTreeContext {
     private String authorizationHeaderValue;
-    private String originatorIRI;
-    private String webID;
 }

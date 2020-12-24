@@ -1,7 +1,6 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
-import com.janeirodigital.shapetrees.client.core.ShapeTreeClientConfiguration;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
@@ -18,24 +17,24 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 @Slf4j
-public class ShapeTreeClientImpl implements ShapeTreeClient {
+public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
     private boolean skipValidation = false;
     private final ShapeTreeClientConfiguration validatingClientConfig;
     private final ShapeTreeClientConfiguration nonValidatingClientConfig;
 
-    public ShapeTreeClientImpl() {
+    public OkHttpShapeTreeClient() {
         this.validatingClientConfig = new ShapeTreeClientConfiguration(true, false);
         this.nonValidatingClientConfig = new ShapeTreeClientConfiguration(false, false);
     }
 
     @Override
-    public boolean isSkipValidation() {
+    public boolean isValidationSkipped() {
         return skipValidation;
     }
 
     @Override
-    public void setSkipValidation(boolean skipValidation) {
+    public void skipValidation(boolean skipValidation) {
         this.skipValidation = skipValidation;
     }
 
@@ -150,9 +149,9 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     }
 
     @Override
-    public ShapeTreeResponse updateDataInstanceWithPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
+    public ShapeTreeResponse updateDataInstanceWithPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString) throws IOException {
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
-
+        String contentType = "application/sparql-update";
         byte[] sparqlUpdateBytes = bodyString.getBytes();
 
         Request.Builder patchBuilder = new Request.Builder()
@@ -215,14 +214,6 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         if (contentType != null) {
             builder.addHeader(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
-        }
-
-        if (context.getWebID() != null) {
-            builder.addHeader(HttpHeaders.INTEROP_WEBID.getValue(), context.getWebID());
-        }
-
-        if (context.getOriginatorIRI() != null) {
-            builder.addHeader(HttpHeaders.INTEROP_ORIGINATOR.getValue(), context.getOriginatorIRI());
         }
     }
 }

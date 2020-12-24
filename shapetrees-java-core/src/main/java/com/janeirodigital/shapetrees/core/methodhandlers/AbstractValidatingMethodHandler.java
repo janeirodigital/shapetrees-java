@@ -25,6 +25,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
+/**
+ * Abstract class providing reusable functionality to different method handlers
+ */
 @Slf4j
 public abstract class AbstractValidatingMethodHandler {
     public static final String TEXT_TURTLE = "text/turtle";
@@ -36,14 +39,26 @@ public abstract class AbstractValidatingMethodHandler {
         this.resourceAccessor = resourceAccessor;
     }
 
+    /**
+     * Builds a ShapeTreeContext from the incoming request.  Specifically it retrieves
+     * the incoming Authorization header and stashes that value for use on any additional requests made during
+     * validation.
+     * @param shapeTreeRequest Incoming request
+     * @return ShapeTreeContext object populated with authentication details, if present
+     */
     protected ShapeTreeContext buildContextFromRequest(ShapeTreeRequest<?> shapeTreeRequest) {
         ShapeTreeContext context = new ShapeTreeContext();
         context.setAuthorizationHeaderValue(shapeTreeRequest.getHeaderValue(HttpHeaders.AUTHORIZATION.getValue()));
-        context.setOriginatorIRI(shapeTreeRequest.getHeaderValue(HttpHeaders.INTEROP_ORIGINATOR.getValue()));
-        context.setWebID(shapeTreeRequest.getHeaderValue(HttpHeaders.INTEROP_WEBID.getValue()));
         return context;
     }
 
+    /**
+     * Retrieves a representation of the resource present at the URI of the incoming ShapeTreeRequest
+     * @param context ShapeTreeContext used for authentication
+     * @param shapeTreeRequest Incoming request to retrieve resource URI from
+     * @return ShapeTreeResource representation of that URI
+     * @throws ShapeTreeException ShapeTreeException
+     */
     protected ShapeTreeResource getRequestResource(ShapeTreeContext context, ShapeTreeRequest<?> shapeTreeRequest) throws ShapeTreeException {
         return this.resourceAccessor.getResource(context, shapeTreeRequest.getURI());
     }
@@ -97,6 +112,14 @@ public abstract class AbstractValidatingMethodHandler {
         return isContainer ? ShapeTreeResourceType.CONTAINER : ShapeTreeResourceType.RESOURCE;
     }
 
+    /**
+     * Normalizes the BaseURI to use for a request based on the incoming request.
+     * @param uri URI of request
+     * @param requestedName Requested name of resource (provided on created resources via POST)
+     * @param resourceType Description of resource (Container, NonRDF, Resource)
+     * @return BaseURI to use for RDF Graphs
+     * @throws URISyntaxException URISyntaxException
+     */
     protected URI normalizeBaseURI(URI uri, String requestedName, ShapeTreeResourceType resourceType) throws URISyntaxException {
         String uriString = uri.toString();
         if (requestedName != null) {
@@ -108,6 +131,14 @@ public abstract class AbstractValidatingMethodHandler {
         return new URI(uriString);
     }
 
+    /**
+     * Loads body of request into graph
+     * @param shapeTreeRequest Request
+     * @param baseURI BaseURI to use for graph
+     * @return Graph representation of request body
+     * @throws ShapeTreeException ShapeTreeException
+     * @throws URISyntaxException URISyntaxException
+     */
     protected Graph getIncomingBodyGraph(ShapeTreeRequest<?> shapeTreeRequest, URI baseURI) throws ShapeTreeException, URISyntaxException {
         log.debug("Reading request body into graph with baseURI {}", baseURI);
 
@@ -119,6 +150,13 @@ public abstract class AbstractValidatingMethodHandler {
         return null;
     }
 
+    /**
+     * Gets focus node from request header
+     * @param shapeTreeRequest Request
+     * @param baseURI Base URI for use on relative focus nodes
+     * @return URI of focus node
+     * @throws IOException IOException
+     */
     protected URI getIncomingResolvedFocusNode(ShapeTreeRequest<?> shapeTreeRequest, URI baseURI) throws IOException {
         if (shapeTreeRequest.getLinkHeaders().get(LinkRelations.FOCUS_NODE.getValue()) != null) {
             String focusNode = shapeTreeRequest.getLinkHeaders().get(LinkRelations.FOCUS_NODE.getValue()).get(0);
@@ -128,6 +166,12 @@ public abstract class AbstractValidatingMethodHandler {
         }
     }
 
+    /**
+     * Gets target shape tree / hint from request header
+     * @param shapeTreeRequest Request
+     * @return URI value of target shape tree
+     * @throws URISyntaxException URISyntaxException
+     */
     protected URI getIncomingTargetShapeTreeHint(ShapeTreeRequest<?> shapeTreeRequest) throws URISyntaxException {
         if (shapeTreeRequest.getLinkHeaders().get(LinkRelations.TARGET_SHAPETREE.getValue()) != null) {
             return new URI(shapeTreeRequest.getLinkHeaders().get(LinkRelations.TARGET_SHAPETREE.getValue()).get(0));
@@ -135,6 +179,11 @@ public abstract class AbstractValidatingMethodHandler {
         return null;
     }
 
+    /**
+     * Determines if a resource should be treated as a container based on its request Link headers
+     * @param shapeTreeRequest Request
+     * @return Is the resource a container?
+     */
     protected Boolean getIsContainerFromIncomingLinkHeaders(ShapeTreeRequest<?> shapeTreeRequest) {
         if (shapeTreeRequest.getLinkHeaders() != null && shapeTreeRequest.getLinkHeaders().get(LinkRelations.TYPE.getValue()) != null) {
             return (shapeTreeRequest.getLinkHeaders().get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
@@ -143,6 +192,12 @@ public abstract class AbstractValidatingMethodHandler {
         return false;
     }
 
+    /**
+     * Identifies the appropriate plant result to return based on a collection of plant results
+     * @param plantResults Collection of ShapeTreePlantResult
+     * @param request Request
+     * @return ShapeTreeValidationResponse representing the appropriate plant response
+     */
     protected static ShapeTreeValidationResponse createPlantResponse(List<ShapeTreePlantResult> plantResults, ShapeTreeRequest<?> request) {
 
         // As multiple ShapeTrees can be planted at once, if there is more than ShapeTree relation Link header,
@@ -177,18 +232,38 @@ public abstract class AbstractValidatingMethodHandler {
         return response;
     }
 
+    /**
+     * Determines whether a content type is a supported RDF type
+     * @param incomingRequestContentType Content type to test
+     * @return Boolean indicating whether it is RDF or not
+     */
     protected boolean determineIsNonRdfSource(String incomingRequestContentType) {
         return !this.supportedRDFContentTypes.contains(incomingRequestContentType.toLowerCase());
     }
 
+    /**
+     * Returns parent container URI for a given resource
+     * @param shapeTreeResource Resource
+     * @return URI to the resource's parent container
+     */
     protected URI getParentContainerURI(ShapeTreeResource shapeTreeResource) {
         return shapeTreeResource.getUri().resolve(shapeTreeResource.isContainer() ? ".." : ".");
     }
 
+    /**
+     * Returns resource name from a resource URI
+     * @param shapeTreeResource Resource
+     * @return Resource name
+     */
     protected String getRequestResourceName(ShapeTreeResource shapeTreeResource) {
         return shapeTreeResource.getUri().toString().replace(getParentContainerURI(shapeTreeResource).toString(), "");
     }
 
+    /**
+     * Returns a shapetree from list of shape trees that has a validatedByShape predicate
+     * @param shapeTreesToPlant List of shape trees to test
+     * @return Shape tree that has a shape URI
+     */
     protected ShapeTree getShapeTreeWithShapeURI(List<ShapeTree> shapeTreesToPlant) {
         for (ShapeTree shapeTree : shapeTreesToPlant) {
             if (shapeTree.getValidatedByShapeUri() != null) {
@@ -198,6 +273,11 @@ public abstract class AbstractValidatingMethodHandler {
         return null;
     }
 
+    /**
+     * Returns a shapetree from list of shape trees that has a a contents predicate
+     * @param shapeTreesToPlant List of shape trees to test
+     * @return Shape tree that has one or more contents
+     */
     protected ShapeTree getShapeTreeWithContents(List<ShapeTree> shapeTreesToPlant) {
         for (ShapeTree shapeTree : shapeTreesToPlant) {
             if (shapeTree.getContains() != null && shapeTree.getContains().size() > 0) {
@@ -207,20 +287,12 @@ public abstract class AbstractValidatingMethodHandler {
         return null;
     }
 
-    protected ShapeTree getShapeTreeWithContentsFromShapeTreeLocators(List<ShapeTreeLocator> shapeTreeLocators) throws URISyntaxException, ShapeTreeException {
-        List<ShapeTree> existingShapeTrees = new ArrayList<>();
-        for (ShapeTreeLocator locator : shapeTreeLocators) {
-            existingShapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree())));
-        }
-
-        for (ShapeTree shapeTree : existingShapeTrees) {
-            if (shapeTree.getContains() != null && shapeTree.getContains().size() > 0) {
-                return shapeTree;
-            }
-        }
-        return null;
-    }
-
+    /**
+     * Returns URI of shape tree auxiliary resource for a given resource
+     * @param shapeTreeResource resource
+     * @return URI to shape tree auxiliary resource
+     * @throws ShapeTreeException ShapeTreeException
+     */
     protected URI getShapeTreeMetadataURIForResource(ShapeTreeResource shapeTreeResource) throws ShapeTreeException {
         Map<String, List<String>> linkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(shapeTreeResource.getAttributes().get(HttpHeaders.LINK.getValue()));
 
@@ -248,16 +320,43 @@ public abstract class AbstractValidatingMethodHandler {
         return URI.create(metaDataURIString);
     }
 
+    /**
+     * Returns shape tree auxiliary resource for a given resource
+     * @param shapeTreeResource resource
+     * @return shape tree auxiliary resource
+     * @throws ShapeTreeException ShapeTreeException
+     */
     protected ShapeTreeResource getShapeTreeMetadataResourceForResource(ShapeTreeContext shapeTreeContext, ShapeTreeResource shapeTreeResource) throws ShapeTreeException {
         return this.resourceAccessor.getResource(shapeTreeContext, getShapeTreeMetadataURIForResource(shapeTreeResource));
     }
 
+    /**
+     * Returns a graph representation of a resource
+     * @param resource Resource to get graph of
+     * @param baseURI BaseURI to use for triples
+     * @return Graph representation of resource
+     * @throws ShapeTreeException ShapeTreeException
+     * @throws URISyntaxException URISyntaxException
+     */
     protected Graph getGraphForResource(ShapeTreeResource resource, URI baseURI) throws ShapeTreeException, URISyntaxException {
         if (!resource.isExists()) return null;
 
         return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue()));
     }
 
+    /**
+     * Determines whether a graph is valid for a given parent container
+     * @param shapeTreeContext ShapeTreeContext used for authentication
+     * @param graphToValidate Graph contents to be validated
+     * @param baseURI BaseURI used for RDF graph
+     * @param parentContainer Parent container to use for basis of validation (the shape trees managing this container
+     *                        will be used to determine if the graph is valid)
+     * @param resourceName Name of resource
+     * @param shapeTreeRequest Request
+     * @return ValidationContext with details of the validation process
+     * @throws IOException IOException
+     * @throws URISyntaxException URISyntaxException
+     */
     protected ValidationContext validateAgainstParentContainer(ShapeTreeContext shapeTreeContext, Graph graphToValidate, URI baseURI, ShapeTreeResource parentContainer, String resourceName, ShapeTreeRequest<?> shapeTreeRequest) throws IOException, URISyntaxException {
         ShapeTreeResource parentContainerMetadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, parentContainer);
         // If there is no metadata for the parent container, it is not managed
@@ -300,28 +399,6 @@ public abstract class AbstractValidatingMethodHandler {
         }
 
         return new ValidationContext(targetShapeTree, validationResult, locators);
-    }
-
-    private ShapeTreeResource createOrReuseContainer(ShapeTreeContext shapeTreeContext, URI parentContainerURI, String requestedName, String body, String contentType) throws IOException {
-        // First determine if we're looking to plant a ShapeTree in an existing container
-        ShapeTreeResource targetContainerResource = this.resourceAccessor.getResource(shapeTreeContext, URI.create(parentContainerURI.toString() + requestedName));
-        if (targetContainerResource.isExists()) {
-            // If the container already exists, it will not be created again
-            return targetContainerResource;
-        } else {
-            // Create new container with the Slug/Requested Name
-            Map<String, List<String>> headers = new HashMap<>();
-            headers.put(HttpHeaders.SLUG.getValue(), List.of(requestedName));
-            headers.put(HttpHeaders.LINK.getValue(), List.of(REL_TYPE_CONTAINER));
-            headers.put(HttpHeaders.CONTENT_TYPE.getValue(), List.of(contentType));
-            ShapeTreeResource shapeTreeContainerResource = this.resourceAccessor.createResource(shapeTreeContext, parentContainerURI, headers, body, contentType);
-
-            // Depending on server implementation, after a POST the response header may pertain to the parent container (the URI)
-            // as opposed to the newly created resource.  To ensure we get the proper headers, we reload the contents of the
-            // newly created container with a GET.
-            shapeTreeContainerResource = this.resourceAccessor.getResource(shapeTreeContext, shapeTreeContainerResource.getUri());
-            return shapeTreeContainerResource;
-        }
     }
 
     protected ShapeTreePlantResult plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeResource parentContainer, Graph bodyGraph, ShapeTree rootShapeTree, String rootContainer, ShapeTree shapeTree, String requestedName) throws IOException, URISyntaxException {
@@ -393,5 +470,27 @@ public abstract class AbstractValidatingMethodHandler {
         }
 
         return new ShapeTreePlantResult(shapeTree.getURI(), plantedContainerResource.getUri(), plantedContainerMetadataResource.getUri(), nestedContainersCreated);
+    }
+
+    private ShapeTreeResource createOrReuseContainer(ShapeTreeContext shapeTreeContext, URI parentContainerURI, String requestedName, String body, String contentType) throws IOException {
+        // First determine if we're looking to plant a ShapeTree in an existing container
+        ShapeTreeResource targetContainerResource = this.resourceAccessor.getResource(shapeTreeContext, URI.create(parentContainerURI.toString() + requestedName));
+        if (targetContainerResource.isExists()) {
+            // If the container already exists, it will not be created again
+            return targetContainerResource;
+        } else {
+            // Create new container with the Slug/Requested Name
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put(HttpHeaders.SLUG.getValue(), List.of(requestedName));
+            headers.put(HttpHeaders.LINK.getValue(), List.of(REL_TYPE_CONTAINER));
+            headers.put(HttpHeaders.CONTENT_TYPE.getValue(), List.of(contentType));
+            ShapeTreeResource shapeTreeContainerResource = this.resourceAccessor.createResource(shapeTreeContext, parentContainerURI, headers, body, contentType);
+
+            // Depending on server implementation, after a POST the response header may pertain to the parent container (the URI)
+            // as opposed to the newly created resource.  To ensure we get the proper headers, we reload the contents of the
+            // newly created container with a GET.
+            shapeTreeContainerResource = this.resourceAccessor.getResource(shapeTreeContext, shapeTreeContainerResource.getUri());
+            return shapeTreeContainerResource;
+        }
     }
 }

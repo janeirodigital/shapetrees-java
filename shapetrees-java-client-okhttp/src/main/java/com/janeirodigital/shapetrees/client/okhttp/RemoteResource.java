@@ -1,6 +1,5 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-import com.janeirodigital.shapetrees.client.core.ShapeTreeClientConfiguration;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -21,6 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Convenience class that encapsulates an OkHttp-based http client to quickly retrieve
+ * web resources with convenient methods to access headers, link headers and the body as a graph
+ */
 @Slf4j
 public class RemoteResource {
 
@@ -29,7 +32,7 @@ public class RemoteResource {
     private static final String LDP_BASIC_CONTAINER = "http://www.w3.org/ns/ldp#BasicContainer";
 
     private final URI URI;
-    private String authorizationHeaderValue;
+    private final String authorizationHeaderValue;
     private Boolean invalidated = false;
     private Boolean exists;
     private Map<String, List<String>> responseHeaders;
@@ -54,11 +57,6 @@ public class RemoteResource {
         this.URI = uri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
-    }
-
-    public RemoteResource(Response response) throws IOException, URISyntaxException {
-        this.parseResponseToRemoteResource(response);
-        this.URI = new URI(getFirstHeaderByName("Location"));
     }
 
     public URI getURI() throws IOException {
