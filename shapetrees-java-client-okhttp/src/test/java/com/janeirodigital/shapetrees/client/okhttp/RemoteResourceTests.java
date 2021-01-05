@@ -30,6 +30,7 @@ public class RemoteResourceTests extends BaseShapeTreeTest {
                 new DispatcherEntry(List.of("remoteResource/resource-no-link-headers"), "GET", "/static/resource/resource-no-link-headers", null),
                 new DispatcherEntry(List.of("remoteResource/resource-empty-link-header"), "GET", "/static/resource/resource-empty-link-header", null),
                 new DispatcherEntry(List.of("remoteResource/resource-container-link-header"), "GET", "/static/resource/resource-container-link-header", null),
+                new DispatcherEntry(List.of("remoteResource/resource-container-link-header"), "GET", "/static/resource/resource-container-link-header/", null),
                 new DispatcherEntry(List.of("errors/404"), "GET", "/static/resource/notpresent", null)
         ));
     }
@@ -87,13 +88,23 @@ public class RemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testIsContainerExistingContainer() throws URISyntaxException, IOException {
+    void testIsContainerExistingContainerNoSlash() throws URISyntaxException, IOException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         RemoteResource resource = new RemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
         assertTrue(resource.exists());
+        assertFalse(resource.isContainer());
+    }
+
+    @Test
+    void testIsContainerExistingContainer() throws URISyntaxException, IOException {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        RemoteResource resource = new RemoteResource(getURI(server, "/static/resource/resource-container-link-header/"), null);
+        assertTrue(resource.exists());
         assertTrue(resource.isContainer());
     }
+
 
     @Test
     void testNonExistingHeader() throws URISyntaxException, IOException {
