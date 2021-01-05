@@ -3,8 +3,11 @@ package com.janeirodigital.shapetrees.core.models;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.net.URI;
+
 @Getter @AllArgsConstructor
 public class DocumentContents {
-    private String body;
-    private String contentType;
+    private final URI uri;
+    private final String body;
+    private final String contentType;
 }

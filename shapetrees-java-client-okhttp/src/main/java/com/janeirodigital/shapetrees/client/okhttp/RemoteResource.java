@@ -27,10 +27,6 @@ import java.util.Map;
 @Slf4j
 public class RemoteResource {
 
-    private static final String REL_TYPE = "type";
-    private static final String LDP_CONTAINER = "http://www.w3.org/ns/ldp#Container";
-    private static final String LDP_BASIC_CONTAINER = "http://www.w3.org/ns/ldp#BasicContainer";
-
     private final URI URI;
     private final String authorizationHeaderValue;
     private Boolean invalidated = false;
@@ -97,22 +93,12 @@ public class RemoteResource {
     }
 
     public Boolean isContainer() {
-        if (!this.exists()) {
-            // If this is a framented URI, remove the fragment to handle cases where it is a container
-            // with a container graph
-            String uri = this.URI.toString();
-            if (uri.contains("#")) {
-                uri = uri.substring(0, uri.indexOf("#"));
-            }
-
-            return uri.endsWith("/");
+        String uri = this.URI.toString();
+        if (uri.contains("#")) {
+            uri = uri.substring(0, uri.indexOf("#"));
         }
 
-        if (this.parsedLinkHeaders != null && this.parsedLinkHeaders.get(REL_TYPE) != null) {
-            return this.parsedLinkHeaders.get(REL_TYPE).contains(LDP_CONTAINER) ||
-                    this.parsedLinkHeaders.get(REL_TYPE).contains(LDP_BASIC_CONTAINER);
-        }
-        return false;
+        return uri.endsWith("/");
     }
 
     public Map<String, List<String>> getResponseHeaders() { return this.responseHeaders; }
