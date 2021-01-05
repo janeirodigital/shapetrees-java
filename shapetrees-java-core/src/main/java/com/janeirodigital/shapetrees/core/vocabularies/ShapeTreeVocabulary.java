@@ -1,6 +1,8 @@
 package com.janeirodigital.shapetrees.core.vocabularies;
 
 public final class ShapeTreeVocabulary {
+    private ShapeTreeVocabulary() {
+    }
     public static final String HAS_ROOT_SHAPE_TREE = Namespaces.SHAPETREE + "hasRootShapeTree";
     public static final String HAS_SHAPE_TREE_INSTANCE_ROOT = Namespaces.SHAPETREE + "hasShapeTreeInstanceRoot";
     public static final String HAS_SHAPE_TREE = Namespaces.SHAPETREE + "hasShapeTree";
@@ -30,5 +32,4 @@ public final class ShapeTreeVocabulary {
     public static final String IS_VERSION = Namespaces.SHAPETREE + "isVersion";
     public static final String HAS_SHA256 = Namespaces.SHAPETREE + "hasSHA256";
     public static final String SHAPETREE_DECORATOR = Namespaces.SHAPETREE + "ShapeTreeDecorator";
-
 }

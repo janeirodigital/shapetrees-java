@@ -19,13 +19,14 @@ public class ShapeTreeLocator {
     public static List<ShapeTreeLocator> getShapeTreeLocatorsFromGraph(Graph shapeTreeMetadataGraph) {
         List<ShapeTreeLocator> locators = new ArrayList<>();
 
-
         List<Triple> hasShapeTreeLocatorTriples = shapeTreeMetadataGraph.find(null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR), null).toList();
         for (Triple hasShapeTreeLocatorTriple : hasShapeTreeLocatorTriples) {
             String locatorURI = hasShapeTreeLocatorTriple.getObject().getURI();
 
             List<Triple> locatorTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(locatorURI), null, null).toList();
-            String shapeTreeRoot = null, rootShapeTree = null, shapeTree = null;
+            String shapeTreeRoot = null;
+            String rootShapeTree = null;
+            String shapeTree = null;
             for (Triple locatorTriple : locatorTriples) {
                 switch (locatorTriple.getPredicate().getURI()) {
                     case ShapeTreeVocabulary.HAS_SHAPE_TREE:
@@ -37,6 +38,8 @@ public class ShapeTreeLocator {
                     case ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE:
                         rootShapeTree = locatorTriple.getObject().getURI();
                         break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + locatorTriple.getPredicate().getURI());
                 }
             }
             locators.add(new ShapeTreeLocator(rootShapeTree, shapeTree, shapeTreeRoot));

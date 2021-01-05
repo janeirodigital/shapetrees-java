@@ -85,12 +85,12 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
 
     private String writeHeaders(Map<String, List<String>> headers) {
         StringBuilder sb = new StringBuilder();
-        for (String key : headers.keySet()) {
-            for (String value : headers.get(key)) {
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            for (String value : entry.getValue()) {
                 if (sb.length() != 0) {
                     sb.append(",");
                 }
-                sb.append(key).append("=").append(value);
+                sb.append(entry.getKey()).append("=").append(value);
             }
         }
 
@@ -100,7 +100,7 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
     private ShapeTreeResource mapRemoteResourceToShapeTreeResource(RemoteResource remoteResource) throws ShapeTreeException {
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
         try {
-            shapeTreeResource.setUri(remoteResource.getURI());
+            shapeTreeResource.setUri(remoteResource.getUri());
         } catch (IOException ex) {
             throw new ShapeTreeException(500, "Error resolving URI");
         }

@@ -43,7 +43,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         log.debug("Discovering Shape Trees present at {}", targetContainer);
         RemoteResource targetContainerResource = new RemoteResource(targetContainer, context.getAuthorizationHeaderValue());
         RemoteResource targetContainerMetadataResource = targetContainerResource.getMetadataResource(context.getAuthorizationHeaderValue());
-        return ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetContainerMetadataResource.getGraph(targetContainerResource.getURI()));
+        return ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetContainerMetadataResource.getGraph(targetContainerResource.getUri()));
     }
 
     @Override
@@ -96,7 +96,6 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
             try (ResponseBody body = response.body()) {
                 if (body != null) {
                     responseBodyString = body.string();
-                    body.close();
                 }
             }
             throw new IOException(response.code() + " " + responseBodyString);
@@ -196,7 +195,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
 
         if (isContainer != null) {
-            String resourceTypeUri = isContainer ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
+            String resourceTypeUri = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
             builder.addHeader(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
         }
 

@@ -23,6 +23,9 @@ import java.util.Map;
 
 @Slf4j
 public class ShapeTreeFactory {
+    private ShapeTreeFactory() {
+    }
+
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
     private static DocumentContentsLoader contentsLoader = new HttpDocumentContentsLoader(null, null);
 
@@ -122,13 +125,11 @@ public class ShapeTreeFactory {
     }
 
     private static boolean isShapeTreeAllowIRI(URI uri) throws URISyntaxException {
-        if (uri.equals(new URI(ShapeTreeVocabulary.ALLOW_ALL)) ||
+        return uri.equals(new URI(ShapeTreeVocabulary.ALLOW_ALL)) ||
                 uri.equals(new URI(ShapeTreeVocabulary.ALLOW_NONE)) ||
                 uri.equals(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES)) ||
                 uri.equals(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) ||
-                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES))
-        ) return true;
-        return false;
+                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES));
     }
 
     private static String getStringValue(Model model, Resource resource, String predicate) {

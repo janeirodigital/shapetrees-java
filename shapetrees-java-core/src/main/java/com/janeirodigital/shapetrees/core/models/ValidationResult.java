@@ -6,5 +6,4 @@ import lombok.Getter;
 @Getter @AllArgsConstructor
 public class ValidationResult {
     private final Boolean valid;
-    //private final List<String> nonConformingNodes;
 }

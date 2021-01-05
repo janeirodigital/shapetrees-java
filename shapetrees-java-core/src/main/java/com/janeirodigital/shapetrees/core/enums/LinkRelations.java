@@ -8,7 +8,7 @@ public enum LinkRelations {
     TYPE("type"),
     ACL("acl");
 
-    private String value;
+    private final String value;
 
     public String getValue() {
         return this.value;

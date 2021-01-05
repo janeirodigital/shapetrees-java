@@ -36,7 +36,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             URI normalizedBaseURI = normalizeBaseURI(existingResource.getUri(), requestedName, shapeTreeRequest.getResourceType());
             Graph incomingRequestBodyGraph = getIncomingBodyGraph(shapeTreeRequest, normalizedBaseURI);
 
-            if (incomingRequestShapeTreeUris != null && incomingRequestShapeTreeUris.size() > 0) {
+            if (incomingRequestShapeTreeUris != null && !incomingRequestShapeTreeUris.isEmpty()) {
                 // This means we're Planting a new Shape Tree
 
                 // If we are performing a plant there are few levels of validation we need to perform:
@@ -47,13 +47,10 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 // Determine the ShapeTrees that are being requested to be planted
                 List<ShapeTree> shapeTreesToPlant = new ArrayList<>();
                 ShapeTree shapeTree;
-                try {
-                    for (String shapeTreeUri : incomingRequestShapeTreeUris) {
-                        shapeTree = ShapeTreeFactory.getShapeTree(new URI(shapeTreeUri));
-                        shapeTreesToPlant.add(shapeTree);
-                    }
-                } catch (URISyntaxException e) {
-                    throw new ShapeTreeException(400, "Value of 'ShapeTree' link header is not a value URI");
+
+                for (String shapeTreeUri : incomingRequestShapeTreeUris) {
+                    shapeTree = ShapeTreeFactory.getShapeTree(new URI(shapeTreeUri));
+                    shapeTreesToPlant.add(shapeTree);
                 }
 
                 // 1.  Validate the potentially multiple ShapeTrees to ensure they don't conflict
@@ -85,7 +82,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 }
 
                 // We're creating a container, have already passed validation and will now call Plant as it may
-                // lead to nested static content to be created.  We will iterate the shapeTreeLocatorMetadatas
+                // lead to nested static content to be created.  We will iterate the shapeTreeLocator meta data
                 // which describe the ShapeTrees present on the container.
                 List<ShapeTreePlantResult> results = new ArrayList<>();
                 for (ShapeTreeLocator locator : validationContext.getParentContainerLocators()) {
@@ -101,6 +98,8 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             }
         } catch (ShapeTreeException ste) {
             return new ShapeTreeValidationResponse(ste);
+        } catch (URISyntaxException e) {
+            return new ShapeTreeValidationResponse(new ShapeTreeException(400, "Value of 'ShapeTree' link header is not a value URI"));
         } catch (Exception ex) {
             return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
         }
@@ -119,7 +118,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
         }
 
         // If there is a body graph and it did not pass validation, return an error
-        if (graphToValidate != null && validationResult != null && !validationResult.getValid()) {
+        if (graphToValidate != null && validationResult != null && Boolean.FALSE.equals(validationResult.getValid())) {
             throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + validatingShapeTree.getURI());
         }
     }
@@ -162,7 +161,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 }
             }
 
-            if (shapeTree.getContains() != null && shapeTree.getContains().size() > 0) {
+            if (shapeTree.getContains() != null && !shapeTree.getContains().isEmpty()) {
                 if (foundContents == null) {
                     foundContents = shapeTree.getContains();
                 } else {
@@ -190,9 +189,6 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
         if (shapeTreeRequest.getLinkHeaders().containsKey(relation)) {
             return shapeTreeRequest.getLinkHeaders().get(relation);
         }
-        return null;
+        return Collections.emptyList();
     }
-
-
-
 }

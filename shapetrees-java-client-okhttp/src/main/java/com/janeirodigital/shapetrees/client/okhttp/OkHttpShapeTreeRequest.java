@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 public class OkHttpShapeTreeRequest implements ShapeTreeRequest<Request> {
@@ -77,13 +78,12 @@ public class OkHttpShapeTreeRequest implements ShapeTreeRequest<Request> {
 
     @Override
     public String getBody() {
-        try {
-            Buffer buffer = new Buffer();
+        try (Buffer buffer = new Buffer()) {
             if (this.request.body() != null) {
-                this.request.body().writeTo(buffer);
+                Objects.requireNonNull(this.request.body()).writeTo(buffer);
             }
             return buffer.readUtf8();
-        } catch (IOException ex) {
+        } catch (IOException | NullPointerException ex) {
             log.error("Error writing body to string");
             return null;
         }

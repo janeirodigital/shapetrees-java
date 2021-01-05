@@ -47,7 +47,7 @@ public class ShapeTree {
     }
 
     public ValidationResult validateContent(Graph graph, URI focusNodeURI, ShapeTreeResourceType resourceType) throws IOException, URISyntaxException {
-        if (this.expectsContainer() != (resourceType == ShapeTreeResourceType.CONTAINER)) {
+        if (Boolean.TRUE.equals(this.expectsContainer()) != (resourceType == ShapeTreeResourceType.CONTAINER)) {
             throw new ShapeTreeException(400, "The resource type being validated does not match the type expected by the ShapeTree");
         }
 
@@ -100,15 +100,13 @@ public class ShapeTree {
     }
 
     public ShapeTree findMatchingContainsShapeTree(String requestedName, URI targetShapeTreeHint, ShapeTreeResourceType resourceType) throws URISyntaxException, ShapeTreeException {
-        if (this.contains == null || this.contains.size() == 0) {
+        if (this.contains == null || this.contains.isEmpty()) {
             if (this.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_RESOURCE)) {
                 return this;
             } else {
                 return null;
             }
         }
-
-        List<ShapeTree> matchingShapeTrees = new ArrayList<>();
 
         for (URI childShapeTreeURI : this.contains) {
             ShapeTree childShapeTree = ShapeTreeFactory.getShapeTree(childShapeTreeURI);
@@ -132,7 +130,7 @@ public class ShapeTree {
 
         // If ALLOW_NONE is explicitly set, reject
         if (this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NONE))) {
-            throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contains for [" + this.getId() +"].  Further, the :AllowNone was specified within :contents");
+            throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, the :AllowNone was specified within :contents"));
         }
 
         // If none of the other ALLOW_* predicates are present, reject by default
@@ -141,26 +139,26 @@ public class ShapeTree {
                 !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) &&
                 !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))
         ) {
-            throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contains for [" + this.getId() +"].  Further, no :Allows* are specified to mitigate");
+            throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, no :Allows* are specified to mitigate"));
         }
 
         // If it is a non-RDF source and non-RDF sources are not explicitly allowed for...
         if (resourceType == ShapeTreeResourceType.NON_RDF &&
                 !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
                 !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES))) {
-            throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contains for [" + this.getId() +"].  Further, the requested resource is a NonRDFSource and :AllowNonRDFSources was not specified within :contents");
+            throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, the requested resource is a NonRDFSource and :AllowNonRDFSources was not specified within :contents"));
         }
         // if it is a Container source and Container sources are not explicitly allowed for...
         if (resourceType == ShapeTreeResourceType.CONTAINER &&
                 !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
                 !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS))) {
-            throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contains for [" + this.getId() +"].  Further, the requested resource is a Container and :AllowContainers was not specified within :contents");
+            throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(),"Further, the requested resource is a Container and :AllowContainers was not specified within :contents"));
         }
         //
         if (resourceType == ShapeTreeResourceType.RESOURCE &&
                 !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
                 !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))) {
-            throw new ShapeTreeException(422, "Failed to match ["+ requestedName +"] against any :contents for [" + this.getId() +"].  Further, the requested resource is a Resource and :AllowResources was not specified within :contents");
+            throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, the requested resource is a Resource and :AllowResources was not specified within :contents"));
         }
         // If we return null, it will indicate there is nothing to validate against, and that's okay
         // because we've already validated if the type of incoming Resource is allowed in the absence of a
@@ -196,10 +194,12 @@ public class ShapeTree {
         while (!queue.isEmpty()) {
             ReferencedShapeTree currentShapeTree = queue.poll();
             referencedShapeTrees.add(currentShapeTree);
-            ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(currentShapeTree.getReferencedShapeTree());
-            List<ReferencedShapeTree> currentReferencedShapeTrees = shapeTree.getReferences();
-            if (currentReferencedShapeTrees != null) {
-                queue.addAll(currentReferencedShapeTrees);
+            ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(currentShapeTree.getReferencedShapeTreeURI());
+            if (shapeTree != null) {
+                List<ReferencedShapeTree> currentReferencedShapeTrees = shapeTree.getReferences();
+                if (currentReferencedShapeTrees != null) {
+                    queue.addAll(currentReferencedShapeTrees);
+                }
             }
         }
         return referencedShapeTrees;
@@ -208,9 +208,15 @@ public class ShapeTree {
     private List<ReferencedShapeTree> getReferencedShapeTreesListDepthFirst(List<ReferencedShapeTree> currentReferencedShapeTrees, List<ReferencedShapeTree> referencedShapeTrees) throws URISyntaxException, ShapeTreeException {
         for (ReferencedShapeTree currentShapeTreeReference : currentReferencedShapeTrees) {
             referencedShapeTrees.add(currentShapeTreeReference);
-            ShapeTree currentReferencedShapeTree = ShapeTreeFactory.getShapeTree(currentShapeTreeReference.getReferencedShapeTree());
-            referencedShapeTrees = getReferencedShapeTreesListDepthFirst(currentReferencedShapeTree.getReferences(), referencedShapeTrees);
+            ShapeTree currentReferencedShapeTree = ShapeTreeFactory.getShapeTree(currentShapeTreeReference.getReferencedShapeTreeURI());
+            if (currentReferencedShapeTree != null) {
+                referencedShapeTrees = getReferencedShapeTreesListDepthFirst(currentReferencedShapeTree.getReferences(), referencedShapeTrees);
+            }
         }
         return referencedShapeTrees;
+    }
+
+    private String exceptionMessage(String requestedName, String id, String customMessage){
+        return  "Failed to match ["+ requestedName +"] against any :contents for [" + id +"]. " + customMessage;
     }
 }

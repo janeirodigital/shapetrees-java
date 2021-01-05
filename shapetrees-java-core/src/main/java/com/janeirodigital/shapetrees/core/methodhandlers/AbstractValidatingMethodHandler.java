@@ -35,7 +35,7 @@ public abstract class AbstractValidatingMethodHandler {
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, "application/rdf+xml", "application/n-triples", "application/ld+json");
     private static final String REL_TYPE_CONTAINER = "<" + LdpVocabulary.CONTAINER + ">; rel=\"" + LinkRelations.TYPE.getValue() + "\"";
 
-    public AbstractValidatingMethodHandler(ResourceAccessor resourceAccessor) {
+    protected AbstractValidatingMethodHandler(ResourceAccessor resourceAccessor) {
         this.resourceAccessor = resourceAccessor;
     }
 
@@ -137,9 +137,8 @@ public abstract class AbstractValidatingMethodHandler {
      * @param baseURI BaseURI to use for graph
      * @return Graph representation of request body
      * @throws ShapeTreeException ShapeTreeException
-     * @throws URISyntaxException URISyntaxException
      */
-    protected Graph getIncomingBodyGraph(ShapeTreeRequest<?> shapeTreeRequest, URI baseURI) throws ShapeTreeException, URISyntaxException {
+    protected Graph getIncomingBodyGraph(ShapeTreeRequest<?> shapeTreeRequest, URI baseURI) throws ShapeTreeException {
         log.debug("Reading request body into graph with baseURI {}", baseURI);
 
         if (shapeTreeRequest.getResourceType() != ShapeTreeResourceType.NON_RDF &&
@@ -218,16 +217,18 @@ public abstract class AbstractValidatingMethodHandler {
             primaryPlantResult = plantResults.get(0);
         }
 
-        if (primaryPlantResult == null) {
-            log.error("Unable to find 'primary' plant result in createPlantResponse");
-        }
-
         ShapeTreeValidationResponse response = new ShapeTreeValidationResponse();
-        response.setStatusCode(201);
-        response.addResponseHeader(HttpHeaders.LOCATION.getValue(), primaryPlantResult.getRootContainer().toString());
-        response.addResponseHeader(HttpHeaders.LINK.getValue(), "<" + primaryPlantResult.getRootContainerMetadata().toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
-        response.addResponseHeader(HttpHeaders.CONTENT_TYPE.getValue(), TEXT_TURTLE);
-        response.setBody("");
+
+        if (primaryPlantResult != null) {
+            response.setStatusCode(201);
+            response.addResponseHeader(HttpHeaders.LOCATION.getValue(), primaryPlantResult.getRootContainer().toString());
+            response.addResponseHeader(HttpHeaders.LINK.getValue(), "<" + primaryPlantResult.getRootContainerMetadata().toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
+            response.addResponseHeader(HttpHeaders.CONTENT_TYPE.getValue(), TEXT_TURTLE);
+            response.setBody("");
+        } else {
+            log.error("Unable to find 'primary' plant result in createPlantResponse");
+            response.setStatusCode(400);
+        }
 
         return response;
     }
@@ -260,7 +261,7 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     /**
-     * Returns a shapetree from list of shape trees that has a validatedByShape predicate
+     * Returns a ShapeTree from list of shape trees that has a validatedByShape predicate
      * @param shapeTreesToPlant List of shape trees to test
      * @return Shape tree that has a shape URI
      */
@@ -274,13 +275,13 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     /**
-     * Returns a shapetree from list of shape trees that has a a contents predicate
+     * Returns a ShapeTree from list of shape trees that has a a contents predicate
      * @param shapeTreesToPlant List of shape trees to test
      * @return Shape tree that has one or more contents
      */
     protected ShapeTree getShapeTreeWithContents(List<ShapeTree> shapeTreesToPlant) {
         for (ShapeTree shapeTree : shapeTreesToPlant) {
-            if (shapeTree.getContains() != null && shapeTree.getContains().size() > 0) {
+            if (shapeTree.getContains() != null && !shapeTree.getContains().isEmpty()) {
                 return shapeTree;
             }
         }
@@ -336,9 +337,8 @@ public abstract class AbstractValidatingMethodHandler {
      * @param baseURI BaseURI to use for triples
      * @return Graph representation of resource
      * @throws ShapeTreeException ShapeTreeException
-     * @throws URISyntaxException URISyntaxException
      */
-    protected Graph getGraphForResource(ShapeTreeResource resource, URI baseURI) throws ShapeTreeException, URISyntaxException {
+    protected Graph getGraphForResource(ShapeTreeResource resource, URI baseURI) throws ShapeTreeException {
         if (!resource.isExists()) return null;
 
         return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue()));
@@ -367,7 +367,7 @@ public abstract class AbstractValidatingMethodHandler {
         List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadataGraph);
 
         // If there are no ShapeTree locators in the metadata graph, it is not managed
-        if (locators.size() == 0) return null;
+        if (locators.isEmpty()) return null;
 
         // This means the existing parent container has one or more ShapeTrees associated with it
         List<ShapeTree> existingShapeTrees = new ArrayList<>();
@@ -393,7 +393,7 @@ public abstract class AbstractValidatingMethodHandler {
             }
 
             // If there is a body graph and it did not pass validation, return an error
-            if (graphToValidate != null && validationResult != null && !validationResult.getValid()) {
+            if (graphToValidate != null && validationResult != null && Boolean.FALSE.equals(validationResult.getValid())) {
                 throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + targetShapeTree.getURI());
             }
         }
@@ -411,6 +411,9 @@ public abstract class AbstractValidatingMethodHandler {
 
     protected ShapeTreePlantResult plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeResource parentContainer, String body, String contentType, ShapeTreeLocator locator, ShapeTree targetShapeTree, String requestedName) throws IOException, URISyntaxException {
         ShapeTree rootShapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getRootShapeTree()));
+        if (rootShapeTree == null) {
+            return null;
+        }
 
         return plantShapeTree(shapeTreeContext, parentContainer, body, contentType, rootShapeTree, locator.getShapeTreeRoot(), targetShapeTree, requestedName);
     }
@@ -464,7 +467,7 @@ public abstract class AbstractValidatingMethodHandler {
         for (URI contentShapeTreeURI : shapeTree.getContains()) {
             ShapeTree contentShapeTree = ShapeTreeFactory.getShapeTree(contentShapeTreeURI);
             if (contentShapeTree != null && contentShapeTree.getLabel() != null) {
-                ShapeTreePlantResult nestedResult = plantShapeTree(shapeTreeContext, plantedContainerResource, (String)null, TEXT_TURTLE, rootShapeTree, rootContainer, contentShapeTree, contentShapeTree.getLabel());
+                ShapeTreePlantResult nestedResult = plantShapeTree(shapeTreeContext, plantedContainerResource, null, TEXT_TURTLE, rootShapeTree, rootContainer, contentShapeTree, contentShapeTree.getLabel());
                 nestedContainersCreated.add(nestedResult.getRootContainer());
             }
         }
