@@ -17,6 +17,9 @@ import java.net.URI;
  */
 public class GraphHelper {
 
+    private GraphHelper() {
+    }
+
     /**
      * Determine the Jena language (graph serialization type) based on a content type string
      * @param contentType Content type string

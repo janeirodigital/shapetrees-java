@@ -27,7 +27,7 @@ import java.util.Map;
 @Slf4j
 public class RemoteResource {
 
-    private final URI URI;
+    private final URI uri;
     private final String authorizationHeaderValue;
     private Boolean invalidated = false;
     private Boolean exists;
@@ -44,22 +44,22 @@ public class RemoteResource {
         } catch (URISyntaxException ex) {
             throw new IOException("Request URI is not a value URI");
         }
-        this.URI = requestUri;
+        this.uri = requestUri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
     }
 
     public RemoteResource(URI uri, String authorizationHeaderValue) throws IOException {
-        this.URI = uri;
+        this.uri = uri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
     }
 
-    public URI getURI() throws IOException {
-        if (this.invalidated) {
+    public URI getUri() throws IOException {
+        if (Boolean.TRUE.equals(this.invalidated)) {
             dereferenceURI();
         }
-        return this.URI;
+        return this.uri;
     }
 
     public Boolean exists() {
@@ -67,10 +67,10 @@ public class RemoteResource {
     }
 
     public String getBody() throws IOException {
-        if (!this.exists) return null;
+        if (Boolean.FALSE.equals(this.exists)) return null;
 
-        if (this.invalidated) {
-            log.debug("RemoteResource#getBody({}) - Resource Invalidated - Refreshing", this.URI);
+        if (Boolean.TRUE.equals(this.invalidated)) {
+            log.debug("RemoteResource#getBody({}) - Resource Invalidated - Refreshing", this.uri);
             dereferenceURI();
         }
 
@@ -79,10 +79,10 @@ public class RemoteResource {
 
     // Lazy-load graph when requested
     public Graph getGraph(URI baseURI) throws IOException {
-        if (!this.exists) return null;
+        if (Boolean.FALSE.equals(this.exists)) return null;
 
-        if (this.invalidated) {
-            log.debug("RemoteResource#getGraph({}) - Resource Invalidated - Refreshing", this.URI);
+        if (Boolean.TRUE.equals(this.invalidated)) {
+            log.debug("RemoteResource#getGraph({}) - Resource Invalidated - Refreshing", this.uri);
             dereferenceURI();
         }
 
@@ -93,12 +93,12 @@ public class RemoteResource {
     }
 
     public Boolean isContainer() {
-        String uri = this.URI.toString();
-        if (uri.contains("#")) {
-            uri = uri.substring(0, uri.indexOf("#"));
+        String uriPath = this.uri.toString();
+        if (uriPath.contains("#")) {
+            uriPath = uriPath.substring(0, uriPath.indexOf("#"));
         }
 
-        return uri.endsWith("/");
+        return uriPath.endsWith("/");
     }
 
     public Map<String, List<String>> getResponseHeaders() { return this.responseHeaders; }
@@ -108,8 +108,8 @@ public class RemoteResource {
     }
 
     public String getFirstHeaderByName(String headerName) throws IOException {
-        if (this.invalidated) {
-            log.debug("RemoteResource#getFirstHeaderByName({}) - Resource Invalidated - Refreshing", this.URI);
+        if (Boolean.TRUE.equals(this.invalidated)) {
+            log.debug("RemoteResource#getFirstHeaderByName({}) - Resource Invalidated - Refreshing", this.uri);
             dereferenceURI();
         }
 
@@ -122,9 +122,9 @@ public class RemoteResource {
     }
 
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
-        log.debug("RemoteResource#updateGraph({})", this.URI);
+        log.debug("RemoteResource#updateGraph({})", this.uri);
 
-        if (this.invalidated) {
+        if (Boolean.TRUE.equals(this.invalidated)) {
             throw new ShapeTreeException(500, "Cannot call 'updateGraph' on an invalidated RemoteResource - ");
         }
 
@@ -133,7 +133,7 @@ public class RemoteResource {
 
         OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(this.clientConfiguration);
         Request.Builder requestBuilder = new Request.Builder()
-                .url(this.URI.toURL())
+                .url(this.uri.toURL())
                 .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
                 .put(RequestBody.create(sw.toString(), MediaType.get("text/turtle")));
 
@@ -143,11 +143,11 @@ public class RemoteResource {
 
         httpClient.newCall(requestBuilder.build()).execute();
 
-        if (refreshResourceAfterUpdate) {
+        if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
         } else {
             this.invalidated = true;
-            log.debug("RemoteResource#updateGraph({}) - Invalidating Resource", this.URI);
+            log.debug("RemoteResource#updateGraph({}) - Invalidating Resource", this.uri);
         }
     }
 
@@ -158,13 +158,13 @@ public class RemoteResource {
     @NotNull
     public String getMetadataURI() throws IOException {
         if (!this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE.getValue())) {
-            log.error("The resource {} does not contain a link header of {}", this.getURI(), LinkRelations.SHAPETREE.getValue());
+            log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE.getValue());
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
         }
         String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE.getValue()).stream().findFirst().orElse(null);
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
-            URI shapeTreeContainerURI = this.getURI();
+            URI shapeTreeContainerURI = this.getUri();
             String portFragment;
             if (shapeTreeContainerURI.getPort() > 0) {
                 portFragment = ":" + shapeTreeContainerURI.getPort();
@@ -182,11 +182,11 @@ public class RemoteResource {
     }
 
     private void dereferenceURI() throws IOException {
-        log.debug("RemoteResource#dereferencingURI({})", this.URI);
+        log.debug("RemoteResource#dereferencingURI({})", this.uri);
 
         OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(this.clientConfiguration);
         Request.Builder requestBuilder = new Request.Builder()
-                .url(this.URI.toURL());
+                .url(this.uri.toURL());
 
         if (this.authorizationHeaderValue != null) {
             requestBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);

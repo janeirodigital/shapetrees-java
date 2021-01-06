@@ -18,6 +18,10 @@ import java.util.Objects;
 
 @Slf4j
 public class OkHttpHelper {
+
+    private OkHttpHelper() {
+    }
+
     /**
      * Converts "multi map" representation of headers to the OkHttp Headers class
      * @param headers Multi-map representation of headers
@@ -25,10 +29,9 @@ public class OkHttpHelper {
      */
     public static Headers convertHeaders(Map<String, List<String>> headers) {
         Headers.Builder okHttpHeaders = new Headers.Builder();
-        for (String key : headers.keySet()) {
-            List<String> values = headers.get(key);
-            for (String value : values) {
-                okHttpHeaders.add(key, value);
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()){
+            for (String value : entry.getValue()) {
+                okHttpHeaders.add(entry.getKey(), value);
             }
         }
         return okHttpHeaders.build();
@@ -48,8 +51,8 @@ public class OkHttpHelper {
         shapeTreeResource.setContainer(isContainerFromHeaders(requestHeaders));
 
         try {
-            shapeTreeResource.setBody(response.body().string());
-        } catch (IOException ex) {
+            shapeTreeResource.setBody(Objects.requireNonNull(response.body()).string());
+        } catch (IOException | NullPointerException ex) {
             log.error("Exception retrieving body string");
             shapeTreeResource.setBody(null);
         }
@@ -67,8 +70,8 @@ public class OkHttpHelper {
     public static ShapeTreeResponse mapOkHttpResponseToShapeTreeResponse(Response response) {
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {
-            shapeTreeResponse.setBody(response.body().string());
-        } catch (IOException ex) {
+            shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).string());
+        } catch (IOException | NullPointerException ex) {
             log.error("Exception retrieving body string");
             shapeTreeResponse.setBody(null);
         }

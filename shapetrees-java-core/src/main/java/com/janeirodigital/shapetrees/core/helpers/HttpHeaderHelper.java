@@ -14,6 +14,9 @@ import java.util.regex.Pattern;
 @Slf4j
 public class HttpHeaderHelper {
 
+    private HttpHeaderHelper() {
+    }
+
     private static final Pattern LINK_HEADER_PATTERN = Pattern.compile("^<(.*?)>\\s*;\\s*rel\\s*=\"(.*?)\"\\s*");
 
     /**
@@ -38,5 +41,4 @@ public class HttpHeaderHelper {
         }
         return linkHeaderMap;
     }
-
 }

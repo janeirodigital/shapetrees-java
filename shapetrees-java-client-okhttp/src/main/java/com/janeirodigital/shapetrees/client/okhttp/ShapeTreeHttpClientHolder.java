@@ -4,6 +4,8 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.OkHttpClient;
 
 import javax.net.ssl.*;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -14,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * A static map of client references are managed per configuration which can be easily retrieved
  */
 public class ShapeTreeHttpClientHolder {
+    private ShapeTreeHttpClientHolder() {
+    }
 
     private static final OkHttpClient baseClient = new OkHttpClient();
     private static final ConcurrentHashMap<ShapeTreeClientConfiguration, OkHttpClient> clientMap = new ConcurrentHashMap<>();
@@ -29,32 +33,31 @@ public class ShapeTreeHttpClientHolder {
         if (clientMap.containsKey(configuration)) {
             return clientMap.get(configuration);
         }
-
-        OkHttpClient client = buildClientFromConfiguration(configuration);
-        clientMap.put(configuration, client);
-        return client;
+        try {
+            OkHttpClient client = buildClientFromConfiguration(configuration);
+            clientMap.put(configuration, client);
+            return client;
+        } catch (Exception ex) {
+            throw new ShapeTreeException(500, ex.getMessage());
+        }
     }
 
-    private static OkHttpClient buildClientFromConfiguration(ShapeTreeClientConfiguration configuration) {
+    private static OkHttpClient buildClientFromConfiguration(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
         OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
-        if (configuration.getUseValidation()) {
+        if (Boolean.TRUE.equals(configuration.getUseValidation())) {
             clientBuilder.interceptors().add(new ValidatingShapeTreeInterceptor());
         }
-        if (configuration.getSkipSslValidation()) {
-            try {
-                // Install the all-trusting trust manager
-                final SSLContext sslContext = SSLContext.getInstance("SSL");
-                TrustManager[] trustAllCerts = getTrustAllCertsManager();
-                sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-                // Create an ssl socket factory with our all-trusting manager
-                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+        if (Boolean.TRUE.equals(configuration.getSkipSslValidation())) {
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            TrustManager[] trustAllCerts = getTrustAllCertsManager();
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-                clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
-                        .hostnameVerifier(getTrustAllHostnameVerifier());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
+            clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
+                    .hostnameVerifier(getTrustAllHostnameVerifier());
+    }
         return clientBuilder.build();
     }
 

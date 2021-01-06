@@ -52,13 +52,12 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
                 } else {
                     return createResponse(shapeTreeRequest, shapeTreeResponse);
                 }
+            } catch (ShapeTreeException ex){
+                log.error("Error processing shape tree request: ", ex);
+                return createErrorResponse(ex, shapeTreeRequest);
             } catch (Exception ex) {
                 log.error("Error processing shape tree request: ", ex);
-                if (ex instanceof ShapeTreeException) {
-                    return createErrorResponse((ShapeTreeException)ex, shapeTreeRequest);
-                } else {
-                    return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest);
-                }
+                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest);
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
@@ -76,8 +75,9 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
                 return new ValidatingPatchMethodHandler(resourceAccessor);
             case DELETE:
                 return new ValidatingDeleteMethodHandler(resourceAccessor);
+            default:
+                return null;
         }
-        return null;
     }
 
     // TODO: Update to a simple JSON-LD body

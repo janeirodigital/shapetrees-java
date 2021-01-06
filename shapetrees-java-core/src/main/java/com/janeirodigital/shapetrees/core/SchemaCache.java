@@ -13,50 +13,54 @@ import java.util.Map;
  */
 @Slf4j
 public class SchemaCache {
-    private static Map<URI, ShexSchema> schemaCache = null;
+    private SchemaCache() {
+    }
+
+    public static final String CACHE_IS_NOT_INITIALIZED = "Cache is not initialized";
+    private static Map<URI, ShexSchema> cache = null;
 
     public static void initializeCache() {
-        schemaCache = new HashMap<>();
+        cache = new HashMap<>();
     }
 
     public static void initializeCache(Map<URI, ShexSchema> existingCache) {
-        schemaCache = existingCache;
+        cache = existingCache;
     }
 
     public static boolean isInitialized() {
-        boolean initialized = schemaCache != null;
+        boolean initialized = cache != null;
         log.debug("Cache initialized set to {}", initialized);
         return initialized;
     }
 
     public static boolean containsSchema(URI schemaURI) throws ShapeTreeException {
         log.debug("Determining if cache contains schema {}", schemaURI);
-        if (schemaCache == null) {
-            throw new ShapeTreeException(500, "Cache is not initialized");
+        if (cache == null) {
+            throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
         }
-        return schemaCache.containsKey(schemaURI);
+        return cache.containsKey(schemaURI);
     }
 
     public static ShexSchema getSchema(URI schemaURI) throws ShapeTreeException {
         log.debug("Getting schema {}", schemaURI);
-        if (schemaCache == null) {
-            throw new ShapeTreeException(500, "Cache is not initialized");
+        if (cache == null) {
+            throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
         }
-        return schemaCache.get(schemaURI);
+        return cache.get(schemaURI);
     }
 
     public static void putSchema(URI schemaURI, ShexSchema schema) throws ShapeTreeException {
         log.debug("Caching schema {}", schemaURI.toString());
-        if (schemaCache == null) {
-            throw new ShapeTreeException(500, "Cache is not initialized");
+        if (cache == null) {
+            throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
         }
-        schemaCache.put(schemaURI, schema);
+        cache.put(schemaURI, schema);
     }
 
     public static void clearCache() throws ShapeTreeException {
-        if (schemaCache == null) {
-            throw new ShapeTreeException(500, "Cache is not initialized");
+        if (cache == null) {
+            throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
         }
-        schemaCache.clear();
+        cache.clear();
     }
 }
