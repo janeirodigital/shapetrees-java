@@ -87,7 +87,11 @@ public class RemoteResource {
         }
 
         if (this.parsedGraph == null) {
-            this.parsedGraph = GraphHelper.readStringIntoGraph(baseURI, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
+            String contentType = getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue());
+            if (contentType == null)
+                // ericP: deal with no content type in HTTP response
+                contentType = "text/turtle";
+            this.parsedGraph = GraphHelper.readStringIntoGraph(baseURI, this.rawBody, contentType);
         }
         return this.parsedGraph;
     }
@@ -128,6 +132,7 @@ public class RemoteResource {
             throw new ShapeTreeException(500, "Cannot call 'updateGraph' on an invalidated RemoteResource - ");
         }
 
+        // ericP: should this use GraphHelper.writeGraphToTurtleString ?
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 

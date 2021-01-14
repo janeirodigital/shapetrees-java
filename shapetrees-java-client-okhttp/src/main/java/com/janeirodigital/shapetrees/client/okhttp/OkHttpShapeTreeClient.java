@@ -43,6 +43,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         log.debug("Discovering Shape Trees present at {}", targetContainer);
         RemoteResource targetContainerResource = new RemoteResource(targetContainer, context.getAuthorizationHeaderValue());
         RemoteResource targetContainerMetadataResource = targetContainerResource.getMetadataResource(context.getAuthorizationHeaderValue());
+        // ericP: could getGraph() return null here (targetContainerMetadataResource.exists == mull)?
         return ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetContainerMetadataResource.getGraph(targetContainerResource.getUri()));
     }
 
@@ -66,7 +67,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         byte[] bytes = new byte[]{};
-        if (bodyString != null) {
+        if (bodyString != null) { // ericP: typescript tells me this can't be null
             bytes = bodyString.getBytes();
         }
 

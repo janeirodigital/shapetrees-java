@@ -26,17 +26,22 @@ public class HttpHeaderHelper {
      */
     public static Map<String, List<String>> parseLinkHeadersToMap(List<String> headerValues) {
         Map<String, List<String>> linkHeaderMap = new HashMap<>();
-        for (String headerValue : headerValues) {
-            Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
-            if (matcher.matches() && matcher.groupCount() >= 2) {
-                String uri = matcher.group(1);
-                String rel = matcher.group(2);
-                if (!linkHeaderMap.containsKey(rel)) {
-                    linkHeaderMap.put(rel, new ArrayList<>());
+        if (headerValues == null) {
+            // ericP: can be called with headerValues == null
+            log.warn("No Link: header to parse");
+        } else {
+            for (String headerValue : headerValues) {
+                Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
+                if (matcher.matches() && matcher.groupCount() >= 2) {
+                    String uri = matcher.group(1);
+                    String rel = matcher.group(2);
+                    if (!linkHeaderMap.containsKey(rel)) {
+                        linkHeaderMap.put(rel, new ArrayList<>());
+                    }
+                    linkHeaderMap.get(rel).add(uri);
+                } else {
+                    log.warn("Unable to parse link header: [{}]", headerValue);
                 }
-                linkHeaderMap.get(rel).add(uri);
-            } else {
-                log.warn("Unable to parse link header: [{}]", headerValue);
             }
         }
         return linkHeaderMap;

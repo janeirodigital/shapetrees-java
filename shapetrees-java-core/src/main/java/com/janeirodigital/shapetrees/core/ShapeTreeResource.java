@@ -13,7 +13,7 @@ public class ShapeTreeResource {
     private String body;
     private boolean exists;
     private boolean container;
-    private Map<String, List<String>> attributes;
+    private Map<String, List<String>> attributes; // ericP: should these be called "headers"?
 
     public String getFirstAttributeValue(String attributeName) {
         if (!this.attributes.containsKey(attributeName)) return null;

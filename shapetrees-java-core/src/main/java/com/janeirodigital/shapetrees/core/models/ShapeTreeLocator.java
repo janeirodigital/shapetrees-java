@@ -18,7 +18,7 @@ public class ShapeTreeLocator {
 
     public static List<ShapeTreeLocator> getShapeTreeLocatorsFromGraph(Graph shapeTreeMetadataGraph) {
         List<ShapeTreeLocator> locators = new ArrayList<>();
-
+        // ericP: could shapeTreeMetadataGraph be null if RemoteResource.getGraph() was called when !this._exists
         List<Triple> hasShapeTreeLocatorTriples = shapeTreeMetadataGraph.find(null, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR), null).toList();
         for (Triple hasShapeTreeLocatorTriple : hasShapeTreeLocatorTriples) {
             String locatorURI = hasShapeTreeLocatorTriple.getObject().getURI();
@@ -42,7 +42,7 @@ public class ShapeTreeLocator {
                         throw new IllegalStateException("Unexpected value: " + locatorTriple.getPredicate().getURI());
                 }
             }
-            locators.add(new ShapeTreeLocator(rootShapeTree, shapeTree, shapeTreeRoot));
+            locators.add(new ShapeTreeLocator(rootShapeTree, shapeTree, shapeTreeRoot)); // ericP: where's the constructor
         }
 
         return locators;
