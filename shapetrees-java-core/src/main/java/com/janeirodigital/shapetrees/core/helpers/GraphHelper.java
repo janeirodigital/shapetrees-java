@@ -56,6 +56,7 @@ public class GraphHelper {
         return sw.toString();
     }
 
+    // @@ Plan to migrate to ShapeTreeFactory to use Graph interface and remove readStringIntoModel
     /**
      * Deserializes a string into a Model
      * @param baseURI Base URI to use for statements

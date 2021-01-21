@@ -42,7 +42,7 @@ public class ShapeTreeLocator {
                         throw new IllegalStateException("Unexpected value: " + locatorTriple.getPredicate().getURI());
                 }
             }
-            locators.add(new ShapeTreeLocator(rootShapeTree, shapeTree, shapeTreeRoot)); // ericP: where's the constructor
+            locators.add(new ShapeTreeLocator(rootShapeTree, shapeTree, shapeTreeRoot));
         }
 
         return locators;
