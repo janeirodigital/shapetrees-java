@@ -29,7 +29,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ShapeTreeResource existingResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
             shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, existingResource));
 
-            ensureRequestResourceExists(existingResource,"Parent Container not found");
+            ensureRequestResourceExists(existingResource,"Parent Container not found"); // ericP: + existingResource.getUri()
 
             String requestedName = getIncomingHeaderValueWithDefault(shapeTreeRequest, HttpHeaders.SLUG.getValue(), UUID.randomUUID().toString());
             List<String> incomingRequestShapeTreeUris = getIncomingLinkHeaderByRelationValue(shapeTreeRequest, LinkRelations.SHAPETREE.getValue());
@@ -187,7 +187,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
     protected List<String> getIncomingLinkHeaderByRelationValue(ShapeTreeRequest<?> shapeTreeRequest, String relation) {
         if (shapeTreeRequest.getLinkHeaders().containsKey(relation)) {
-            return shapeTreeRequest.getLinkHeaders().get(relation);
+            return shapeTreeRequest.getLinkHeaders().get(relation); // ericP: could be null
         }
         return Collections.emptyList();
     }

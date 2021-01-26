@@ -199,8 +199,8 @@ public class RemoteResource {
 
         Request request = requestBuilder.build();
 
-        try (Response response = httpClient.newCall(request).execute()) {
-            parseResponseToRemoteResource(response);
+        try (Response response = httpClient.newCall(request).execute()) { // ericP: I disabled this try/catch to throw on 5xx code
+            parseResponseToRemoteResource(response); // https://github.com/janeirodigital/shapetrees.js/blob/ericP-shapeTree-files/src/client/fetch/RemoteResource.ts#L185-L194
             this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);

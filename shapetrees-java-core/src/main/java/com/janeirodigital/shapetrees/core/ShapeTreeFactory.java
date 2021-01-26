@@ -58,7 +58,8 @@ public class ShapeTreeFactory {
             Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);
         } catch (RiotNotFoundException rnfe) {
-            log.error("Unable to load graph at URI {}", shapeTreeURI);
+            // should this throw?
+            log.error("Unable to load ShapeTree at URI {}", shapeTreeURI); // ericP: I suspect this should throw.
         }
     }
 
@@ -104,7 +105,7 @@ public class ShapeTreeFactory {
                     recursivelyParseShapeTree(model, model.getResource(referenceShapeTreeUri.toString()));
                 }
 
-                // Create the object that defines there relation between a ShapeTree and its children
+                // Create the object that defines the relation between a ShapeTree and its children
                 ReferencedShapeTree referencedShapeTree = new ReferencedShapeTree(referenceShapeTreeUri, shapePath);
                 shapeTree.getReferences().add(referencedShapeTree);
             }
@@ -112,7 +113,7 @@ public class ShapeTreeFactory {
 
         // Containers are expected to have contents
         if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER)) {
-            throw new ShapeTreeException(400, "Contents predicate not expected outside of #ShapeTreeContainer Types");
+            throw new ShapeTreeException(400, "Contents predicate not expected outside of #ShapeTreeContainer Types"); // are schema errors 500s?
         }
         if (shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER)) {
             List<URI> uris = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
@@ -136,12 +137,13 @@ public class ShapeTreeFactory {
     private static String getStringValue(Model model, Resource resource, String predicate) {
         Property property = model.createProperty(predicate);
         if (resource.hasProperty(property)) {
-            Statement statement = resource.getProperty(property);
+            Statement statement = resource.getProperty(property); // ericP: Model.getProperty ignores cardinality
             if (statement.getObject().isLiteral()) {
                 return statement.getObject().asLiteral().getString();
             } else if (statement.getObject().isURIResource()) {
                 return statement.getObject().asResource().getURI();
             } else {
+                // ericP: should this throw?
                 log.error("In getStringValue for predicate [{}] unable to value of Node", predicate);
             }
 

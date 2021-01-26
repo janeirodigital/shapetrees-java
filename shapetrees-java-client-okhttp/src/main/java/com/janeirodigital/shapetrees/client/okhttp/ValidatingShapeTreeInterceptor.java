@@ -103,7 +103,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
-                .message("Success")
+                .message("Success") // ericP: not dependent on status code?
                 .request(request.getNativeRequest());
 
         return builder.build();

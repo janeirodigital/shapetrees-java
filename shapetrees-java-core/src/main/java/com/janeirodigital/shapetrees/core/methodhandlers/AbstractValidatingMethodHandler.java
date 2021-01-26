@@ -275,7 +275,7 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     /**
-     * Returns a ShapeTree from list of shape trees that has a a contents predicate
+     * Returns a ShapeTree from list of shape trees that has a contains predicate
      * @param shapeTreesToPlant List of shape trees to test
      * @return Shape tree that has one or more contents
      */
@@ -362,7 +362,7 @@ public abstract class AbstractValidatingMethodHandler {
         // If there is no metadata for the parent container, it is not managed
         if (!parentContainerMetadataResource.isExists()) return null;
 
-        Graph parentContainerMetadataGraph = getGraphForResource(parentContainerMetadataResource, parentContainer.getUri());
+        Graph parentContainerMetadataGraph = getGraphForResource(parentContainerMetadataResource, parentContainer.getUri()); // ericP: could be null
 
         List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadataGraph);
 
@@ -372,7 +372,8 @@ public abstract class AbstractValidatingMethodHandler {
         // This means the existing parent container has one or more ShapeTrees associated with it
         List<ShapeTree> existingShapeTrees = new ArrayList<>();
         for (ShapeTreeLocator locator : locators) {
-            existingShapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree())));
+            // ericP: is there an easy-ish way to launch these GETs in parallel?
+            existingShapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree()))); // ericP: might be null
         }
 
         ShapeTree shapeTreeWithContents = getShapeTreeWithContents(existingShapeTrees);
@@ -402,7 +403,7 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     protected ShapeTreePlantResult plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeResource parentContainer, Graph bodyGraph, ShapeTree rootShapeTree, String rootContainer, ShapeTree shapeTree, String requestedName) throws IOException, URISyntaxException {
-        StringWriter sw = new StringWriter();
+        StringWriter sw = new StringWriter(); // ericP: use GraphHelper.writeGraphToTurtleString ?
         if (bodyGraph != null) {
             RDFDataMgr.write(sw, bodyGraph, Lang.TURTLE);
         }
@@ -453,7 +454,7 @@ public abstract class AbstractValidatingMethodHandler {
         triplesToAdd.add(new Triple(NodeFactory.createURI(shapeTreeLocatorURI), NodeFactory.createURI(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE), NodeFactory.createURI(rootShapeTree.getId())));
         GraphUtil.add(plantedContainerMetadataGraph, triplesToAdd);
 
-        StringWriter sw = new StringWriter();
+        StringWriter sw = new StringWriter(); // ericP: use GraphHelper.writeGraphToTurtleString ?
         RDFDataMgr.write(sw, plantedContainerMetadataGraph, Lang.TTL);
 
         plantedContainerMetadataResource.setBody(sw.toString());
@@ -484,7 +485,7 @@ public abstract class AbstractValidatingMethodHandler {
         } else {
             // Create new container with the Slug/Requested Name
             Map<String, List<String>> headers = new HashMap<>();
-            headers.put(HttpHeaders.SLUG.getValue(), List.of(requestedName));
+            headers.put(HttpHeaders.SLUG.getValue(), List.of(requestedName)); // ericP: could be null
             headers.put(HttpHeaders.LINK.getValue(), List.of(REL_TYPE_CONTAINER));
             headers.put(HttpHeaders.CONTENT_TYPE.getValue(), List.of(contentType));
             ShapeTreeResource shapeTreeContainerResource = this.resourceAccessor.createResource(shapeTreeContext, parentContainerURI, headers, body, contentType);
