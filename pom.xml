@@ -21,7 +21,7 @@
         <jersey-core.version>1.19.4</jersey-core.version>
         <commons-rdf.version>0.5.0</commons-rdf.version>
         <commons-codec.version>1.15</commons-codec.version>
-        <snakeyaml.version>1.27</snakeyaml.version>
+        <snakeyaml.version>1.28</snakeyaml.version>
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
 
