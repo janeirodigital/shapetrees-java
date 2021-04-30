@@ -27,6 +27,9 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
     @Override
     public Response process() throws IOException, URISyntaxException {
+
+        log.debug("Evaluating POST request for shape tree validation");
+
         ensureRequestResourceExists("Parent Container not found");
 
         String requestedName = getIncomingHeaderValueWithDefault(HttpHeaders.SLUG.getValue(), UUID.randomUUID().toString());

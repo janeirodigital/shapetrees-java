@@ -25,6 +25,8 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
 
+        log.debug("Intercepting request for shape tree validation");
+
         Request request = chain.request();
 
         // Get the handler
