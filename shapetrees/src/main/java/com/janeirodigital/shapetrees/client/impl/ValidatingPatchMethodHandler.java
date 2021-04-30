@@ -32,6 +32,9 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
 
     @Override
     public Response process() throws  IOException, URISyntaxException {
+
+        log.debug("Evaluating PATCH request for shape tree validation");
+
         if (this.incomingRequestContentType == null || !this.incomingRequestContentType.toLowerCase().equals("application/sparql-update")) {
             log.error("Received a patch without a content type of application/sparql-update");
             throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");

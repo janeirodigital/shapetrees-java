@@ -1,6 +1,9 @@
 package com.janeirodigital.shapetrees.client;
 
-import com.janeirodigital.shapetrees.*;
+import com.janeirodigital.shapetrees.RemoteResource;
+import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
+import com.janeirodigital.shapetrees.ShapeTreeException;
+import com.janeirodigital.shapetrees.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
@@ -228,14 +231,25 @@ public abstract class AbstractValidatingMethodHandler {
 
 
     protected ValidationContext validateAgainstParentContainer(Graph graphToValidate, URI baseURI, RemoteResource parentContainer, String resourceName, Boolean isAContainer) throws IOException, URISyntaxException {
+
+        log.debug("Evaluating parent container for shape tree validation");
+        log.debug("Parent container: {}", parentContainer.getURI().toString());
+        log.debug("Parent container metadata at: {}", parentContainer.getMetadataURI().toString());
+
         RemoteResource parentContainerMetadata = parentContainer.getMetadataResource(this.shapeTreeContext.getAuthorizationHeaderValue());
         // If there is no metadata for the parent container, it is not managed
-        if (!parentContainerMetadata.exists()) return null;
+        if (!parentContainerMetadata.exists()) {
+            log.debug("Cannot validate against a parent container with no metadata.");
+            return null;
+        }
 
         List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadata.getGraph(parentContainer.getURI()));
 
         // If there are no ShapeTree locators in the metadata graph, it is not managed
-        if (locators.size() == 0) return null;
+        if (locators.size() == 0) {
+            log.debug("No Shape Tree locators in metadata graph. Cannot validate against parent.");
+            return null;
+        }
 
         // This means the existing parent container has one or more ShapeTrees associated with it
         List<ShapeTree> existingShapeTrees = new ArrayList<>();
@@ -246,14 +260,20 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTree shapeTreeWithContents = getShapeTreeWithContents(existingShapeTrees);
 
         URI targetShapeTreeHint = getIncomingTargetShapeTreeHint();
+
+        if (targetShapeTreeHint != null) { log.debug("Target shape tree hint is {}", targetShapeTreeHint.toString()); }
+
         ShapeTree targetShapeTree = shapeTreeWithContents.findMatchingContainsShapeTree(resourceName, targetShapeTreeHint, isAContainer, this.isIncomingNonRdfSource);
 
         // If no targetShapeTree is returned, it can be assumed that no validation is required
         ValidationResult validationResult = null;
         if (targetShapeTree != null) {
 
+            log.debug("Target shape tree is {}", targetShapeTree.getLabel());
+
             // If there is a graph to validate...and a ShapeTree indicates it wants to validate the container body
             if (graphToValidate != null && targetShapeTree.getValidatedByShapeUri() != null) {
+                log.debug("Shape to validate against is {}", targetShapeTree.getValidatedByShapeUri().toString());
                 // ...and a focus node was provided via the focusNode header, then we perform our validation
                 URI focusNodeURI = getIncomingResolvedFocusNode(baseURI);
                 log.debug("Validating against parent container.  ST with Contents {}, Focus Node {}", shapeTreeWithContents.getURI(), focusNodeURI);

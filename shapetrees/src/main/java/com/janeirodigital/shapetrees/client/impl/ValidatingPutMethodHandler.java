@@ -1,12 +1,14 @@
 package com.janeirodigital.shapetrees.client.impl;
 
-import com.janeirodigital.shapetrees.*;
+import com.janeirodigital.shapetrees.RemoteResource;
+import com.janeirodigital.shapetrees.ShapeTreeEcosystem;
 import com.janeirodigital.shapetrees.client.AbstractValidatingMethodHandler;
 import com.janeirodigital.shapetrees.client.ValidatingMethodHandler;
 import com.janeirodigital.shapetrees.helper.PlantHelper;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.model.ShapeTreePlantResult;
 import com.janeirodigital.shapetrees.model.ValidationContext;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Response;
 import org.apache.jena.graph.Graph;
@@ -17,6 +19,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
     public ValidatingPutMethodHandler(Interceptor.Chain chain, ShapeTreeEcosystem ecosystem) throws IOException {
@@ -25,6 +28,8 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
 
     @Override
     public Response process() throws IOException, URISyntaxException {
+
+        log.debug("Evaluating PUT request for shape tree validation");
 
         Boolean resourceAlreadyExists = this.requestRemoteResource.exists();
         URI parentURI = getParentContainerURI();
