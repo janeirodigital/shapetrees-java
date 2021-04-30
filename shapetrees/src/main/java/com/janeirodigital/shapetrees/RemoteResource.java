@@ -175,8 +175,14 @@ public class RemoteResource {
             log.error("The resource {} does not contain a link header of {}", this.getURI(), LinkRelations.SHAPETREE.getValue());
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
         }
+
         String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE.getValue()).stream().findFirst().orElse(null);
-        if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
+
+        if (metaDataURIString == null) {
+            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
+        }
+
+        if (metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
             URI shapeTreeContainerURI = this.getURI();
             String portFragment;
@@ -188,8 +194,13 @@ public class RemoteResource {
             metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + portFragment + metaDataURIString;
         }
 
-        if (metaDataURIString == null) {
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
+        // Check to see if the primary resource (this) has a scheme mismatch (https / http), and upgrade
+        // to https if so. This addresses issues where the solid server is behind an SSL proxy, using non-https
+        // links internally.
+        if (metaDataURIString.startsWith("http") && this.getURI().getScheme().startsWith("https")) {
+            log.debug("Upgrading metadata URI {} from http to https due to mismatch with primary resource URI {}",
+                    metaDataURIString, this.getURI().toString());
+            metaDataURIString = metaDataURIString.replaceFirst("http", "https");
         }
 
         return metaDataURIString;
