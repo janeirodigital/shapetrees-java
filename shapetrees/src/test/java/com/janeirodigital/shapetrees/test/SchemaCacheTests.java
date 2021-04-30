@@ -43,7 +43,6 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
     @Test
     @Order(1)
     void testInitializeCache() throws URISyntaxException {
-        assertFalse(SchemaCache.isInitialized());
         SchemaCache.initializeCache();
         assertTrue(SchemaCache.isInitialized());
         assertFalse(SchemaCache.containsSchema(new URI("http://schema.example")));
