@@ -11,10 +11,19 @@ import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.sparql.core.DatasetOne;
+import org.apache.jena.update.UpdateAction;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -162,6 +171,36 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         applyCommonHeaders(context, patchBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
         return client.newCall(patchBuilder.build()).execute();
+    }
+
+    /**
+     * To pass the limitation of CSS around SPARQL request with WHERE statements. This method can be used to execute a sparql query locally
+     * which then will pass the result to the `updateDataInstance` handler to make the request as a PUT to the server.
+     * @param context
+     * @param resourceURI
+     * @param focusNode
+     * @param shapeTreeHint
+     * @param bodyString The serialized version of the resource to update.
+     *                   TODO: Perhaps it's better to fetch the resource with the resourceURI parameter here instead of
+     *                         expecting the caller to have fetched the resource already.
+     * @param queryString The query to execute over the dataset. Should be equivalent to the query that was expected to
+     *                    be processed by the server (ESS/CSS)
+     * @param contentType
+     * @return
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    @Override
+    public Response updateDataInstanceWithLocalPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String queryString, String contentType) throws IOException, URISyntaxException {
+        Model model = ModelFactory.createDefaultModel();
+        model.read(new ByteArrayInputStream(bodyString.getBytes(StandardCharsets.UTF_8)), null, "TURTLE"); // assuming the input is TTL
+        Dataset dataset = new DatasetOne(model);
+        UpdateAction.parseExecute(queryString, dataset);
+
+        OutputStream os = new ByteArrayOutputStream();
+        model.write(os, "TURTLE");
+
+        return this.updateDataInstance(context, resourceURI, focusNode, shapeTreeHint, os.toString(), contentType);
     }
 
     @Override
