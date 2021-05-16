@@ -6,6 +6,7 @@ import com.janeirodigital.shapetrees.client.ShapeTreeClient;
 import com.janeirodigital.shapetrees.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.enums.LinkRelations;
 import com.janeirodigital.shapetrees.helper.GraphHelper;
+import com.janeirodigital.shapetrees.helper.QueryHelper;
 import com.janeirodigital.shapetrees.model.ShapeTreeContext;
 import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
@@ -176,6 +177,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     /**
      * To pass the limitation of CSS around SPARQL request with WHERE statements. This method can be used to execute a sparql query locally
      * which then will pass the result to the `updateDataInstance` handler to make the request as a PUT to the server.
+     * It'll try to remove server managed triples by delete ALL triples that have a subject equal to the resource URI.
      * @param context
      * @param resourceURI
      * @param focusNode
@@ -207,6 +209,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         model.read(new ByteArrayInputStream(resourceContent.getBytes(StandardCharsets.UTF_8)), null, "TURTLE");
         Dataset dataset = new DatasetOne(model);
         UpdateAction.parseExecute(queryString, dataset);
+        UpdateAction.parseExecute(QueryHelper.removeManagedTriplesQuery(resourceURI.toString()), dataset);
 
         OutputStream os = new ByteArrayOutputStream();
         model.write(os, "TURTLE");
