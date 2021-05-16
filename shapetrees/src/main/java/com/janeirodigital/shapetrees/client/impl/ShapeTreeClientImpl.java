@@ -11,10 +11,19 @@ import com.janeirodigital.shapetrees.model.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.sparql.core.DatasetOne;
+import org.apache.jena.update.UpdateAction;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -162,6 +171,48 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         applyCommonHeaders(context, patchBuilder, focusNode, shapeTreeHint, null, null, contentType);
 
         return client.newCall(patchBuilder.build()).execute();
+    }
+
+    /**
+     * To pass the limitation of CSS around SPARQL request with WHERE statements. This method can be used to execute a sparql query locally
+     * which then will pass the result to the `updateDataInstance` handler to make the request as a PUT to the server.
+     * @param context
+     * @param resourceURI
+     * @param focusNode
+     * @param shapeTreeHint
+     * @param queryString The query to execute over the dataset. Should be equivalent to the query that was expected to
+     *                    be processed by the server (ESS/CSS)
+     * @param contentType
+     * @return
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    @Override
+    public Response updateDataInstanceWithLocalPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String queryString, String contentType) throws IOException, URISyntaxException {
+
+        // Get the resource to update from the server. This is needed to apply the local sparql query
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
+        Request.Builder getBuilder = new Request.Builder()
+                .url(resourceURI.toString())
+                .get();
+
+        applyCommonHeaders(context, getBuilder, focusNode, shapeTreeHint, false, null, null);
+        // applyCommonHeader does not have the option to pass an 'accept' header, might be unnecessary if the server default is turtle
+        getBuilder.addHeader(HttpHeaders.ACCEPT.getValue(), "text/turtle");
+
+        String resourceContent = client.newCall(getBuilder.build()).execute().body().toString();
+
+        // Build a model and a dataset to apply the patch to an in-memory graph.
+        Model model = ModelFactory.createDefaultModel();
+        model.read(new ByteArrayInputStream(resourceContent.getBytes(StandardCharsets.UTF_8)), null, "TURTLE");
+        Dataset dataset = new DatasetOne(model);
+        UpdateAction.parseExecute(queryString, dataset);
+
+        OutputStream os = new ByteArrayOutputStream();
+        model.write(os, "TURTLE");
+
+        // Update the data instance. Override the content-type as it might be application/sparql-update
+        return this.updateDataInstance(context, resourceURI, focusNode, shapeTreeHint, os.toString(), "text/turtle");
     }
 
     @Override
