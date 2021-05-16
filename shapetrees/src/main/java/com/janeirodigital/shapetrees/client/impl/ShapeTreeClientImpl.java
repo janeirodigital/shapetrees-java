@@ -202,7 +202,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         // applyCommonHeader does not have the option to pass an 'accept' header, might be unnecessary if the server default is turtle
         getBuilder.addHeader(HttpHeaders.ACCEPT.getValue(), "text/turtle");
 
-        String resourceContent = client.newCall(getBuilder.build()).execute().body().toString();
+        String resourceContent = client.newCall(getBuilder.build()).execute().body().string();
 
         // Build a model and a dataset to apply the patch to an in-memory graph.
         Model model = ModelFactory.createDefaultModel();
