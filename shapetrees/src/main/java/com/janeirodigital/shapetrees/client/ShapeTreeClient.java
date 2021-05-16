@@ -17,7 +17,7 @@ public interface ShapeTreeClient {
     Response createDataInstance(ShapeTreeContext context, URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
     Response updateDataInstance(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException;
     Response updateDataInstanceWithPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException;
-    Response updateDataInstanceWithLocalPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String queryString, String contentType) throws IOException, URISyntaxException;
+    Response updateDataInstanceWithLocalPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String queryString, String contentType) throws IOException, URISyntaxException;
     Response deleteDataInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException;
     void unplantShapeTree(ShapeTreeContext context, URI containerURI, URI shapeTreeURI);
     boolean isSkipValidation();

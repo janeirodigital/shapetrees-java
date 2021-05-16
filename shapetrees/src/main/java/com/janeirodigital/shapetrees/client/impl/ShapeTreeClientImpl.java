@@ -180,9 +180,6 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
      * @param resourceURI
      * @param focusNode
      * @param shapeTreeHint
-     * @param bodyString The serialized version of the resource to update.
-     *                   TODO: Perhaps it's better to fetch the resource with the resourceURI parameter here instead of
-     *                         expecting the caller to have fetched the resource already.
      * @param queryString The query to execute over the dataset. Should be equivalent to the query that was expected to
      *                    be processed by the server (ESS/CSS)
      * @param contentType
@@ -191,16 +188,31 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
      * @throws URISyntaxException
      */
     @Override
-    public Response updateDataInstanceWithLocalPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String queryString, String contentType) throws IOException, URISyntaxException {
+    public Response updateDataInstanceWithLocalPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String queryString, String contentType) throws IOException, URISyntaxException {
+
+        // Get the resource to update from the server. This is needed to apply the local sparql query
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
+        Request.Builder getBuilder = new Request.Builder()
+                .url(resourceURI.toString())
+                .get();
+
+        applyCommonHeaders(context, getBuilder, focusNode, shapeTreeHint, false, null, null);
+        // applyCommonHeader does not have the option to pass an 'accept' header, might be unnecessary if the server default is turtle
+        getBuilder.addHeader(HttpHeaders.ACCEPT.getValue(), "text/turtle");
+
+        String resourceContent = client.newCall(getBuilder.build()).execute().body().toString();
+
+        // Build a model and a dataset to apply the patch to an in-memory graph.
         Model model = ModelFactory.createDefaultModel();
-        model.read(new ByteArrayInputStream(bodyString.getBytes(StandardCharsets.UTF_8)), null, "TURTLE"); // assuming the input is TTL
+        model.read(new ByteArrayInputStream(resourceContent.getBytes(StandardCharsets.UTF_8)), null, "TURTLE");
         Dataset dataset = new DatasetOne(model);
         UpdateAction.parseExecute(queryString, dataset);
 
         OutputStream os = new ByteArrayOutputStream();
         model.write(os, "TURTLE");
 
-        return this.updateDataInstance(context, resourceURI, focusNode, shapeTreeHint, os.toString(), contentType);
+        // Update the data instance. Override the content-type as it might be application/sparql-update
+        return this.updateDataInstance(context, resourceURI, focusNode, shapeTreeHint, os.toString(), "text/turtle");
     }
 
     @Override
