@@ -196,7 +196,6 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
         Request.Builder getBuilder = new Request.Builder()
                 .url(resourceURI.toString())
-                .get();
 
         applyCommonHeaders(context, getBuilder, focusNode, shapeTreeHint, false, null, null);
         // applyCommonHeader does not have the option to pass an 'accept' header, might be unnecessary if the server default is turtle
