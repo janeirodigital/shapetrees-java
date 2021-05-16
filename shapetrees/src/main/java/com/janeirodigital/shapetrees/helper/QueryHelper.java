@@ -11,7 +11,7 @@ public class QueryHelper {
      */
     public static String removeManagedTriplesQuery(String resourceURI) {
         return "DELETE { ?s ?p ?o } \n" +
-               "WHERE { " + resourceURI + "?p ?o }";
+               "WHERE { <" + resourceURI + "> ?p ?o }";
     }
 
 }
