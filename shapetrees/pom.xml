@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.janeirodigital</groupId>
         <artifactId>shapetrees-java</artifactId>
-        <version>0.5.9</version>
+        <version>0.5.10</version>
     </parent>
 
     <dependencies>

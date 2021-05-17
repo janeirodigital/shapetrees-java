@@ -7,8 +7,8 @@ public class QueryHelper {
      * @return
      */
     public static String removeManagedTriplesQuery() {
-        return "DELETE { ?s ?p ?o } \n" +
-               "WHERE { ?s <http://www.w3.org/ns/ldp#contains> ?o }";
+        return "PREFIX ldp: <http://www.w3.org/ns/ldp#> \n" +
+               "DELETE WHERE { ?s ldp:contains ?o . }";
     }
 
 }
