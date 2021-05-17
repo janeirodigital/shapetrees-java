@@ -206,7 +206,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
 
         // Build a model and a dataset to apply the patch to an in-memory graph.
         Model model = ModelFactory.createDefaultModel();
-        model.read(new ByteArrayInputStream(resourceContent.getBytes(StandardCharsets.UTF_8)), null, "TURTLE");
+        model.read(new ByteArrayInputStream(resourceContent.getBytes(StandardCharsets.UTF_8)), resourceURI.toString(), "TURTLE");
         Dataset dataset = new DatasetOne(model);
         UpdateAction.parseExecute(queryString, dataset);
         UpdateAction.parseExecute(QueryHelper.removeManagedTriplesQuery(resourceURI.toString()), dataset);
