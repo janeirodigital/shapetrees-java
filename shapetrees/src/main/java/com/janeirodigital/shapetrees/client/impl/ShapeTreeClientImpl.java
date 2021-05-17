@@ -177,7 +177,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
     /**
      * To pass the limitation of CSS around SPARQL request with WHERE statements. This method can be used to execute a sparql query locally
      * which then will pass the result to the `updateDataInstance` handler to make the request as a PUT to the server.
-     * It'll try to remove server managed triples by delete ALL triples that have a subject equal to the resource URI.
+     * It'll try to remove server managed triples before sending the request via PUT.
      * @param context
      * @param resourceURI
      * @param focusNode
@@ -209,7 +209,7 @@ public class ShapeTreeClientImpl implements ShapeTreeClient {
         model.read(new ByteArrayInputStream(resourceContent.getBytes(StandardCharsets.UTF_8)), resourceURI.toString(), "TURTLE");
         Dataset dataset = new DatasetOne(model);
         UpdateAction.parseExecute(queryString, dataset);
-        UpdateAction.parseExecute(QueryHelper.removeManagedTriplesQuery(resourceURI.toString()), dataset);
+        UpdateAction.parseExecute(QueryHelper.removeManagedTriplesQuery(), dataset);
 
         OutputStream os = new ByteArrayOutputStream();
         model.write(os, "TURTLE");
