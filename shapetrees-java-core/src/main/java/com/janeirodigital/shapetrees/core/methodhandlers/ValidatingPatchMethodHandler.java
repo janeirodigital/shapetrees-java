@@ -34,6 +34,8 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");
             }
 
+            // TODO: Catch if this is a plant operation on a shape tree locator and handle that
+
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
             ShapeTreeResource existingResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
             shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, existingResource));

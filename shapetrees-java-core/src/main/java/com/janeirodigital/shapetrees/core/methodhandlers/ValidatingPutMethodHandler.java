@@ -25,6 +25,8 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     @Override
     public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest<?> shapeTreeRequest) {
         try {
+
+            // TODO: Catch if this is a plant operation on a shape tree locator and handle that
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
             ShapeTreeResource existingResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
             shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, existingResource));
@@ -43,6 +45,8 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
                 return ShapeTreeValidationResponse.passThroughResponse(validationContext);
             }
 
+            // TODO: If this is a managed hierarchy we need to create a locator no matter what the resource is
+            // TODO: Need to be calling the proper assignment algorithm here, rather than planting over and over
             List<ShapeTreePlantResult> results = new ArrayList<>();
             for (ShapeTreeLocator locator : validationContext.getParentContainerLocators()) {
 

@@ -37,6 +37,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             Graph incomingRequestBodyGraph = getIncomingBodyGraph(shapeTreeRequest, normalizedBaseURI);
 
             if (incomingRequestShapeTreeUris != null && !incomingRequestShapeTreeUris.isEmpty()) {
+                // TODO: Remove planting logic from here. Plant is done with PUT or PATCH on a shape tree locator
                 // This means we're Planting a new Shape Tree
 
                 // If we are performing a plant there are few levels of validation we need to perform:

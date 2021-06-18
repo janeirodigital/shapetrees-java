@@ -2,7 +2,9 @@ package com.janeirodigital.shapetrees.core.vocabularies;
 
 public final class ShapeTreeVocabulary {
     private ShapeTreeVocabulary() {
+        // TODO: Why is this here?
     }
+    // TODO: Update vocabulary to align with latest specification changes
     public static final String HAS_ROOT_SHAPE_TREE = Namespaces.SHAPETREE + "hasRootShapeTree";
     public static final String HAS_SHAPE_TREE_INSTANCE_ROOT = Namespaces.SHAPETREE + "hasShapeTreeInstanceRoot";
     public static final String HAS_SHAPE_TREE = Namespaces.SHAPETREE + "hasShapeTree";

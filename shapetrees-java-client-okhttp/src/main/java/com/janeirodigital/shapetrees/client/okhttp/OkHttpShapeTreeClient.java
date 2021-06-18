@@ -40,20 +40,30 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
     @Override
     public List<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URI targetContainer) throws IOException {
+        // TODO: Should take any resource, not only a container
         log.debug("Discovering Shape Trees present at {}", targetContainer);
+        // TODO: Consider changing this so that a HEAD is called. No need to get the whole resource only for headers
         RemoteResource targetContainerResource = new RemoteResource(targetContainer, context.getAuthorizationHeaderValue());
         RemoteResource targetContainerMetadataResource = targetContainerResource.getMetadataResource(context.getAuthorizationHeaderValue());
+        // TODO: This should only be getting a single locator - create a new one, initialized with the metadata URI
         return ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetContainerMetadataResource.getGraph(targetContainerResource.getUri()));
     }
 
     @Override
     public URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, Graph bodyGraph) throws IOException, URISyntaxException {
+        // TODO: Should take any resource, not only a container
+        // TODO: Should only take one shape tree at a time
+        // TODO: Should include a recursive flag
+        // TODO: No need for hint, body graph, or proposed resource name
         StringBuilder shapeTreeCommaDelimited = new StringBuilder();
         if (shapeTreeURIs != null) {
             for(URI shapeTreeURI : shapeTreeURIs) {
                 shapeTreeCommaDelimited.append(",").append(shapeTreeURI);
             }
         }
+
+        // TODO: Discover if resource is managed, then create or update shape tree locator with PUT/PATCH
+        // TODO: Question - should we support PATCH and only do PUT for simplicity?
 
         log.debug("Planting shape tree [Parent container={}], [Shape Trees={}], [FocusNode={}], [ShapeTreeHint={}], [ProposedResourceName={}]", parentContainer, shapeTreeCommaDelimited.toString(), focusNode, shapeTreeHint, proposedResourceName);
         String turtleString = GraphHelper.writeGraphToTurtleString(bodyGraph);
@@ -62,6 +72,8 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
     @Override
     public URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, String bodyString, String contentType) throws IOException, URISyntaxException {
+
+        // TODO: Not sure that we need this method at all, since we're no longer creating a resource with plant
 
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
@@ -77,6 +89,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
             builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
         }
 
+        // TODO: Adjust these parameters
         applyCommonHeaders(context, builder, focusNode, shapeTreeHint, true, proposedResourceName, contentType);
 
         Request plantPost = builder

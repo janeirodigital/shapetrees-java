@@ -23,6 +23,8 @@ public interface ShapeTreeClient {
      * a container
      * @throws IOException IOException
      */
+    //TODO: Return a single locator
+    //TODO: Take any target resource type, not just a container
     List<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URI targetContainer) throws IOException;
 
     /**

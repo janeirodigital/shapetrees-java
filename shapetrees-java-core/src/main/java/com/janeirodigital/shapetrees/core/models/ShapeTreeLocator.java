@@ -10,8 +10,12 @@ import org.apache.jena.graph.Triple;
 import java.util.ArrayList;
 import java.util.List;
 
+//TODO: Should only be one shape tree locator per resource
+
 @Getter @AllArgsConstructor
 public class ShapeTreeLocator {
+
+    // TODO: Change to be one or more shape tree locations, move attributes there.
     private final String rootShapeTree;
     private final String shapeTree;
     private final String shapeTreeRoot;
