@@ -78,7 +78,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 // Two reasons for passing through the request (and not performing validation):
                 // 1. Validation returns no locators, meaning the parent container is not managed
                 // 2. We're creating a resource and it has already passed validation
-                if (validationContext == null || validationContext.getParentContainerLocators() == null || validationContext.getValidatingShapeTree() == null || shapeTreeRequest.getResourceType() != ShapeTreeResourceType.CONTAINER) {
+                if (validationContext == null || validationContext.getParentContainerLocator() == null || validationContext.getValidatingShapeTree() == null || shapeTreeRequest.getResourceType() != ShapeTreeResourceType.CONTAINER) {
                     return ShapeTreeValidationResponse.passThroughResponse();
                 }
 
@@ -86,14 +86,14 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
                 // lead to nested static content to be created.  We will iterate the shapeTreeLocator meta data
                 // which describe the ShapeTrees present on the container.
                 List<ShapeTreePlantResult> results = new ArrayList<>();
-                for (ShapeTreeLocator locator : validationContext.getParentContainerLocators()) {
+                ShapeTreeLocator locator = validationContext.getParentContainerLocator();
 
-                    if (requestedName.endsWith("/")) {
-                        requestedName = requestedName.replace("/", "");
-                    }
-                    ShapeTreePlantResult result = plantShapeTree(shapeTreeContext, existingResource, shapeTreeRequest.getBody(), shapeTreeRequest.getContentType(), locator, validationContext.getValidatingShapeTree(), requestedName);
-                    results.add(result);
+                if (requestedName.endsWith("/")) {
+                    requestedName = requestedName.replace("/", "");
                 }
+                // TODO - this is just grabbing the first location for now from the shape tree locator - needs to be fixed
+                ShapeTreePlantResult result = plantShapeTree(shapeTreeContext, existingResource, shapeTreeRequest.getBody(), shapeTreeRequest.getContentType(), locator, validationContext.getValidatingShapeTree(), requestedName);
+                results.add(result);
 
                 return createPlantResponse(results, shapeTreeRequest);
             }
@@ -134,14 +134,14 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ShapeTreeResource targetContainerMetadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, targetContainerResource);
             if (targetContainerMetadataResource.isExists()) {
                 Graph targetContainerMetadataGraph = getGraphForResource(targetContainerMetadataResource, targetContainerURI);
-                List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetContainerMetadataGraph);
-                for (ShapeTreeLocator locator : locators) {
-                    ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree()));
+                ShapeTreeLocator locator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(targetContainerMetadataGraph);
+                for (ShapeTreeLocation location : locator.getLocations()) {
+                    ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(new URI(location.getShapeTree()));
                     if (shapeTree != null) {
                         log.debug("Found ShapeTree [{}] already planted in existing container, adding to list to validate", shapeTree.getURI());
                         shapeTreesToPlant.add(shapeTree);
                     } else {
-                        throw new ShapeTreeException(500, "Existing container is managed by a shape tree " + locator.getShapeTree() + " which cannot be found");
+                        throw new ShapeTreeException(500, "Existing container is managed by a shape tree " + location.getShapeTree() + " which cannot be found");
                     }
                 }
             }

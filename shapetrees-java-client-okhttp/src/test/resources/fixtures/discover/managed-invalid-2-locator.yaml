@@ -1,0 +1,11 @@
+statusCode : 200
+delay: 0
+headers:
+body: >
+
+  PREFIX st: <http://www.w3.org/ns/shapetree#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX ex: <http://www.example/ns/ex#>
+
+  <>
+    ex:notWhatYouWant <#notWhatYouNeed> .

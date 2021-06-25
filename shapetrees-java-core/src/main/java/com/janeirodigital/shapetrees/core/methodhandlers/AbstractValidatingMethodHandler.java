@@ -364,15 +364,17 @@ public abstract class AbstractValidatingMethodHandler {
 
         Graph parentContainerMetadataGraph = getGraphForResource(parentContainerMetadataResource, parentContainer.getUri());
 
-        List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadataGraph);
+        //List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadataGraph);
+
+        ShapeTreeLocator locator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(parentContainerMetadataGraph);
 
         // If there are no ShapeTree locators in the metadata graph, it is not managed
-        if (locators.isEmpty()) return null;
+        if (locator == null) return null;
 
         // This means the existing parent container has one or more ShapeTrees associated with it
         List<ShapeTree> existingShapeTrees = new ArrayList<>();
-        for (ShapeTreeLocator locator : locators) {
-            existingShapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree())));
+        for (ShapeTreeLocation locations : locator.getLocations()) {
+            existingShapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locations.getShapeTree())));
         }
 
         ShapeTree shapeTreeWithContents = getShapeTreeWithContents(existingShapeTrees);
@@ -398,7 +400,7 @@ public abstract class AbstractValidatingMethodHandler {
             }
         }
 
-        return new ValidationContext(targetShapeTree, validationResult, locators);
+        return new ValidationContext(targetShapeTree, validationResult, locator);
     }
 
     protected ShapeTreePlantResult plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeResource parentContainer, Graph bodyGraph, ShapeTree rootShapeTree, String rootContainer, ShapeTree shapeTree, String requestedName) throws IOException, URISyntaxException {
@@ -410,12 +412,13 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     protected ShapeTreePlantResult plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeResource parentContainer, String body, String contentType, ShapeTreeLocator locator, ShapeTree targetShapeTree, String requestedName) throws IOException, URISyntaxException {
-        ShapeTree rootShapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getRootShapeTree()));
+        // TODO - Need to properly get at the shape tree location when we get back to planting
+        ShapeTree rootShapeTree = ShapeTreeFactory.getShapeTree(new URI(locator.getLocations().get(0).getRootShapeTree()));
         if (rootShapeTree == null) {
             return null;
         }
-
-        return plantShapeTree(shapeTreeContext, parentContainer, body, contentType, rootShapeTree, locator.getShapeTreeRoot(), targetShapeTree, requestedName);
+        // TODO - Need to properly get at the shape tree location when we get back to planting
+        return plantShapeTree(shapeTreeContext, parentContainer, body, contentType, rootShapeTree, locator.getLocations().get(0).getRootShapeTree(), targetShapeTree, requestedName);
     }
 
     protected ShapeTreePlantResult plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeResource parentContainer, String body, String contentType, ShapeTree rootShapeTree, String rootContainer, ShapeTree shapeTree, String requestedName) throws IOException, URISyntaxException {

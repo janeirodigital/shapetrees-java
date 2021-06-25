@@ -2,5 +2,5 @@ statusCode : 200
 delay: 0
 headers:
   - 'Content-type:text/turtle'
-  - 'Link:</ldp/data/medical-record/?ext=shapetree>; rel="http://shapetrees.org/#ShapeTree"'
+  - 'Link:</ldp/data/medical-record/?ext=shapetree>; rel="http://shapetrees.org/#ShapeTreeLocator"'
 body: >

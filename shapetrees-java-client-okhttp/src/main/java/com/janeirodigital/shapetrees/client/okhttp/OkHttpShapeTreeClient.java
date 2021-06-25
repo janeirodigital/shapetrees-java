@@ -38,32 +38,48 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         this.skipValidation = skipValidation;
     }
 
+    /**
+     * Discover the ShapeTreeLocator associated with a given target resource.
+     * Implements {@link ShapeTreeClient#discoverShapeTree}
+     *
+     * Shape Trees, §4.1: This operation is used by a client-side agent to discover any shape trees associated
+     * with a given resource. If URI is a managed resource, the associated Shape Tree Locator will be returned.
+     * https://shapetrees.org/TR/specification/#discover
+     *
+     * @param context ShapeTreeContext that would be used for authentication purposes
+     * @param targetResource The URI of the target resource for shape tree discovery
+     * @return
+     * @throws IOException
+     */
     @Override
-    public List<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URI targetContainer) throws IOException {
-        // TODO: Should take any resource, not only a container
-        log.debug("Discovering Shape Trees present at {}", targetContainer);
-        // TODO: Consider changing this so that a HEAD is called. No need to get the whole resource only for headers
-        RemoteResource targetContainerResource = new RemoteResource(targetContainer, context.getAuthorizationHeaderValue());
-        RemoteResource targetContainerMetadataResource = targetContainerResource.getMetadataResource(context.getAuthorizationHeaderValue());
-        // TODO: This should only be getting a single locator - create a new one, initialized with the metadata URI
-        return ShapeTreeLocator.getShapeTreeLocatorsFromGraph(targetContainerMetadataResource.getGraph(targetContainerResource.getUri()));
+    public ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws IOException {
+
+        log.debug("Discovering Shape Trees present at {}", targetResource);
+
+        // Lookup the target resource for pointer to associated shape tree locator
+        RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
+
+        // Lookup the associated shape tree locator resource based on the pointer
+        RemoteResource locatorResource = resource.getMetadataResource(context.getAuthorizationHeaderValue());
+
+        // Ensure the metadata resource exists
+        // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
+        // and no shape tree locator will be returned.
+        if (!locatorResource.exists()) { return null; }
+
+        // Populate a ShapeTreeLocator from the graph in locatorResource and return it
+        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(locatorResource.getGraph(locatorResource.getUri()));
+
     }
 
     @Override
     public URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, Graph bodyGraph) throws IOException, URISyntaxException {
-        // TODO: Should take any resource, not only a container
-        // TODO: Should only take one shape tree at a time
-        // TODO: Should include a recursive flag
-        // TODO: No need for hint, body graph, or proposed resource name
         StringBuilder shapeTreeCommaDelimited = new StringBuilder();
         if (shapeTreeURIs != null) {
             for(URI shapeTreeURI : shapeTreeURIs) {
                 shapeTreeCommaDelimited.append(",").append(shapeTreeURI);
             }
         }
-
-        // TODO: Discover if resource is managed, then create or update shape tree locator with PUT/PATCH
-        // TODO: Question - should we support PATCH and only do PUT for simplicity?
 
         log.debug("Planting shape tree [Parent container={}], [Shape Trees={}], [FocusNode={}], [ShapeTreeHint={}], [ProposedResourceName={}]", parentContainer, shapeTreeCommaDelimited.toString(), focusNode, shapeTreeHint, proposedResourceName);
         String turtleString = GraphHelper.writeGraphToTurtleString(bodyGraph);
@@ -73,7 +89,12 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
     @Override
     public URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, String bodyString, String contentType) throws IOException, URISyntaxException {
 
-        // TODO: Not sure that we need this method at all, since we're no longer creating a resource with plant
+        // TODO: Should take any resource, not only a container
+        // TODO: Should only take one shape tree at a time
+        // TODO: Should include a recursive flag
+        // TODO: No need for hint, body graph, or proposed resource name
+        // TODO: Discover if resource is managed, then create or update shape tree locator with PUT/PATCH
+        // TODO: Question - should we support PATCH and only do PUT for simplicity?
 
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 

@@ -41,21 +41,20 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
             // Two reasons for passing through the request (and not performing validation):
             // 1. Validation returns no locators, meaning the parent container is not managed
             // 2. We're creating a resource and it has already passed validation
-            if (validationContext == null || validationContext.getParentContainerLocators() == null || shapeTreeRequest.getResourceType() != ShapeTreeResourceType.CONTAINER) {
+            if (validationContext == null || validationContext.getParentContainerLocator() == null || shapeTreeRequest.getResourceType() != ShapeTreeResourceType.CONTAINER) {
                 return ShapeTreeValidationResponse.passThroughResponse(validationContext);
             }
 
             // TODO: If this is a managed hierarchy we need to create a locator no matter what the resource is
             // TODO: Need to be calling the proper assignment algorithm here, rather than planting over and over
             List<ShapeTreePlantResult> results = new ArrayList<>();
-            for (ShapeTreeLocator locator : validationContext.getParentContainerLocators()) {
+            ShapeTreeLocator locator = validationContext.getParentContainerLocator();
 
-                if (requestedName.endsWith("/")) {
-                    requestedName = requestedName.replace("/","");
-                }
-                ShapeTreePlantResult result = plantShapeTree(shapeTreeContext, parentContainerResource, shapeTreeRequest.getBody(), shapeTreeRequest.getContentType(), locator, validationContext.getValidatingShapeTree(), requestedName);
-                results.add(result);
+            if (requestedName.endsWith("/")) {
+                requestedName = requestedName.replace("/","");
             }
+            ShapeTreePlantResult result = plantShapeTree(shapeTreeContext, parentContainerResource, shapeTreeRequest.getBody(), shapeTreeRequest.getContentType(), locator, validationContext.getValidatingShapeTree(), requestedName);
+            results.add(result);
 
             return createPlantResponse(results, shapeTreeRequest);
         } catch (ShapeTreeException ste) {

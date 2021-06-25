@@ -2,10 +2,7 @@ package com.janeirodigital.shapetrees.core.methodhandlers;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
-import com.janeirodigital.shapetrees.core.models.ShapeTree;
-import com.janeirodigital.shapetrees.core.models.ValidationResult;
+import com.janeirodigital.shapetrees.core.models.*;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
@@ -56,11 +53,11 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
             // If managed, do validation
             if (shapeTreeManagedContainer) {
 
-                List<ShapeTreeLocator> shapeTreeLocatorMetadatas = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadataGraph);
+                ShapeTreeLocator locator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(parentContainerMetadataGraph);
 
                 List<ShapeTree> shapeTrees = new ArrayList<>();
-                for (ShapeTreeLocator locator : shapeTreeLocatorMetadatas) {
-                    shapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locator.getShapeTree())));
+                for (ShapeTreeLocation location : locator.getLocations()) {
+                    shapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(location.getShapeTree())));
                 }
 
                 ShapeTree validatingShapeTree = getShapeTreeWithContents(shapeTrees);

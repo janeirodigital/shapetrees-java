@@ -3,7 +3,7 @@ package com.janeirodigital.shapetrees.core.enums;
 public enum LinkRelations {
     DESCRIBED_BY("describedby"),
     FOCUS_NODE("http://shapetrees.org/#FocusNode"),
-    SHAPETREE("http://shapetrees.org/#ShapeTree"),
+    SHAPETREE("http://shapetrees.org/#ShapeTreeLocator"),
     TARGET_SHAPETREE("http://shapetrees.org/#TargetShapeTree"),
     TYPE("type"),
     ACL("acl");

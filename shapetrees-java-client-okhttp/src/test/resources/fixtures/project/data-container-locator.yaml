@@ -1,0 +1,21 @@
+statusCode : 200
+delay: 0
+headers:
+body: >
+
+  PREFIX st: <http://www.w3.org/ns/shapetree#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX ex: <http://www.example/ns/ex#>
+
+  <>
+    <http://www.w3.org/ns/shapetree#hasShapeTreeLocator> <#locator> .
+
+  <#locator>
+    a st:ShapeTreeLocator ;
+    st:location [
+      st:hasRootShapeTree ex:DataTree ;
+      st:hasShapeTree ex:DataTree ;
+      st:hasRootShapeTreeInstance </data/> ;
+      st:node </data/#set> ;
+      st:shape ex:DataSetShape ;
+    ] .

@@ -92,6 +92,15 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/MedicalRecordTests.java</exclude>
+                        <exclude>**/GitHubDeepTests.java</exclude>
+                        <exclude>**/RawPlantTests.java</exclude>
+                        <exclude>**/SchemaCacheTests.java</exclude>
+                    </excludes>
+                </configuration>
+
             </plugin>
         </plugins>
     </build>

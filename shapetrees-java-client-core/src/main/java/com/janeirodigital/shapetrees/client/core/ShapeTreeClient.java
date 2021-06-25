@@ -15,17 +15,20 @@ import java.util.List;
  * a shape tree client
  */
 public interface ShapeTreeClient {
+
     /**
-     * Discovering a shape tree entails determining which shape tree(s) manage a given resource
+     * Discover any shape trees managing a given target resource
+     *
+     * Shape Trees, §4.1: This operation is used by a client-side agent to discover any shape trees associated
+     * with a given resource. If URI is a managed resource, the associated Shape Tree Locator will be returned.
+     * https://shapetrees.org/TR/specification/#discover
+     *
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param targetContainer The URI of the container being discovered
-     * @return A list of ShapeTreeLocator classes which describe what shape tree(s) are managing
-     * a container
+     * @param targetResource The URI of the target resource for shape tree discovery
+     * @return A ShapeTreeLocator associated with targetResource
      * @throws IOException IOException
      */
-    //TODO: Return a single locator
-    //TODO: Take any target resource type, not just a container
-    List<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URI targetContainer) throws IOException;
+    ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws IOException;
 
     /**
      * Plants one or more shape trees at a given container

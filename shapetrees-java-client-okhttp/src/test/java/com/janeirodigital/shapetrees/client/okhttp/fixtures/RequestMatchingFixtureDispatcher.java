@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.client.okhttp.fixtures;
 
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.Dispatcher;
@@ -11,10 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
+@Slf4j @Getter
 public class RequestMatchingFixtureDispatcher extends Dispatcher {
 
-    private final List<DispatcherEntry> configuredFixtures;
+    List<DispatcherEntry> configuredFixtures;
     private final Map<DispatcherEntry, Integer> fixtureHitCounts = new HashMap<>();
 
     public RequestMatchingFixtureDispatcher(List<DispatcherEntry> configuredFixtures) {

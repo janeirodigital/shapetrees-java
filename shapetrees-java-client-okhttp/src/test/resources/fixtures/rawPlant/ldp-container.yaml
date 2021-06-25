@@ -3,5 +3,5 @@ delay: 0
 headers:
   - 'Content-type:text/turtle'
   - 'Link:<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
-  - 'Link:</ldp/?ext=shapetree>; rel="http://shapetrees.org/#ShapeTree"'
+  - 'Link:</ldp/?ext=shapetree>; rel="http://shapetrees.org/#ShapeTreeLocator"'
 body: >

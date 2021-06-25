@@ -6,4 +6,5 @@ public final class Namespaces {
 
     public static final String SHAPETREE = "http://www.w3.org/ns/shapetree#";
     public static final String LDP = "http://www.w3.org/ns/ldp#";
+    public static final String RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 }
