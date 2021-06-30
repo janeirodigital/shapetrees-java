@@ -2,8 +2,12 @@ package com.janeirodigital.shapetrees.core.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Getter @AllArgsConstructor
+import java.net.URI;
+
+@Getter @NoArgsConstructor @AllArgsConstructor
 public class ValidationResult {
-    private final Boolean valid;
+    private Boolean valid;
+    private URI matchingNode;
 }

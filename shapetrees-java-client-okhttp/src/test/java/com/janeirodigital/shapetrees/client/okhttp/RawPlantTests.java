@@ -61,7 +61,7 @@ public class RawPlantTests  extends BaseShapeTreeTest {
         Request.Builder builder = new Request.Builder().url(getURI(server, "/ldp/raw/").toString());
 
         for (URI shapeTreeUri : shapeTreeURIs) {
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE_LOCATOR.getValue() + "\"");
         }
 
         applyCommonHeaders(context, builder, null, null, true, "conditions", "text/turtle");
@@ -93,7 +93,7 @@ public class RawPlantTests  extends BaseShapeTreeTest {
         Request.Builder builder = new Request.Builder().url(getURI(server, "/ldp/raw/").toString());
 
         for (URI shapeTreeUri : shapeTreeURIs) {
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE_LOCATOR.getValue() + "\"");
         }
 
         applyCommonHeaders(context, builder, null, null, true, "conditions", "text/turtle");
@@ -125,7 +125,7 @@ public class RawPlantTests  extends BaseShapeTreeTest {
         Request.Builder builder = new Request.Builder().url(getURI(server, "/ldp/raw/").toString());
 
         for (URI shapeTreeUri : shapeTreeURIs) {
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE_LOCATOR.getValue() + "\"");
         }
 
         applyCommonHeaders(context, builder, null, null, true, "conditions", "text/turtle");
@@ -156,7 +156,7 @@ public class RawPlantTests  extends BaseShapeTreeTest {
         Request.Builder builder = new Request.Builder().url(getURI(server, "/ldp/").toString());
 
         for (URI shapeTreeUri : shapeTreeURIs) {
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE_LOCATOR.getValue() + "\"");
         }
 
         applyCommonHeaders(context, builder, null, null, true, "invalid", "text/turtle");
@@ -188,7 +188,7 @@ public class RawPlantTests  extends BaseShapeTreeTest {
         Request.Builder builder = new Request.Builder().url(getURI(server, "/ldp/").toString());
 
         for (URI shapeTreeUri : shapeTreeURIs) {
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeUri.toString() + ">; rel=\"" + LinkRelations.SHAPETREE_LOCATOR.getValue() + "\"");
         }
 
         applyCommonHeaders(context, builder, "#registration", null, true, "withbody", "text/turtle");
@@ -216,7 +216,7 @@ public class RawPlantTests  extends BaseShapeTreeTest {
         Request.Builder builder = new Request.Builder().url(getURI(server, "/ldp/").toString());
 
         // This is not a valid URI, will fail validation as a shapetree
-        builder.addHeader(HttpHeaders.LINK.getValue(), "<:invalid>; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
+        builder.addHeader(HttpHeaders.LINK.getValue(), "<:invalid>; rel=\"" + LinkRelations.SHAPETREE_LOCATOR.getValue() + "\"");
 
         applyCommonHeaders(context, builder, "#registration", null, true, "withbody", "text/turtle");
 

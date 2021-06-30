@@ -204,8 +204,8 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTreePlantResult primaryPlantResult = null;
         if (plantResults.size() > 1) {
             Map<String, List<String>> linkHeaders = request.getLinkHeaders();
-            if (linkHeaders.containsKey(LinkRelations.SHAPETREE.getValue())) {
-                String primaryShapeTreeURI = linkHeaders.get(LinkRelations.SHAPETREE.getValue()).get(0);
+            if (linkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+                String primaryShapeTreeURI = linkHeaders.get(LinkRelations.SHAPETREE_LOCATOR.getValue()).get(0);
                 for (ShapeTreePlantResult plantResult : plantResults) {
                     if (plantResult.getShapeTreeURI().toString().equals(primaryShapeTreeURI)) {
                         primaryPlantResult = plantResult;
@@ -222,7 +222,7 @@ public abstract class AbstractValidatingMethodHandler {
         if (primaryPlantResult != null) {
             response.setStatusCode(201);
             response.addResponseHeader(HttpHeaders.LOCATION.getValue(), primaryPlantResult.getRootContainer().toString());
-            response.addResponseHeader(HttpHeaders.LINK.getValue(), "<" + primaryPlantResult.getRootContainerMetadata().toString() + ">; rel=\"" + LinkRelations.SHAPETREE.getValue() + "\"");
+            response.addResponseHeader(HttpHeaders.LINK.getValue(), "<" + primaryPlantResult.getRootContainerMetadata().toString() + ">; rel=\"" + LinkRelations.SHAPETREE_LOCATOR.getValue() + "\"");
             response.addResponseHeader(HttpHeaders.CONTENT_TYPE.getValue(), TEXT_TURTLE);
             response.setBody("");
         } else {
@@ -267,7 +267,7 @@ public abstract class AbstractValidatingMethodHandler {
      */
     protected ShapeTree getShapeTreeWithShapeURI(List<ShapeTree> shapeTreesToPlant) {
         for (ShapeTree shapeTree : shapeTreesToPlant) {
-            if (shapeTree.getValidatedByShapeUri() != null) {
+            if (shapeTree.getShape() != null) {
                 return shapeTree;
             }
         }
@@ -297,11 +297,11 @@ public abstract class AbstractValidatingMethodHandler {
     protected URI getShapeTreeMetadataURIForResource(ShapeTreeResource shapeTreeResource) throws ShapeTreeException {
         Map<String, List<String>> linkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(shapeTreeResource.getAttributes().get(HttpHeaders.LINK.getValue()));
 
-        if (!linkHeaders.containsKey(LinkRelations.SHAPETREE.getValue())) {
-            log.error("The resource {} does not contain a link header of {}", shapeTreeResource.getUri(), LinkRelations.SHAPETREE.getValue());
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
+        if (!linkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+            log.error("The resource {} does not contain a link header of {}", shapeTreeResource.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
+            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
-        String metaDataURIString = linkHeaders.get(LinkRelations.SHAPETREE.getValue()).stream().findFirst().orElse(null);
+        String metaDataURIString = linkHeaders.get(LinkRelations.SHAPETREE_LOCATOR.getValue()).stream().findFirst().orElse(null);
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
             URI shapeTreeContainerURI = shapeTreeResource.getUri();
@@ -315,7 +315,7 @@ public abstract class AbstractValidatingMethodHandler {
         }
 
         if (metaDataURIString == null) {
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
+            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
 
         return URI.create(metaDataURIString);
@@ -342,65 +342,6 @@ public abstract class AbstractValidatingMethodHandler {
         if (!resource.isExists()) return null;
 
         return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue()));
-    }
-
-    /**
-     * Determines whether a graph is valid for a given parent container
-     * @param shapeTreeContext ShapeTreeContext used for authentication
-     * @param graphToValidate Graph contents to be validated
-     * @param baseURI BaseURI used for RDF graph
-     * @param parentContainer Parent container to use for basis of validation (the shape trees managing this container
-     *                        will be used to determine if the graph is valid)
-     * @param resourceName Name of resource
-     * @param shapeTreeRequest Request
-     * @return ValidationContext with details of the validation process
-     * @throws IOException IOException
-     * @throws URISyntaxException URISyntaxException
-     */
-    protected ValidationContext validateAgainstParentContainer(ShapeTreeContext shapeTreeContext, Graph graphToValidate, URI baseURI, ShapeTreeResource parentContainer, String resourceName, ShapeTreeRequest<?> shapeTreeRequest) throws IOException, URISyntaxException {
-        ShapeTreeResource parentContainerMetadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, parentContainer);
-        // If there is no metadata for the parent container, it is not managed
-        if (!parentContainerMetadataResource.isExists()) return null;
-
-        Graph parentContainerMetadataGraph = getGraphForResource(parentContainerMetadataResource, parentContainer.getUri());
-
-        //List<ShapeTreeLocator> locators = ShapeTreeLocator.getShapeTreeLocatorsFromGraph(parentContainerMetadataGraph);
-
-        ShapeTreeLocator locator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(parentContainerMetadataGraph);
-
-        // If there are no ShapeTree locators in the metadata graph, it is not managed
-        if (locator == null) return null;
-
-        // This means the existing parent container has one or more ShapeTrees associated with it
-        List<ShapeTree> existingShapeTrees = new ArrayList<>();
-        for (ShapeTreeLocation locations : locator.getLocations()) {
-            existingShapeTrees.add(ShapeTreeFactory.getShapeTree(new URI(locations.getShapeTree())));
-        }
-
-        ShapeTree shapeTreeWithContents = getShapeTreeWithContents(existingShapeTrees);
-
-        URI targetShapeTreeHint = getIncomingTargetShapeTreeHint(shapeTreeRequest);
-        ShapeTree targetShapeTree = shapeTreeWithContents.findMatchingContainsShapeTree(resourceName, targetShapeTreeHint, shapeTreeRequest.getResourceType());
-
-        // If no targetShapeTree is returned, it can be assumed that no validation is required
-        ValidationResult validationResult = null;
-        if (targetShapeTree != null) {
-
-            // If there is a graph to validate...and a ShapeTree indicates it wants to validate the container body
-            if (graphToValidate != null && targetShapeTree.getValidatedByShapeUri() != null) {
-                // ...and a focus node was provided via the focusNode header, then we perform our validation
-                URI focusNodeURI = getIncomingResolvedFocusNode(shapeTreeRequest, baseURI);
-                log.debug("Validating against parent container.  ST with Contents {}, Focus Node {}", shapeTreeWithContents.getURI(), focusNodeURI);
-                validationResult = targetShapeTree.validateContent(graphToValidate, focusNodeURI, shapeTreeRequest.getResourceType());
-            }
-
-            // If there is a body graph and it did not pass validation, return an error
-            if (graphToValidate != null && validationResult != null && Boolean.FALSE.equals(validationResult.getValid())) {
-                throw new ShapeTreeException(422, "Payload did not meet requirements defined by ShapeTree " + targetShapeTree.getURI());
-            }
-        }
-
-        return new ValidationContext(targetShapeTree, validationResult, locator);
     }
 
     protected ShapeTreePlantResult plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeResource parentContainer, Graph bodyGraph, ShapeTree rootShapeTree, String rootContainer, ShapeTree shapeTree, String requestedName) throws IOException, URISyntaxException {
@@ -478,6 +419,40 @@ public abstract class AbstractValidatingMethodHandler {
         return new ShapeTreePlantResult(shapeTree.getURI(), plantedContainerResource.getUri(), plantedContainerMetadataResource.getUri(), nestedContainersCreated);
     }
 
+    protected ShapeTreeValidationResponse createShapeTreeInstance(ShapeTreeContext shapeTreeContext) {
+
+        ShapeTreeValidationResponse validationResponse = new ShapeTreeValidationResponse();
+
+        // Determine whether:
+        //   1. The parent container is managed
+        //   2. If it has identified valid containing shape trees (st:contains)
+        //   3. If the proposed resource is allowed by one of the containing shape trees
+        //   4. If not - reject it
+        //   5. If it is allowed
+        //     1. create the resource
+        //     2. assign the matched shape tree to it
+        //   6. Craft a shapetree validation response
+
+        return validationResponse;
+
+    }
+
+    protected ShapeTreeValidationResponse updateShapeTreeInstance() {
+
+        ShapeTreeValidationResponse validationResponse = new ShapeTreeValidationResponse();
+
+        return validationResponse;
+
+    }
+
+    protected ShapeTreeValidationResponse deleteShapeTreeInstance() {
+
+        ShapeTreeValidationResponse validationResponse = new ShapeTreeValidationResponse();
+
+        return validationResponse;
+
+    }
+
     private ShapeTreeResource createOrReuseContainer(ShapeTreeContext shapeTreeContext, URI parentContainerURI, String requestedName, String body, String contentType) throws IOException {
         // First determine if we're looking to plant a ShapeTree in an existing container
         ShapeTreeResource targetContainerResource = this.resourceAccessor.getResource(shapeTreeContext, URI.create(parentContainerURI.toString() + requestedName));
@@ -499,4 +474,5 @@ public abstract class AbstractValidatingMethodHandler {
             return shapeTreeContainerResource;
         }
     }
+
 }

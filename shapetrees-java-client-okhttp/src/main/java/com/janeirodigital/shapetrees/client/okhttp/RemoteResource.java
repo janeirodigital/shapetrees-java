@@ -157,13 +157,12 @@ public class RemoteResource {
 
     @NotNull
     public String getMetadataURI() throws IOException {
-        // TODO: ensure this is looking for http://shapetrees.org/#ShapeTreeLocator
-        if (!this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE.getValue())) {
-            log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE.getValue());
+        if (!this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+            log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
             // TODO: Should this really be a 500? What if shape trees aren't supported by server?
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
+            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
-        String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE.getValue()).stream().findFirst().orElse(null);
+        String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE_LOCATOR.getValue()).stream().findFirst().orElse(null);
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
             URI shapeTreeContainerURI = this.getUri();
@@ -178,7 +177,7 @@ public class RemoteResource {
 
         if (metaDataURIString == null) {
             // TODO: Is a 500 necessary when shape trees aren't supported?
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE.getValue() + " found");
+            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
 
         return metaDataURIString;

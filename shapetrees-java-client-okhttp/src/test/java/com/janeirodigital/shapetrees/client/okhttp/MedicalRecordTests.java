@@ -55,12 +55,9 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
 
         this.shapeTreeClient.plantShapeTree(this.context,
                 getURI(server,"/ldp/data/"),
-                List.of(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords")),
+                getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"),
                 null,
-                null,
-                "medical-record",
-                null,
-                TEXT_TURTLE);
+                false);
 
         ensureExistsHasMetadataWithPredicateValue(getURI(server, "/ldp/data/medical-record"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), getURI(server, "/ldp/data/medical-record/"));
     }
@@ -95,12 +92,9 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
 
         this.shapeTreeClient.plantShapeTree(this.context,
                 getURI(server,"/ldp/data/"),
-                List.of(getURI(server,"/static/shapetrees/medical-record/shapetree#conditions")),
+                getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"),
                 null,
-                null,
-                "conditions",
-                "<#a> <#b> <#c>",
-                TEXT_TURTLE);
+                false);
 
         ensureExistsHasMetadataWithPredicateValue(getURI(server, "/ldp/data/conditions"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), getURI(server, "/ldp/data/conditions/"));
     }

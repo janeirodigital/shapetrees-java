@@ -1,7 +1,12 @@
 package com.janeirodigital.shapetrees.core.helpers;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -11,10 +16,12 @@ import org.apache.jena.riot.RiotException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.time.OffsetDateTime;
 
 /**
  * Assorted helper methods related to RDF Graphs
  */
+@Slf4j
 public class GraphHelper {
 
     private GraphHelper() {
@@ -87,4 +94,58 @@ public class GraphHelper {
     public static Graph readStringIntoGraph(URI baseURI, String rawContent, String contentType) throws ShapeTreeException {
         return readStringIntoModel(baseURI, rawContent, contentType).getGraph();
     }
+
+    /**
+     * Creates an empty Graph with initialized prefixes
+     * @return Graph Empty Graph
+     * @throws ShapeTreeException ShapeTreeException
+     */
+    public static Graph getEmptyGraph() {
+        Model model = ModelFactory.createDefaultModel();
+        model.setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+        model.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
+        model.setNsPrefix("st", "http://www.w3.org/ns/shapetree#");
+        return model.getGraph();
+    }
+
+    /**
+     * Create a new triple statement with URIs
+     * @param subject Subject to include
+     * @param predicate Predicate to include
+     * @param object Object to include
+     * @return
+     */
+    public static Triple newTriple(URI subject, URI predicate, Object object) {
+        return newTriple(subject.toString(), predicate.toString(), object);
+    }
+
+    /**
+     * Create a new triple statement with strings
+     * @param subject Subject to include
+     * @param predicate Predicate to include
+     * @param object Object to include
+     * @return
+     */
+    public static Triple newTriple(String subject, String predicate, Object object) {
+        Node objectNode = null;
+        if (object.getClass().equals(URI.class)) {
+            objectNode = NodeFactory.createURI(object.toString());
+        }
+        else if (object.getClass().equals(String.class)) {
+            objectNode = NodeFactory.createLiteral(object.toString());
+        }
+        else if (object.getClass().equals(OffsetDateTime.class)) {
+            objectNode = NodeFactory.createLiteralByValue(object, XSDDatatype.XSDdateTime);
+        }
+        else if (object.getClass().equals(Boolean.class)) {
+            objectNode = NodeFactory.createLiteralByValue(object, XSDDatatype.XSDboolean);
+        }
+
+        if (objectNode == null) {
+            log.error("Not good.  Unable to create objectNode for object {}", object.getClass());
+        }
+
+        return new Triple(NodeFactory.createURI(subject), NodeFactory.createURI(predicate), objectNode);
+    }
+
 }

@@ -112,6 +112,9 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
         } catch (IOException iex) {
             shapeTreeResource.setBody(null);
         }
+
+        // TODO - Populate the metadata flag based on whether or not this is a shapetree locator or regular resource
+
         shapeTreeResource.setAttributes(remoteResource.getResponseHeaders());
         return shapeTreeResource;
     }

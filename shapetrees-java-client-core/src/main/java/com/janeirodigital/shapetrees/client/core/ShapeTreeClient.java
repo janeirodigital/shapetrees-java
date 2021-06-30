@@ -3,12 +3,10 @@ package com.janeirodigital.shapetrees.client.core;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
-import org.apache.jena.graph.Graph;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
 /**
  * This interface defines a proposed API to be used for any client-side implementations of
@@ -17,10 +15,9 @@ import java.util.List;
 public interface ShapeTreeClient {
 
     /**
-     * Discover any shape trees managing a given target resource
-     *
      * Shape Trees, §4.1: This operation is used by a client-side agent to discover any shape trees associated
      * with a given resource. If URI is a managed resource, the associated Shape Tree Locator will be returned.
+     *
      * https://shapetrees.org/TR/specification/#discover
      *
      * @param context ShapeTreeContext that would be used for authentication purposes
@@ -31,35 +28,29 @@ public interface ShapeTreeClient {
     ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws IOException;
 
     /**
+     * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,
+     * by associating a shape tree locator with the resource, and turning it into a managed resource.
+     *
+     * If the resource is already managed, the associated shape tree locator will be updated with another
+     * shape tree location for the planted shape tree.
+     *
+     * If the resource is a container that already contains existing resources, and a recursive plant is requested,
+     * this operation will perform a depth first traversal through the containment hierarchy, validating
+     * and assigning as it works its way back up to the target root resource of this operation.
+     *
+     * https://shapetrees.org/TR/specification/#plant-shapetree
+     *
      * Plants one or more shape trees at a given container
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param parentContainer The container the shape trees will be planted within
-     * @param shapeTreeURIs A list of shape tree URIs to be planted
-     * @param focusNode The node/subject to use for validation purposes (optional)
-     * @param shapeTreeHint The shape tree the body should be validated by (required if body is populated)
-     * @param proposedResourceName Proposed resource name (aka Slug) for the resulting container
-     * @param body Graph representation of body to be included in the container graph of the resulting planted container
-     * @return The URI of the resulting container
+     * @param targetResource The URI of the resource to plant on
+     * @param targetShapeTree A URI representing the shape tree to plant for targetResource
+     * @param focusNode An optional URI representing the target subject within targetResource used for shape validation
+     * @param recursive An optional flag specifying a recursive plant over an existing hierarchy of resources. False by default.
+     * @return The URI of the Shape Tree Locator that was planted for targetResource
      * @throws IOException IOException
      * @throws URISyntaxException URISyntaxException
      */
-    URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, Graph body) throws IOException, URISyntaxException;
-
-    /**
-     * Plants one or more shape trees at a given container
-     * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param parentContainer The container the shape trees will be planted within
-     * @param shapeTreeURIs A list of shape tree URIs to be planted
-     * @param focusNode The node/subject to use for validation purposes (optional)
-     * @param shapeTreeHint The shape tree the body should be validated by (required if body is populated)
-     * @param proposedResourceName Proposed resource name (aka Slug) for the resulting container
-     * @param bodyString String representation of body to be included in the container graph of the resulting planted container
-     * @param contentType Content type to parse the bodyString parameter as
-     * @return The URI of the resulting container
-     * @throws IOException IOException
-     * @throws URISyntaxException URISyntaxException
-     */
-    URI plantShapeTree(ShapeTreeContext context, URI parentContainer, List<URI> shapeTreeURIs, String focusNode, URI shapeTreeHint, String proposedResourceName, String bodyString, String contentType) throws IOException, URISyntaxException;
+    URI plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException;
 
     /**
      * Creates a resource that has been validated against the provided shape tree

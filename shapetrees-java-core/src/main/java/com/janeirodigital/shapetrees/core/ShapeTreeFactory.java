@@ -79,7 +79,7 @@ public class ShapeTreeFactory {
         if (expectsType == null) throw new ShapeTreeException(500, "Shape Tree :expectsType not found");
         shapeTree.setExpectedResourceType(expectsType);
         // Set Shape URI
-        shapeTree.setValidatedByShapeUri(getStringValue(model, resource, ShapeTreeVocabulary.VALIDATED_BY));
+        shapeTree.setShape(getStringValue(model, resource, ShapeTreeVocabulary.VALIDATED_BY));
         // Set Label
         shapeTree.setLabel(getStringValue(model, resource, RDFS_LABEL));
         // Set Supports
@@ -126,7 +126,7 @@ public class ShapeTreeFactory {
 
     private static boolean isShapeTreeAllowIRI(URI uri) throws URISyntaxException {
         return uri.equals(new URI(ShapeTreeVocabulary.ALLOW_ALL)) ||
-                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_NONE)) ||
+                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_ONLY)) ||
                 uri.equals(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES)) ||
                 uri.equals(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) ||
                 uri.equals(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES));

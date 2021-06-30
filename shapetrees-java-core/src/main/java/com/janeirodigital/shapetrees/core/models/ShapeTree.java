@@ -3,21 +3,24 @@ package com.janeirodigital.shapetrees.core.models;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentContentsLoader;
+import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
-import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
 import fr.inria.lille.shexjava.GlobalFactory;
 import fr.inria.lille.shexjava.schema.Label;
 import fr.inria.lille.shexjava.schema.ShexSchema;
 import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
 import fr.inria.lille.shexjava.validation.RecursiveValidation;
 import fr.inria.lille.shexjava.validation.ValidationAlgorithm;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.jena.JenaRDF;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -32,10 +35,11 @@ public class ShapeTree {
     private DocumentContentsLoader documentContentsLoader;
     private String id;
     private String expectedResourceType;
-    private String validatedByShapeUri;
+    private String shape;
     private String label;
     private String supports;
     private List<URI> contains = new ArrayList<>();
+    private List<String> alsoAllow = new ArrayList<>();
     private List<ReferencedShapeTree> references;
 
     public ShapeTree(DocumentContentsLoader documentContentsLoader) {
@@ -46,15 +50,36 @@ public class ShapeTree {
         return new URI(this.id);
     }
 
-    public ValidationResult validateContent(Graph graph, URI focusNodeURI, ShapeTreeResourceType resourceType) throws IOException, URISyntaxException {
-        if (Boolean.TRUE.equals(this.expectsContainer()) != (resourceType == ShapeTreeResourceType.CONTAINER)) {
+    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URI focusNodeURI) throws IOException, URISyntaxException {
+
+        ValidationResult result = new ValidationResult(true, null);
+
+        // Check whether the proposed resource is the same type as what is expected by the shape tree
+        if (this.expectedResourceType != resourceType.toString()) {
             throw new ShapeTreeException(400, "The resource type being validated does not match the type expected by the ShapeTree");
         }
 
-        if (this.validatedByShapeUri == null) {
+        // If a label is specified, check if the proposed name is the same
+        if (this.label != null && !this.label.equals(requestedName)) {
+            throw new ShapeTreeException(400, "The proposed resource name does not match the resource label expected by the ShapeTree");
+        }
+
+        // If the shape tree specifies a shape to validate, perform shape validation
+        if (this.shape != null) {
+            ValidationResult shapeResult = this.validateGraph(bodyGraph, focusNodeURI);
+            result = shapeResult;
+        }
+
+        return result;
+
+    }
+
+    public ValidationResult validateGraph(Graph graph, URI focusNodeURI) throws IOException, URISyntaxException {
+
+        if (this.shape == null) {
             throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") that does not have an associated Shape");
         }
-        URI resolvedShapeURI = URI.create(this.id).resolve(this.validatedByShapeUri);
+        URI resolvedShapeURI = URI.create(this.id).resolve(this.shape);
 
         URI shapeResourceURI = resolvedShapeURI;
         if (resolvedShapeURI.toString().contains("#")) {
@@ -90,80 +115,123 @@ public class ShapeTree {
         GlobalFactory.RDFFactory = jenaRDF;
 
         ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
-        Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.validatedByShapeUri));
-        IRI focusNode = GlobalFactory.RDFFactory.createIRI(focusNodeURI.toString());
-        log.debug("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
-        validation.validate(focusNode, shapeLabel);
+        Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.shape));
 
-        boolean valid = validation.getTyping().isConformant(focusNode, shapeLabel);
-        return new ValidationResult(valid);
+        if (focusNodeURI != null) {
+
+            IRI focusNode = GlobalFactory.RDFFactory.createIRI(focusNodeURI.toString());
+            log.debug("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
+            validation.validate(focusNode, shapeLabel);
+            boolean valid = validation.getTyping().isConformant(focusNode, shapeLabel);
+            return new ValidationResult(valid, focusNodeURI);
+
+        } else {
+
+            List<Node> evaluateNodes = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
+
+            for (Node evaluateNode : evaluateNodes) {
+
+                IRI node = GlobalFactory.RDFFactory.createIRI(evaluateNode.getURI());
+                validation.validate(node, shapeLabel);
+                boolean valid = validation.getTyping().isConformant(node, shapeLabel);
+
+                if (!valid) {
+                    continue;
+                } else {
+                    return new ValidationResult(valid, URI.create(evaluateNode.getURI()));
+                }
+
+            }
+
+            return new ValidationResult(false, null);
+
+        }
     }
 
-    public ShapeTree findMatchingContainsShapeTree(String requestedName, URI targetShapeTreeHint, ShapeTreeResourceType resourceType) throws URISyntaxException, ShapeTreeException {
-        if (this.contains == null || this.contains.isEmpty()) {
-            if (this.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_RESOURCE)) {
-                return this;
+    public ShapeTreeMatch findMatchingShapeTreeInContains(String requestedName, ShapeTreeResourceType resourceType, URI targetShapeTreeURI, Graph bodyGraph, String focusNode) throws URISyntaxException, IOException, ShapeTreeException {
+
+        // TODO - Once we get through this, need to determine if there's a way to optimize out recurring calls
+
+        // Not a containing shape tree
+        if (this.contains == null || this.contains.isEmpty()) { return null; }
+
+        ShapeTreeMatch match = new ShapeTreeMatch();
+
+        // If a target shape was supplied
+        if (targetShapeTreeURI != null) {
+            // And if it exists in st:contains
+            if (this.contains.contains(targetShapeTreeURI)) {
+                // Return a ShapeTreeMatch. There is an expectation that a client smart enough to provide a target
+                // shape tree will be smart enough to provide the right focus node.
+                ShapeTree targetShapeTree = ShapeTreeFactory.getShapeTree(targetShapeTreeURI);
+                return new ShapeTreeMatch(targetShapeTreeURI.toString(),
+                                          targetShapeTree.getShape(),
+                                          focusNode, false);
             } else {
-                return null;
+                // We have a misunderstanding if a target shape tree is supplied but doesn't exist in st:contains
+                throw new ShapeTreeException(422, "A target shape tree was provided (" + targetShapeTreeURI + ") but it did not exist within :contains");
+            }
+        } else {
+            // For each shape tree in st:contains
+            for (URI containsShapeTreeURI : this.contains) {
+
+                ShapeTree containsShapeTree = ShapeTreeFactory.getShapeTree(containsShapeTreeURI);
+                if (containsShapeTree == null) { continue; } // Continue if the shape tree isn't gettable
+
+                // Evaluate the shape tree against the attributes of the proposed resources
+                // TODO - Will need to create this method, should be validateResource -> calls validateAttributes -> calls validateGraph
+                ValidationResult result = containsShapeTree.validateResource(requestedName, resourceType, bodyGraph, null);
+
+                // Continue if the proposed attributes were not a match
+                if (!result.getValid()) { continue; }
+
+                // Update ShapeTreeMatch with the information
+                return new ShapeTreeMatch(containsShapeTreeURI.toString(),
+                           containsShapeTree.getShape(),
+                           result.getMatchingNode().toString(), false);
             }
         }
 
-        for (URI childShapeTreeURI : this.contains) {
-            ShapeTree childShapeTree = ShapeTreeFactory.getShapeTree(childShapeTreeURI);
-            if (childShapeTree == null) {
-                continue;
-            }
-
-            // Allow a target shape tree hint to be passed into matching to skip URITemplate matching
-            if (targetShapeTreeHint != null) {
-                if (this.contains.contains(targetShapeTreeHint)) {
-                    return childShapeTree;
-                } else {
-                    throw new ShapeTreeException(422, "A target shape tree hint was provided (" + targetShapeTreeHint + ") but it did not exist within :contains");
-                }
-            }
-        }
-
-        // Within this block of code, it means a shape tree hint was not provided
+        // No target shape tree was provided, and no match could be derived on its own
         // At this point it must be decided if an unexpected resource is allowed to be created
-        // Default behavior is assumed to be ALLOW_NONE
 
-        // If ALLOW_NONE is explicitly set, reject
-        if (this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NONE))) {
-            throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, the :AllowNone was specified within :contents"));
+        // Default behavior is assumed to be ALLOW_ONLY what was specified in st:contains and nothing else
+        if (this.alsoAllow == null || this.alsoAllow.isEmpty() ||
+                this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_ONLY))) {
+            throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, :AllowOnly does not permit any exceptions"));
         }
 
         // If none of the other ALLOW_* predicates are present, reject by default
-        if (!this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES)) &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))
+        if (!this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES)) &&
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) &&
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))
         ) {
             throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, no :Allows* are specified to mitigate"));
         }
 
         // If it is a non-RDF source and non-RDF sources are not explicitly allowed for...
         if (resourceType == ShapeTreeResourceType.NON_RDF &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES))) {
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES))) {
             throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, the requested resource is a NonRDFSource and :AllowNonRDFSources was not specified within :contents"));
         }
-        // if it is a Container source and Container sources are not explicitly allowed for...
+        // if it is a Container and Containers are not explicitly allowed for...
         if (resourceType == ShapeTreeResourceType.CONTAINER &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS))) {
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS))) {
             throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(),"Further, the requested resource is a Container and :AllowContainers was not specified within :contents"));
         }
         //
         if (resourceType == ShapeTreeResourceType.RESOURCE &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
-                !this.contains.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))) {
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_ALL)) &&
+                !this.alsoAllow.contains(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES))) {
             throw new ShapeTreeException(422, exceptionMessage(requestedName, this.getId(), "Further, the requested resource is a Resource and :AllowResources was not specified within :contents"));
         }
-        // If we return null, it will indicate there is nothing to validate against, and that's okay
-        // because we've already validated if the type of incoming Resource is allowed in the absence of a
-        // URI template match
-        return null;
+
+        // Return a ShapeTreeMatch indicating that while no shape tree was matched, the resource
+        // is still allowed per st:alsoAllow
+        return new ShapeTreeMatch(null, null, null, true);
     }
 
     public Iterator<ReferencedShapeTree> getReferencedShapeTrees() throws URISyntaxException, ShapeTreeException {

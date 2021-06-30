@@ -13,6 +13,7 @@ public class ShapeTreeResource {
     private String body;
     private boolean exists;
     private boolean container;
+    private boolean metadata;
     private Map<String, List<String>> attributes;
 
     public String getFirstAttributeValue(String attributeName) {

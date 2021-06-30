@@ -28,7 +28,7 @@ public final class ShapeTreeVocabulary {
     public static final String ALLOW_CONTAINERS = Namespaces.SHAPETREE + "AllowContainers";
     public static final String ALLOW_NON_RDF_SOURCES = Namespaces.SHAPETREE + "AllowNonRDFSources";
     public static final String ALLOW_ALL = Namespaces.SHAPETREE + "AllowAll";
-    public static final String ALLOW_NONE = Namespaces.SHAPETREE + "AllowNone";
+    public static final String ALLOW_ONLY = Namespaces.SHAPETREE + "AllowOnly";
     public static final String SHAPETREE_CONTAINER = Namespaces.SHAPETREE + "ShapeTreeContainer";
     public static final String SHAPETREE_RESOURCE = Namespaces.SHAPETREE + "ShapeTreeResource";
     public static final String HAS_SHAPETREE_DECORATOR_INDEX = Namespaces.SHAPETREE + "hasShapeTreeDecoratorIndex";
