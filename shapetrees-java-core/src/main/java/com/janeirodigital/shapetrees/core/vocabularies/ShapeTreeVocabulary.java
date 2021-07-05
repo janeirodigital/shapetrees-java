@@ -19,16 +19,9 @@ public final class ShapeTreeVocabulary {
     // TODO: Leaving this here temporarily but must be cleaned out
     public static final String TRAVERSE_VIA_SHAPE_PATH = Namespaces.SHAPETREE + "traverseViaShapePath";
     // TODO: Leaving this here temporarily but must be cleaned out
-    public static final String VALIDATED_BY = Namespaces.SHAPETREE + "validatedBy";
     public static final String SHAPE = Namespaces.SHAPETREE + "shape";
     public static final String FOCUS_NODE = Namespaces.SHAPETREE + "node";
     public static final String SUPPORTS = Namespaces.SHAPETREE + "supports";
-    // TODO: Remove these
-    public static final String ALLOW_RESOURCES = Namespaces.SHAPETREE + "AllowResources";
-    public static final String ALLOW_CONTAINERS = Namespaces.SHAPETREE + "AllowContainers";
-    public static final String ALLOW_NON_RDF_SOURCES = Namespaces.SHAPETREE + "AllowNonRDFSources";
-    public static final String ALLOW_ALL = Namespaces.SHAPETREE + "AllowAll";
-    public static final String ALLOW_ONLY = Namespaces.SHAPETREE + "AllowOnly";
     public static final String CONTAINER = Namespaces.SHAPETREE + "Container";
     public static final String RESOURCE = Namespaces.SHAPETREE + "Resource";
     public static final String NON_RDF_RESOURCE = Namespaces.SHAPETREE + "NonRDFResource";

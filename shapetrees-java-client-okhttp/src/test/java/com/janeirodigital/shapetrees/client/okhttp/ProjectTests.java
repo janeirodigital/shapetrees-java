@@ -28,6 +28,8 @@ public class ProjectTests extends BaseShapeTreeTest {
 
         dispatcherList.add(new DispatcherEntry(List.of("project/root-container"), "GET", "/", null));
         dispatcherList.add(new DispatcherEntry(List.of("project/root-container-locator"), "GET", "/.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project/shex", null));
 
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
     }
@@ -75,6 +77,9 @@ public class ProjectTests extends BaseShapeTreeTest {
                                                                             "/data/",
                                                                             null));
 
+        // Call the plant shape tree operation, which will find nothing planted
+        // Ensure that the plant was successful
+
         // Plant a shape tree to manage it
         // TODO - Setting the locator for the time-being
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"),
@@ -111,6 +116,7 @@ public class ProjectTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         // Create an intersecting shape tree (essentially two locations) - success
+        // Combine this with prior?
 
     }
 

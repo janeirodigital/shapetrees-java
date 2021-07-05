@@ -326,10 +326,14 @@ public abstract class AbstractValidatingMethodHandler {
 
         // 1. Determine the shape tree to manage the target container (first one has to come from the provided location)
 
-        // Don't need to validate primary resource against parent shape tree if at the root of the plant hierarchy
+
+
         if (parentLocation.equals(rootLocation)) {
 
-            // At the root of the plant hierarchy. No parent shape tree to validate the primary resource against.
+            // If we are at the root of the plant hierarchy we don't need to validate the primary resource against
+            // a shape tree managing a parent container. We only need to validate the primary resource against
+            // the shape tree that is being planted at the root to ensure it conforms.
+
             primaryResourceShapeTree = ShapeTreeFactory.getShapeTree(URI.create(rootLocation.getShapeTree()));
             // Validate the root primary resource conforms with the root shape tree
             ValidationResult validationResult = primaryResourceShapeTree.validateResource(primaryResource);
@@ -369,33 +373,24 @@ public abstract class AbstractValidatingMethodHandler {
                                                                           matchingNode,
                                                                           primaryResourceShapeTree.getShape());
 
-        if (primaryResource.isContainer() &&                        // If the primary resource is a container, and
-            primaryResourceShapeTree.getContains() != null &&       // If its shape tree specifies its contents with st:contains
-            !primaryResourceShapeTree.getContains().isEmpty()) {    // Evaluate the contained resources for conformance
-
-            List<ShapeTreeResource> containedResources = this.resourceAccessor.getContainedResources(shapeTreeContext, primaryResource.getUri());
+        // If the primary resource is a container, and its shape tree specifies its contents with st:contains
+        // Recursively traverse the hierarchy and perform shape tree assignment
+        if (primaryResource.isContainer() && primaryResourceShapeTree.getContains() != null && !primaryResourceShapeTree.getContains().isEmpty()) {
 
             // TODO - Provide a configurable maximum limit on contained resources for a recursive plant, generate ShapeTreeException
-
+            List<ShapeTreeResource> containedResources = this.resourceAccessor.getContainedResources(shapeTreeContext, primaryResource.getUri());
+            // If the container is not empty
             if (containedResources != null && !containedResources.isEmpty()) {
-
                 // Sort contained resources so that containers are evaluated first, then resources
                 Collections.sort(containedResources, new SortByShapeTreeResourceType());
                 // Perform a depth first validation and assignment for each contained resource
                 for (ShapeTreeResource containedResource : containedResources) {
-                    validationResponse = assignShapeTreeToResource(shapeTreeContext,
-                            rootLocator,
-                            rootLocation,
-                            primaryResourceLocation,
-                            containedResource);
+                    // Recursively call this function on the contained resource
+                    validationResponse = assignShapeTreeToResource(shapeTreeContext, rootLocator, rootLocation, primaryResourceLocation, containedResource);
                     // return if there is a validation failure during assignment
-                    if (!validationResponse.isValidRequest()) {
-                        return validationResponse;
-                    }
-
+                    if (!validationResponse.isValidRequest()) { return validationResponse; }
                 }
             }
-
         }
 
         ShapeTreeLocator primaryResourceLocator = null;
@@ -404,8 +399,8 @@ public abstract class AbstractValidatingMethodHandler {
             // If we are at the root of the plant hierarchy, use the root locator from the initial plant request body
             primaryResourceLocator = rootLocator;
         } else {
-
-            // Not at the root, need to build a new shape tree locator, and create or update the associated metadata resource
+            // Not at the root of the plant hierarchy. Check to see if the primary resource has an existing shape
+            // tree locator assigned, or create a new one. Existing locators will be updated with a new location
 
             // First check for an existing metadata resource
             primaryMetadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, primaryResource);
@@ -414,9 +409,8 @@ public abstract class AbstractValidatingMethodHandler {
                 // If the existing metadata resource doesn't exist make a new shape tree locator
                 primaryResourceLocator = new ShapeTreeLocator(primaryMetadataResource.getUri().toString());
             } else {
-                // Get the existing shapetree locator (and associated locations) from the existing metadata resource graph
-                primaryResourceLocator =
-                        ShapeTreeLocator.getShapeTreeLocatorFromGraph(primaryMetadataResource.getUri().toString(),
+                // Get the existing shape tree locator from the metadata resource graph
+                primaryResourceLocator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(primaryMetadataResource.getUri().toString(),
                                                 GraphHelper.readStringIntoGraph(primaryMetadataResource.getUri(),
                                                 primaryMetadataResource.getBody(),
                                                 primaryMetadataResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue())));

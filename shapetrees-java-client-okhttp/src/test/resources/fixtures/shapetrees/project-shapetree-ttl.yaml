@@ -4,30 +4,30 @@ headers:
   - 'Content-type:text/turtle'
 body: >
   PREFIX st: <http://www.w3.org/ns/shapetrees#>
-  PREFIX ex: <http://www.example.com/ns/ex#>
+  PREFIX pm: <${SERVER_BASE}/static/shex/project/shex#>
 
   <#ProjectTree>
     a st:ShapeTree ;
     st:expectsType st:Container ;
-    st:shape ex:ProjectShape ;
+    st:shape pm:ProjectShape ;
     st:contains <#MilestoneTree> .
 
   <#MilestoneTree>
     a st:ShapeTree ;
     st:expectsType st:Container ;
-    st:shape ex:MilestoneShape ;
+    st:shape pm:MilestoneShape ;
     st:contains <#TaskTree>, <#IssueTree> .
 
   <#TaskTree>
     a st:ShapeTree ;
     st:expectsType st:Container ;
-    st:shape ex:TaskShape ;
+    st:shape pm:TaskShape ;
     st:contains <#AttachmentTree> .
 
   <#IssueTree>
     a st:ShapeTree ;
     st:expectsType st:Container ;
-    st:shape ex:IssueShape ;
+    st:shape pm:IssueShape ;
     st:contains <#AttachmentTree> .
 
   <#AttachmentTree>

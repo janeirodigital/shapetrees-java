@@ -30,6 +30,7 @@ public class PlantTests extends BaseShapeTreeTest {
         dispatcherList.add(new DispatcherEntry(List.of("plant/unmanaged-locator"), "GET", "/unmanaged/.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("plant/unmanaged-locator-planted"), "PUT", "/unmanaged/.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project/shex", null));
 
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
 
@@ -49,8 +50,6 @@ public class PlantTests extends BaseShapeTreeTest {
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
-
-    // TODO - Add Fail to plant on unmanaged when meta doesn't point to proper primary
 
     @Order(2)
     @SneakyThrows

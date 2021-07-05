@@ -79,10 +79,19 @@ public class ShapeTreeLocator {
         return locatorGraph;
     }
 
-    public void addShapeTreeLocation(ShapeTreeLocation location) {
-        // Must check to ensure that there isn't already an equivalent location
-        // TODO - Implement Add Shape Tree Location
-        // Should probably generate an exception is the same one already exists
+    public void addShapeTreeLocation(ShapeTreeLocation location) throws ShapeTreeException {
+
+        // Check for an existing shape tree location
+        if (this.locations != null && !this.locations.isEmpty()) {
+            for (ShapeTreeLocation existingLocation : this.locations) {
+                if (existingLocation.equals(location)) {
+                    throw new ShapeTreeException(422, "Identical shape tree location cannot be added to Shape Tree Locator: " + this.id);
+                }
+            }
+        }
+
+        this.locations.add(location);
+
     }
 
     public ShapeTreeLocation getContainingShapeTreeLocation() throws URISyntaxException, ShapeTreeException {

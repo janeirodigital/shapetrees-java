@@ -36,9 +36,6 @@ public class ShapeTreeFactory {
     }
 
     public static ShapeTree getShapeTree(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
-        if (isShapeTreeAllowIRI(shapeTreeURI)) {
-            return null;
-        }
 
         if (localShapeTreeCache.containsKey(shapeTreeURI)) {
             log.debug("[{}] previously cached -- returning", shapeTreeURI.toString());
@@ -79,7 +76,7 @@ public class ShapeTreeFactory {
         if (expectsType == null) throw new ShapeTreeException(500, "Shape Tree :expectsType not found");
         shapeTree.setExpectedResourceType(expectsType);
         // Set Shape URI
-        shapeTree.setShape(getStringValue(model, resource, ShapeTreeVocabulary.VALIDATED_BY));
+        shapeTree.setShape(getStringValue(model, resource, ShapeTreeVocabulary.SHAPE));
         // Set Label
         shapeTree.setLabel(getStringValue(model, resource, RDFS_LABEL));
         // Set Supports
@@ -117,19 +114,11 @@ public class ShapeTreeFactory {
             List<URI> uris = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
             shapeTree.setContains(uris);
             for (URI uri : uris) {
-                if (!localShapeTreeCache.containsKey(uri) && !isShapeTreeAllowIRI(uri)) {
+                if (!localShapeTreeCache.containsKey(uri)) {
                     recursivelyParseShapeTree(model, model.getResource(uri.toString()));
                 }
             }
         }
-    }
-
-    private static boolean isShapeTreeAllowIRI(URI uri) throws URISyntaxException {
-        return uri.equals(new URI(ShapeTreeVocabulary.ALLOW_ALL)) ||
-                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_ONLY)) ||
-                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_RESOURCES)) ||
-                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_CONTAINERS)) ||
-                uri.equals(new URI(ShapeTreeVocabulary.ALLOW_NON_RDF_SOURCES));
     }
 
     private static String getStringValue(Model model, Resource resource, String predicate) {
