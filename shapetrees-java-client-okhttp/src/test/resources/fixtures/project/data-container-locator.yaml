@@ -3,12 +3,12 @@ delay: 0
 headers:
 body: >
 
-  PREFIX st: <http://www.w3.org/ns/shapetree#>
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
   PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   PREFIX ex: <http://www.example/ns/ex#>
 
   <>
-    <http://www.w3.org/ns/shapetree#hasShapeTreeLocator> <#locator> .
+    <http://www.w3.org/ns/shapetrees#hasShapeTreeLocator> <#locator> .
 
   <#locator>
     a st:ShapeTreeLocator ;

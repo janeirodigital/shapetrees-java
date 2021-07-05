@@ -3,6 +3,7 @@ package com.janeirodigital.shapetrees.core.models;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.net.URI;
@@ -16,7 +17,7 @@ import java.net.URISyntaxException;
  * which that managed resource resides.
  * https://shapetrees.org/TR/specification/#locator
 */
-@Getter @AllArgsConstructor
+@Getter @AllArgsConstructor @EqualsAndHashCode
 public class ShapeTreeLocation {
 
     private String shapeTree;               // Identifies the shape tree to be associated with the managed resource

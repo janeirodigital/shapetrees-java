@@ -242,12 +242,12 @@ public class ShapeTreeValidationTests extends BaseShapeTreeTest {
     @Order(13)
     @SneakyThrows
     @Test
-    @Label("Validate AllowNone")
-    void testMatchingNoMatchAllowNone() {
+    @Label("Validate AllowOnly")
+    void testMatchingNoMatchAllowOnly() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTree tree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/matching/shapetree#containsAllowNone"));
+        ShapeTree tree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/matching/shapetree#containsAllowOnly"));
         Assertions.assertThrows(ShapeTreeException.class, () -> tree.findMatchingContainsShapeTree("anything", null, ShapeTreeResourceType.RESOURCE));
         Assertions.assertThrows(ShapeTreeException.class, () -> tree.findMatchingContainsShapeTree("anything", null, ShapeTreeResourceType.CONTAINER));
         Assertions.assertThrows(ShapeTreeException.class, () -> tree.findMatchingContainsShapeTree("anything", null, ShapeTreeResourceType.NON_RDF));

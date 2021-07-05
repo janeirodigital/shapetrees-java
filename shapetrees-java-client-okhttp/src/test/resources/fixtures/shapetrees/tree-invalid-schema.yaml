@@ -3,7 +3,7 @@ delay: 0
 headers:
   - 'Content-type:text/turtle'
 body: >
-  @prefix st: <http://www.w3.org/ns/shapetree#> .
+  @prefix st: <http://www.w3.org/ns/shapetrees#> .
   @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
   @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
   @prefix med: <http://shapetrees.pub/ts/medical-record/> .
@@ -14,9 +14,9 @@ body: >
   <#medicalRecord>
     st:validatedBy <${SERVER_BASE}/static/shex/nonexisting#medicalRecord> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#medicalRecordInvalidSchema>
     st:validatedBy <${SERVER_BASE}/static/shex/invalid#medicalRecord> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .

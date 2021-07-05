@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.core.methodhandlers;
 
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
@@ -18,16 +19,34 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
 
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            // 1. Determine whether we are creating a new resource or updating one
-            // 2. If we are creating a new resource
-            //    1. Go through the same logic / evaluation as POST
-            // 3. If we are updating a resource
-            //    1. If the resource is managed, check resource conformance
+            ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
 
+            if (targetResource.isMetadata()) {
+                // Target resource is for shape tree metadata, so this is either a plant or unplant operation.
+                return plantShapeTree(shapeTreeContext, shapeTreeRequest, targetResource);
+            } else {
+                if (targetResource.isExists()) {
+                    // The target resource already exists
+                    if (targetResource.isManaged()) {
+                        // If it is managed by a shape tree the update must be validated
+                        return updateShapeTreeInstance(shapeTreeContext, shapeTreeRequest);
+                    }
+                } else {
+                    // The target resource doesn't exist
+                    ShapeTreeResource parentResource = this.resourceAccessor.getResource(shapeTreeContext, getParentContainerURI(targetResource));
+                    if (parentResource.isManaged()) {
+                        // If the parent container is managed by a shape tree, the resource to create must be validated
+                        return createShapeTreeInstance(shapeTreeContext, shapeTreeRequest);
+                    }
+                }
+            }
+
+            // Reaching this point means validation was not necessary
+            // Pass the request along with no validation
             return ShapeTreeValidationResponse.passThroughResponse();
 
-        //} catch (ShapeTreeException ste) {
-        //    return new ShapeTreeValidationResponse(ste);
+        } catch (ShapeTreeException ste) {
+            return new ShapeTreeValidationResponse(ste);
         } catch (Exception ex) {
             return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
         }

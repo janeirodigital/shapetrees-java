@@ -11,4 +11,5 @@ public interface ResourceAccessor {
     ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException;
     ShapeTreeResource createResource(ShapeTreeContext context, URI resourceURI, Map<String, List<String>> headers, String body, String contentType) throws ShapeTreeException;
     ShapeTreeResource updateResource(ShapeTreeContext context, ShapeTreeResource updatedResource) throws ShapeTreeException;
+    List<ShapeTreeResource> getContainedResources(ShapeTreeContext context, URI containerResourceURI) throws ShapeTreeException;
 }

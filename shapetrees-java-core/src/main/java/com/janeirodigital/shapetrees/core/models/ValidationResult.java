@@ -10,4 +10,13 @@ import java.net.URI;
 public class ValidationResult {
     private Boolean valid;
     private URI matchingNode;
+    private String message;
+
+    public Boolean isValid() {
+        if (this.valid != null && this.valid == true) {
+            return true;
+        }
+        return false;
+    }
+
 }

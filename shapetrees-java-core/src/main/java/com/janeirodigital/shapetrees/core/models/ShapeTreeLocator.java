@@ -33,7 +33,11 @@ import java.util.List;
 public class ShapeTreeLocator {
 
     private String id;
-    private List<ShapeTreeLocation> locations;     // Each ShapeTreeLocator has one or more ShapeTreeLocations
+    private List<ShapeTreeLocation> locations = new ArrayList<>();   // Each ShapeTreeLocator has one or more ShapeTreeLocations
+
+    public ShapeTreeLocator(String id) {
+        this.id = id;
+    }
 
     public URI getURI() throws URISyntaxException {
         return new URI(this.id);
@@ -46,30 +50,39 @@ public class ShapeTreeLocator {
         String locatorSubject = resourceBase + "locator";
 
         // <> st:hasShapeTreeLocator <#locator>
-        locatorGraph.add(GraphHelper.newTriple(this.getURI().toString(), ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR, locatorSubject));
+        locatorGraph.add(GraphHelper.newTriple(this.getURI().toString(), ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR, URI.create(locatorSubject)));
 
         // <#locator> a st:ShapeTreeLocator
-        locatorGraph.add(GraphHelper.newTriple(locatorSubject, RDF.type.toString(), ShapeTreeVocabulary.SHAPETREE_LOCATOR));
+        locatorGraph.add(GraphHelper.newTriple(locatorSubject, RDF.type.toString(), URI.create(ShapeTreeVocabulary.SHAPETREE_LOCATOR)));
 
         // For each location create a blank node and populate
         for (ShapeTreeLocation location : this.locations) {
 
             // <#locator> st:contains [ location1, location2 ]
             Node locationNode = NodeFactory.createBlankNode();
-            String locationSubject = locationNode.toString();
-            locatorGraph.add(GraphHelper.newTriple(locatorSubject, ShapeTreeVocabulary.SHAPETREE_LOCATION, locationNode));
+            locatorGraph.add(GraphHelper.newTriple(locatorSubject, ShapeTreeVocabulary.LOCATION, locationNode));
 
-            locatorGraph.add(GraphHelper.newTriple(locationSubject, ShapeTreeVocabulary.HAS_SHAPE_TREE, location.getShapeTree()));
-            locatorGraph.add(GraphHelper.newTriple(locationSubject, ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE, location.getRootShapeTree()));
-            locatorGraph.add(GraphHelper.newTriple(locationSubject, ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_INSTANCE, location.getRootShapeTreeInstance()));
+            locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE), NodeFactory.createURI(location.getShapeTree())));
+            locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE), NodeFactory.createURI(location.getRootShapeTree())));
+            locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_INSTANCE), NodeFactory.createURI(location.getRootShapeTreeInstance())));
 
-            if (location.getShape() != null) { locatorGraph.add(GraphHelper.newTriple(locationSubject, ShapeTreeVocabulary.SHAPE, location.getShape())); }
+            if (location.getShape() != null) {
+                locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.SHAPE), NodeFactory.createURI(location.getShape())));
+            }
 
-            if (location.getFocusNode() != null) { locatorGraph.add(GraphHelper.newTriple(locationSubject, ShapeTreeVocabulary.FOCUS_NODE, location.getShapeTree())); }
+            if (location.getFocusNode() != null) {
+                locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.FOCUS_NODE), NodeFactory.createURI(location.getFocusNode())));
+            }
 
         }
 
         return locatorGraph;
+    }
+
+    public void addShapeTreeLocation(ShapeTreeLocation location) {
+        // Must check to ensure that there isn't already an equivalent location
+        // TODO - Implement Add Shape Tree Location
+        // Should probably generate an exception is the same one already exists
     }
 
     public ShapeTreeLocation getContainingShapeTreeLocation() throws URISyntaxException, ShapeTreeException {
@@ -84,15 +97,26 @@ public class ShapeTreeLocator {
         return null;
     }
 
+    public List<ShapeTreeLocation> getUpdatedShapeTreeLocations(ShapeTreeLocator otherLocator) throws URISyntaxException {
+
+        ArrayList<ShapeTreeLocation> updatedLocations = new ArrayList<ShapeTreeLocation>();
+
+        for (ShapeTreeLocation existingLocation : this.getLocations()) {
+            for (ShapeTreeLocation otherLocation : otherLocator.getLocations()) {
+                if (!existingLocation.equals(otherLocation)) {
+                    updatedLocations.add(otherLocation);
+                }
+            }
+        }
+        return updatedLocations;
+    }
+
     public static ShapeTreeLocator getShapeTreeLocatorFromGraph(String id, Graph shapeTreeMetadataGraph) {
 
         ShapeTreeLocator locator = new ShapeTreeLocator();
 
         // Assign the ID of the locator
         locator.setId(id);
-
-        // Each ShapeTreeLocator has one or more ShapeTreeLocations
-        List<ShapeTreeLocation> locations = new ArrayList<>();
 
         // Look up the ShapeTreeLocator in the Metadata Graph via (any subject node, rdf:type, st:ShapeTreeLocator)
         List<Triple> shapeTreeLocatorTriples = shapeTreeMetadataGraph.find(Node.ANY,
@@ -117,16 +141,14 @@ public class ShapeTreeLocator {
         // Shape Trees, §3: A shape tree locator includes one or more shape tree locations via st:location
         // https://shapetrees.org/TR/specification/#locator
         List<Triple> locationNodes = shapeTreeMetadataGraph.find(NodeFactory.createURI(locatorURI),
-                                                        NodeFactory.createURI(ShapeTreeVocabulary.SHAPETREE_LOCATION),
+                                                        NodeFactory.createURI(ShapeTreeVocabulary.LOCATION),
                                                         Node.ANY).toList();
 
         // For each st:location blank node, extract a new ShapeTreeLocation
         for (Triple locationNode : locationNodes) {
 
             // Find all of the triples for the current location blank node
-            List<Triple> locationTriples = shapeTreeMetadataGraph.find(NodeFactory.createBlankNode(locationNode.getObject().toString()),
-                                                                        Node.ANY,
-                                                                        Node.ANY).toList();
+            List<Triple> locationTriples = shapeTreeMetadataGraph.find(locationNode.getObject(), Node.ANY, Node.ANY).toList();
 
             String shapeTree = null;
             String rootShapeTree = null;
@@ -160,14 +182,12 @@ public class ShapeTreeLocator {
             }
 
             // Create a new Shape Tree Location from the assigned triples and add it to the array of locations
-            locations.add(new ShapeTreeLocation(shapeTree, rootShapeTree, rootShapeTreeInstance, focusNode, shape));
+            locator.locations.add(new ShapeTreeLocation(shapeTree, rootShapeTree, rootShapeTreeInstance, focusNode, shape));
 
         }
 
-        // Add the array of Shape Tree Locations to the locator
-        locator.setLocations(locations);
-
         return locator;
+
     }
 
 

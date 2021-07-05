@@ -3,10 +3,7 @@ package com.janeirodigital.shapetrees.core.helpers;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -104,7 +101,7 @@ public class GraphHelper {
         Model model = ModelFactory.createDefaultModel();
         model.setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
         model.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
-        model.setNsPrefix("st", "http://www.w3.org/ns/shapetree#");
+        model.setNsPrefix("st", "http://www.w3.org/ns/shapetrees#");
         return model.getGraph();
     }
 
@@ -139,6 +136,9 @@ public class GraphHelper {
         }
         else if (object.getClass().equals(Boolean.class)) {
             objectNode = NodeFactory.createLiteralByValue(object, XSDDatatype.XSDboolean);
+        }
+        else if (object.getClass().equals(Node_Blank.class)) {
+            objectNode = (Node) object;
         }
 
         if (objectNode == null) {

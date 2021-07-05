@@ -110,10 +110,10 @@ public class ShapeTreeFactory {
         }
 
         // Containers are expected to have contents
-        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER)) {
-            throw new ShapeTreeException(400, "Contents predicate not expected outside of #ShapeTreeContainer Types");
+        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.CONTAINER)) {
+            throw new ShapeTreeException(400, "Contents predicate not expected outside of st:Container Types");
         }
-        if (shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.SHAPETREE_CONTAINER)) {
+        if (shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.CONTAINER)) {
             List<URI> uris = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
             shapeTree.setContains(uris);
             for (URI uri : uris) {

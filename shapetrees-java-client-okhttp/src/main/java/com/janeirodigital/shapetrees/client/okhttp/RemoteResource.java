@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
+import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
@@ -19,6 +20,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Convenience class that encapsulates an OkHttp-based http client to quickly retrieve
@@ -36,6 +38,7 @@ public class RemoteResource {
     private Graph parsedGraph;
     private String rawBody;
     private final ShapeTreeClientConfiguration clientConfiguration = new ShapeTreeClientConfiguration(false, false);
+    protected final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
     public RemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
         URI requestUri;
@@ -92,13 +95,72 @@ public class RemoteResource {
         return this.parsedGraph;
     }
 
-    public Boolean isContainer() {
-        String uriPath = this.uri.toString();
-        if (uriPath.contains("#")) {
-            uriPath = uriPath.substring(0, uriPath.indexOf("#"));
+    public String getName() {
+
+        // TODO - Need to catch out of bounds exceptions in this
+
+        String path = this.uri.getPath();
+
+        if (this.uri.getPath().equals("/")) return "/";
+
+        return path.substring(path.lastIndexOf('/') + 1);
+
+    }
+
+    public ShapeTreeResourceType getResourceType() throws IOException {
+
+        if (isContainer()) {
+            return ShapeTreeResourceType.CONTAINER;
         }
 
+        if (isRdfResource()) {
+            return ShapeTreeResourceType.RESOURCE;
+        } else {
+            return ShapeTreeResourceType.NON_RDF;
+        }
+
+    }
+
+    public Boolean isRdfResource() throws IOException {
+        String contentType = this.getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
+        if (contentType != null) {
+            return this.supportedRDFContentTypes.contains(contentType);
+        } else {
+            return false;
+        }
+    }
+
+    public Boolean isNonRdfSource() throws IOException {
+        return isRdfResource() ? false : true;
+    }
+
+    public Boolean isContainer() {
+        String uriPath = this.uri.getPath();
+
         return uriPath.endsWith("/");
+    }
+
+    public Boolean isMetadata() throws IOException {
+        // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
+        // with a metadata target, it is not a metadata resource (because it is pointing to one)
+        if (this.exists() && this.parsedLinkHeaders != null && this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+            return false;
+        }
+        // If the resource doesn't exist, currently we need to do some inference based on the URI
+        if (this.getUri().getPath().matches(".*\\.shapetree$")) { return true; }
+        if (this.getUri().getQuery().matches(".*ext\\=shapetree$")) { return true; }
+
+        return false;
+    }
+
+    public Boolean isManaged() throws IOException {
+
+        // If there is a metadata resource that
+        if (this.getMetadataResource(this.authorizationHeaderValue).exists()) {
+            return true;
+        }
+        return false;
+
     }
 
     public Map<String, List<String>> getResponseHeaders() { return this.responseHeaders; }
@@ -153,6 +215,25 @@ public class RemoteResource {
 
     public RemoteResource getMetadataResource(String authorizationHeaderValue) throws IOException {
         return new RemoteResource(this.getMetadataURI(), authorizationHeaderValue);
+    }
+
+    // Return the resource URI directly associated with a given resource
+    public URI getAssociatedURI() throws IOException {
+        // If metadata - it is primary uri
+        // If not metadata - it is metadata uri
+        if (this.isMetadata()) {
+
+            // If this implementation uses a dot notation for meta, trim it from the path
+            String basePath = this.getUri().getPath().replaceAll("\\.shapetree$", "");
+
+            // Rebuild without the query string in case that was employed
+            String associatedString = this.getUri().getScheme() + "://" + this.getUri().getAuthority() + basePath;
+
+            return URI.create(associatedString);
+
+        } else {
+            return URI.create(getMetadataURI());
+        }
     }
 
     @NotNull

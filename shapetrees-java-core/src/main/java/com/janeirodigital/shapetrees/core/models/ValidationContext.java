@@ -2,10 +2,13 @@ package com.janeirodigital.shapetrees.core.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Getter @AllArgsConstructor
+@Getter @Setter
+@AllArgsConstructor @NoArgsConstructor
 public class ValidationContext {
-    private final ShapeTree validatingShapeTree;
-    private final ValidationResult validationResult;
-    private final ShapeTreeLocator parentContainerLocator;
+    private ShapeTree validatingShapeTree;
+    private ValidationResult validationResult;
+    private ShapeTreeLocation managingLocation;
 }

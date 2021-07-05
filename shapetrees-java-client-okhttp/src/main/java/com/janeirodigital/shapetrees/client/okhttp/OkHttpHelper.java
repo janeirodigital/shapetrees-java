@@ -81,7 +81,12 @@ public class OkHttpHelper {
     }
 
     private static boolean isContainerFromHeaders(Map<String, List<String>> requestHeaders) {
-        Map<String, List<String>> parsedLinkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(requestHeaders.get(HttpHeaders.LINK.getValue()));
+
+        List<String> linkHeaders = requestHeaders.get(HttpHeaders.LINK.getValue());
+
+        if (linkHeaders == null) { return false; }
+
+        Map<String, List<String>> parsedLinkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(linkHeaders);
 
         if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null) {
             return parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||

@@ -1,0 +1,35 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX ex: <http://www.example.com/ns/ex#>
+
+  <#ProjectTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape ex:ProjectShape ;
+    st:contains <#MilestoneTree> .
+
+  <#MilestoneTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape ex:MilestoneShape ;
+    st:contains <#TaskTree>, <#IssueTree> .
+
+  <#TaskTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape ex:TaskShape ;
+    st:contains <#AttachmentTree> .
+
+  <#IssueTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape ex:IssueShape ;
+    st:contains <#AttachmentTree> .
+
+  <#AttachmentTree>
+    a st:ShapeTree ;
+    st:expectsType st:NonRDFResource .

@@ -97,10 +97,11 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
      * @throws URISyntaxException
      */
     @Override
-    public URI plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException {
+    public ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException {
 
         // Determine whether the target resource is already a managed resource
         ShapeTreeLocator locator = discoverShapeTree(context, targetResource);
+        RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
         // Initialize a shape tree location based on the supplied parameters
         ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree.toString(),
@@ -110,9 +111,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         // If the target resource is not managed, initialize a new locator
         if (locator == null) {
-            // Lookup the target resource for pointer to associated shape tree locator
-            RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
-            locator = new ShapeTreeLocator(resource.getUri().toString(), null);
+            locator = new ShapeTreeLocator(resource.getMetadataURI().toString());
         }
 
         // Add the location to the locator
@@ -122,7 +121,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         Request.Builder builder = new Request.Builder()
-                .url(targetResource.toString());
+                .url(resource.getMetadataURI().toString());
 
         // Determine which HTTP Link header type to send based on the recursive setting
         String linkType = Boolean.TRUE.equals(recursive) ? LinkRelations.PLANT_SHAPETREE_HIERARCHY.getValue() :
@@ -137,32 +136,12 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         byte[] bytes = sw.toString().getBytes("UTF-8");
 
         // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
-        Request plantPost = builder
+        Request plantBuilder = builder
                 .put(RequestBody.create(bytes))
                 .build();
 
-        // Send the request
-        Response response = client.newCall(plantPost).execute();
-
-        // SUCCESS - Locator was created or updated with new location
-        if (response.isSuccessful()) {
-
-            String locationHeader = response.header(HttpHeaders.LOCATION.getValue());
-            if (locationHeader != null) {
-                return new URI(locationHeader);
-            } else {
-                throw new IOException(response.code() + " No Location Header provided");
-            }
-        } else {
-            // FAILURE - Pass along the response code and response body
-            String responseBodyString = null;
-            try (ResponseBody body = response.body()) {
-                if (body != null) {
-                    responseBodyString = body.string();
-                }
-            }
-            throw new IOException(response.code() + " " + responseBodyString);
-        }
+        // Send the request and map the response
+        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(plantBuilder).execute());
     }
 
     // TODO - make createDataInstanceWithPut and createDataInstanceWithPost client routines

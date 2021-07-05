@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.client.okhttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.client.okhttp.fixtures.RequestMatchingFixtureDispatcher;
+import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
@@ -25,8 +26,10 @@ public class PlantTests extends BaseShapeTreeTest {
 
         List dispatcherList = new ArrayList();
 
-        dispatcherList.add(new DispatcherEntry(List.of("plant/unmanaged"), "GET", "/unmanaged", null));
-        dispatcherList.add(new DispatcherEntry(List.of("plant/unmanaged-locator"), "GET", "/unmanaged", null));
+        dispatcherList.add(new DispatcherEntry(List.of("plant/unmanaged"), "GET", "/unmanaged/", null));
+        dispatcherList.add(new DispatcherEntry(List.of("plant/unmanaged-locator"), "GET", "/unmanaged/.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("plant/unmanaged-locator-planted"), "PUT", "/unmanaged/.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null));
 
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
 
@@ -40,7 +43,14 @@ public class PlantTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
+
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/unmanaged/"), getURI(server, "/static/shapetrees/project/shapetree#ProjectTree"), null, false);
+
+        Assertions.assertEquals(201, response.getStatusCode());
+
     }
+
+    // TODO - Add Fail to plant on unmanaged when meta doesn't point to proper primary
 
     @Order(2)
     @SneakyThrows

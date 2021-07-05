@@ -46,11 +46,11 @@ public interface ShapeTreeClient {
      * @param targetShapeTree A URI representing the shape tree to plant for targetResource
      * @param focusNode An optional URI representing the target subject within targetResource used for shape validation
      * @param recursive An optional flag specifying a recursive plant over an existing hierarchy of resources. False by default.
-     * @return The URI of the Shape Tree Locator that was planted for targetResource
+     * @return ShapeTreeResponse containing status and response headers/attributes
      * @throws IOException IOException
      * @throws URISyntaxException URISyntaxException
      */
-    URI plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException;
+    ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException;
 
     /**
      * Creates a resource that has been validated against the provided shape tree

@@ -15,6 +15,31 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
         super();
     }
 
+    public ShapeTreeValidationResponse(ValidationContext validationContext) {
+
+        super();
+        this.requestFulfilled = false;
+        this.validRequest = true;
+        this.validationContext = validationContext;
+        if (!validationContext.getValidationResult().isValid()) {
+            this.validRequest = false;
+            this.statusCode = 422;
+            this.body = this.validationContext.getValidationResult().getMessage();
+        }
+
+    }
+
+    public ShapeTreeValidationResponse(Boolean validRequest, Boolean requestFulfilled) {
+
+        super();
+        this.statusCode = 201;
+        this.body = "OK";
+        this.requestFulfilled = requestFulfilled;
+        this.validRequest = validRequest;
+        this.validationContext = null;
+
+    }
+
     public ShapeTreeValidationResponse(ShapeTreeException ste) {
         super();
         this.validRequest = false;

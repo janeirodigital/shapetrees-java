@@ -3,7 +3,7 @@ delay: 0
 headers:
   - 'Content-type:text/turtle'
 body: >
-  @prefix st: <http://www.w3.org/ns/shapetree#> .
+  @prefix st: <http://www.w3.org/ns/shapetrees#> .
   @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
   @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
   @prefix med: <http://shapetrees.pub/ts/medical-record/> .
@@ -12,8 +12,8 @@ body: >
     st:hasShapeTreeDecoratorIndex med:decorator-index .
 
   <#medicalRecords>
-    st:contains <#medicalRecord>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer ;
+    st:contains <#medicalRecord>, st:AllowOnly ;
+    st:expectsType st:Container ;
 
     st:references
       [ st:hasShapeTree <#patients> ],
@@ -32,7 +32,7 @@ body: >
   <#medicalRecord>
     st:validatedBy <medrecord-schema#medicalRecord> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource ;
+    st:expectsType st:Resource ;
     st:references [
       st:hasShapeTree <#patient> ;
       st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:patient"
@@ -83,120 +83,120 @@ body: >
     ] .
 
   <#patients>
-    st:contains <#patient>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#patient>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#patient>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#appointments>
     rdfs:label "appointments" ;
-    st:contains <#appointment>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#appointment>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#appointment>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Appointment> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#conditions>
     rdfs:label "conditions" ;
-    st:contains <#condition>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#condition>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#condition>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Condition> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#encounters>
     rdfs:label "encounters" ;
-    st:contains <#encounter>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#encounter>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#encounter>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Encounter> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#prescriptions>
     rdfs:label "prescriptions" ;
-    st:contains <#prescription>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#prescription>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#prescription>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#MedicationRequest> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#allergies>
     rdfs:label "allergies" ;
-    st:contains <#allergy>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#allergy>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#allergy>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#AllergyIntolerance> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#observations>
     rdfs:label "observations" ;
-    st:contains <#observation>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#observation>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#observation>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Observation> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#diagnosticReports>
     rdfs:label "diagnosticReports" ;
-    st:contains <#diagnosticReport>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#diagnosticReport>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#diagnosticReport>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#DiagnosticReport> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#activities>
     rdfs:label "activities" ;
-    st:contains <#activity>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#activity>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#activity>
     st:validatedBy <https://xformativ.pub/xfh-patient/as/shapes/shex#DailyActivitySummary> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#practitioners>
     rdfs:label "practitioners" ;
-    st:contains <#practitioner>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#practitioner>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#practitioner>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Practitioner> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#documents>
     rdfs:label "documents" ;
     st:contains <#document>, st:AllowNonRDFSources ;
-    st:expectsType st:ShapeTreeContainer .
+    st:expectsType st:Container .
 
   <#document>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#DocumentReference> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .
 
   <#questionnaire-responses>
     rdfs:label "questionnaire responses" ;
-    st:contains <#questionnaire-response>, st:AllowNone ;
-    st:expectsType st:ShapeTreeContainer .
+    st:contains <#questionnaire-response>, st:AllowOnly ;
+    st:expectsType st:Container .
 
   <#questionnaire-response>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#QuestionnaireResponse> ;
     st:matchesUriTemplate "{id}" ;
-    st:expectsType st:ShapeTreeResource .
+    st:expectsType st:Resource .

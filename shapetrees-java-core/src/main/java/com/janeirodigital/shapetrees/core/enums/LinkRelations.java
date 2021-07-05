@@ -2,11 +2,11 @@ package com.janeirodigital.shapetrees.core.enums;
 
 public enum LinkRelations {
     DESCRIBED_BY("describedby"),
-    FOCUS_NODE("http://shapetrees.org/#FocusNode"),
+    FOCUS_NODE("http://www.w3.org/ns/shapetrees#FocusNode"),
     SHAPETREE_LOCATOR("http://www.w3.org/ns/shapetrees#ShapeTreeLocator"),
     PLANT_SHAPETREE("http://www.w3.org/ns/shapetrees#PlantShapeTree"),
     PLANT_SHAPETREE_HIERARCHY("http://www.w3.org/ns/shapetrees#PlantShapeTreeHierarchy"),
-    TARGET_SHAPETREE("http://shapetrees.org/#TargetShapeTree"),
+    TARGET_SHAPETREE("http://www.w3.org/ns/shapetrees#TargetShapeTree"),
     TYPE("type"),
     ACL("acl");
 

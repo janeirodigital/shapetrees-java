@@ -56,7 +56,7 @@ public class ShapeTreeParsingTests extends BaseShapeTreeTest {
     void retrieveAllowsIri() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ShapeTree allowAllShapeTree = ShapeTreeFactory.getShapeTree(new URI("http://www.w3.org/ns/shapetree#AllowAll"));
+        ShapeTree allowAllShapeTree = ShapeTreeFactory.getShapeTree(new URI("http://www.w3.org/ns/shapetrees#AllowAll"));
         Assertions.assertNull(allowAllShapeTree);
     }
 
