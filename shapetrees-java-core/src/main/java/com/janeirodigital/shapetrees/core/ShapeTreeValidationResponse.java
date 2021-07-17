@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ValidationContext;
+import com.janeirodigital.shapetrees.core.models.ValidationResult;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,22 +9,22 @@ import lombok.Setter;
 public class ShapeTreeValidationResponse extends ShapeTreeResponse {
     private boolean requestFulfilled;
     private boolean validRequest;
-    private ValidationContext validationContext;
+    private ValidationResult validationResult;
 
     public ShapeTreeValidationResponse() {
         super();
     }
 
-    public ShapeTreeValidationResponse(ValidationContext validationContext) {
+    public ShapeTreeValidationResponse(ValidationResult validationResult) {
 
         super();
         this.requestFulfilled = false;
         this.validRequest = true;
-        this.validationContext = validationContext;
-        if (!validationContext.getValidationResult().isValid()) {
+        this.validationResult = validationResult;
+        if (!validationResult.isValid()) {
             this.validRequest = false;
             this.statusCode = 422;
-            this.body = this.validationContext.getValidationResult().getMessage();
+            this.body = this.validationResult.getMessage();
         }
 
     }
@@ -36,7 +36,7 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
         this.body = "OK";
         this.requestFulfilled = requestFulfilled;
         this.validRequest = validRequest;
-        this.validationContext = null;
+        this.validationResult = null;
 
     }
 
@@ -52,11 +52,11 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
         return passThroughResponse(null);
     }
 
-    public static ShapeTreeValidationResponse passThroughResponse(ValidationContext validationContext) {
+    public static ShapeTreeValidationResponse passThroughResponse(ValidationResult validationResult) {
         ShapeTreeValidationResponse response = new ShapeTreeValidationResponse();
         response.setValidRequest(true);
         response.setRequestFulfilled(false);
-        response.setValidationContext(validationContext);
+        response.setValidationResult(validationResult);
         return response;
     }
 

@@ -326,9 +326,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         // 1. Determine the shape tree to manage the target container (first one has to come from the provided location)
 
-
-
-        if (parentLocation.equals(rootLocation)) {
+        if (atRootOfPlantHierarchy(rootLocation, primaryResource)) {
 
             // If we are at the root of the plant hierarchy we don't need to validate the primary resource against
             // a shape tree managing a parent container. We only need to validate the primary resource against
@@ -338,30 +336,23 @@ public abstract class AbstractValidatingMethodHandler {
             // Validate the root primary resource conforms with the root shape tree
             ValidationResult validationResult = primaryResourceShapeTree.validateResource(primaryResource);
             // Return failure if validation fails
-            if (!validationResult.isValid()) {
-                ValidationContext validationContext = new ValidationContext(primaryResourceShapeTree, validationResult, rootLocation);
-                return new ShapeTreeValidationResponse(validationContext);
-            }
+            if (!validationResult.isValid()) { return new ShapeTreeValidationResponse(validationResult); }
             // If the match with primaryResourceShapeTree included some shape validation, include the matching focus node
-            primaryResourceMatchingNode = validationResult.getMatchingNode();
+            primaryResourceMatchingNode = validationResult.getMatchingFocusNode();
 
 
         } else {
 
             // Get the shape tree managing the parent
             ShapeTree parentShapeTree = ShapeTreeFactory.getShapeTree(URI.create(parentLocation.getShapeTree()));
-            // Initialize a validation context to store results of parent shape tree validation
-            ValidationContext validationContext = new ValidationContext(parentShapeTree, null, parentLocation);
             // Validate proposed primary resource against the shape tree managing its parent container
-            validationContext.setValidationResult(parentShapeTree.validateContainedResource(primaryResource));
+            ValidationResult validationResult = parentShapeTree.validateContainedResource(primaryResource);
             // If the proposed primary resource won't validate against the parent container shape tree, return failure
-            if (!validationContext.getValidationResult().isValid()) {
-                return new ShapeTreeValidationResponse(validationContext);
-            }
+            if (!validationResult.isValid()) { return new ShapeTreeValidationResponse(validationResult); }
             // Extract the shape tree from parentShapeTree's st:contains that the primary resource matched with
-            primaryResourceShapeTree = validationContext.getValidatingShapeTree();
+            primaryResourceShapeTree = validationResult.getMatchingShapeTree();
             // If the match with primaryResourceShapeTree included shape validation, include the matching focus node
-            primaryResourceMatchingNode = validationContext.getValidationResult().getMatchingNode();
+            primaryResourceMatchingNode = validationResult.getMatchingFocusNode();
 
         }
 
@@ -395,9 +386,12 @@ public abstract class AbstractValidatingMethodHandler {
 
         ShapeTreeLocator primaryResourceLocator = null;
         ShapeTreeResource primaryMetadataResource = null;
-        if (!parentLocation.equals(rootLocation)) {
+        if (atRootOfPlantHierarchy(rootLocation, primaryResource)) {
             // If we are at the root of the plant hierarchy, use the root locator from the initial plant request body
+            // We do not need to add the location to the locator, because it already exists (from the initial plant)
             primaryResourceLocator = rootLocator;
+            // Lookup the associated metadata resource (which may not exist)
+            primaryMetadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, primaryResource);
         } else {
             // Not at the root of the plant hierarchy. Check to see if the primary resource has an existing shape
             // tree locator assigned, or create a new one. Existing locators will be updated with a new location
@@ -415,10 +409,11 @@ public abstract class AbstractValidatingMethodHandler {
                                                 primaryMetadataResource.getBody(),
                                                 primaryMetadataResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue())));
             }
+            // Add the shape tree location to the shape tree locator for the primary resource
+            primaryResourceLocator.addShapeTreeLocation(primaryResourceLocation);
+
         }
 
-        // Add the shape tree location to the shape tree locator for the primary resource
-        primaryResourceLocator.addShapeTreeLocation(primaryResourceLocation);
 
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
@@ -437,6 +432,13 @@ public abstract class AbstractValidatingMethodHandler {
 
         return new ShapeTreeValidationResponse(true, true);
 
+    }
+
+    private boolean atRootOfPlantHierarchy(ShapeTreeLocation rootLocation, ShapeTreeResource primaryResource) {
+        if (rootLocation.getRootShapeTreeInstance().equals(primaryResource.getUri().toString())) {
+            return true;
+        }
+        return false;
     }
 
     protected ShapeTreeValidationResponse createShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) {

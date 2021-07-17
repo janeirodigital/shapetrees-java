@@ -18,6 +18,7 @@ import fr.inria.lille.shexjava.validation.RecursiveValidation;
 import fr.inria.lille.shexjava.validation.ValidationAlgorithm;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.jena.JenaRDF;
@@ -74,39 +75,43 @@ public class ShapeTree {
 
     public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URI focusNodeURI) throws IOException, URISyntaxException {
 
-        ValidationResult result = new ValidationResult(true, null, null);
-
         // Check whether the proposed resource is the same type as what is expected by the shape tree
         if (!this.expectedResourceType.equals(resourceType.getValue())) {
-            return new ValidationResult(false, null, "Resource type " + resourceType.toString() + " is invalid. Expected " + this.expectedResourceType);
+            return new ValidationResult(false, this, "Resource type " + resourceType + " is invalid. Expected " + this.expectedResourceType);
         }
 
         // If a label is specified, check if the proposed name is the same
         if (this.label != null && !this.label.equals(requestedName)) {
-            return new ValidationResult(false, null, "Proposed resource name " + requestedName + " is invalid. Expected " + this.label);
+            return new ValidationResult(false, this, "Proposed resource name " + requestedName + " is invalid. Expected " + this.label);
         }
 
         // If the shape tree specifies a shape to validate, perform shape validation
         if (this.shape != null) {
-            result = this.validateGraph(bodyGraph, focusNodeURI);
+            return this.validateGraph(bodyGraph, focusNodeURI);
         }
 
-        return result;
+        // Allow if we fall through to here. Focus node is set to null because we only get here if no shape validation was performed
+        return new ValidationResult(true, this, this, null);
 
     }
 
     public ValidationResult validateGraph(Graph graph, URI focusNodeURI) throws IOException, URISyntaxException {
 
         if (this.shape == null) {
-            throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") that does not have an associated Shape");
+            throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
         }
 
         URI resolvedShapeURI = URI.create(this.id).resolve(this.shape);
 
         URI shapeResourceURI = resolvedShapeURI;
+        if (shapeResourceURI.getFragment() != null) {
+            shapeResourceURI = new URI(shapeResourceURI.getScheme(), shapeResourceURI.getSchemeSpecificPart(), null);
+        }
+        /*
         if (resolvedShapeURI.toString().contains("#")) {
             shapeResourceURI = new URI(shapeResourceURI.toString().substring(0, shapeResourceURI.toString().indexOf("#")));
         }
+        */
 
         ShexSchema schema;
         if (SchemaCache.isInitialized() && SchemaCache.containsSchema(shapeResourceURI)) {
@@ -146,9 +151,9 @@ public class ShapeTree {
             validation.validate(focusNode, shapeLabel);
             boolean valid = validation.getTyping().isConformant(focusNode, shapeLabel);
             if (valid) {
-                return new ValidationResult(valid, focusNodeURI, null);
+                return new ValidationResult(valid, this, this, focusNodeURI);
             } else {
-                return new ValidationResult(valid, null, "Failed to validate: " + shapeLabel.toPrettyString());
+                return new ValidationResult(valid, this, "Failed to validate: " + shapeLabel.toPrettyString());
             }
 
 
@@ -165,7 +170,7 @@ public class ShapeTree {
                 if (!valid) {
                     continue;
                 } else {
-                    return new ValidationResult(valid, URI.create(evaluateNode.getURI()), null);
+                    return new ValidationResult(valid, this, this, URI.create(evaluateNode.getURI()));
                 }
 
             }
@@ -179,7 +184,7 @@ public class ShapeTree {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
-            return new ValidationResult(true, null, null);
+            return new ValidationResult(true, this, this, null);
         }
 
         return validateContainedResource(containedResource, null, null);
@@ -205,7 +210,7 @@ public class ShapeTree {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
-            return new ValidationResult(true, null, null);
+            return new ValidationResult(true, this, this, null);
         }
 
         if (targetShapeTreeURI != null) {
@@ -218,17 +223,17 @@ public class ShapeTree {
                 if (!result.getValid()) {
                     return new ValidationResult(false, null, "Failed to validate " + targetShapeTree.getId());
                 }
-                // Return the successful validation result
-                return new ValidationResult(true, result.getMatchingNode(), null);
+                // Return the successful validation result, including the matching shape tree
+                return new ValidationResult(true, this, targetShapeTree, result.getMatchingFocusNode());
             } else {
                 // We have a misunderstanding if a target shape tree is supplied but doesn't exist in st:contains
-                return new ValidationResult(false, null, "Target shape tree " +
+                return new ValidationResult(false, this, "Target shape tree " +
                             targetShapeTreeURI.toString() + "was provided but not found in st:contains");
             }
 
         } else {
             // For each shape tree in st:contains
-            for (URI containsShapeTreeURI : this.contains) {
+            for (URI containsShapeTreeURI : getPrioritizedContains()) {
 
                 ShapeTree containsShapeTree = ShapeTreeFactory.getShapeTree(containsShapeTreeURI);
                 if (containsShapeTree == null) { continue; } // Continue if the shape tree isn't gettable
@@ -237,8 +242,8 @@ public class ShapeTree {
                 ValidationResult result = containsShapeTree.validateResource(requestedName, resourceType, bodyGraph, null);
                 // Continue if the proposed attributes were not a match
                 if (!result.getValid()) { continue; }
-                // Return teh successful validation result
-                return new ValidationResult(true, result.getMatchingNode(), null);
+                // Return the successful validation result
+                return new ValidationResult(true, this, containsShapeTree, result.getMatchingFocusNode());
             }
         }
 
@@ -252,6 +257,17 @@ public class ShapeTree {
 
     public Iterator<ReferencedShapeTree> getReferencedShapeTrees(RecursionMethods recursionMethods) throws URISyntaxException, ShapeTreeException {
         return getReferencedShapeTreesList(recursionMethods).iterator();
+    }
+
+    // Return the list of shape tree contains by priority from most to least strict
+    public List<URI> getPrioritizedContains() {
+
+        List<URI> prioritized = new ArrayList<>(this.contains);
+
+        Collections.sort(prioritized, new SortByShapeTreeContainsPriority());
+
+        return prioritized;
+
     }
 
     private Boolean expectsContainer() {
@@ -299,4 +315,32 @@ public class ShapeTree {
     private String exceptionMessage(String requestedName, String id, String customMessage){
         return  "Failed to match ["+ requestedName +"] against any :contents for [" + id +"]. " + customMessage;
     }
+}
+
+class SortByShapeTreeContainsPriority implements Comparator<URI>
+{
+    // Used for sorting shape trees in st:contains by most to least strict
+    @SneakyThrows
+    @Override
+    public int compare(URI stUri1, URI stUri2) {
+
+        ShapeTree st1 = ShapeTreeFactory.getShapeTree(stUri1);
+        ShapeTree st2 = ShapeTreeFactory.getShapeTree(stUri2);
+
+        Integer st1Priority = 0;
+        Integer st2Priority = 0;
+
+        if (st1.getShape() != null) { st1Priority += 2; }
+        if (st1.getLabel() != null) { st1Priority++; }
+        if (st1.getExpectedResourceType() != null) { st1Priority++; }
+
+        if (st2.getShape() != null) { st2Priority += 2; }
+        if (st2.getLabel() != null) { st2Priority++; }
+        if (st2.getExpectedResourceType() != null) { st2Priority++; }
+
+        // Reversed to ensure ordering goes from most strict to least
+        return Integer.compare(st2Priority, st1Priority);
+
+    }
+
 }

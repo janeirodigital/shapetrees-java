@@ -44,7 +44,6 @@ public class PlantTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-
         ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/unmanaged/"), getURI(server, "/static/shapetrees/project/shapetree#ProjectTree"), null, false);
 
         Assertions.assertEquals(201, response.getStatusCode());

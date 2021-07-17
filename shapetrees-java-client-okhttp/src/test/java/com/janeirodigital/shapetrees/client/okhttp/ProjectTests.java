@@ -241,28 +241,4 @@ public class ProjectTests extends BaseShapeTreeTest {
 
     }
 
-    @Order(16)
-    @SneakyThrows
-    @Test
-    @Label("Recursively Plant Data Set")
-    void plantDataRecursively() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
-        // Plant the data collection recursively on already existing hierarchy
-
-    }
-
-    @Order(17)
-    @SneakyThrows
-    @Test
-    @Label("Recursively Plant Projects Collection")
-    void plantProjectsRecursively() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
-        // Plant the projects collection recursively on already existing hierarchy
-
-    }
-
 }

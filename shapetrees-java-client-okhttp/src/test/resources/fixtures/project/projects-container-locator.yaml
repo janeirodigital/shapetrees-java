@@ -16,8 +16,8 @@ body: >
     a st:ShapeTreeLocator ;
     st:location [
       st:hasRootShapeTree ex:DataRepositoryTree ;
-      st:hasShapeTree ex:DataRepositoryTree ;
+      st:hasShapeTree ex:DataCollectionTree ;
       st:hasRootShapeTreeInstance </data/> ;
-      st:node </data/#repository> ;
-      st:shape ex:DataRepositoryShape ;
+      st:node </data/projects/#repository> ;
+      st:shape ex:DataCollectionShape ;
     ] .

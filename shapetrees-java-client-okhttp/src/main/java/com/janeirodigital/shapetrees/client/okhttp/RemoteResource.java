@@ -97,11 +97,21 @@ public class RemoteResource {
 
     public String getName() {
 
-        // TODO - Need to catch out of bounds exceptions in this
-
         String path = this.uri.getPath();
 
         if (this.uri.getPath().equals("/")) return "/";
+
+        // if this is a container, trim the trailing slash
+        if (this.uri.getPath().endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+
+        int pathIndex = path.lastIndexOf('/');
+
+        // No slashes in the path
+        if (pathIndex == -1) {
+            return path;
+        }
 
         return path.substring(path.lastIndexOf('/') + 1);
 
