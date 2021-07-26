@@ -14,7 +14,7 @@ body: >
 
   <#locator>
     a st:ShapeTreeLocator ;
-    st:location <#ln1> .
+    st:location <#ln1>, <#ln2> .
 
   <#ln1>
     st:hasRootShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#DataRepositoryTree> ;
@@ -22,3 +22,10 @@ body: >
     st:hasRootShapeTreeInstance </data/> ;
     st:node </data/projects/#collection> ;
     st:shape ex:DataCollectionShape .
+
+  <#ln2>
+    st:hasRootShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectCollectionTree> ;
+    st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectCollectionTree> ;
+    st:hasRootShapeTreeInstance </data/projects/> ;
+    st:node </data/projects/#collection> ;
+    st:shape ex:ProjectCollectionShape .

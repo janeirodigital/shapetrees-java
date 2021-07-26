@@ -9,8 +9,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,47 +25,29 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource
-            ShapeTreeResource existingResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
-            ensureRequestResourceExists(existingResource,"Target container for POST not found");
-            ensureRequestResourceIsNotMetadata(existingResource,"POST not allowed to shape tree metadata resource");
-
-            // Check the resource type, and error if it isn't a container
-            shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, existingResource));
-            ensureRequestResourceIsContainer(existingResource,"POST not allowed to a non-container resource");
+            ShapeTreeResource targetContainer = getRequestResource(shapeTreeContext, shapeTreeRequest);
 
             // Get resource name from the slug or default to UUID
-            String requestedName = getIncomingHeaderValueWithDefault(shapeTreeRequest, HttpHeaders.SLUG.getValue(), UUID.randomUUID().toString());
+            String proposedName = getIncomingHeaderValueWithDefault(shapeTreeRequest, HttpHeaders.SLUG.getValue(), UUID.randomUUID().toString());
 
-            URI normalizedBaseURI = normalizeBaseURI(existingResource.getUri(), requestedName, shapeTreeRequest.getResourceType());
+            // If the parent container is managed by a shape tree, the proposed resource being posted must be
+            // validated against the parent tree.
+            if (targetContainer.isManaged()) {
+                return createShapeTreeInstance(shapeTreeContext, shapeTreeRequest, proposedName);
+            }
 
+            // Reaching this point means validation was not necessary
+            // Pass the request along with no validation
             return ShapeTreeValidationResponse.passThroughResponse();
 
         } catch (ShapeTreeException ste) {
             return new ShapeTreeValidationResponse(ste);
-        } catch (URISyntaxException e) {
-            return new ShapeTreeValidationResponse(new ShapeTreeException(400, "Value of 'ShapeTree' link header is not a value URI"));
+//        } catch (URISyntaxException e) {
+//            return new ShapeTreeValidationResponse(new ShapeTreeException(400, "Value of 'ShapeTree' link header is not a value URI"));
         } catch (Exception ex) {
             return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
         }
 
-    }
-
-    private void ensureRequestResourceIsNotMetadata(ShapeTreeResource shapeTreeResource, String message) throws ShapeTreeException {
-        if (shapeTreeResource.isMetadata()) {
-            throw new ShapeTreeException(400, message);
-        }
-    }
-
-    private void ensureRequestResourceExists(ShapeTreeResource shapeTreeResource, String message) throws ShapeTreeException {
-        if (!shapeTreeResource.isExists()) {
-            throw new ShapeTreeException(404, message);
-        }
-    }
-
-    private void ensureRequestResourceIsContainer(ShapeTreeResource shapeTreeResource, String message) throws ShapeTreeException {
-        if (!shapeTreeResource.isContainer()) {
-            throw new ShapeTreeException(400, message);
-        }
     }
 
     private String getIncomingHeaderValueWithDefault(ShapeTreeRequest<?> shapeTreeRequest, String headerName, String defaultValue) {

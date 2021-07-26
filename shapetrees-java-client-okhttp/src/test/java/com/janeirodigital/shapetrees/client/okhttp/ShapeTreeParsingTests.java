@@ -14,7 +14,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,16 +47,6 @@ public class ShapeTreeParsingTests extends BaseShapeTreeTest {
         ShapeTree medicalRecordsShapeTree2 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
         Assertions.assertNotNull(medicalRecordsShapeTree1);
         assertEquals(medicalRecordsShapeTree1.hashCode(), medicalRecordsShapeTree2.hashCode());
-    }
-
-    @SneakyThrows
-    @Test
-    @DisplayName("Attempt to retrieve an Allows* IRI")
-    void retrieveAllowsIri() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        ShapeTree allowAllShapeTree = ShapeTreeFactory.getShapeTree(new URI("http://www.w3.org/ns/shapetrees#AllowAll"));
-        Assertions.assertNull(allowAllShapeTree);
     }
 
     @SneakyThrows

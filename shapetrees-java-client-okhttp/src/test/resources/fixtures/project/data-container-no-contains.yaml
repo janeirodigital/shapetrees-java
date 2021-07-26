@@ -3,7 +3,7 @@ delay: 0
 headers:
   - 'Content-type:text/turtle'
   - 'Link:<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
-  - 'Link:</data/projects/project-1/.shapetree>; rel="http://www.w3.org/ns/shapetrees#ShapeTreeLocator"'
+  - 'Link:</data/.shapetree>; rel="http://www.w3.org/ns/shapetrees#ShapeTreeLocator"'
 body: >
 
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -13,11 +13,9 @@ body: >
   PREFIX ldp: <http://www.w3.org/ns/ldp#>
   PREFIX ex: <http://www.example.com/ns/ex#>
 
-  <> ldp:contains </data/projects/project-1/milestone-3/> .
-
-  <#project>
-    ex:uri </data/projects/project-1/#project> ;
-    ex:id 6 ;
-    ex:name "Great Validations" ;
+  <#repository>
+    ex:uri </data/#repository> ;
+    ex:id 1 ;
+    ex:name "Data Repository" ;
     ex:created_at "2021-04-04T20:15:47.000Z"^^xsd:dateTime ;
-    ex:hasMilestone </data/projects/project-1/milestone-3/#milestone> .
+    ex:hasDataCollection </data/projects/#collection> .

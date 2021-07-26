@@ -5,6 +5,7 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -17,7 +18,8 @@ import java.net.URISyntaxException;
  * which that managed resource resides.
  * https://shapetrees.org/TR/specification/#locator
 */
-@Getter @AllArgsConstructor @EqualsAndHashCode
+@Getter @Setter
+@AllArgsConstructor @EqualsAndHashCode
 public class ShapeTreeLocation {
 
     private String shapeTree;               // Identifies the shape tree to be associated with the managed resource
@@ -25,6 +27,7 @@ public class ShapeTreeLocation {
     private String rootShapeTreeInstance;   // Marks the primary, or parent shape tree instance in a physical hierarchy
     private String focusNode;               // Identifies the focus node for shape validation in the managed resource
     private String shape;                   // Identifies the shape to which focusNode must conform
+    private URI uri;
 
     // Provider a constructor that can lookup shape by
     public ShapeTreeLocation(String shapeTree, String rootShapeTree, String rootShapeTreeInstance, String focusNode) throws URISyntaxException, ShapeTreeException {
@@ -41,6 +44,18 @@ public class ShapeTreeLocation {
         this.rootShapeTree = rootShapeTree;
         this.rootShapeTreeInstance = rootShapeTreeInstance;
         this.focusNode = focusNode;
+
+    }
+
+    public URI getBaseUri () {
+
+        if (this.uri == null || this.uri.getScheme() == null || this.uri.getSchemeSpecificPart() == null) {
+            return null;
+        }
+        // Get the base URI of the resource
+        URI base = new URI(this.uri.getScheme(), this.uri.getSchemeSpecificPart(), null);
+
+        return base;
 
     }
 

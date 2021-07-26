@@ -7,17 +7,18 @@ body: >
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
   PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   PREFIX st: <http://www.w3.org/ns/shapetrees#>
-  PREFIX ex: <http://www.example/ns/ex#>
+  PREFIX ex: <http://www.example.com/ns/ex#>
 
   <>
     <http://www.w3.org/ns/shapetrees#hasShapeTreeLocator> <#locator> .
 
   <#locator>
     a st:ShapeTreeLocator ;
-    st:location [
-      st:hasRootShapeTree ex:DataRepositoryTree ;
-      st:hasShapeTree ex:DataRepositoryTree ;
-      st:hasRootShapeTreeInstance </data/> ;
-      st:node </data/#repository> ;
-      st:shape ex:DataRepositoryShape ;
-    ] .
+    st:location <#ln1> .
+
+  <#ln1>
+    st:hasRootShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#DataRepositoryTree> ;
+    st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#DataRepositoryTree> ;
+    st:hasRootShapeTreeInstance </data/> ;
+    st:node </data/#repository> ;
+    st:shape ex:DataRepositoryShape .

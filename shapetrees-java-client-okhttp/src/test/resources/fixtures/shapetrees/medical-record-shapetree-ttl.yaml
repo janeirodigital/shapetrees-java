@@ -12,7 +12,7 @@ body: >
     st:hasShapeTreeDecoratorIndex med:decorator-index .
 
   <#medicalRecords>
-    st:contains <#medicalRecord>, st:AllowOnly ;
+    st:contains <#medicalRecord> ;
     st:expectsType st:Container ;
 
     st:references
@@ -31,7 +31,6 @@ body: >
 
   <#medicalRecord>
     st:validatedBy <medrecord-schema#medicalRecord> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource ;
     st:references [
       st:hasShapeTree <#patient> ;
@@ -83,120 +82,108 @@ body: >
     ] .
 
   <#patients>
-    st:contains <#patient>, st:AllowOnly ;
+    st:contains <#patient> ;
     st:expectsType st:Container .
 
   <#patient>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#appointments>
     rdfs:label "appointments" ;
-    st:contains <#appointment>, st:AllowOnly ;
+    st:contains <#appointment> ;
     st:expectsType st:Container .
 
   <#appointment>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Appointment> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#conditions>
     rdfs:label "conditions" ;
-    st:contains <#condition>, st:AllowOnly ;
+    st:contains <#condition> ;
     st:expectsType st:Container .
 
   <#condition>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Condition> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#encounters>
     rdfs:label "encounters" ;
-    st:contains <#encounter>, st:AllowOnly ;
+    st:contains <#encounter> ;
     st:expectsType st:Container .
 
   <#encounter>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Encounter> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#prescriptions>
     rdfs:label "prescriptions" ;
-    st:contains <#prescription>, st:AllowOnly ;
+    st:contains <#prescription> ;
     st:expectsType st:Container .
 
   <#prescription>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#MedicationRequest> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#allergies>
     rdfs:label "allergies" ;
-    st:contains <#allergy>, st:AllowOnly ;
+    st:contains <#allergy> ;
     st:expectsType st:Container .
 
   <#allergy>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#AllergyIntolerance> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#observations>
     rdfs:label "observations" ;
-    st:contains <#observation>, st:AllowOnly ;
+    st:contains <#observation> ;
     st:expectsType st:Container .
 
   <#observation>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Observation> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#diagnosticReports>
     rdfs:label "diagnosticReports" ;
-    st:contains <#diagnosticReport>, st:AllowOnly ;
+    st:contains <#diagnosticReport> ;
     st:expectsType st:Container .
 
   <#diagnosticReport>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#DiagnosticReport> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#activities>
     rdfs:label "activities" ;
-    st:contains <#activity>, st:AllowOnly ;
+    st:contains <#activity> ;
     st:expectsType st:Container .
 
   <#activity>
     st:validatedBy <https://xformativ.pub/xfh-patient/as/shapes/shex#DailyActivitySummary> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#practitioners>
     rdfs:label "practitioners" ;
-    st:contains <#practitioner>, st:AllowOnly ;
+    st:contains <#practitioner> ;
     st:expectsType st:Container .
 
   <#practitioner>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Practitioner> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#documents>
     rdfs:label "documents" ;
-    st:contains <#document>, st:AllowNonRDFSources ;
+    st:contains <#document> ;
     st:expectsType st:Container .
 
   <#document>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#DocumentReference> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
   <#questionnaire-responses>
     rdfs:label "questionnaire responses" ;
-    st:contains <#questionnaire-response>, st:AllowOnly ;
+    st:contains <#questionnaire-response> ;
     st:expectsType st:Container .
 
   <#questionnaire-response>
     st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#QuestionnaireResponse> ;
-    st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .

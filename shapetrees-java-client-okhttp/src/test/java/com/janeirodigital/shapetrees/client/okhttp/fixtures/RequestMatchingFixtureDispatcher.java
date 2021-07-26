@@ -35,6 +35,24 @@ public class RequestMatchingFixtureDispatcher extends Dispatcher {
         return new MockResponse().setResponseCode(404);
     }
 
+    public DispatcherEntry getFixtureByPath(String expectedPath) {
+        for  (DispatcherEntry entry : this.configuredFixtures) {
+            if (entry.getExpectedPath().equals(expectedPath)) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    public void removeFixtureByPath(String expectedPath) {
+
+        DispatcherEntry fixture = getFixtureByPath(expectedPath);
+        if (fixture != null) {
+            this.configuredFixtures.remove(fixture);
+        }
+
+    }
+
     private String getFixtureName(DispatcherEntry entry) {
         int hits;
         if (!fixtureHitCounts.containsKey(entry)) {

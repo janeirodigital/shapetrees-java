@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.client.okhttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.client.okhttp.fixtures.RequestMatchingFixtureDispatcher;
+import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
@@ -22,7 +23,11 @@ public class ProjectTests extends BaseShapeTreeTest {
     }
 
     @BeforeAll
-    static void beforeAll() {
+    static void beforeEach() {
+
+        // For this set of tests, we reinitialize the dispatcher set for every test, because almost every test needs a
+        // slightly different context. Consequently, we could either modify the state from test to test (which felt a
+        // little dirty as we couldn't run tests standalone, or set the context for each test (which we're doing)
 
         List dispatcherList = new ArrayList();
 
@@ -58,8 +63,9 @@ public class ProjectTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         // Perform plant on /data container that doesn't exist yet (fails)
-
-        // Ensure that all of the attributes are valid
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/"), getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree"), null, false);
+        // Look for 404 because /data doesn't exist
+        Assertions.assertEquals(404, response.getStatusCode());
 
     }
 
@@ -72,51 +78,53 @@ public class ProjectTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         // Create the data container
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"),
-                                                                            "GET",
-                                                                            "/data/",
-                                                                            null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-no-contains"), "GET", "/data/", null));
 
-        // Call the plant shape tree operation, which will find nothing planted
-        // Ensure that the plant was successful
-
-        // Plant a shape tree to manage it
-        // TODO - Setting the locator for the time-being
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"),
-                "GET",
-                "/data/.shapetree",
-                null));
+        // Plant the data repository on newly created data container
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/"), getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree"), getURI(server, "/data/#repository").toString(), false);
+        Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @Order(4)
     @SneakyThrows
     @Test
-    @Label("Create Project Container and Plant Data Collection")
+    @Label("Create Projects Container and Validate DataCollectionTree")
     void createProjectsAndPlantTrees() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        // Create projects container
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"),
-                "GET",
-                "/data/projects/",
-                null));
+        // Setup initial fixtures for /data/
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
 
-        // plant the data collection shape tree (success)
+        // Create the projects container as a shape tree instance.
+        // 1. Will be validated by the parent DataRepositoryTree planted on /data
+        // 2. Will have a locator/location created for it as an instance of DataCollectionTree
+        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/data/"), getURI(server, "/data/projects/#collection"), getURI(server, "/static/shapetrees/project/shapetree#DataCollectionTree"), "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @Order(5)
     @SneakyThrows
     @Test
-    @Label("Plant Second Shape Tree on Project Container")
+    @Label("Plant ProjectCollectionTree on Projects Container")
     void plantSecondShapeTreeOnProject() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        // Create an intersecting shape tree (essentially two locations) - success
-        // Combine this with prior?
+        // Add fixtures for /data/
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        // Add fixtures for /projects/
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator"), "GET", "/data/projects/.shapetree", null));
+
+        // Plant the second shape tree (ProjectCollectionTree) on /data/projects/
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/projects/"), getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree"), getURI(server, "/data/projects/#collection").toString(), false);
+        Assertions.assertEquals(201, response.getStatusCode());
+
 
     }
 
@@ -128,7 +136,24 @@ public class ProjectTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        // create project-1 in the project. this should be successful
+        // Add fixtures for /data/
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        // Add fixtures for /projects/
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+
+        // Create the project-1 container as a shape tree instance.
+        // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
+        // 2. Will have a locator/location created for it as an instance of ProjectTree
+        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/data/projects/"), getURI(server, "/data/projects/project-1/#collection"), getURI(server, "/static/shapetrees/project/shapetree#ProjectTree"), "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
+        Assertions.assertEquals(201, response.getStatusCode());
+
+        // Add fixtures to represent a successfully added projects container
+        dispatcher.removeFixtureByPath("/data/projects/"); // Remove the previous locator from fixtures
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container"), "GET", "/data/projects/project-1/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
 
     }
 
@@ -239,6 +264,37 @@ public class ProjectTests extends BaseShapeTreeTest {
 
         // Unplant the data collection, recursing down the tree (only two levels) (success)
 
+    }
+
+    private String getProjectsBodyGraph() {
+        return "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n" +
+                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
+                "PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
+                "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> \n" +
+                "PREFIX ex: <http://www.example.com/ns/ex#> \n" +
+                "\n" +
+                "\n" +
+                "<#collection> \n" +
+                "    ex:uri </data/projects/#collection> ; \n" +
+                "    ex:id 32 ; \n" +
+                "    ex:name \"Projects Data Collection \" ; \n" +
+                "    ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime . \n";
+    }
+
+    private String getProjectOneBodyGraph() {
+        return "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n" +
+                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
+                "PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
+                "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> \n" +
+                "PREFIX ex: <http://www.example.com/ns/ex#> \n" +
+                "\n" +
+                "\n" +
+                "<#project> \n" +
+                "    ex:uri </data/projects/project-1/#project> ; \n" +
+                "    ex:id 6 ; \n" +
+                "    ex:name \"Great Validations \" ; \n" +
+                "    ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime ; \n" +
+                "    ex:hasMilestone </data/projects/project-1/milestone-3/#milestone> . ";
     }
 
 }

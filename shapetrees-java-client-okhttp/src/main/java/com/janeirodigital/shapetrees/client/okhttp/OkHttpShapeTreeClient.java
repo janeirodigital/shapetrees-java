@@ -60,6 +60,8 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource for pointer to associated shape tree locator
         RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
+        if  (!resource.exists()) { return null; }
+
         // Lookup the associated shape tree locator resource based on the pointer
         RemoteResource locatorResource = resource.getMetadataResource(context.getAuthorizationHeaderValue());
 
@@ -99,23 +101,31 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
     @Override
     public ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException {
 
-        // Determine whether the target resource is already a managed resource
-        ShapeTreeLocator locator = discoverShapeTree(context, targetResource);
+        // Lookup the target resource
         RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
-        // Initialize a shape tree location based on the supplied parameters
-        ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree.toString(),
-                                                           targetShapeTree.toString(),
-                                                           targetResource.toString(),
-                                                           focusNode);
+        if (!resource.exists()) {
+            return new ShapeTreeResponse(404, "Cannot find target resource to plant: " + targetResource.toString(), null);
+        }
+
+        // Determine whether the target resource is already a managed resource
+        ShapeTreeLocator locator = discoverShapeTree(context, targetResource);
 
         // If the target resource is not managed, initialize a new locator
         if (locator == null) {
             locator = new ShapeTreeLocator(resource.getMetadataURI().toString());
         }
 
+        // Initialize a shape tree location based on the supplied parameters
+        ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree.toString(),
+                                                           targetResource.toString(),
+                                                           targetResource.toString(),
+                                                           focusNode,
+                                                           null,
+                                                           locator.mintLocation());
+
         // Add the location to the locator
-        locator.getLocations().add(location);
+        locator.addShapeTreeLocation(location);
 
         // Get an OkHttpClient to use to update locator metadata
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
@@ -144,11 +154,9 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(plantBuilder).execute());
     }
 
-    // TODO - make createDataInstanceWithPut and createDataInstanceWithPost client routines
-
     @Override
-    public ShapeTreeResponse createDataInstance(ShapeTreeContext context, URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
-        log.debug("Creating data instance {} in {} with hint {}", parentContainer, proposedResourceName, shapeTreeHint);
+    public ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
+        log.debug("POSTing shape tree instance to {} with name {}, target {}, and focus of {}", parentContainer.toString(), proposedResourceName, targetShapeTree.toString(), focusNode.toString());
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         byte[] bytes = new byte[]{};
@@ -156,25 +164,18 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
             bytes = bodyString.getBytes();
         }
 
-        String resourceURI = parentContainer.toString();
-        if (!resourceURI.endsWith("/")) {
-            resourceURI += "/";
-        }
-        resourceURI += proposedResourceName;
-        log.debug("Build Resource URI {}", resourceURI);
+        Request.Builder postBuilder = new Request.Builder()
+                .url(HttpUrl.get(parentContainer))
+                .post(RequestBody.create(bytes));
 
-        Request.Builder putBuilder = new Request.Builder()
-                .url(resourceURI)
-                .put(RequestBody.create(bytes));
+        applyCommonHeaders(context, postBuilder, focusNode, targetShapeTree, isContainer, proposedResourceName, contentType);
 
-        // proposed resource is name is nulled since a Slug will not be used
-        applyCommonHeaders(context, putBuilder, focusNode, shapeTreeHint, isContainer, null, contentType);
-
-        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
+        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(postBuilder.build()).execute());
     }
 
+    // Create via HTTP PUT
     @Override
-    public ShapeTreeResponse updateDataInstance(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException {
+    public ShapeTreeResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws IOException {
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         byte[] bytes = new byte[]{};
@@ -186,28 +187,47 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
                 .url(resourceURI.toString())
                 .put(RequestBody.create(bytes));
 
-        applyCommonHeaders(context, putBuilder, focusNode, shapeTreeHint, null, null, contentType);
+        applyCommonHeaders(context, putBuilder, focusNode, targetShapeTree, null, null, contentType);
+
+        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
+    }
+
+    // Update via HTTP PUT
+    @Override
+    public ShapeTreeResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String bodyString, String contentType) throws IOException {
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
+
+        byte[] bytes = new byte[]{};
+        if (bodyString != null) {
+            bytes = bodyString.getBytes();
+        }
+
+        Request.Builder putBuilder = new Request.Builder()
+                .url(resourceURI.toString())
+                .put(RequestBody.create(bytes));
+
+        applyCommonHeaders(context, putBuilder, focusNode, null, null, null, contentType);
 
         return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
     }
 
     @Override
-    public ShapeTreeResponse updateDataInstanceWithPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString) throws IOException {
+    public ShapeTreeResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String patchString) throws IOException {
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
         String contentType = "application/sparql-update";
-        byte[] sparqlUpdateBytes = bodyString.getBytes();
+        byte[] sparqlUpdateBytes = patchString.getBytes();
 
         Request.Builder patchBuilder = new Request.Builder()
                 .url(resourceURI.toString())
                 .patch(RequestBody.create(sparqlUpdateBytes));
 
-        applyCommonHeaders(context, patchBuilder, focusNode, shapeTreeHint, null, null, contentType);
+        applyCommonHeaders(context, patchBuilder, focusNode, null, null, null, contentType);
 
         return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(patchBuilder.build()).execute());
     }
 
     @Override
-    public ShapeTreeResponse deleteDataInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException {
+    public ShapeTreeResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException {
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         Request.Builder deleteBuilder = new Request.Builder()
@@ -232,7 +252,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
     }
 
-    private void applyCommonHeaders(ShapeTreeContext context, Request.Builder builder,  String focusNode, URI shapeTreeHint, Boolean isContainer, String proposedResourceName, String contentType) {
+    private void applyCommonHeaders(ShapeTreeContext context, Request.Builder builder, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
 
         if (context.getAuthorizationHeaderValue() != null) {
             builder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
@@ -247,8 +267,8 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
             builder.addHeader(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
         }
 
-        if (shapeTreeHint != null) {
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + shapeTreeHint + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
+        if (targetShapeTree != null) {
+            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
         }
 
         if (proposedResourceName != null) {

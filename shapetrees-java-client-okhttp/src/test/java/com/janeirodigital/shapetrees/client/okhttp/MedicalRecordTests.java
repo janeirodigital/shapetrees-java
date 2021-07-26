@@ -107,9 +107,9 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response = this.shapeTreeClient.createDataInstance(this.context,
+        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/"),
-                "http://hl7.org/fhir/Condition/example",
+                getURI(server,"http://hl7.org/fhir/Condition/example"),
                 getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
                 "condition1.ttl",
                 false,
@@ -129,9 +129,9 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response = this.shapeTreeClient.createDataInstance(this.context,
+        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/"),
-                "http://hl7.org/fhir/Condition/example",
+                getURI(server,"http://hl7.org/fhir/Condition/example"),
                 getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
                 "condition3.ttl",
                 false,
@@ -151,9 +151,9 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
 
         this.shapeTreeClient.skipValidation(true);
         assertTrue(this.shapeTreeClient.isValidationSkipped());
-        ShapeTreeResponse response = this.shapeTreeClient.createDataInstance(this.context,
+        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/"),
-                "http://hl7.org/fhir/Condition/example",
+                getURI(server,"http://hl7.org/fhir/Condition/example"),
                 getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
                 "condition3.ttl",
                 false,
@@ -172,10 +172,9 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response = this.shapeTreeClient.updateDataInstance(this.context,
+        ShapeTreeResponse response = this.shapeTreeClient.putShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
-                "http://hl7.org/fhir/Condition/example",
-                getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
+                getURI(server,"http://hl7.org/fhir/Condition/example"),
                 getConditionTtl(),
                 "text/turtle"
         );
@@ -192,10 +191,9 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response = this.shapeTreeClient.updateDataInstanceWithPatch(this.context,
+        ShapeTreeResponse response = this.shapeTreeClient.patchShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
-                "http://hl7.org/fhir/Condition/example",
-                getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
+                getURI(server,"http://hl7.org/fhir/Condition/example"),
                 "INSERT DATA { <#a> <#b> <#c> . }"
         );
         Assertions.assertEquals(204, response.getStatusCode());
@@ -211,10 +209,9 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response = this.shapeTreeClient.updateDataInstanceWithPatch(this.context,
+        ShapeTreeResponse response = this.shapeTreeClient.patchShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
-                "http://hl7.org/fhir/Condition/example",
-                getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
+                getURI(server,"http://hl7.org/fhir/Condition/example"),
                 "DELETE DATA { <http://hl7.org/fhir/Condition/example> a <http://hl7.org/fhir/Condition> . }"
         );
         Assertions.assertEquals(422, response.getStatusCode());
@@ -230,7 +227,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response = this.shapeTreeClient.deleteDataInstance(this.context,
+        ShapeTreeResponse response = this.shapeTreeClient.deleteShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 getURI(server,"/static/shapetrees/medical-record/shapetree#condition")
         );

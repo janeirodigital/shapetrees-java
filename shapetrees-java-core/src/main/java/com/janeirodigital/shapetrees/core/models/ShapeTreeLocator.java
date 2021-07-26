@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -18,7 +19,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-
 
 
 /**
@@ -58,20 +58,19 @@ public class ShapeTreeLocator {
         // For each location create a blank node and populate
         for (ShapeTreeLocation location : this.locations) {
 
-            // <#locator> st:contains [ location1, location2 ]
-            Node locationNode = NodeFactory.createBlankNode();
-            locatorGraph.add(GraphHelper.newTriple(locatorSubject, ShapeTreeVocabulary.LOCATION, locationNode));
+            // <#locator> st:contains <location1>, <location2>
+            locatorGraph.add(GraphHelper.newTriple(locatorSubject, ShapeTreeVocabulary.LOCATION, location.getUri()));
 
-            locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE), NodeFactory.createURI(location.getShapeTree())));
-            locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE), NodeFactory.createURI(location.getRootShapeTree())));
-            locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_INSTANCE), NodeFactory.createURI(location.getRootShapeTreeInstance())));
+            locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_SHAPE_TREE), URI.create(location.getShapeTree())));
+            locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE), URI.create(location.getRootShapeTree())));
+            locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_INSTANCE), URI.create(location.getRootShapeTreeInstance())));
 
             if (location.getShape() != null) {
-                locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.SHAPE), NodeFactory.createURI(location.getShape())));
+                locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.SHAPE), URI.create(location.getShapeTree())));
             }
 
             if (location.getFocusNode() != null) {
-                locatorGraph.add(new Triple(locationNode, NodeFactory.createURI(ShapeTreeVocabulary.FOCUS_NODE), NodeFactory.createURI(location.getFocusNode())));
+                locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.FOCUS_NODE), URI.create(location.getFocusNode())));
             }
 
         }
@@ -79,9 +78,13 @@ public class ShapeTreeLocator {
         return locatorGraph;
     }
 
-    public void addShapeTreeLocation(ShapeTreeLocation location) throws ShapeTreeException {
+    public void addShapeTreeLocation(ShapeTreeLocation location) throws ShapeTreeException, URISyntaxException {
 
-        // Check for an existing shape tree location
+        if (location.getUri() == null) {
+            location.setUri(this.mintLocation());
+        }
+
+        // Check for an existing shape tree location.. TODO - Could checking for the same URI be enough here?
         if (this.locations != null && !this.locations.isEmpty()) {
             for (ShapeTreeLocation existingLocation : this.locations) {
                 if (existingLocation.equals(location)) {
@@ -92,6 +95,23 @@ public class ShapeTreeLocator {
 
         this.locations.add(location);
 
+    }
+
+    // Generates or "mints" a URI for a new location contained in the locator
+    public URI mintLocation() throws URISyntaxException {
+
+        String fragment = RandomStringUtils.random(8, true, true);
+        String locationString = this.getURI().toString() + "#" + fragment;
+
+        URI locationUri = URI.create(locationString);
+
+        for (ShapeTreeLocation location : this.locations) {
+            if (location.getUri() != null && location.getUri().equals(locationUri)) {
+                // If we somehow managed to randomly generate a location URI that already exists, generate another
+                return mintLocation();
+            }
+        }
+        return locationUri;
     }
 
     public ShapeTreeLocation getContainingShapeTreeLocation() throws URISyntaxException, ShapeTreeException {
@@ -164,6 +184,7 @@ public class ShapeTreeLocator {
             String rootShapeTreeInstance = null;
             String shape = null;
             String focusNode = null;
+            URI locationUri = URI.create(locationNode.getObject().getURI());
 
             // Lookup and assign each triple in the nested ShapeTreeLocation
             for (Triple locationTriple : locationTriples) {
@@ -191,7 +212,7 @@ public class ShapeTreeLocator {
             }
 
             // Create a new Shape Tree Location from the assigned triples and add it to the array of locations
-            locator.locations.add(new ShapeTreeLocation(shapeTree, rootShapeTree, rootShapeTreeInstance, focusNode, shape));
+            locator.locations.add(new ShapeTreeLocation(shapeTree, rootShapeTree, rootShapeTreeInstance, focusNode, shape, locationUri));
 
         }
 

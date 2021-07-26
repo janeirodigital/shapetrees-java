@@ -157,8 +157,8 @@ public class RemoteResource {
             return false;
         }
         // If the resource doesn't exist, currently we need to do some inference based on the URI
-        if (this.getUri().getPath().matches(".*\\.shapetree$")) { return true; }
-        if (this.getUri().getQuery().matches(".*ext\\=shapetree$")) { return true; }
+        if (this.getUri().getPath() != null && this.getUri().getPath().matches(".*\\.shapetree$")) { return true; }
+        if (this.getUri().getQuery() != null && this.getUri().getQuery().matches(".*ext\\=shapetree$")) { return true; }
 
         return false;
     }

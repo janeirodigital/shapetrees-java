@@ -91,9 +91,9 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response = this.shapeTreeClient.createDataInstance(this.context,
+        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
                 getURI(server, "/ldp/data/Git/repos/"),
-                "#janeirodigital",
+                getURI(server, "/ldp/data/Git/repos/#janeirodigital"),
                 getURI(server, "/static/shapetrees/github-deep/shapetree#org"),
                 "janeirodigital",
                 true,

@@ -53,12 +53,12 @@ public interface ShapeTreeClient {
     ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException;
 
     /**
-     * Creates a resource that has been validated against the provided shape tree
+     * Creates a resource via HTTP POST that has been validated against the provided shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param parentContainer The container the created resource should be created within
      * @param focusNode The node/subject to use for validation purposes
-     * @param shapeTreeHint The shape tree the body should be validated by
-     * @param proposedResourceName Proposed resource name (aka Slug) for the resulting resource
+     * @param targetShapeTree The shape tree the body should be validated by
+     * @param proposedName Proposed resource name (aka Slug) for the resulting resource
      * @param isContainer Specifies whether the newly created resource should be created as a container or not
      * @param bodyString String representation of body of the created resource
      * @param contentType Content type to parse the bodyString parameter as
@@ -66,34 +66,47 @@ public interface ShapeTreeClient {
      * @throws IOException IOException
      * @throws URISyntaxException URISyntaxException
      */
-    ShapeTreeResponse createDataInstance(ShapeTreeContext context, URI parentContainer, String focusNode, URI shapeTreeHint, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
+    ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
 
     /**
-     * Updates an existing resource, validating it against the provided shape tree
+     * Creates a resource via HTTP PUT that has been validated against the provided target shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param resourceURI The URI of the resource being updated
+     * @param targetResource The target resource to be created or updated
      * @param focusNode The node/subject to use for validation purposes
-     * @param shapeTreeHint The shape tree the body should be validated by
-     * @param bodyString String representation of body of the created resource
+     * @param targetShapeTree The shape tree that a proposed resource to be created should be validated against
+     * @param isContainer Specifies whether a newly created resource should be created as a container or not
+     * @param bodyString String representation of the body of the resource to create or update
      * @param contentType Content type to parse the bodyString parameter as
-     * @return ShapeTreeResponse containing status and response headers/attributes
-     * @throws IOException IOException
-     * @throws URISyntaxException URISyntaxException
+     * @return ShapeTreeResponse containing status and response header / attributes
+     * @throws IOException
+     * @throws URISyntaxException
      */
-    ShapeTreeResponse updateDataInstance(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString, String contentType) throws IOException, URISyntaxException;
+    ShapeTreeResponse putShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
 
     /**
-     * Updates an existing resource using a SPARQL Update, validating it against the provided shape tree
+     * Updates a resource via HTTP PUT that has been validated against an associated shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param resourceURI The URI of the resource being updated
+     * @param targetResource The target resource to be created or updated
      * @param focusNode The node/subject to use for validation purposes
-     * @param shapeTreeHint The shape tree the body should be validated by
-     * @param bodyString SPARQL update query that is updating the resource
-     * @return ShapeTreeResponse containing status and response headers/attributes
-     * @throws IOException IOException
-     * @throws URISyntaxException URISyntaxException
+     * @param bodyString String representation of the body of the resource to create or update
+     * @param contentType Content type to parse the bodyString parameter as
+     * @return ShapeTreeResponse containing status and response header / attributes
+     * @throws IOException
+     * @throws URISyntaxException
      */
-    ShapeTreeResponse updateDataInstanceWithPatch(ShapeTreeContext context, URI resourceURI, String focusNode, URI shapeTreeHint, String bodyString) throws IOException, URISyntaxException;
+    ShapeTreeResponse putShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, String bodyString, String contentType) throws IOException, URISyntaxException;
+
+    /**
+     * Updates a resource via HTTP PATCH that has been validated against an associated shape tree
+     * @param context ShapeTreeContext that would be used for authentication purposes
+     * @param targetResource The target resource to be created or updated
+     * @param focusNode The node/subject to use for validation purposes
+     * @param patchString SPARQL Update statement to use in patching the resource
+     * @return ShapeTreeResponse containing status and response header / attributes
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    ShapeTreeResponse patchShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, String patchString) throws IOException, URISyntaxException;
 
     /**
      * Deletes an existing resource.  Provided as a convenience - no validation is performed
@@ -103,7 +116,7 @@ public interface ShapeTreeClient {
      * @return ShapeTreeResponse containing status and response headers/attributes
      * @throws IOException IOException
      */
-    ShapeTreeResponse deleteDataInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException;
+    ShapeTreeResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException;
 
     /**
      * Removes a shape tree from a given container
