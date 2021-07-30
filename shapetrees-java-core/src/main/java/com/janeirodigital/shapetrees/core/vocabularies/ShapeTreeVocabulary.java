@@ -5,7 +5,7 @@ public final class ShapeTreeVocabulary {
 
     }
     // TODO: Update vocabulary to align with latest specification changes
-    public static final String HAS_ROOT_LOCATION = Namespaces.SHAPETREE + "hasRootLocation";
+    public static final String HAS_ROOT_SHAPE_TREE_LOCATION = Namespaces.SHAPETREE + "hasRootShapeTreeLocation";
     public static final String HAS_ROOT_SHAPE_TREE = Namespaces.SHAPETREE + "hasRootShapeTree";
     public static final String HAS_MANAGED_RESOURCE = Namespaces.SHAPETREE + "hasManagedResource";
     // TODO: Leaving this here temporarily but must be cleaned out

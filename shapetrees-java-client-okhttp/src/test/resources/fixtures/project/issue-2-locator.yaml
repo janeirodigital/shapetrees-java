@@ -17,8 +17,8 @@ body: >
     st:location <#ln1> .
 
   <#ln1>
-    st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#DataCollectionTree> ;
-    st:hasManagedResource </data/projects/> ;
-    st:hasRootShapeTreeLocation </data/.shapetree#ln1> ;
-    st:node </data/projects/#collection> ;
-    st:shape <${SERVER_BASE}/static/shex/project/shex#DataCollectionShape> .
+    st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectTree> ;
+    st:hasManagedResource </data/projects/project-1/milestone-3/issue-2> ;
+    st:hasRootShapeTreeLocation </data/projects/.shapetree#ln2> ;
+    st:node </data/projects/project-1/milestone-3/issue-2#issue> ;
+    st:shape <${SERVER_BASE}/static/shex/project/shex#IssueShape> .

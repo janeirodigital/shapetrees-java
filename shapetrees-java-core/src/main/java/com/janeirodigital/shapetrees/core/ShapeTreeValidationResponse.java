@@ -30,15 +30,20 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
     }
 
     public ShapeTreeValidationResponse(Boolean validRequest, Boolean requestFulfilled) {
+        this(validRequest, requestFulfilled, 201, "OK");
+    }
+
+    public ShapeTreeValidationResponse(Boolean validRequest, Boolean requestFulfilled, int statusCode, String body) {
 
         super();
-        this.statusCode = 201;
-        this.body = "OK";
+        this.statusCode = statusCode;
+        this.body = body;
         this.requestFulfilled = requestFulfilled;
         this.validRequest = validRequest;
         this.validationResult = null;
 
     }
+
 
     public ShapeTreeValidationResponse(ShapeTreeException ste) {
         super();

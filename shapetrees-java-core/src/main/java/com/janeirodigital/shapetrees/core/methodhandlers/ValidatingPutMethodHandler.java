@@ -22,8 +22,8 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
             ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
 
             if (targetResource.isMetadata()) {
-                // Target resource is for shape tree metadata, so this is either a plant or unplant operation.
-                return plantShapeTree(shapeTreeContext, shapeTreeRequest, targetResource);
+                // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
+                return manageShapeTree(shapeTreeContext, shapeTreeRequest, targetResource);
             } else {
                 if (targetResource.isExists()) {
                     // The target resource already exists

@@ -17,15 +17,15 @@ body: >
     st:location <#ln1>, <#ln2> .
 
   <#ln1>
-    st:hasRootShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#DataRepositoryTree> ;
     st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#DataCollectionTree> ;
-    st:hasRootShapeTreeInstance </data/> ;
+    st:hasManagedResource </data/projects/> ;
+    st:hasRootShapeTreeLocation </data/.shapetree#ln1> ;
     st:node </data/projects/#collection> ;
-    st:shape ex:DataCollectionShape .
+    st:shape <${SERVER_BASE}/static/shex/project/shex#DataCollectionShape> .
 
   <#ln2>
-    st:hasRootShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectCollectionTree> ;
     st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectCollectionTree> ;
-    st:hasRootShapeTreeInstance </data/projects/> ;
+    st:hasManagedResource </data/projects/> ;
+    st:hasRootShapeTreeLocation </data/projects/.shapetree#ln2> ;
     st:node </data/projects/#collection> ;
-    st:shape ex:ProjectCollectionShape .
+    st:shape <${SERVER_BASE}/static/shex/project/shex#ProjectCollectionShape> .

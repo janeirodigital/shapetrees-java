@@ -8,7 +8,10 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
@@ -117,12 +120,13 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Initialize a shape tree location based on the supplied parameters
+        URI locationUri = locator.mintLocation();
         ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree.toString(),
                                                            targetResource.toString(),
-                                                           targetResource.toString(),
+                                                           locationUri,
                                                            focusNode,
                                                            null,
-                                                           locator.mintLocation());
+                                                           locationUri);
 
         // Add the location to the locator
         locator.addShapeTreeLocation(location);
@@ -131,12 +135,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
         Request.Builder builder = new Request.Builder()
-                .url(resource.getMetadataURI().toString());
-
-        // Determine which HTTP Link header type to send based on the recursive setting
-        String linkType = Boolean.TRUE.equals(recursive) ? LinkRelations.PLANT_SHAPETREE_HIERARCHY.getValue() :
-                                                           LinkRelations.PLANT_SHAPETREE.getValue();
-        builder.addHeader(HttpHeaders.LINK.getValue(), "<" + linkType + ">; rel=\"type\"");
+                .url(resource.getMetadataURI());
 
         // Get a RDF version of the locator stored in a turtle string
         StringWriter sw = new StringWriter();
@@ -187,7 +186,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
                 .url(resourceURI.toString())
                 .put(RequestBody.create(bytes));
 
-        applyCommonHeaders(context, putBuilder, focusNode, targetShapeTree, null, null, contentType);
+        applyCommonHeaders(context, putBuilder, focusNode, targetShapeTree, isContainer, null, contentType);
 
         return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
     }
@@ -240,7 +239,43 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public void unplantShapeTree(ShapeTreeContext context, URI containerURI, URI shapeTreeURI) {
+    public ShapeTreeResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException {
+
+        // Lookup the target resource
+        RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
+
+        if (!resource.exists()) {
+            return new ShapeTreeResponse(404, "Cannot find target resource to unplant: " + targetResource.toString(), null);
+        }
+
+        // Determine whether the target resource is already a managed resource
+        ShapeTreeLocator locator = discoverShapeTree(context, targetResource);
+
+        // If the target resource is not managed, initialize a new locator
+        if (locator == null) {
+            return new ShapeTreeResponse(500, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource.toString(), null);
+        }
+
+        // Remove location from locator that corresponds with the provided shape tree
+        locator.removeShapeTreeLocationForShapeTree(targetShapeTree);
+
+        // Get an OkHttpClient to use to update locator metadata
+        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
+
+        Request.Builder builder = new Request.Builder().url(resource.getMetadataURI());
+
+        // Get a RDF version of the locator stored in a turtle string
+        StringWriter sw = new StringWriter();
+        RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
+
+        // Convert the string into a byte array. Turtle is always UTF-8 https://www.w3.org/TR/turtle/#h3_sec-mime
+        byte[] bytes = sw.toString().getBytes("UTF-8");
+
+        // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
+        Request unplantBuilder = builder.put(RequestBody.create(bytes)).build();
+
+        // Send the request and map the response
+        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(unplantBuilder).execute());
 
     }
 

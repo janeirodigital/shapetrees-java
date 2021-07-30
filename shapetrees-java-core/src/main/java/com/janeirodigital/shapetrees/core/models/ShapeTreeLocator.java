@@ -62,11 +62,11 @@ public class ShapeTreeLocator {
             locatorGraph.add(GraphHelper.newTriple(locatorSubject, ShapeTreeVocabulary.LOCATION, location.getUri()));
 
             locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_SHAPE_TREE), URI.create(location.getShapeTree())));
-            locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE), URI.create(location.getRootShapeTree())));
-            locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_INSTANCE), URI.create(location.getRootShapeTreeInstance())));
+            locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_MANAGED_RESOURCE), URI.create(location.getManagedResource())));
+            locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_LOCATION), location.getRootShapeTreeLocation()));
 
             if (location.getShape() != null) {
-                locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.SHAPE), URI.create(location.getShapeTree())));
+                locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.SHAPE), URI.create(location.getShape())));
             }
 
             if (location.getFocusNode() != null) {
@@ -126,20 +126,6 @@ public class ShapeTreeLocator {
         return null;
     }
 
-    public List<ShapeTreeLocation> getUpdatedShapeTreeLocations(ShapeTreeLocator otherLocator) throws URISyntaxException {
-
-        ArrayList<ShapeTreeLocation> updatedLocations = new ArrayList<ShapeTreeLocation>();
-
-        for (ShapeTreeLocation existingLocation : this.getLocations()) {
-            for (ShapeTreeLocation otherLocation : otherLocator.getLocations()) {
-                if (!existingLocation.equals(otherLocation)) {
-                    updatedLocations.add(otherLocation);
-                }
-            }
-        }
-        return updatedLocations;
-    }
-
     public static ShapeTreeLocator getShapeTreeLocatorFromGraph(String id, Graph shapeTreeMetadataGraph) {
 
         ShapeTreeLocator locator = new ShapeTreeLocator();
@@ -165,61 +151,51 @@ public class ShapeTreeLocator {
         // Get the URI of the ShapeTreeLocator subject node
         String locatorURI = shapeTreeLocatorTriples.get(0).getObject().getURI();
 
-        // Look up ShapeTreeLocation nested blank nodes (locator subject node, st:location, any st:location nodes).
-        // There should be one result per nested ShapeTreeLocation, each identified by a blank node.
+        // Look up ShapeTreeLocation nodes (locator subject node, st:location, any st:location nodes).
+        // There should be one result per nested ShapeTreeLocation, each identified by a unique uri.
         // Shape Trees, §3: A shape tree locator includes one or more shape tree locations via st:location
         // https://shapetrees.org/TR/specification/#locator
         List<Triple> locationNodes = shapeTreeMetadataGraph.find(NodeFactory.createURI(locatorURI),
                                                         NodeFactory.createURI(ShapeTreeVocabulary.LOCATION),
                                                         Node.ANY).toList();
 
-        // For each st:location blank node, extract a new ShapeTreeLocation
+        // For each st:location node, extract a new ShapeTreeLocation
         for (Triple locationNode : locationNodes) {
-
-            // Find all of the triples for the current location blank node
-            List<Triple> locationTriples = shapeTreeMetadataGraph.find(locationNode.getObject(), Node.ANY, Node.ANY).toList();
-
-            String shapeTree = null;
-            String rootShapeTree = null;
-            String rootShapeTreeInstance = null;
-            String shape = null;
-            String focusNode = null;
-            URI locationUri = URI.create(locationNode.getObject().getURI());
-
-            // Lookup and assign each triple in the nested ShapeTreeLocation
-            for (Triple locationTriple : locationTriples) {
-
-                switch (locationTriple.getPredicate().getURI()) {
-                    case ShapeTreeVocabulary.HAS_SHAPE_TREE:
-                        shapeTree = locationTriple.getObject().getURI();
-                        break;
-                    case ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE:
-                        rootShapeTree = locationTriple.getObject().getURI();
-                        break;
-                    case ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_INSTANCE:
-                        rootShapeTreeInstance = locationTriple.getObject().getURI();
-                        break;
-                    case ShapeTreeVocabulary.SHAPE:
-                        shape = locationTriple.getObject().getURI();
-                        break;
-                    case ShapeTreeVocabulary.FOCUS_NODE:
-                        focusNode = locationTriple.getObject().getURI();
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + locationTriple.getPredicate().getURI());
-                }
-
-            }
-
-            // Create a new Shape Tree Location from the assigned triples and add it to the array of locations
-            locator.locations.add(new ShapeTreeLocation(shapeTree, rootShapeTree, rootShapeTreeInstance, focusNode, shape, locationUri));
-
+            ShapeTreeLocation location = ShapeTreeLocation.getShapeTreeLocationFromGraph(URI.create(locationNode.getObject().getURI()), shapeTreeMetadataGraph);
+            locator.locations.add(location);
         }
 
         return locator;
 
     }
 
+    public ShapeTreeLocation getShapeTreeLocationForShapeTree(URI shapeTreeUri) {
 
+        if (this.locations == null || this.locations.isEmpty()) { return null; }
 
+        for (ShapeTreeLocation location : this.locations) {
+            if (location.getShapeTree().equals(shapeTreeUri.toString())) { return location; }
+        }
+        return null;
+    }
+
+    public void removeShapeTreeLocation(ShapeTreeLocation removeLocation) {
+
+        if (removeLocation == null) {
+            throw new IllegalStateException("Cannot remove a null ShapeTreeLocation");
+        }
+
+        if (this.locations == null || this.locations.isEmpty()) {
+            throw new IllegalStateException("Cannot remove ShapeTreeLocations from empty set");
+        }
+
+        if (!this.locations.remove(removeLocation)) {
+            throw new IllegalStateException("Cannot remove ShapeTreeLocation that does not exist in set");
+        }
+
+    }
+
+    public void removeShapeTreeLocationForShapeTree(URI shapeTreeUri) {
+        removeShapeTreeLocation(getShapeTreeLocationForShapeTree(shapeTreeUri));
+    }
 }

@@ -72,8 +72,8 @@ public class DiscoverTests extends BaseShapeTreeTest {
         ShapeTreeLocation location = locator.getLocations().get(0);
 
         Assertions.assertEquals(location.getShapeTree(), "http://www.example.com/ns/ex#DataTree");
-        Assertions.assertEquals(location.getRootShapeTree(), "http://www.example.com/ns/ex#DataTree");
-        Assertions.assertEquals(location.getRootShapeTreeInstance(), getURI(server, "/managed").toString());
+        Assertions.assertEquals(location.getManagedResource(), getURI(server, "/managed").toString());
+        Assertions.assertEquals(location.getRootShapeTreeLocation(), location.getUri());
         Assertions.assertEquals(location.getFocusNode(), getURI(server, "/managed").toString() + "#set");
         Assertions.assertEquals(location.getShape(), "http://www.example.com/ns/ex#DataSetShape");
 

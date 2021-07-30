@@ -53,6 +53,19 @@ public interface ShapeTreeClient {
     ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException;
 
     /**
+     * Shape Trees, §4.3: This operation unassigns a planted root shape tree from a root shape tree instance. If
+     * the root shape tree instance is a managed container, it will also unassign contained resources.
+     * If there are no remaining shape trees managing the resource, it would no longer be considered as managed.
+     *
+     * https://shapetrees.org/TR/specification/#unplant-shapetree
+     *
+     * @param context ShapeTreeContext that would be used for authentication purposes
+     * @param targetResource Container to remove shape tree from
+     * @param targetShapeTree URI of shape tree being removed
+     */
+    ShapeTreeResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException;
+
+    /**
      * Creates a resource via HTTP POST that has been validated against the provided shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param parentContainer The container the created resource should be created within
@@ -117,14 +130,6 @@ public interface ShapeTreeClient {
      * @throws IOException IOException
      */
     ShapeTreeResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException;
-
-    /**
-     * Removes a shape tree from a given container
-     * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param containerURI Container to remove shape tree from
-     * @param shapeTreeURI URI of shape tree being removed
-     */
-    void unplantShapeTree(ShapeTreeContext context, URI containerURI, URI shapeTreeURI);
 
     /**
      * Indicates whether validation is currently being applied on the client

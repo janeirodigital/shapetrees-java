@@ -51,7 +51,8 @@ body: >
     ex:id xsd:integer ;
     ex:name xsd:string ;
     ex:description xsd:string ;
-    ex:created_at xsd:dateTime
+    ex:created_at xsd:dateTime ;
+    ex:hasAttachment IRI*
   }
 
   <#IssueShape> {

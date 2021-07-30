@@ -4,6 +4,7 @@ import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
+import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +16,12 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Slf4j
 public class OkHttpHelper {
+
+    protected final static Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
     private OkHttpHelper() {
     }
@@ -49,6 +53,7 @@ public class OkHttpHelper {
 
         shapeTreeResource.setExists(response.isSuccessful());
         shapeTreeResource.setContainer(isContainerFromHeaders(requestHeaders));
+        shapeTreeResource.setType(getResourceTypeFromHeaders(requestHeaders));
 
         try {
             shapeTreeResource.setBody(Objects.requireNonNull(response.body()).string());
@@ -94,4 +99,27 @@ public class OkHttpHelper {
         }
         return false;
     }
+
+    private static ShapeTreeResourceType getResourceTypeFromHeaders(Map<String, List<String>> requestHeaders) {
+
+        List<String> linkHeaders = requestHeaders.get(HttpHeaders.LINK.getValue());
+
+        if (linkHeaders == null) { return null; }
+
+        Map<String, List<String>> parsedLinkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(linkHeaders);
+
+        if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null) {
+             if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
+             parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER)) {
+                 return ShapeTreeResourceType.CONTAINER;
+             }
+        }
+        if (requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()) != null) {
+            if (supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase()).get(0))) {
+                return ShapeTreeResourceType.RESOURCE;
+            }
+        }
+        return ShapeTreeResourceType.NON_RDF;
+    }
+
 }

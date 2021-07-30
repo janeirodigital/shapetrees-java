@@ -15,8 +15,8 @@ body: >
     st:location <#ln1> .
 
   <#ln1>
-    st:hasRootShapeTree ex:DataTree ;
     st:hasShapeTree ex:DataTree ;
-    st:hasRootShapeTreeInstance </managed> ;
+    st:hasManagedResource </managed> ;
+    st:hasRootShapeTreeLocation </managed.shapetree#ln1> ;
     st:node </managed#set> ;
     st:shape ex:DataSetShape .
