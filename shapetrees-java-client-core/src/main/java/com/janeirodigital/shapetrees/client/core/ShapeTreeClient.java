@@ -45,12 +45,11 @@ public interface ShapeTreeClient {
      * @param targetResource The URI of the resource to plant on
      * @param targetShapeTree A URI representing the shape tree to plant for targetResource
      * @param focusNode An optional URI representing the target subject within targetResource used for shape validation
-     * @param recursive An optional flag specifying a recursive plant over an existing hierarchy of resources. False by default.
      * @return ShapeTreeResponse containing status and response headers/attributes
      * @throws IOException IOException
      * @throws URISyntaxException URISyntaxException
      */
-    ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode, Boolean recursive) throws IOException, URISyntaxException;
+    ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode) throws IOException, URISyntaxException;
 
     /**
      * Shape Trees, §4.3: This operation unassigns a planted root shape tree from a root shape tree instance. If
@@ -125,11 +124,10 @@ public interface ShapeTreeClient {
      * Deletes an existing resource.  Provided as a convenience - no validation is performed
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param resourceURI The URI of the resource being updated
-     * @param shapeTreeURI URI of shape tree associated with resource being deleted
      * @return ShapeTreeResponse containing status and response headers/attributes
      * @throws IOException IOException
      */
-    ShapeTreeResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI shapeTreeURI) throws IOException;
+    ShapeTreeResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws IOException;
 
     /**
      * Indicates whether validation is currently being applied on the client

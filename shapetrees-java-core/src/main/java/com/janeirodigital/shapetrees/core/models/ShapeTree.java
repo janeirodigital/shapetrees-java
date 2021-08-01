@@ -29,6 +29,7 @@ import org.apache.jena.graph.Node;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -191,7 +192,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource containedResource, URI targetShapeTreeURI, String focusNode) throws IOException, URISyntaxException {
+    public ValidationResult validateContainedResource(ShapeTreeResource containedResource, URI targetShapeTreeURI, URI focusNodeURI) throws IOException, URISyntaxException {
 
         String requestedName = containedResource.getName();
         Graph containedResourceGraph = null;
@@ -202,11 +203,11 @@ public class ShapeTree {
                     containedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue()));
         }
 
-        return validateContainedResource(requestedName, containedResource.getType(), targetShapeTreeURI, containedResourceGraph, focusNode);
+        return validateContainedResource(requestedName, containedResource.getType(), targetShapeTreeURI, containedResourceGraph, focusNodeURI);
 
     }
 
-    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URI targetShapeTreeURI, Graph bodyGraph, String focusNode) throws IOException, URISyntaxException {
+    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URI targetShapeTreeURI, Graph bodyGraph, URI focusNodeURI) throws IOException, URISyntaxException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
@@ -218,7 +219,7 @@ public class ShapeTree {
             if (this.contains.contains(targetShapeTreeURI)) {
                 ShapeTree targetShapeTree = ShapeTreeFactory.getShapeTree(targetShapeTreeURI);
                 // Evaluate the shape tree against the attributes of the proposed resources
-                ValidationResult result = targetShapeTree.validateResource(requestedName, resourceType, bodyGraph, URI.create(focusNode));
+                ValidationResult result = targetShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeURI);
                 // Continue if the proposed attributes were not a match
                 if (!result.getValid()) {
                     return new ValidationResult(false, null, "Failed to validate " + targetShapeTree.getId());
@@ -239,7 +240,7 @@ public class ShapeTree {
                 if (containsShapeTree == null) { continue; } // Continue if the shape tree isn't gettable
 
                 // Evaluate the shape tree against the attributes of the proposed resources
-                ValidationResult result = containsShapeTree.validateResource(requestedName, resourceType, bodyGraph, null);
+                ValidationResult result = containsShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeURI);
                 // Continue if the proposed attributes were not a match
                 if (!result.getValid()) { continue; }
                 // Return the successful validation result
@@ -317,7 +318,7 @@ public class ShapeTree {
     }
 }
 
-class SortByShapeTreeContainsPriority implements Comparator<URI>
+class SortByShapeTreeContainsPriority implements Comparator<URI>, Serializable
 {
     // Used for sorting shape trees in st:contains by most to least strict
     @SneakyThrows

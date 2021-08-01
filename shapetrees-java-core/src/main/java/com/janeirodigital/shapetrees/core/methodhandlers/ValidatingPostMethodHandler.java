@@ -42,8 +42,6 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
         } catch (ShapeTreeException ste) {
             return new ShapeTreeValidationResponse(ste);
-//        } catch (URISyntaxException e) {
-//            return new ShapeTreeValidationResponse(new ShapeTreeException(400, "Value of 'ShapeTree' link header is not a value URI"));
         } catch (Exception ex) {
             return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
         }

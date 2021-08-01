@@ -96,8 +96,6 @@
                     <excludes>
                         <exclude>**/MedicalRecordTests.java</exclude>
                         <exclude>**/GitHubDeepTests.java</exclude>
-                        <exclude>**/RawPlantTests.java</exclude>
-                        <exclude>**/SchemaCacheTests.java</exclude>
                         <exclude>**/ShapeTreeValidationTests.java</exclude>
                     </excludes>
                 </configuration>

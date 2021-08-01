@@ -51,7 +51,7 @@ public class ProjectRecursiveTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         // Plant the data collection recursively on already existing hierarchy
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/"), getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree"), getURI(server, "/data/#repository").toString(), true);
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/"), getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree"), getURI(server, "/data/#repository").toString());
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -69,7 +69,7 @@ public class ProjectRecursiveTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator"), "GET", "/data/projects/.shapetree", null));
 
         // Plant the projects collection recursively on already existing hierarchy
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/projects/"), getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree"), null, true);
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/projects/"), getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree"), null);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }

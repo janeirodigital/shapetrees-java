@@ -17,7 +17,7 @@ body: >
     st:location <#ln1> .
 
   <#ln1>
-    st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectTree> ;
+    st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#TaskTree> ;
     st:hasManagedResource </data/projects/project-1/milestone-3/task-48/> ;
     st:hasRootShapeTreeLocation </data/projects/.shapetree#ln2> ;
     st:node </data/projects/project-1/milestone-3/task-48/#task> ;

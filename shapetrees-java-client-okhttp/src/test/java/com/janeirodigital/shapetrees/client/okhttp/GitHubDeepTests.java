@@ -68,8 +68,7 @@ public class GitHubDeepTests extends BaseShapeTreeTest {
         this.shapeTreeClient.plantShapeTree(this.context,
                 getURI(server,"/ldp/data/"),
                 getURI(server,"/static/shapetrees/github-deep/shapetree#root"),
-                null,
-                false);
+                null);
 
         ensureExistsHasMetadataWithPredicateValue(getURI(server, "/ldp/data/Git/"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), getURI(server, "/ldp/data/Git/"));
         ensureExistsHasMetadataWithPredicateValue(getURI(server, "/ldp/data/Git/"), new URI(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE), getURI(server, "/static/shapetrees/github-deep/shapetree#root"));

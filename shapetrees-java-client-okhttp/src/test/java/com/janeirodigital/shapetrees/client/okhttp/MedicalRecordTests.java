@@ -56,8 +56,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         this.shapeTreeClient.plantShapeTree(this.context,
                 getURI(server,"/ldp/data/"),
                 getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"),
-                null,
-                false);
+                null);
 
         ensureExistsHasMetadataWithPredicateValue(getURI(server, "/ldp/data/medical-record"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), getURI(server, "/ldp/data/medical-record/"));
     }
@@ -93,8 +92,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         this.shapeTreeClient.plantShapeTree(this.context,
                 getURI(server,"/ldp/data/"),
                 getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"),
-                null,
-                false);
+                null);
 
         ensureExistsHasMetadataWithPredicateValue(getURI(server, "/ldp/data/conditions"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), getURI(server, "/ldp/data/conditions/"));
     }
@@ -228,9 +226,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         ShapeTreeResponse response = this.shapeTreeClient.deleteShapeTreeInstance(this.context,
-                getURI(server,"/ldp/data/conditions/condition1.ttl"),
-                getURI(server,"/static/shapetrees/medical-record/shapetree#condition")
-        );
+                getURI(server,"/ldp/data/conditions/condition1.ttl"));
         Assertions.assertEquals(204, response.getStatusCode());
     }
 
