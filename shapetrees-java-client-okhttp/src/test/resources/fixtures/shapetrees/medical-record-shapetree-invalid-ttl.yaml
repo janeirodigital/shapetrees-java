@@ -30,7 +30,7 @@ body: >
     [ st:hasShapeTree <#questionnaire-responses> ] .
 
   <#medicalRecord>
-    st:validatedBy <medrecord-schema#medicalRecord> ;
+    st:shape <medrecord-schema#medicalRecord> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource ;
     st:references [
@@ -87,7 +87,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#patient>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#Patient> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Patient> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -97,7 +97,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#appointment>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#Appointment> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Appointment> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -107,7 +107,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#condition>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#Condition> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Condition> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -117,7 +117,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#encounter>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#Encounter> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Encounter> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -127,7 +127,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#prescription>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#MedicationRequest> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#MedicationRequest> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -137,7 +137,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#allergy>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#AllergyIntolerance> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#AllergyIntolerance> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -147,7 +147,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#observation>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#Observation> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Observation> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -157,7 +157,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#diagnosticReport>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#DiagnosticReport> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#DiagnosticReport> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -167,7 +167,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#activity>
-    st:validatedBy <https://xformativ.pub/xfh-patient/as/shapes/shex#DailyActivitySummary> ;
+    st:shape <https://xformativ.pub/xfh-patient/as/shapes/shex#DailyActivitySummary> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -177,7 +177,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#practitioner>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#Practitioner> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Practitioner> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -187,7 +187,7 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#document>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#DocumentReference> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#DocumentReference> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -197,6 +197,6 @@ body: >
     st:expectsType st:ShapeTreeContainer .
 
   <#questionnaire-response>
-    st:validatedBy <https://shapes.pub/ns/fhir/r4/shex#QuestionnaireResponse> ;
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#QuestionnaireResponse> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .

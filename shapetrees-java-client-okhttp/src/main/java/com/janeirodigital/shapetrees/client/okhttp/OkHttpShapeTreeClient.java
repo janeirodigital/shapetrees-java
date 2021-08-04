@@ -118,7 +118,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
 
         log.debug("Planting shape tree {} on {}: ", targetShapeTree, targetResource);
-        log.debug("Focus node: ", focusNode == null ? "None provided" : focusNode);
+        log.debug("Focus node: {}", focusNode == null ? "None provided" : focusNode);
 
         // Lookup the target resource
         RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
@@ -174,9 +174,9 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
 
         log.debug("POST-ing shape tree instance to {}", parentContainer.toString());
-        log.debug ("Proposed name: ", proposedResourceName == null ? "None provided" : proposedResourceName);
-        log.debug ("Target Shape Tree: ", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
-        log.debug("Focus Node: ", focusNode == null ? "None provided" : focusNode.toString());
+        log.debug ("Proposed name: {}", proposedResourceName == null ? "None provided" : proposedResourceName);
+        log.debug ("Target Shape Tree: {}", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
+        log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode.toString());
 
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
@@ -201,8 +201,8 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
 
         log.debug("Creating shape tree instance via PUT at {}", resourceURI);
-        log.debug ("Target Shape Tree: ", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
-        log.debug("Focus Node: ", focusNode == null ? "None provided" : focusNode);
+        log.debug ("Target Shape Tree: {}", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
+        log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
@@ -227,7 +227,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
 
         log.debug("Updating shape tree instance via PUT at {}", resourceURI);
-        log.debug("Focus Node: ", focusNode == null ? "None provided" : focusNode);
+        log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
 
@@ -251,8 +251,8 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
 
         log.debug("PATCH-ing shape tree instance at {}", resourceURI);
-        log.debug("PATCH String: ", patchString);
-        log.debug("Focus Node: ", focusNode == null ? "None provided" : focusNode);
+        log.debug("PATCH String: {}", patchString);
+        log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
         String contentType = "application/sparql-update";

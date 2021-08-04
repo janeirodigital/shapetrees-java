@@ -86,6 +86,22 @@ public class ProjectTests extends BaseShapeTreeTest {
 
     @SneakyThrows
     @Test
+    @Label("Fail to plant on missing shape tree")
+    void failPlantOnMissingShapeTree() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
+        // Create the data container
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-no-contains"), "GET", "/data/", null));
+
+        // Plant the data repository on newly created data container
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/"), getURI(server, "/static/shapetrees/missing/shapetree#NonExistentTree"), getURI(server, "/data/#repository").toString());
+        Assertions.assertEquals(500, response.getStatusCode());
+
+    }
+
+    @SneakyThrows
+    @Test
     @Label("Create Projects Container and Validate DataCollectionTree")
     void createAndValidateProjects() {
         MockWebServer server = new MockWebServer();

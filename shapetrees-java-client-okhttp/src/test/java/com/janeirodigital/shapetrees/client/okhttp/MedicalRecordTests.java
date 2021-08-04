@@ -3,16 +3,15 @@ package com.janeirodigital.shapetrees.client.okhttp;
 import com.janeirodigital.shapetrees.client.okhttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.client.okhttp.fixtures.RequestMatchingFixtureDispatcher;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
-import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
-import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MedicalRecordTests extends BaseShapeTreeTest {
@@ -23,29 +22,20 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
 
-    @BeforeAll
-    static void beforeAll() {
-        dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null),
-                new DispatcherEntry(List.of("schemas/fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null),
-                new DispatcherEntry(List.of("medicalRecord/data-container"), "GET", "/ldp/data/", null),
-                new DispatcherEntry(List.of("medicalRecord/data-container-metadata"), "GET", "/ldp/data/?ext=shapetree", null),
-                new DispatcherEntry(List.of("medicalRecord/medical-record-container"), "GET", "/ldp/data/medical-record", null),
-                new DispatcherEntry(List.of("medicalRecord/condition-container"), "GET", "/ldp/data/conditions", null),
-                new DispatcherEntry(List.of("medicalRecord/condition-container"), "GET", "/ldp/data/conditions/", null),
-                new DispatcherEntry(List.of("medicalRecord/condition-1"), "GET", "/ldp/data/conditions/condition1.ttl", null),
-                new DispatcherEntry(List.of("medicalRecord/condition-1-delete-response"), "DELETE", "/ldp/data/conditions/condition1.ttl", null),
-                new DispatcherEntry(List.of("medicalRecord/condition-1-create-response"), "PUT", "/ldp/data/conditions/condition1.ttl", null),
-                new DispatcherEntry(List.of("medicalRecord/condition-3-create-response"), "PUT", "/ldp/data/conditions/condition3.ttl", null),
-                new DispatcherEntry(List.of("errors/404","medicalRecord/medical-record-container-metadata"), "GET", "/ldp/data/medical-record/?ext=shapetree", null),
-                new DispatcherEntry(List.of("errors/404","medicalRecord/conditions-container-metadata"), "GET", "/ldp/data/conditions/?ext=shapetree", null),
-                new DispatcherEntry(List.of("medicalRecord/medical-record-plant-response"), "POST", "/ldp/data/", null),
-                new DispatcherEntry(List.of("medicalRecord/conditions-plant-response"), "POST", "/ldp/data/", null),
-                new DispatcherEntry(List.of("medicalRecord/condition-patch-response"), "PATCH", "/ldp/data/conditions/condition1.ttl", null)
-        ));
+    @BeforeEach
+    void beforeEach() {
+
+        List dispatcherList = new ArrayList();
+
+        dispatcherList.add(new DispatcherEntry(List.of("medicalRecord/medical-records-container"), "GET", "/ldp/data/medical-records/", null));
+        dispatcherList.add(new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("medicalRecord/conditions-container"), "GET", "/ldp/data/conditions/", null));
+        dispatcherList.add(new DispatcherEntry(List.of("schemas/fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null));
+
+        dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
+
     }
 
-    @Order(1)
     @SneakyThrows
     @Test
     @Label("Plant Medical Record")
@@ -53,35 +43,35 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        this.shapeTreeClient.plantShapeTree(this.context,
-                getURI(server,"/ldp/data/"),
-                getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"),
-                null);
+        // Plant medical record on /ldp/data/medical-record
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server,"/ldp/data/medical-records/"), getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"), null);
+        Assertions.assertEquals(201, response.getStatusCode());
 
-        ensureExistsHasMetadataWithPredicateValue(getURI(server, "/ldp/data/medical-record"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), getURI(server, "/ldp/data/medical-record/"));
     }
-    /*
-    @Order(2)
+
     @SneakyThrows
     @Test
-    @Label("Discover shape tree metadata")
-    void discoverPlantedShapeTree() {
+    @Label("Discover shape tree locator on medical record")
+    void discoverLocatorForMedicalRecord() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        List<ShapeTreeLocator> locators = this.shapeTreeClient.discoverShapeTree(this.context, getURI(server, "/ldp/data/medical-record"));
-        Assertions.assertNotNull(locators);
-        boolean foundExpected = false;
-        for (ShapeTreeLocator locator : locators) {
-            if (locator.getShapeTree().equals(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords").toString())) {
-                foundExpected = true;
-            }
-        }
-        Assertions.assertTrue(foundExpected);
-    }
-    */
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/medical-records-container-locator"), "GET", "/ldp/data/medical-records/?ext=shapetree", null));
 
-    @Order(3)
+        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, getURI(server,"/ldp/data/medical-records/"));
+
+        Assertions.assertNotNull(locator);
+        Assertions.assertEquals(locator.getURI(), getURI(server, "/ldp/data/medical-records/?ext=shapetree"));
+        Assertions.assertNotNull(locator.getLocations());
+        Assertions.assertEquals(locator.getLocations().size(), 1);
+
+        ShapeTreeLocation location = locator.getLocations().get(0);
+        Assertions.assertEquals(location.getShapeTree(), getURI(server, "/static/shapetrees/medical-record/shapetree#medicalRecords").toString());
+        Assertions.assertEquals(location.getManagedResource(), getURI(server, "/ldp/data/medical-records/").toString());
+        Assertions.assertEquals(location.getRootShapeTreeLocation(), getURI(server, "/ldp/data/medical-records/.shapetree#ln1"));
+
+    }
+
     @SneakyThrows
     @Test
     @Label("Plant Condition Shape tree")
@@ -89,15 +79,12 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        this.shapeTreeClient.plantShapeTree(this.context,
-                getURI(server,"/ldp/data/"),
-                getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"),
-                null);
+        // Plant medical record on /ldp/data/medical-record
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server,"/ldp/data/conditions/"), getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"), null);
+        Assertions.assertEquals(201, response.getStatusCode());
 
-        ensureExistsHasMetadataWithPredicateValue(getURI(server, "/ldp/data/conditions"), new URI(ShapeTreeVocabulary.HAS_SHAPE_TREE_INSTANCE_ROOT), getURI(server, "/ldp/data/conditions/"));
     }
 
-    @Order(4)
     @SneakyThrows
     @Test
     @Label("Create Data Instance")
@@ -105,21 +92,22 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/conditions-container-locator"), "GET", "/ldp/data/conditions/?ext=shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1"), "POST", "/ldp/data/conditions/condition1.ttl", null));
+
         ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
-                getURI(server,"/ldp/data/conditions/"),
-                getURI(server,"http://hl7.org/fhir/Condition/example"),
-                getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
+                getURI(server, "/ldp/data/conditions/"),
+                getURI(server, "http://hl7.org/fhir/Condition/example"),
+                getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),
                 "condition1.ttl",
                 false,
                 getConditionTtl(),
-                "text/turtle"
-                );
+                TEXT_TURTLE);
+
         Assertions.assertEquals(201, response.getStatusCode());
-        RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
-        assertTrue(resource.exists());
+
     }
 
-    @Order(5)
     @SneakyThrows
     @Test
     @Label("Create Data Instance - fail validation")
@@ -127,19 +115,20 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/conditions-container-locator"), "GET", "/ldp/data/conditions/?ext=shapetree", null));
+
         ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
-                getURI(server,"/ldp/data/conditions/"),
-                getURI(server,"http://hl7.org/fhir/Condition/example"),
-                getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
-                "condition3.ttl",
+                getURI(server, "/ldp/data/conditions/"),
+                getURI(server, "http://hl7.org/fhir/Condition/example"),
+                getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),
+                "condition1.ttl",
                 false,
                 getInvalidConditionTtl(),
-                "text/turtle"
-        );
+                TEXT_TURTLE);
+
         Assertions.assertEquals(422, response.getStatusCode());
     }
 
-    @Order(6)
     @SneakyThrows
     @Test
     @Label("Create Data Instance - fail validation - but skip validation")
@@ -147,22 +136,25 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/conditions-container-locator"), "GET", "/ldp/data/conditions/?ext=shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-create-response"), "POST", "/ldp/data/conditions/", null));
+
+        // create invalid instance but skip validation
         this.shapeTreeClient.skipValidation(true);
-        assertTrue(this.shapeTreeClient.isValidationSkipped());
+        Assertions.assertTrue(this.shapeTreeClient.isValidationSkipped());
         ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
-                getURI(server,"/ldp/data/conditions/"),
-                getURI(server,"http://hl7.org/fhir/Condition/example"),
-                getURI(server,"/static/shapetrees/medical-record/shapetree#condition"),
-                "condition3.ttl",
+                getURI(server, "/ldp/data/conditions/"),
+                getURI(server, "http://hl7.org/fhir/Condition/example"),
+                getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),
+                "condition1.ttl",
                 false,
                 getInvalidConditionTtl(),
-                "text/turtle"
-        );
+                TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
-        this.shapeTreeClient.skipValidation(true);
+        this.shapeTreeClient.skipValidation(false);
+        Assertions.assertFalse(this.shapeTreeClient.isValidationSkipped());
     }
 
-    @Order(7)
     @SneakyThrows
     @Test
     @Label("Update Data Instance - Valid")
@@ -170,18 +162,21 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1"), "GET", "/ldp/data/conditions/condition1.ttl", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-locator"), "GET", "/ldp/data/conditions/condition1.ttl?ext=shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-update-response"), "PUT", "/ldp/data/conditions/condition1.ttl", null));
+
+        // update condition instance
+
         ShapeTreeResponse response = this.shapeTreeClient.putShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 getURI(server,"http://hl7.org/fhir/Condition/example"),
                 getConditionTtl(),
                 "text/turtle"
         );
-        Assertions.assertEquals(201, response.getStatusCode());
-        RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
-        assertTrue(resource.exists());
+        Assertions.assertEquals(200, response.getStatusCode());
     }
 
-    @Order(8)
     @SneakyThrows
     @Test
     @Label("Update Data Instance via Patch")
@@ -189,35 +184,38 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
+        // patch condition instance
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1"), "GET", "/ldp/data/conditions/condition1.ttl", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-locator"), "GET", "/ldp/data/conditions/condition1.ttl?ext=shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-patch-response"), "PATCH", "/ldp/data/conditions/condition1.ttl", null));
+
         ShapeTreeResponse response = this.shapeTreeClient.patchShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 getURI(server,"http://hl7.org/fhir/Condition/example"),
                 "INSERT DATA { <#a> <#b> <#c> . }"
         );
         Assertions.assertEquals(204, response.getStatusCode());
-        RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
-        assertTrue(resource.exists());
     }
 
-    @Order(9)
     @SneakyThrows
     @Test
-    @Label("Update Data Instance via Patch - causing validation error")
-    void updateConditionPatchInvalid() {
+    @Label("Fail to update condition with invalid PATCH")
+    void failToUpdateConditionWithPatch() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1"), "GET", "/ldp/data/conditions/condition1.ttl", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-locator"), "GET", "/ldp/data/conditions/condition1.ttl?ext=shapetree", null));
+
+        // fail to validate on update with patch
         ShapeTreeResponse response = this.shapeTreeClient.patchShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 getURI(server,"http://hl7.org/fhir/Condition/example"),
                 "DELETE DATA { <http://hl7.org/fhir/Condition/example> a <http://hl7.org/fhir/Condition> . }"
         );
         Assertions.assertEquals(422, response.getStatusCode());
-        RemoteResource resource = new RemoteResource(getURI(server,"/ldp/data/conditions/condition1.ttl"), null);
-        assertTrue(resource.exists());
     }
 
-    @Order(10)
     @SneakyThrows
     @Test
     @Label("Delete Data Instance ")
@@ -225,8 +223,12 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response = this.shapeTreeClient.deleteShapeTreeInstance(this.context,
-                getURI(server,"/ldp/data/conditions/condition1.ttl"));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1"), "GET", "/ldp/data/conditions/condition1.ttl", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-locator"), "GET", "/ldp/data/conditions/condition1.ttl?ext=shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-delete-response"), "DELETE", "/ldp/data/conditions/condition1.ttl", null));
+
+        // delete data instance
+        ShapeTreeResponse response = this.shapeTreeClient.deleteShapeTreeInstance(this.context, getURI(server,"/ldp/data/conditions/condition1.ttl"));
         Assertions.assertEquals(204, response.getStatusCode());
     }
 

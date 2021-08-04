@@ -10,10 +10,10 @@ body: >
   PREFIX shx: <http://www.w3.org/ns/shex#>
   PREFIX ex: <http://www.example.com/ns/ex#>
 
-    start=@<All>
+  BASE <${SERVER_BASE}/static/shex/validation>
 
-    <InvalidShape> CLOSED {
-    a [ex:BadExample];
-    ex:id xsd:integer?;
-    ex:name @<BadId>?;
-    ex:description @<BadReference>?;
+  <#FooShape> {
+    ex:id xsd:integer ;
+    ex:name xsd:string ;
+    ex:created_at xsd:dateTime
+  }

@@ -108,11 +108,6 @@ public class ShapeTree {
         if (shapeResourceURI.getFragment() != null) {
             shapeResourceURI = new URI(shapeResourceURI.getScheme(), shapeResourceURI.getSchemeSpecificPart(), null);
         }
-        /*
-        if (resolvedShapeURI.toString().contains("#")) {
-            shapeResourceURI = new URI(shapeResourceURI.toString().substring(0, shapeResourceURI.toString().indexOf("#")));
-        }
-        */
 
         ShexSchema schema;
         if (SchemaCache.isInitialized() && SchemaCache.containsSchema(shapeResourceURI)) {
@@ -264,9 +259,7 @@ public class ShapeTree {
     public List<URI> getPrioritizedContains() {
 
         List<URI> prioritized = new ArrayList<>(this.contains);
-
         Collections.sort(prioritized, new SortByShapeTreeContainsPriority());
-
         return prioritized;
 
     }

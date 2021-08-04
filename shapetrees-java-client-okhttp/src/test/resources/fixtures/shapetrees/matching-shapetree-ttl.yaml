@@ -29,22 +29,22 @@ body: >
     st:expectsType st:Container .
 
   <#containedTemplateA>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
     st:matchesUriTemplate "a-{id}" ;
     st:expectsType st:Resource .
 
   <#containedTemplateACopy>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
     st:matchesUriTemplate "a-{id}" ;
     st:expectsType st:Resource .
 
   <#containedTemplateB>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
     st:matchesUriTemplate "b-{id}" ;
     st:expectsType st:Resource .
 
   <#containedTemplateC>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
     st:matchesUriTemplate "c-{id}" ;
     st:expectsType st:Resource .
 
@@ -53,7 +53,7 @@ body: >
     st:expectsType st:Container .
 
   <#containedHint>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
     st:matchesUriTemplate "{id}" ;
     st:expectsType st:Resource .
 
@@ -78,6 +78,6 @@ body: >
     st:expectsType st:Container .
 
   <#unlikelyTemplateMatch>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
     st:matchesUriTemplate "asdfasdfasdf" ;
     st:expectsType st:Resource .

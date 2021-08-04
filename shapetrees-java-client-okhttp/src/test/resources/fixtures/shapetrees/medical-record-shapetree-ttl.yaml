@@ -30,7 +30,7 @@ body: >
       [ st:hasShapeTree <#questionnaire-responses> ] .
 
   <#medicalRecord>
-    st:validatedBy <medrecord-schema#medicalRecord> ;
+    st:shape <medrecord-schema#medicalRecord> ;
     st:expectsType st:Resource ;
     st:references [
       st:hasShapeTree <#patient> ;
@@ -86,7 +86,7 @@ body: >
     st:expectsType st:Container .
 
   <#patient>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Patient> ;
     st:expectsType st:Resource .
 
   <#appointments>
@@ -95,7 +95,7 @@ body: >
     st:expectsType st:Container .
 
   <#appointment>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Appointment> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Appointment> ;
     st:expectsType st:Resource .
 
   <#conditions>
@@ -104,7 +104,7 @@ body: >
     st:expectsType st:Container .
 
   <#condition>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Condition> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Condition> ;
     st:expectsType st:Resource .
 
   <#encounters>
@@ -113,7 +113,7 @@ body: >
     st:expectsType st:Container .
 
   <#encounter>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Encounter> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Encounter> ;
     st:expectsType st:Resource .
 
   <#prescriptions>
@@ -122,7 +122,7 @@ body: >
     st:expectsType st:Container .
 
   <#prescription>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#MedicationRequest> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#MedicationRequest> ;
     st:expectsType st:Resource .
 
   <#allergies>
@@ -131,7 +131,7 @@ body: >
     st:expectsType st:Container .
 
   <#allergy>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#AllergyIntolerance> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#AllergyIntolerance> ;
     st:expectsType st:Resource .
 
   <#observations>
@@ -140,7 +140,7 @@ body: >
     st:expectsType st:Container .
 
   <#observation>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Observation> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Observation> ;
     st:expectsType st:Resource .
 
   <#diagnosticReports>
@@ -149,7 +149,7 @@ body: >
     st:expectsType st:Container .
 
   <#diagnosticReport>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#DiagnosticReport> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#DiagnosticReport> ;
     st:expectsType st:Resource .
 
   <#activities>
@@ -158,7 +158,7 @@ body: >
     st:expectsType st:Container .
 
   <#activity>
-    st:validatedBy <https://xformativ.pub/xfh-patient/as/shapes/shex#DailyActivitySummary> ;
+    st:shape <https://xformativ.pub/xfh-patient/as/shapes/shex#DailyActivitySummary> ;
     st:expectsType st:Resource .
 
   <#practitioners>
@@ -167,7 +167,7 @@ body: >
     st:expectsType st:Container .
 
   <#practitioner>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#Practitioner> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#Practitioner> ;
     st:expectsType st:Resource .
 
   <#documents>
@@ -176,7 +176,7 @@ body: >
     st:expectsType st:Container .
 
   <#document>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#DocumentReference> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#DocumentReference> ;
     st:expectsType st:Resource .
 
   <#questionnaire-responses>
@@ -185,5 +185,5 @@ body: >
     st:expectsType st:Container .
 
   <#questionnaire-response>
-    st:validatedBy <${SERVER_BASE}/static/shex/fhir/r4/shex#QuestionnaireResponse> ;
+    st:shape <${SERVER_BASE}/static/shex/fhir/r4/shex#QuestionnaireResponse> ;
     st:expectsType st:Resource .

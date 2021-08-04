@@ -1,0 +1,54 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX xml: <http://www.w3.org/XML/1998/namespace>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  PREFIX val: <${SERVER_BASE}/static/shex/validation#>
+  PREFIX noval: <${SERVER_BASE}/static/shex/missing#>
+  PREFIX invalid: <${SERVER_BASE}/static/shex/invalid#>
+
+  <#NoShapeValidationTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource .
+
+  <#LabelTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    rdfs:label "resource-name" .
+
+  <#ExpectsContainerTree>
+      a st:ShapeTree ;
+      st:expectsType st:Container .
+
+  <#ExpectsResourceTree>
+      a st:ShapeTree ;
+      st:expectsType st:Resource .
+
+  <#ExpectsNonRDFResourceTree>
+      a st:ShapeTree ;
+      st:expectsType st:NonRDFResource .
+
+  <#FooTree>
+      a st:ShapeTree ;
+      st:expectsType st:Resource ;
+      st:shape val:FooShape .
+
+  <#FooContainingTree>
+      a st:ShapeTree ;
+      st:expectsType st:Container ;
+      st:contains <#FooTree> .
+
+  <#MissingShapeSchemaTree>
+        a st:ShapeTree ;
+        st:expectsType st:Resource ;
+        st:shape noval:MissingShape .
+
+  <#InvalidShapeSchemaTree>
+      a st:ShapeTree ;
+      st:expectsType st:Resource ;
+      st:shape invalid:InvalidShape .

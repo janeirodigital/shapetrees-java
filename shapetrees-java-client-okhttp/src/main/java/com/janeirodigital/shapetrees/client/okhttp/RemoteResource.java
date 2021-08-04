@@ -146,8 +146,10 @@ public class RemoteResource {
 
     public Boolean isContainer() {
         String uriPath = this.uri.getPath();
-
-        return uriPath.endsWith("/");
+        // Some implementations use the query string to denote auxiliary metadata for containers or resources
+        // In the event a query string is present on a container, ensure that the auxiliary resource doesn't
+        // get mistaken as a container when shortened to the URI path
+        return (this.uri.getQuery() == null && uriPath.endsWith("/"));
     }
 
     public Boolean isMetadata() throws IOException {

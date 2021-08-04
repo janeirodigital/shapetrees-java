@@ -17,7 +17,7 @@ body: >
     <#agent-tree>
     a st:ShapeTree;
     st:expectsType st:Resource ;
-    st:validatedBy ecos:AgentShape ;
+    st:shape ecos:AgentShape ;
     st:matchesUriTemplate "id" .
 
     # Registrar
@@ -25,7 +25,7 @@ body: >
     <#registrar-tree>
     a st:ShapeTree;
     st:expectsType st:Container ;
-    st:validatedBy ecos:RegistrarShape ;
+    st:shape ecos:RegistrarShape ;
     st:contains <#application-registry-set-tree> ,
     <#data-registry-set-tree> ,
     st:AllowOnly .
@@ -33,13 +33,13 @@ body: >
     <#application-registry-set-tree>
     a st:ShapeTree;
     st:expectsType st:Resource ;
-    st:validatedBy ecos:ApplicationRegistrySetShape ;
+    st:shape ecos:ApplicationRegistrySetShape ;
     st:matchesUriTemplate "application" .
 
     <#data-registry-set-tree>
     a st:ShapeTree;
     st:expectsType st:Resource ;
-    st:validatedBy ecos:DataRegistrySetShape ;
+    st:shape ecos:DataRegistrySetShape ;
     st:matchesUriTemplate "data" .
 
     # Application Registry
@@ -51,7 +51,7 @@ body: >
     <#application-registry-tree>
     a st:ShapeTree;
     st:expectsType st:Container ;
-    st:validatedBy ecos:ApplicationRegistryShape ;
+    st:shape ecos:ApplicationRegistryShape ;
     st:contains <#application-registration-tree> ,
     st:AllowOnly .
 
@@ -64,7 +64,7 @@ body: >
     <#application-registration-tree>
     a st:ShapeTree;
     st:expectsType st:Container ;
-    st:validatedBy ecos:ApplicationRegistrationShape ;
+    st:shape ecos:ApplicationRegistrationShape ;
     st:matchesUriTemplate "{id}" .
 
     # Data Registry
@@ -76,7 +76,7 @@ body: >
     <#data-registry-tree>
     a st:ShapeTree;
     st:expectsType st:Container ;
-    st:validatedBy ecos:DataRegistryShape ;
+    st:shape ecos:DataRegistryShape ;
     st:contains <#data-registration-tree> ,
     st:AllowOnly .
 
@@ -89,5 +89,5 @@ body: >
     <#data-registration-tree>
     a st:ShapeTree;
     st:expectsType st:Container ;
-    st:validatedBy ecos:DataRegistrationShape ;
+    st:shape ecos:DataRegistrationShape ;
     st:matchesUriTemplate "{id}" .

@@ -3,6 +3,7 @@ delay: 0
 headers:
   - 'Content-type:text/turtle'
   - 'Link:<http://www.w3.org/ns/ldp#Resource>; rel="type"'
+  - 'Link:</ldp/data/conditions/condition1.ttl?ext=shapetree>; rel="http://www.w3.org/ns/shapetrees#ShapeTreeLocator"'
 body: >
   @prefix fhir: <http://hl7.org/fhir/> .
   @prefix owl: <http://www.w3.org/2002/07/owl#> .
