@@ -108,5 +108,4 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
 
         return builder.build();
     }
-
 }

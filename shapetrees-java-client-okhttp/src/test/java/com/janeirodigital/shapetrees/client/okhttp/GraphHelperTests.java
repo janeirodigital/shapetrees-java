@@ -11,31 +11,28 @@ import org.apache.jena.riot.Lang;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.URI;
 
-public class GraphHelperTests {
-    @Test
-    @DisplayName("Null content type")
+class GraphHelperTests {
+    @ParameterizedTest
+    @NullAndEmptySource
+    @DisplayName("Handle null or empty content types with defaults")
     @SneakyThrows
-    void handleNullContentType() {
-        Lang lang = GraphHelper.getLangForContentType(null);
+    void handleNullOrEmptyContentTypes(String type) {
+        Lang lang = GraphHelper.getLangForContentType(type);
         Assertions.assertEquals(lang, Lang.TURTLE);
     }
 
-    @Test
-    @DisplayName("Turtle content type")
+    @ParameterizedTest
+    @ValueSource(strings = {"text/turtle","something/bogus"})
+    @DisplayName("Handle turtle content type when specified or as default")
     @SneakyThrows
-    void handleTurtleContentType() {
-        Lang lang = GraphHelper.getLangForContentType("text/turtle");
-        Assertions.assertEquals(lang, Lang.TURTLE);
-    }
-
-    @Test
-    @DisplayName("Turtle content type default")
-    @SneakyThrows
-    void handleDefaultContentType() {
-        Lang lang = GraphHelper.getLangForContentType("something/bogus");
+    void handleTurtleContentType(String type) {
+        Lang lang = GraphHelper.getLangForContentType(type);
         Assertions.assertEquals(lang, Lang.TURTLE);
     }
 

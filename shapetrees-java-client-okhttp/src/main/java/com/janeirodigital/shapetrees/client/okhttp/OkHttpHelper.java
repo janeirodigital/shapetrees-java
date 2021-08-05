@@ -21,7 +21,7 @@ import java.util.Set;
 @Slf4j
 public class OkHttpHelper {
 
-    protected final static Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
+    protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
     private OkHttpHelper() {
     }
@@ -108,16 +108,15 @@ public class OkHttpHelper {
 
         Map<String, List<String>> parsedLinkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(linkHeaders);
 
-        if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null) {
-             if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
-             parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER)) {
-                 return ShapeTreeResourceType.CONTAINER;
-             }
+        if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null &&
+           (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
+            parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER))) {
+            return ShapeTreeResourceType.CONTAINER;
         }
-        if (requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()) != null) {
-            if (supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase()).get(0))) {
-                return ShapeTreeResourceType.RESOURCE;
-            }
+
+        if (requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()) != null &&
+            supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase()).get(0))) {
+            return ShapeTreeResourceType.RESOURCE;
         }
         return ShapeTreeResourceType.NON_RDF;
     }

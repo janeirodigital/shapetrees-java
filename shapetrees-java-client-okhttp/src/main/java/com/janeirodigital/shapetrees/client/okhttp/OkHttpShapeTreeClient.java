@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class OkHttpShapeTreeClient implements ShapeTreeClient {
@@ -67,7 +68,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource for pointer to associated shape tree locator
         RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
-        if  (!resource.exists()) {
+        if  (Boolean.FALSE.equals(resource.exists())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
             return null;
         }
@@ -78,7 +79,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         // Ensure the metadata resource exists
         // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
         // and no shape tree locator will be returned.
-        if (!locatorResource.exists()) {
+        if (Boolean.FALSE.equals(locatorResource.exists())) {
             log.debug("Shape tree locator for {} does not exist", targetResource);
             return null;
         }
@@ -123,8 +124,8 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource
         RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
-        if (!resource.exists()) {
-            return new ShapeTreeResponse(404, "Cannot find target resource to plant: " + targetResource.toString(), null);
+        if (Boolean.FALSE.equals(resource.exists())) {
+            return new ShapeTreeResponse(404, "Cannot find target resource to plant: " + targetResource, null);
         }
 
         // Determine whether the target resource is already a managed resource
@@ -132,7 +133,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         // If the target resource is not managed, initialize a new locator
         if (locator == null) {
-            locator = new ShapeTreeLocator(resource.getMetadataURI().toString());
+            locator = new ShapeTreeLocator(resource.getMetadataURI());
         }
 
         // Initialize a shape tree location based on the supplied parameters
@@ -157,7 +158,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
 
         // Convert the string into a byte array. Turtle is always UTF-8 https://www.w3.org/TR/turtle/#h3_sec-mime
-        byte[] bytes = sw.toString().getBytes("UTF-8");
+        byte[] bytes = sw.toString().getBytes(StandardCharsets.UTF_8);
 
         // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
         Request plantBuilder = builder.put(RequestBody.create(bytes)).build();
@@ -182,7 +183,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
-            bytes = bodyString.getBytes();
+            bytes = bodyString.getBytes(StandardCharsets.UTF_8);
         }
 
         Request.Builder postBuilder = new Request.Builder().url(HttpUrl.get(parentContainer)).post(RequestBody.create(bytes));
@@ -208,7 +209,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
-            bytes = bodyString.getBytes();
+            bytes = bodyString.getBytes(StandardCharsets.UTF_8);
         }
 
         Request.Builder putBuilder = new Request.Builder().url(resourceURI.toString()).put(RequestBody.create(bytes));
@@ -233,7 +234,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         byte[] bytes = new byte[]{};
         if (bodyString != null) {
-            bytes = bodyString.getBytes();
+            bytes = bodyString.getBytes(StandardCharsets.UTF_8);
         }
 
         Request.Builder putBuilder = new Request.Builder().url(resourceURI.toString()).put(RequestBody.create(bytes));
@@ -256,7 +257,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
         String contentType = "application/sparql-update";
-        byte[] sparqlUpdateBytes = patchString.getBytes();
+        byte[] sparqlUpdateBytes = patchString.getBytes(StandardCharsets.UTF_8);
 
         Request.Builder patchBuilder = new Request.Builder().url(resourceURI.toString()).patch(RequestBody.create(sparqlUpdateBytes));
 
@@ -295,7 +296,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource
         RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
-        if (!resource.exists()) {
+        if (Boolean.FALSE.equals(resource.exists())) {
             return new ShapeTreeResponse(404, "Cannot find target resource to unplant: " + targetResource.toString(), null);
         }
 
@@ -325,7 +326,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
             StringWriter sw = new StringWriter();
             RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
             // Convert the string into a byte array. Turtle is always UTF-8 https://www.w3.org/TR/turtle/#h3_sec-mime
-            byte[] bytes = sw.toString().getBytes("UTF-8");
+            byte[] bytes = sw.toString().getBytes(StandardCharsets.UTF_8);
             // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
             unplantBuilder = new Request.Builder().url(resource.getMetadataURI()).put(RequestBody.create(bytes)).build();
 

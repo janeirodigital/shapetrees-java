@@ -9,7 +9,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -54,12 +53,5 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
         } else {
             return defaultValue;
         }
-    }
-
-    protected List<String> getIncomingLinkHeaderByRelationValue(ShapeTreeRequest<?> shapeTreeRequest, String relation) {
-        if (shapeTreeRequest.getLinkHeaders().containsKey(relation)) {
-            return shapeTreeRequest.getLinkHeaders().get(relation);
-        }
-        return null;
     }
 }

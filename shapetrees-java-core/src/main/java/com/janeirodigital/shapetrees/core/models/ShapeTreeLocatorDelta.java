@@ -31,8 +31,8 @@ public class ShapeTreeLocatorDelta {
 
         delta.existingLocator = existingLocator;
         delta.updatedLocator = updatedLocator;
-        delta.updatedLocations = new ArrayList<ShapeTreeLocation>();
-        delta.removedLocations = new ArrayList<ShapeTreeLocation>();
+        delta.updatedLocations = new ArrayList<>();
+        delta.removedLocations = new ArrayList<>();
 
 
         if (updatedLocator == null || updatedLocator.getLocations() == null || updatedLocator.getLocations().isEmpty()) {
@@ -91,18 +91,15 @@ public class ShapeTreeLocatorDelta {
     }
 
     public boolean allRemoved() {
-        if (!this.isUpdated() && this.removedLocations.size() == this.existingLocator.getLocations().size()) {
-            return true;
-        }
-        return false;
+        return (!this.isUpdated() && this.removedLocations.size() == this.existingLocator.getLocations().size());
     }
 
     public boolean isUpdated() {
-        return this.updatedLocations.isEmpty() ? false : true;
+        return !this.updatedLocations.isEmpty();
     }
 
     public boolean wasReduced() {
-        return this.removedLocations.isEmpty() ? false : true;
+        return !this.removedLocations.isEmpty();
     }
 
 }

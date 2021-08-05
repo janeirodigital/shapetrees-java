@@ -36,51 +36,51 @@ body: >
     st:expectsType st:Resource ;
     st:references [
       st:hasShapeTree <#patient> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:patient"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:patient"
     ],
     [
       st:hasShapeTree <#appointment> ;
-      st:traverseViaShapePath "<@medrecord-schema#medicalRecord>/medrecord:appointment"
+      st:viaShapePath "<@medrecord-schema#medicalRecord>/medrecord:appointment"
     ],
     [
       st:hasShapeTree <#condition> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:condition"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:condition"
     ],
     [
       st:hasShapeTree <#encounter> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:encounter"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:encounter"
     ],
     [
       st:hasShapeTree <#prescription> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:prescription"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:prescription"
     ],
     [
       st:hasShapeTree <#allergy> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:allergy"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:allergy"
     ],
     [
       st:hasShapeTree <#observation> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:observation"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:observation"
     ],
     [
       st:hasShapeTree <#diagnosticReport> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:diagnosticReport"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:diagnosticReport"
     ] ,
     [
       st:hasShapeTree <#activity> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:activity"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:activity"
     ],
     [
       st:hasShapeTree <#practitioner> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:practitioner"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:practitioner"
     ],
     [
       st:hasShapeTree <#document> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:document"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:document"
     ],
     [
       st:hasShapeTree <#questionnaire-response> ;
-      st:traverseViaShapePath "@<medrecord-schema#medicalRecord>/medrecord:questionnaireResponse"
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:questionnaireResponse"
     ] .
 
   <#patients>

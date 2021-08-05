@@ -41,6 +41,8 @@ public class HttpDocumentContentsLoader implements DocumentContentsLoader {
             HttpRequest request = HttpRequest.newBuilder().GET().uri(resourceURI).build();
             HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            if (response.statusCode() != 200) { throw new IOException("Failed to load contents of document: " + resourceURI); }
+
             return new DocumentContents(resourceURI, response.body(), response.headers().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle"));
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, "Error retrieving resource " + ex.getMessage());

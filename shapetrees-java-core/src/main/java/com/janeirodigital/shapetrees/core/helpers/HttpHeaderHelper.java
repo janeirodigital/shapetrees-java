@@ -31,9 +31,7 @@ public class HttpHeaderHelper {
             if (matcher.matches() && matcher.groupCount() >= 2) {
                 String uri = matcher.group(1);
                 String rel = matcher.group(2);
-                if (!linkHeaderMap.containsKey(rel)) {
-                    linkHeaderMap.put(rel, new ArrayList<>());
-                }
+                linkHeaderMap.computeIfAbsent(rel, k -> new ArrayList<>());
                 linkHeaderMap.get(rel).add(uri);
             } else {
                 log.warn("Unable to parse link header: [{}]", headerValue);

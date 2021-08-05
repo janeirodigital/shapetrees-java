@@ -17,6 +17,7 @@ import org.apache.jena.graph.Triple;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,6 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
     private static final String POST = "POST";
     private static final String PUT = "PUT";
     private static final String PATCH = "PATCH";
-    private static final String DELETE = "DELETE";
 
     @Override
     public ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException {
@@ -42,19 +42,21 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
         try {
             RemoteResource containerResource = new RemoteResource(containerResourceURI, context.getAuthorizationHeaderValue());
 
-            if (!containerResource.isContainer()) { return null; }
+            if (Boolean.FALSE.equals(containerResource.isContainer())) {
+                throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container");
+            }
 
             Graph containerGraph = containerResource.getGraph(containerResourceURI);
 
-            if (containerGraph == null) { return null; }
+            if (containerGraph == null) { return Collections.emptyList(); }
 
             List<Triple> containerTriples = containerGraph.find(NodeFactory.createURI(containerResourceURI.toString()),
                                                                                       NodeFactory.createURI(LdpVocabulary.CONTAINS),
                                                                                       Node.ANY).toList();
 
-            if (containerTriples.isEmpty()) { return null; }
+            if (containerTriples.isEmpty()) { return Collections.emptyList(); }
 
-            ArrayList<ShapeTreeResource> containedResources = new ArrayList<ShapeTreeResource>();
+            ArrayList<ShapeTreeResource> containedResources = new ArrayList<>();
 
             for (Triple containerTriple : containerTriples) {
                 ShapeTreeResource containedResource = getResource(context,URI.create(containerTriple.getObject().getURI()));

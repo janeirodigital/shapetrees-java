@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ProjectRecursiveTests extends BaseShapeTreeTest {
+class ProjectRecursiveTests extends BaseShapeTreeTest {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
 

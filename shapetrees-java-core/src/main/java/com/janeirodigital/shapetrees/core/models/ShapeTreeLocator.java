@@ -80,12 +80,15 @@ public class ShapeTreeLocator {
 
     public void addShapeTreeLocation(ShapeTreeLocation location) throws ShapeTreeException, URISyntaxException {
 
+        if (this.locations == null || location == null) {
+            throw new ShapeTreeException(500, "Must provide a non-null location to an initialized List of ShapeTreeLocations");
+        }
+
         if (location.getUri() == null) {
             location.setUri(this.mintLocation());
         }
 
-        // Check for an existing shape tree location.. TODO - Could checking for the same URI be enough here?
-        if (this.locations != null && !this.locations.isEmpty()) {
+        if (!this.locations.isEmpty()) {
             for (ShapeTreeLocation existingLocation : this.locations) {
                 if (existingLocation.equals(location)) {
                     throw new ShapeTreeException(422, "Identical shape tree location cannot be added to Shape Tree Locator: " + this.id);
@@ -142,7 +145,7 @@ public class ShapeTreeLocator {
         // https://shapetrees.org/TR/specification/#locator
         if (shapeTreeLocatorTriples.size() > 1) {
             throw new IllegalStateException("Multiple ShapeTreeLocator instances found: " + shapeTreeLocatorTriples.size());
-        } else if (shapeTreeLocatorTriples.size() < 1) {
+        } else if (shapeTreeLocatorTriples.isEmpty()) {
             // Given the fact that a locator resource exists, there should never be a case where the locator resource
             // exists but no locator is found inside of it.
             throw new IllegalStateException("No ShapeTreeLocator instances found: " + shapeTreeLocatorTriples.size());

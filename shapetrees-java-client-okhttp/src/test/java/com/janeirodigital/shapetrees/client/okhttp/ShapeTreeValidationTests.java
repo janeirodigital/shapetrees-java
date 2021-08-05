@@ -30,7 +30,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-public class ShapeTreeValidationTests extends BaseShapeTreeTest {
+class ShapeTreeValidationTests extends BaseShapeTreeTest {
 
     public ShapeTreeValidationTests() {
         super();

@@ -29,6 +29,11 @@ import java.util.Set;
 @Slf4j
 public class RemoteResource {
 
+    private static final String TEXT_TURTLE = "text/turtle";
+    private static final String APP_RDF_XML = "application/rdf+xml";
+    private static final String APP_N3 = "application/n-triples";
+    private static final String APP_LD_JSON = "application/ld+json";
+
     private final URI uri;
     private final String authorizationHeaderValue;
     private Boolean invalidated = false;
@@ -38,7 +43,7 @@ public class RemoteResource {
     private Graph parsedGraph;
     private String rawBody;
     private final ShapeTreeClientConfiguration clientConfiguration = new ShapeTreeClientConfiguration(false, false);
-    protected final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
+    protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
     public RemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
         URI requestUri;
@@ -119,11 +124,11 @@ public class RemoteResource {
 
     public ShapeTreeResourceType getResourceType() throws IOException {
 
-        if (isContainer()) {
+        if (Boolean.TRUE.equals(isContainer())) {
             return ShapeTreeResourceType.CONTAINER;
         }
 
-        if (isRdfResource()) {
+        if (Boolean.TRUE.equals(isRdfResource())) {
             return ShapeTreeResourceType.RESOURCE;
         } else {
             return ShapeTreeResourceType.NON_RDF;
@@ -141,7 +146,7 @@ public class RemoteResource {
     }
 
     public Boolean isNonRdfSource() throws IOException {
-        return isRdfResource() ? false : true;
+        return !isRdfResource();
     }
 
     public Boolean isContainer() {
@@ -155,7 +160,7 @@ public class RemoteResource {
     public Boolean isMetadata() throws IOException {
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
         // with a metadata target, it is not a metadata resource (because it is pointing to one)
-        if (this.exists() && this.parsedLinkHeaders != null && this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
             return false;
         }
         // If the resource doesn't exist, currently we need to do some inference based on the URI
@@ -167,10 +172,10 @@ public class RemoteResource {
 
     public Boolean isManaged() throws IOException {
 
-        // If there is a metadata resource that
-        if (this.getMetadataResource(this.authorizationHeaderValue).exists()) {
-            return true;
-        }
+        if (Boolean.TRUE.equals(this.isMetadata())) { return false; }
+
+        if (Boolean.TRUE.equals(this.getMetadataResource(this.authorizationHeaderValue).exists())) { return true; }
+
         return false;
 
     }
@@ -208,8 +213,8 @@ public class RemoteResource {
         OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(this.clientConfiguration);
         Request.Builder requestBuilder = new Request.Builder()
                 .url(this.uri.toURL())
-                .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), "text/turtle")
-                .put(RequestBody.create(sw.toString(), MediaType.get("text/turtle")));
+                .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), TEXT_TURTLE)
+                .put(RequestBody.create(sw.toString(), MediaType.get(TEXT_TURTLE)));
 
         if (authorizationHeaderValue != null) {
             requestBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
@@ -233,7 +238,7 @@ public class RemoteResource {
     public URI getAssociatedURI() throws IOException {
         // If metadata - it is primary uri
         // If not metadata - it is metadata uri
-        if (this.isMetadata()) {
+        if (Boolean.TRUE.equals(this.isMetadata())) {
 
             // If this implementation uses a dot notation for meta, trim it from the path
             String basePath = this.getUri().getPath().replaceAll("\\.shapetree$", "");
@@ -312,9 +317,7 @@ public class RemoteResource {
 
         // Save raw body
         try (ResponseBody body = response.body()) {
-            if (body != null) {
-                this.rawBody = body.string();
-            }
+            this.rawBody = body.string();
         }
     }
 }

@@ -1,7 +1,5 @@
 package com.janeirodigital.shapetrees.core.models;
 
-import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
-import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
 import lombok.*;
 import org.apache.jena.graph.Graph;
@@ -32,33 +30,13 @@ public class ShapeTreeLocation {
     private String shape;                   // Identifies the shape to which focusNode must conform
     private URI uri;
 
-    // Provider a constructor that can lookup shape by
-    public ShapeTreeLocation(String shapeTree, String rootShapeTree, String rootShapeTreeInstance, String focusNode) throws URISyntaxException, ShapeTreeException {
-
-        ShapeTree remoteShapeTree = ShapeTreeFactory.getShapeTree(URI.create(shapeTree));
-
-        if (remoteShapeTree.getShape() == null && focusNode != null) {
-            throw new ShapeTreeException(400, "Focus node provided but no shape is present for validation");
-        }
-
-        if (remoteShapeTree != null) { this.shape = remoteShapeTree.getShape(); }
-
-        this.shapeTree = shapeTree;
-        this.managedResource = null;
-        this.rootShapeTreeLocation = null;
-        this.focusNode = focusNode;
-
-    }
-
     public URI getBaseUri () throws URISyntaxException {
 
         if (this.uri == null || this.uri.getScheme() == null || this.uri.getSchemeSpecificPart() == null) {
             return null;
         }
         // Get the base URI of the resource
-        URI base = new URI(this.uri.getScheme(), this.uri.getSchemeSpecificPart(), null);
-
-        return base;
+        return new URI(this.uri.getScheme(), this.uri.getSchemeSpecificPart(), null);
 
     }
 

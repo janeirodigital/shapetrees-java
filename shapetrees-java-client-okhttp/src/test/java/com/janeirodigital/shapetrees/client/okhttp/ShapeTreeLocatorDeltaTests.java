@@ -12,7 +12,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
+class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
 
     private static ShapeTreeLocator existingLocator = null;
     private static ShapeTreeLocator updatedLocator = null;
@@ -92,7 +92,7 @@ public class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
         ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
 
         Assertions.assertTrue(delta.getUpdatedLocations().isEmpty());
-        Assertions.assertEquals(delta.getRemovedLocations().size(), 2);
+        Assertions.assertEquals(2, delta.getRemovedLocations().size());
         Assertions.assertTrue(delta.allRemoved());
         Assertions.assertTrue(delta.getRemovedLocations().contains(locationOne));
         Assertions.assertTrue(delta.getRemovedLocations().contains(locationTwo));
@@ -113,8 +113,8 @@ public class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertTrue(delta.wasReduced());
         Assertions.assertFalse(delta.allRemoved());
-        Assertions.assertEquals(delta.getUpdatedLocations().size(), 1);
-        Assertions.assertEquals(delta.getRemovedLocations().size(), 2);
+        Assertions.assertEquals(1, delta.getUpdatedLocations().size());
+        Assertions.assertEquals(2, delta.getRemovedLocations().size());
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationThree));
         Assertions.assertTrue(delta.getRemovedLocations().contains(locationOne));
         Assertions.assertTrue(delta.getRemovedLocations().contains(locationTwo));
@@ -147,8 +147,8 @@ public class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertTrue(delta.wasReduced());
         Assertions.assertFalse(delta.allRemoved());
-        Assertions.assertEquals(delta.getUpdatedLocations().size(), 2);
-        Assertions.assertEquals(delta.getRemovedLocations().size(), 1);
+        Assertions.assertEquals(2, delta.getUpdatedLocations().size());
+        Assertions.assertEquals(1, delta.getRemovedLocations().size());
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationThreeUpdated));
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationFour));
         Assertions.assertTrue(delta.getRemovedLocations().contains(locationOne));
@@ -173,8 +173,8 @@ public class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertFalse(delta.wasReduced());
         Assertions.assertFalse(delta.allRemoved());
-        Assertions.assertEquals(delta.getUpdatedLocations().size(), 2);
-        Assertions.assertEquals(delta.getRemovedLocations().size(), 0);
+        Assertions.assertEquals(2, delta.getUpdatedLocations().size());
+        Assertions.assertEquals(0, delta.getRemovedLocations().size());
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationThreeUpdated));
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationFour));
 
@@ -198,8 +198,8 @@ public class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertTrue(delta.wasReduced());
         Assertions.assertFalse(delta.allRemoved());
-        Assertions.assertEquals(delta.getUpdatedLocations().size(), 1);
-        Assertions.assertEquals(delta.getRemovedLocations().size(), 1);
+        Assertions.assertEquals(1, delta.getUpdatedLocations().size());
+        Assertions.assertEquals(1, delta.getRemovedLocations().size());
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationThreeUpdated));
         Assertions.assertTrue(delta.getRemovedLocations().contains(locationTwo));
 
@@ -218,8 +218,8 @@ public class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertFalse(delta.wasReduced());
         Assertions.assertFalse(delta.allRemoved());
-        Assertions.assertEquals(delta.getUpdatedLocations().size(), 2);
-        Assertions.assertEquals(delta.getRemovedLocations().size(), 0);
+        Assertions.assertEquals(2, delta.getUpdatedLocations().size());
+        Assertions.assertEquals(0, delta.getRemovedLocations().size());
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationOne));
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationTwo));
 
@@ -247,8 +247,8 @@ public class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertFalse(delta.wasReduced());
         Assertions.assertFalse(delta.allRemoved());
-        Assertions.assertEquals(delta.getUpdatedLocations().size(), 2);
-        Assertions.assertEquals(delta.getRemovedLocations().size(), 0);
+        Assertions.assertEquals(2, delta.getUpdatedLocations().size());
+        Assertions.assertEquals(0, delta.getRemovedLocations().size());
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationOneUpdated));
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationTwoUpdated));
         

@@ -49,7 +49,7 @@ public class ShapeTreeHttpClientHolder {
         }
         if (Boolean.TRUE.equals(configuration.getSkipSslValidation())) {
             // Install the all-trusting trust manager
-            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            final SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
             TrustManager[] trustAllCerts = getTrustAllCertsManager();
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             // Create an ssl socket factory with our all-trusting manager
@@ -67,10 +67,12 @@ public class ShapeTreeHttpClientHolder {
                 new X509TrustManager() {
                     @Override
                     public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                        // All clients are trusted when SSL validation is skipped
                     }
 
                     @Override
                     public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                        // All servers are trusted when SSL validation is skipped
                     }
 
                     @Override

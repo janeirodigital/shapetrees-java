@@ -21,7 +21,7 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
         this.requestFulfilled = false;
         this.validRequest = true;
         this.validationResult = validationResult;
-        if (!validationResult.isValid()) {
+        if (Boolean.FALSE.equals(validationResult.isValid())) {
             this.validRequest = false;
             this.statusCode = 422;
             this.body = this.validationResult.getMessage();

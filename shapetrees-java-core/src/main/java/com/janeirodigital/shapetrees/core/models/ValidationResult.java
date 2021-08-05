@@ -18,10 +18,7 @@ public class ValidationResult {
     private String message;
 
     public Boolean isValid() {
-        if (this.valid != null && this.valid == true) {
-            return true;
-        }
-        return false;
+        return (this.valid != null && this.valid);
     }
 
     public ValidationResult(Boolean valid, String message) {

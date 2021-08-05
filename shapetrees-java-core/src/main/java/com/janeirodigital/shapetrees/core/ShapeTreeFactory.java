@@ -94,7 +94,7 @@ public class ShapeTreeFactory {
 
                 Resource referenceResource = referenceStatement.getObject().asResource();
                 URI referenceShapeTreeUri = new URI(getStringValue(model, referenceResource, ShapeTreeVocabulary.HAS_SHAPE_TREE));
-                String shapePath = getStringValue(model, referenceResource, ShapeTreeVocabulary.TRAVERSE_VIA_SHAPE_PATH);
+                String shapePath = getStringValue(model, referenceResource, ShapeTreeVocabulary.VIA_SHAPE_PATH);
                 if (!localShapeTreeCache.containsKey(referenceShapeTreeUri)) {
                     // If the model contains the referenced ShapeTree, go ahead and parse and cache it
                     recursivelyParseShapeTree(model, model.getResource(referenceShapeTreeUri.toString()));

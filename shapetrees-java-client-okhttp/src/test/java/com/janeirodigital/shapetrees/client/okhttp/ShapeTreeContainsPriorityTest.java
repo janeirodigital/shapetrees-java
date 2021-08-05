@@ -16,7 +16,7 @@ import java.net.URI;
 import java.util.List;
 
 @Slf4j
-public class ShapeTreeContainsPriorityTest extends BaseShapeTreeTest {
+class ShapeTreeContainsPriorityTest extends BaseShapeTreeTest {
 
     public ShapeTreeContainsPriorityTest() {
         super();
@@ -43,10 +43,10 @@ public class ShapeTreeContainsPriorityTest extends BaseShapeTreeTest {
         // Ensure the ordered result is correct
         List<URI> prioritizedContains = containingShapeTree.getPrioritizedContains();
 
-        Assertions.assertEquals(prioritizedContains.size(), 3);
-        Assertions.assertEquals(prioritizedContains.get(0), getURI(server, "/static/shapetrees/contains-priority/shapetree#LabelShapeTypeTree"));
-        Assertions.assertEquals(prioritizedContains.get(1), getURI(server, "/static/shapetrees/contains-priority/shapetree#LabelTypeTree"));
-        Assertions.assertEquals(prioritizedContains.get(2), getURI(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"));
+        Assertions.assertEquals(3, prioritizedContains.size());
+        Assertions.assertEquals(getURI(server, "/static/shapetrees/contains-priority/shapetree#LabelShapeTypeTree"), prioritizedContains.get(0));
+        Assertions.assertEquals(getURI(server, "/static/shapetrees/contains-priority/shapetree#LabelTypeTree"), prioritizedContains.get(1));
+        Assertions.assertEquals(getURI(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(2));
     }
 
     @SneakyThrows
@@ -61,9 +61,9 @@ public class ShapeTreeContainsPriorityTest extends BaseShapeTreeTest {
         // Ensure the ordered result is correct
         List<URI> prioritizedContains = containingShapeTree.getPrioritizedContains();
 
-        Assertions.assertEquals(prioritizedContains.size(), 2);
-        Assertions.assertEquals(prioritizedContains.get(0), getURI(server, "/static/shapetrees/contains-priority/shapetree#ShapeTypeTree"));
-        Assertions.assertEquals(prioritizedContains.get(1), getURI(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"));
+        Assertions.assertEquals(2, prioritizedContains.size());
+        Assertions.assertEquals(getURI(server, "/static/shapetrees/contains-priority/shapetree#ShapeTypeTree"), prioritizedContains.get(0));
+        Assertions.assertEquals(getURI(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(1));
     }
 
     @SneakyThrows
@@ -78,9 +78,9 @@ public class ShapeTreeContainsPriorityTest extends BaseShapeTreeTest {
         // Ensure the ordered result is correct
         List<URI> prioritizedContains = containingShapeTree.getPrioritizedContains();
 
-        Assertions.assertEquals(prioritizedContains.size(), 2);
-        Assertions.assertEquals(prioritizedContains.get(0), getURI(server, "/static/shapetrees/contains-priority/shapetree#LabelTypeTree"));
-        Assertions.assertEquals(prioritizedContains.get(1), getURI(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"));
+        Assertions.assertEquals(2, prioritizedContains.size());
+        Assertions.assertEquals(getURI(server, "/static/shapetrees/contains-priority/shapetree#LabelTypeTree"), prioritizedContains.get(0));
+        Assertions.assertEquals(getURI(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(1));
 
     }
 

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class TypeTests extends BaseShapeTreeTest {
+class TypeTests extends BaseShapeTreeTest {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
 

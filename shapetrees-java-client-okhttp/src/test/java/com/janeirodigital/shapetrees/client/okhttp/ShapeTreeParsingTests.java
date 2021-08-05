@@ -19,7 +19,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
-public class ShapeTreeParsingTests extends BaseShapeTreeTest {
+class ShapeTreeParsingTests extends BaseShapeTreeTest {
 
     public ShapeTreeParsingTests() {
         super();
@@ -32,7 +32,8 @@ public class ShapeTreeParsingTests extends BaseShapeTreeTest {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
                 new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null),
                 new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-invalid-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid", null),
-                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-invalid-2-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid2", null)
+                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-invalid-2-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid2", null),
+                new DispatcherEntry(List.of("http/404"), "GET", "/static/shapetrees/medical-record/shapetree-missing", null)
         ));
     }
 
@@ -60,6 +61,16 @@ public class ShapeTreeParsingTests extends BaseShapeTreeTest {
         );
     }
 
+    @SneakyThrows
+    @Test
+    @DisplayName("Fail to parse missing shape tree")
+    void failToParseMissingShapeTree() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        Assertions.assertThrows(ShapeTreeException.class, () ->
+                ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree-missing#missing"))
+        );
+    }
 
     @SneakyThrows
     @Test
@@ -124,7 +135,7 @@ public class ShapeTreeParsingTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
         ShapeTree medicalRecordShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecord"));
         medicalRecordShapeTree.getReferencedShapeTrees();
-        medicalRecordShapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST);
-        medicalRecordShapeTree.getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
+        Assertions.assertTrue(medicalRecordShapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST).hasNext());
+        Assertions.assertTrue(medicalRecordShapeTree.getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST).hasNext());
     }
 }

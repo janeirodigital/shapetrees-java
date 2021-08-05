@@ -9,7 +9,6 @@ import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
-import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
 import fr.inria.lille.shexjava.GlobalFactory;
 import fr.inria.lille.shexjava.schema.Label;
 import fr.inria.lille.shexjava.schema.ShexSchema;
@@ -32,6 +31,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Getter @Setter
@@ -121,7 +121,7 @@ public class ShapeTree {
             }
 
             String shapeBody = shexShapeContents.getBody();
-            InputStream stream = new ByteArrayInputStream(shapeBody.getBytes());
+            InputStream stream = new ByteArrayInputStream(shapeBody.getBytes(StandardCharsets.UTF_8));
             ShExCParser shexCParser = new ShExCParser();
             try {
                 schema = new ShexSchema(GlobalFactory.RDFFactory,shexCParser.getRules(stream),shexCParser.getStart());
@@ -163,11 +163,7 @@ public class ShapeTree {
                 validation.validate(node, shapeLabel);
                 boolean valid = validation.getTyping().isConformant(node, shapeLabel);
 
-                if (!valid) {
-                    continue;
-                } else {
-                    return new ValidationResult(valid, this, this, URI.create(evaluateNode.getURI()));
-                }
+                if (valid) { return new ValidationResult(valid, this, this, URI.create(evaluateNode.getURI())); }
 
             }
 
@@ -216,7 +212,7 @@ public class ShapeTree {
                 // Evaluate the shape tree against the attributes of the proposed resources
                 ValidationResult result = targetShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeURI);
                 // Continue if the proposed attributes were not a match
-                if (!result.getValid()) {
+                if (Boolean.FALSE.equals(result.getValid())) {
                     return new ValidationResult(false, null, "Failed to validate " + targetShapeTree.getId());
                 }
                 // Return the successful validation result, including the matching shape tree
@@ -237,7 +233,7 @@ public class ShapeTree {
                 // Evaluate the shape tree against the attributes of the proposed resources
                 ValidationResult result = containsShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeURI);
                 // Continue if the proposed attributes were not a match
-                if (!result.getValid()) { continue; }
+                if (Boolean.FALSE.equals(result.getValid())) { continue; }
                 // Return the successful validation result
                 return new ValidationResult(true, this, containsShapeTree, result.getMatchingFocusNode());
             }
@@ -262,10 +258,6 @@ public class ShapeTree {
         Collections.sort(prioritized, new SortByShapeTreeContainsPriority());
         return prioritized;
 
-    }
-
-    private Boolean expectsContainer() {
-        return this.getExpectedResourceType() != null && this.getExpectedResourceType().equals(ShapeTreeVocabulary.CONTAINER);
     }
 
     private List<ReferencedShapeTree> getReferencedShapeTreesList(RecursionMethods recursionMethods) throws URISyntaxException, ShapeTreeException {
@@ -306,9 +298,6 @@ public class ShapeTree {
         return referencedShapeTrees;
     }
 
-    private String exceptionMessage(String requestedName, String id, String customMessage){
-        return  "Failed to match ["+ requestedName +"] against any :contents for [" + id +"]. " + customMessage;
-    }
 }
 
 class SortByShapeTreeContainsPriority implements Comparator<URI>, Serializable

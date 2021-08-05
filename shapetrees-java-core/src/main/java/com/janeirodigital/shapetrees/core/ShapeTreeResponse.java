@@ -25,10 +25,7 @@ public class ShapeTreeResponse {
     }
 
     public void addResponseHeader(String header, String value) {
-        if (!this.headers.containsKey(header)) {
-            this.headers.put(header, new ArrayList<>());
-        }
-
+        this.headers.computeIfAbsent(header, k -> new ArrayList<>());
         this.headers.get(header).add(value);
     }
 

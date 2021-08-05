@@ -61,14 +61,14 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, getURI(server,"/ldp/data/medical-records/"));
 
         Assertions.assertNotNull(locator);
-        Assertions.assertEquals(locator.getURI(), getURI(server, "/ldp/data/medical-records/?ext=shapetree"));
+        Assertions.assertEquals(getURI(server, "/ldp/data/medical-records/?ext=shapetree"), locator.getURI());
         Assertions.assertNotNull(locator.getLocations());
-        Assertions.assertEquals(locator.getLocations().size(), 1);
+        Assertions.assertEquals(1, locator.getLocations().size());
 
         ShapeTreeLocation location = locator.getLocations().get(0);
-        Assertions.assertEquals(location.getShapeTree(), getURI(server, "/static/shapetrees/medical-record/shapetree#medicalRecords").toString());
-        Assertions.assertEquals(location.getManagedResource(), getURI(server, "/ldp/data/medical-records/").toString());
-        Assertions.assertEquals(location.getRootShapeTreeLocation(), getURI(server, "/ldp/data/medical-records/.shapetree#ln1"));
+        Assertions.assertEquals(getURI(server, "/static/shapetrees/medical-record/shapetree#medicalRecords").toString(), location.getShapeTree());
+        Assertions.assertEquals(getURI(server, "/ldp/data/medical-records/").toString(), location.getManagedResource());
+        Assertions.assertEquals(getURI(server, "/ldp/data/medical-records/.shapetree#ln1"), location.getRootShapeTreeLocation());
 
     }
 
