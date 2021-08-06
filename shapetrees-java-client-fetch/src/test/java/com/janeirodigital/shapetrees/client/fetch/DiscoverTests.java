@@ -1,7 +1,7 @@
-package com.janeirodigital.shapetrees.client.okhttp;
+package com.janeirodigital.shapetrees.client.fetch;
 
-import com.janeirodigital.shapetrees.client.okhttp.fixtures.DispatcherEntry;
-import com.janeirodigital.shapetrees.client.okhttp.fixtures.RequestMatchingFixtureDispatcher;
+import com.janeirodigital.shapetrees.client.fetch.fixtures.DispatcherEntry;
+import com.janeirodigital.shapetrees.client.fetch.fixtures.RequestMatchingFixtureDispatcher;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import jdk.jfr.Label;

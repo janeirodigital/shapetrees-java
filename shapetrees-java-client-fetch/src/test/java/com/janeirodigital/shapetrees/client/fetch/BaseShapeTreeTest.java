@@ -1,6 +1,8 @@
-package com.janeirodigital.shapetrees.client.okhttp;
+package com.janeirodigital.shapetrees.client.fetch;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
+import com.janeirodigital.shapetrees.client.fetch.FetchShapeTreeClient;
+import com.janeirodigital.shapetrees.client.fetch.RemoteResource;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
@@ -20,7 +22,7 @@ public abstract class BaseShapeTreeTest {
     public BaseShapeTreeTest() {
         this.context = new ShapeTreeContext();
 
-        this.shapeTreeClient = new OkHttpShapeTreeClient();
+        this.shapeTreeClient = new FetchShapeTreeClient();
     }
     
     protected static void ensureExists(URI uri) throws IOException {

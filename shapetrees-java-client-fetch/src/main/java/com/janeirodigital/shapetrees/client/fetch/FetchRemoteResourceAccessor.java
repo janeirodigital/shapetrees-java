@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.okhttp;
+package com.janeirodigital.shapetrees.client.fetch;
 
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
+public class FetchRemoteResourceAccessor implements ResourceAccessor {
 
     private static final String POST = "POST";
     private static final String PUT = "PUT";
@@ -85,19 +85,19 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
             switch (method) {
 
                 case POST:
-                    createResourceBuilder.headers(OkHttpHelper.convertHeaders(headers))
+                    createResourceBuilder.headers(FetchHelper.convertHeaders(headers))
                             .post(RequestBody.create(body, MediaType.get(contentType)))
                             .url(resourceURI.toURL());
                     break;
 
                 case PUT:
-                    createResourceBuilder.headers(OkHttpHelper.convertHeaders(headers))
+                    createResourceBuilder.headers(FetchHelper.convertHeaders(headers))
                             .put(RequestBody.create(body, MediaType.get(contentType)))
                             .url(resourceURI.toURL());
                     break;
 
                 case PATCH:
-                    createResourceBuilder.headers(OkHttpHelper.convertHeaders(headers))
+                    createResourceBuilder.headers(FetchHelper.convertHeaders(headers))
                             .patch(RequestBody.create(body, MediaType.get(contentType)))
                             .url(resourceURI.toURL());
                     break;
@@ -112,7 +112,7 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
             }
 
             Response response = httpClient.newCall(createResourceBuilder.build()).execute();
-            return OkHttpHelper.mapOkHttpResponseToShapeTreeResource(response, resourceURI, headers);
+            return FetchHelper.mapFetchResponseToShapeTreeResource(response, resourceURI, headers);
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
@@ -128,7 +128,7 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
             OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(new ShapeTreeClientConfiguration(false, false));
             Request.Builder updateResourcePutBuilder = new Request.Builder();
 
-            updateResourcePutBuilder.headers(OkHttpHelper.convertHeaders(updatedResource.getAttributes()))
+            updateResourcePutBuilder.headers(FetchHelper.convertHeaders(updatedResource.getAttributes()))
                     .put(RequestBody.create(updatedResource.getBody(), MediaType.get(contentType)))
                     .url(updatedResource.getUri().toURL());
 
@@ -157,7 +157,7 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
             OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(new ShapeTreeClientConfiguration(false, false));
             Request.Builder updateResourceDeleteBuilder = new Request.Builder();
 
-            updateResourceDeleteBuilder.headers(OkHttpHelper.convertHeaders(deletedResource.getAttributes()))
+            updateResourceDeleteBuilder.headers(FetchHelper.convertHeaders(deletedResource.getAttributes()))
                     .delete().url(deletedResource.getUri().toURL());
 
             if (context.getAuthorizationHeaderValue() != null) {
@@ -168,7 +168,7 @@ public class OkHttpRemoteResourceAccessor implements ResourceAccessor {
             if (!response.isSuccessful()) {
                 log.error("Error deleting resource {}, Status {} Message {}", deletedResource.getUri(), response.code(), response.message());
             }
-            return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(response);
+            return FetchHelper.mapFetchResponseToShapeTreeResponse(response);
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }

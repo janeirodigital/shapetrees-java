@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.okhttp;
+package com.janeirodigital.shapetrees.client.fetch;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
@@ -15,11 +15,11 @@ import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
-public class OkHttpShapeTreeRequest implements ShapeTreeRequest<Request> {
+public class FetchShapeTreeRequest implements ShapeTreeRequest<Request> {
     private final Request request;
     private ShapeTreeResourceType resourceType;
 
-    public OkHttpShapeTreeRequest(Request request) {
+    public FetchShapeTreeRequest(Request request) {
         this.request = request;
     }
 
