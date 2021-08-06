@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.okhttp;
+package com.janeirodigital.shapetrees.client.fetch;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -19,11 +19,11 @@ import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
-public class OkHttpHelper {
+public class FetchHelper {
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
-    private OkHttpHelper() {
+    private FetchHelper() {
     }
 
     /**
@@ -48,7 +48,7 @@ public class OkHttpHelper {
      * @param requestHeaders Request headers used in request associated with response
      * @return ShapeTreeResource instance with contents and response headers from response
      */
-    public static ShapeTreeResource mapOkHttpResponseToShapeTreeResource(Response response, URI requestURI, Map<String, List<String>> requestHeaders) {
+    public static ShapeTreeResource mapFetchResponseToShapeTreeResource(Response response, URI requestURI, Map<String, List<String>> requestHeaders) {
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
 
         shapeTreeResource.setExists(response.isSuccessful());
@@ -72,7 +72,7 @@ public class OkHttpHelper {
      * @param response OkHttp Response object
      * @return ShapeTreeResponse with values from OkHttp response
      */
-    public static ShapeTreeResponse mapOkHttpResponseToShapeTreeResponse(Response response) {
+    public static ShapeTreeResponse mapFetchResponseToShapeTreeResponse(Response response) {
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {
             shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).string());

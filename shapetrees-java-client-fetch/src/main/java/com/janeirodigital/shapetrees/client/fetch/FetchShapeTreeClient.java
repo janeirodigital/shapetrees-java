@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.okhttp;
+package com.janeirodigital.shapetrees.client.fetch;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -22,13 +22,13 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
-public class OkHttpShapeTreeClient implements ShapeTreeClient {
+public class FetchShapeTreeClient implements ShapeTreeClient {
 
     private boolean skipValidation = false;
     private final ShapeTreeClientConfiguration validatingClientConfig;
     private final ShapeTreeClientConfiguration nonValidatingClientConfig;
 
-    public OkHttpShapeTreeClient() {
+    public FetchShapeTreeClient() {
         this.validatingClientConfig = new ShapeTreeClientConfiguration(true, false);
         this.nonValidatingClientConfig = new ShapeTreeClientConfiguration(false, false);
     }
@@ -164,7 +164,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         Request plantBuilder = builder.put(RequestBody.create(bytes)).build();
 
         // Send the request and map the response
-        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(plantBuilder).execute());
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(plantBuilder).execute());
     }
 
     @Override
@@ -190,7 +190,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         applyCommonHeaders(context, postBuilder, focusNode, targetShapeTree, isContainer, proposedResourceName, contentType);
 
-        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(postBuilder.build()).execute());
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(postBuilder.build()).execute());
     }
 
     // Create via HTTP PUT
@@ -216,7 +216,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         applyCommonHeaders(context, putBuilder, focusNode, targetShapeTree, isContainer, null, contentType);
 
-        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
     }
 
     // Update via HTTP PUT
@@ -241,7 +241,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         applyCommonHeaders(context, putBuilder, focusNode, null, null, null, contentType);
 
-        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
     }
 
     @Override
@@ -263,7 +263,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         applyCommonHeaders(context, patchBuilder, focusNode, null, null, null, contentType);
 
-        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(patchBuilder.build()).execute());
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(patchBuilder.build()).execute());
     }
 
     @Override
@@ -281,7 +281,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
 
         applyCommonHeaders(context, deleteBuilder, null, null, null, null, null);
 
-        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(deleteBuilder.build()).execute());
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(deleteBuilder.build()).execute());
     }
 
     @Override
@@ -333,7 +333,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Send the request and map the response
-        return OkHttpHelper.mapOkHttpResponseToShapeTreeResponse(client.newCall(unplantBuilder).execute());
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(unplantBuilder).execute());
 
     }
 

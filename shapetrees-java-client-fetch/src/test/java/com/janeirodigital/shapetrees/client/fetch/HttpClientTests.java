@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.okhttp;
+package com.janeirodigital.shapetrees.client.fetch;
 
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
