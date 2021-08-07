@@ -8,7 +8,12 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+// import okhttp3.OkHttpClient;
+// import okhttp3.Request;
+// import okhttp3.RequestBody;
+// import okhttp3.MediaType;
+// import okhttp3.Response;
+import org.apache.http.Header;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -74,78 +79,19 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, Map<String, List<String>> headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, writeHeaders(headers));
 
-        try {
-            if (body == null) {
-                body = "";
-            }
-
-            OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(new ShapeTreeClientConfiguration(false, false));
-            Request.Builder createResourceBuilder = new Request.Builder();
-
-            switch (method) {
-
-                case POST:
-                    createResourceBuilder.headers(FetchHelper.convertHeaders(headers))
-                            .post(RequestBody.create(body, MediaType.get(contentType)))
-                            .url(resourceURI.toURL());
-                    break;
-
-                case PUT:
-                    createResourceBuilder.headers(FetchHelper.convertHeaders(headers))
-                            .put(RequestBody.create(body, MediaType.get(contentType)))
-                            .url(resourceURI.toURL());
-                    break;
-
-                case PATCH:
-                    createResourceBuilder.headers(FetchHelper.convertHeaders(headers))
-                            .patch(RequestBody.create(body, MediaType.get(contentType)))
-                            .url(resourceURI.toURL());
-                    break;
-
-                default:
-                    throw new ShapeTreeException(500, "Unsupported HTTP method for resource creation");
-
-            }
-
-            if (context.getAuthorizationHeaderValue() != null) {
-                createResourceBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-            }
-
-            Response response = httpClient.newCall(createResourceBuilder.build()).execute();
-            return FetchHelper.mapFetchResponseToShapeTreeResource(response, resourceURI, headers);
-        } catch (IOException ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
-        }
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(new ShapeTreeClientConfiguration(false, false));
+        okhttp3.Response response = fetcher.fetch(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
+        return FetchHelper.mapFetchResponseToShapeTreeResource(response, resourceURI, headers);
     }
 
     @Override
     public ShapeTreeResource updateResource(ShapeTreeContext context, String method, ShapeTreeResource updatedResource) throws ShapeTreeException {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
-        try {
-            String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
-
-            OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(new ShapeTreeClientConfiguration(false, false));
-            Request.Builder updateResourcePutBuilder = new Request.Builder();
-
-            updateResourcePutBuilder.headers(FetchHelper.convertHeaders(updatedResource.getAttributes()))
-                    .put(RequestBody.create(updatedResource.getBody(), MediaType.get(contentType)))
-                    .url(updatedResource.getUri().toURL());
-
-            if (context.getAuthorizationHeaderValue() != null) {
-                updateResourcePutBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-            }
-
-            Response response = httpClient.newCall(updateResourcePutBuilder.build()).execute();
-            if (!response.isSuccessful()) {
-                log.error("Error updating resource {}, Status {} Message {}", updatedResource.getUri(), response.code(), response.message());
-            }
-
-            // Re-pull the resource after the update
-            return getResource(context, updatedResource.getUri());
-        } catch (IOException ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
-        }
+        String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(new ShapeTreeClientConfiguration(false, false));
+        okhttp3.Response response = fetcher.fetch(method, updatedResource.getUri(), updatedResource.getAttributes(), context.getAuthorizationHeaderValue(), updatedResource.getBody(), contentType);
+        return FetchHelper.mapFetchResponseToShapeTreeResource(response, updatedResource.getUri(), updatedResource.getAttributes());
 
     }
 
@@ -153,25 +99,12 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResponse deleteResource(ShapeTreeContext context, ShapeTreeResource deletedResource) throws ShapeTreeException {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
-        try {
-            OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(new ShapeTreeClientConfiguration(false, false));
-            Request.Builder updateResourceDeleteBuilder = new Request.Builder();
-
-            updateResourceDeleteBuilder.headers(FetchHelper.convertHeaders(deletedResource.getAttributes()))
-                    .delete().url(deletedResource.getUri().toURL());
-
-            if (context.getAuthorizationHeaderValue() != null) {
-                updateResourceDeleteBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-            }
-
-            Response response = httpClient.newCall(updateResourceDeleteBuilder.build()).execute();
-            if (!response.isSuccessful()) {
-                log.error("Error deleting resource {}, Status {} Message {}", deletedResource.getUri(), response.code(), response.message());
-            }
-            return FetchHelper.mapFetchResponseToShapeTreeResponse(response);
-        } catch (IOException ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(new ShapeTreeClientConfiguration(false, false));
+        okhttp3.Response response = fetcher.fetch("DELETE", deletedResource.getUri(), deletedResource.getAttributes(), context.getAuthorizationHeaderValue(), null, null);
+        if (!response.isSuccessful()) {
+            log.error("Error deleting resource {}, Status {} Message {}", deletedResource.getUri(), response.code(), response.message());
         }
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(response);
 
     }
 

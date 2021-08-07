@@ -57,7 +57,7 @@ public class ShapeTreeHttpClientHolder {
 
             clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
                     .hostnameVerifier(getTrustAllHostnameVerifier());
-    }
+        }
         return clientBuilder.build();
     }
 
