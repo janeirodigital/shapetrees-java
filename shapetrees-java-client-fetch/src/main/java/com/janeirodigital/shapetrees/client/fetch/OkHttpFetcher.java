@@ -8,7 +8,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.OkHttpClient;
@@ -47,16 +49,24 @@ public class OkHttpFetcher {
         httpClient = clientBuilder.build();
     }
 
+    private static final ConcurrentHashMap<ShapeTreeClientConfiguration, OkHttpFetcher> clientMap999 = new ConcurrentHashMap<>();
     public static OkHttpFetcher getFetcher999(ShapeTreeClientConfiguration configuration) throws ShapeTreeException {
+        if (clientMap999.containsKey(configuration)) {
+            return clientMap999.get(configuration);
+        }
         try {
-            // return ShapeTreeHttpClientHolder.getForConfig(configuration); !! swap over to OkHttpFetcher
-            return new OkHttpFetcher(configuration);
+            OkHttpFetcher client = new OkHttpFetcher(configuration);
+            clientMap999.put(configuration, client);
+            return client;
         } catch (Exception ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
     }
 
     public okhttp3.Response fetch(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
+        if (body == null)
+            body = "";
+
         try {
             okhttp3.Request.Builder ohHttpReqBuilder = new okhttp3.Request.Builder();
             ohHttpReqBuilder.url(resourceURI.toURL());
@@ -100,6 +110,11 @@ public class OkHttpFetcher {
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
+    }
+
+    public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
+        return FetchHelper.mapFetchResponseToShapeTreeResponse(response);
     }
 
     private static TrustManager[] getTrustAllCertsManager() {

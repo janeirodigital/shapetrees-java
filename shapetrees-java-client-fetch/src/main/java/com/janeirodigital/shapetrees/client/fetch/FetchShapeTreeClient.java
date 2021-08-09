@@ -8,7 +8,6 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -20,6 +19,10 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class FetchShapeTreeClient implements ShapeTreeClient {
@@ -148,23 +151,13 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         // Add the location to the locator
         locator.addShapeTreeLocation(location);
 
-        // Get an OkHttpClient to use to update locator metadata
-        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
-
-        Request.Builder builder = new Request.Builder().url(resource.getMetadataURI());
-
-        // Get a RDF version of the locator stored in a turtle string
+        // Get an RDF version of the locator stored in a turtle string
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
 
-        // Convert the string into a byte array. Turtle is always UTF-8 https://www.w3.org/TR/turtle/#h3_sec-mime
-        byte[] bytes = sw.toString().getBytes(StandardCharsets.UTF_8);
-
         // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
-        Request plantBuilder = builder.put(RequestBody.create(bytes)).build();
-
-        // Send the request and map the response
-        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(plantBuilder).execute());
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(getConfiguration(this.skipValidation));
+        return fetcher.fetchShapeTreeResponse("PUT", new URI(resource.getMetadataURI()), null, context.getAuthorizationHeaderValue(), sw.toString(), "text/turtle");
     }
 
     @Override
@@ -179,18 +172,12 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         log.debug ("Target Shape Tree: {}", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode.toString());
 
-        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
-
-        byte[] bytes = new byte[]{};
-        if (bodyString != null) {
-            bytes = bodyString.getBytes(StandardCharsets.UTF_8);
-        }
-
-        Request.Builder postBuilder = new Request.Builder().url(HttpUrl.get(parentContainer)).post(RequestBody.create(bytes));
-
-        applyCommonHeaders(context, postBuilder, focusNode, targetShapeTree, isContainer, proposedResourceName, contentType);
-
-        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(postBuilder.build()).execute());
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(getConfiguration(this.skipValidation));
+        return fetcher.fetchShapeTreeResponse("POST", parentContainer,
+                                              getCommonHeaders(context, focusNode, targetShapeTree, isContainer,
+                                                               proposedResourceName, contentType),
+                                              null, bodyString,
+                                              contentType);
     }
 
     // Create via HTTP PUT
@@ -205,18 +192,12 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         log.debug ("Target Shape Tree: {}", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
-        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
-
-        byte[] bytes = new byte[]{};
-        if (bodyString != null) {
-            bytes = bodyString.getBytes(StandardCharsets.UTF_8);
-        }
-
-        Request.Builder putBuilder = new Request.Builder().url(resourceURI.toString()).put(RequestBody.create(bytes));
-
-        applyCommonHeaders(context, putBuilder, focusNode, targetShapeTree, isContainer, null, contentType);
-
-        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(getConfiguration(this.skipValidation));
+        return fetcher.fetchShapeTreeResponse("PUT", resourceURI,
+                                              getCommonHeaders(context, focusNode, targetShapeTree, isContainer,
+                                                               null, contentType),
+                                              null, bodyString,
+                                              contentType);
     }
 
     // Update via HTTP PUT
@@ -230,18 +211,11 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         log.debug("Updating shape tree instance via PUT at {}", resourceURI);
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
-        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
-
-        byte[] bytes = new byte[]{};
-        if (bodyString != null) {
-            bytes = bodyString.getBytes(StandardCharsets.UTF_8);
-        }
-
-        Request.Builder putBuilder = new Request.Builder().url(resourceURI.toString()).put(RequestBody.create(bytes));
-
-        applyCommonHeaders(context, putBuilder, focusNode, null, null, null, contentType);
-
-        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(putBuilder.build()).execute());
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(getConfiguration(this.skipValidation));
+        return fetcher.fetchShapeTreeResponse("PUT", resourceURI,
+                                              getCommonHeaders(context, focusNode, null, null, null, contentType),
+                                              null, bodyString,
+                                              contentType);
     }
 
     @Override
@@ -255,15 +229,13 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         log.debug("PATCH String: {}", patchString);
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
-        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
         String contentType = "application/sparql-update";
-        byte[] sparqlUpdateBytes = patchString.getBytes(StandardCharsets.UTF_8);
 
-        Request.Builder patchBuilder = new Request.Builder().url(resourceURI.toString()).patch(RequestBody.create(sparqlUpdateBytes));
-
-        applyCommonHeaders(context, patchBuilder, focusNode, null, null, null, contentType);
-
-        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(patchBuilder.build()).execute());
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(getConfiguration(this.skipValidation));
+        return fetcher.fetchShapeTreeResponse("PATCH", resourceURI,
+                                              getCommonHeaders(context, focusNode, null, null, null, contentType),
+                                              null, patchString,
+                                              contentType);
     }
 
     @Override
@@ -275,13 +247,11 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
 
         log.debug("DELETE-ing shape tree instance at {}", resourceURI);
 
-        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
-
-        Request.Builder deleteBuilder = new Request.Builder().url(resourceURI.toString()).delete();
-
-        applyCommonHeaders(context, deleteBuilder, null, null, null, null, null);
-
-        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(deleteBuilder.build()).execute());
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(getConfiguration(this.skipValidation));
+        return fetcher.fetchShapeTreeResponse("DELETE", resourceURI,
+                                              getCommonHeaders(context, null, null, null, null, null),
+                                              null, null,
+                                              null);
     }
 
     @Override
@@ -311,30 +281,26 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         // Remove location from locator that corresponds with the provided shape tree
         locator.removeShapeTreeLocationForShapeTree(targetShapeTree);
 
-        // Get an OkHttpClient to use to update locator metadata
-        OkHttpClient client = ShapeTreeHttpClientHolder.getForConfig(getConfiguration(this.skipValidation));
-
-        Request unplantBuilder = null;
-
+        String method, body, contentType;
         if (locator.getLocations().isEmpty()) {
-
-            unplantBuilder = new Request.Builder().url(resource.getMetadataURI()).delete().build();
-
+            method = "DELETE";
+            body = null;
+            contentType = null;
         } else {
+            // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
+            method = "PUT";
 
             // Get a RDF version of the locator stored in a turtle string
             StringWriter sw = new StringWriter();
             RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
-            // Convert the string into a byte array. Turtle is always UTF-8 https://www.w3.org/TR/turtle/#h3_sec-mime
-            byte[] bytes = sw.toString().getBytes(StandardCharsets.UTF_8);
-            // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
-            unplantBuilder = new Request.Builder().url(resource.getMetadataURI()).put(RequestBody.create(bytes)).build();
-
+            body = sw.toString();
+            contentType = "text/turtle";
         }
 
-        // Send the request and map the response
-        return FetchHelper.mapFetchResponseToShapeTreeResponse(client.newCall(unplantBuilder).execute());
-
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(getConfiguration(this.skipValidation));
+        return fetcher.fetchShapeTreeResponse(method, new URI(resource.getMetadataURI()),
+                                              null, // why no getCommonHeaders(context, null, null, null, null, null) ?
+                                              null, body, contentType);
     }
 
     private ShapeTreeClientConfiguration getConfiguration(boolean skipValidation) {
@@ -345,31 +311,44 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         }
     }
 
-    private void applyCommonHeaders(ShapeTreeContext context, Request.Builder builder, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
+    private void set999(Map<String, List<String>> map, String attr, String value) {
+        if (map.containsKey(attr)) {
+            map.get(attr).add(value);
+        } else {
+            ArrayList<String> list = new ArrayList<String>();
+            list.add(value);
+            map.put(attr, list);
+        }
+    }
+
+    private Map<String, List<String>> getCommonHeaders(ShapeTreeContext context, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
+        Map<String, List<String>> ret = new HashMap<>();
 
         if (context.getAuthorizationHeaderValue() != null) {
-            builder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+            set999(ret, HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         }
 
         if (isContainer != null) {
             String resourceTypeUri = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
+            set999(ret, HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
         }
 
         if (focusNode != null) {
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
+            set999(ret, HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
         }
 
         if (targetShapeTree != null) {
-            builder.addHeader(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
+            set999(ret, HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
         }
 
         if (proposedResourceName != null) {
-            builder.addHeader(HttpHeaders.SLUG.getValue(), proposedResourceName);
+            set999(ret, HttpHeaders.SLUG.getValue(), proposedResourceName);
         }
 
         if (contentType != null) {
-            builder.addHeader(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
+            set999(ret, HttpHeaders.CONTENT_TYPE.getValue(), contentType);
         }
+
+        return ret;
     }
 }
