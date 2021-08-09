@@ -257,7 +257,7 @@ public class RemoteResource {
     public String getMetadataURI() throws IOException {
         if (!this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
             log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
-            // TODO: Should this really be a 500? What if shape trees aren't supported by server?
+            // TODO: Should this be gracefully handled by the client?
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
         String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE_LOCATOR.getValue()).stream().findFirst().orElse(null);
@@ -274,7 +274,6 @@ public class RemoteResource {
         }
 
         if (metaDataURIString == null) {
-            // TODO: Is a 500 necessary when shape trees aren't supported?
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
 

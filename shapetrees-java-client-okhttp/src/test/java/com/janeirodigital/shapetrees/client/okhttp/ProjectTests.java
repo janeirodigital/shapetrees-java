@@ -86,7 +86,7 @@ class ProjectTests extends BaseShapeTreeTest {
 
         URI targetResource = getURI(server, "/data/");
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
-        String focusNode = getURI(server, "/data/#repository").toString();
+        URI focusNode = getURI(server, "/data/#repository");
 
         // Plant the data repository on newly created data container
         ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
@@ -106,7 +106,7 @@ class ProjectTests extends BaseShapeTreeTest {
 
         URI targetResource = getURI(server, "/data/");
         URI targetShapeTree = getURI(server, "/static/shapetrees/missing/shapetree#NonExistentTree");
-        String focusNode = getURI(server, "/data/#repository").toString();
+        URI focusNode = getURI(server, "/data/#repository");
 
         // Plant the data repository on newly created data container
         ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
@@ -155,7 +155,7 @@ class ProjectTests extends BaseShapeTreeTest {
 
         URI targetResource = getURI(server, "/data/projects/");
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
-        String focusNode = getURI(server, "/data/projects/#collection").toString();
+        URI focusNode = getURI(server, "/data/projects/#collection");
 
         // Plant the second shape tree (ProjectCollectionTree) on /data/projects/
         ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);

@@ -34,9 +34,9 @@ public interface ShapeTreeClient {
      * If the resource is already managed, the associated shape tree locator will be updated with another
      * shape tree location for the planted shape tree.
      *
-     * If the resource is a container that already contains existing resources, and a recursive plant is requested,
-     * this operation will perform a depth first traversal through the containment hierarchy, validating
-     * and assigning as it works its way back up to the target root resource of this operation.
+     * If the resource is a container that already contains existing resources, this operation will
+     * perform a depth first traversal through the containment hierarchy, validating
+     * and assigning as it works its way back up to the target resource of this operation.
      *
      * https://shapetrees.org/TR/specification/#plant-shapetree
      *
@@ -49,7 +49,7 @@ public interface ShapeTreeClient {
      * @throws IOException IOException
      * @throws URISyntaxException URISyntaxException
      */
-    ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode) throws IOException, URISyntaxException;
+    ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws IOException, URISyntaxException;
 
     /**
      * Shape Trees, §4.3: This operation unassigns a planted root shape tree from a root shape tree instance. If
@@ -59,8 +59,8 @@ public interface ShapeTreeClient {
      * https://shapetrees.org/TR/specification/#unplant-shapetree
      *
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param targetResource Container to remove shape tree from
-     * @param targetShapeTree URI of shape tree being removed
+     * @param targetResource URI of target resource to unplant shape tree from
+     * @param targetShapeTree URI of shape tree being unplanted
      */
     ShapeTreeResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException;
 
@@ -123,7 +123,7 @@ public interface ShapeTreeClient {
     /**
      * Deletes an existing resource.  Provided as a convenience - no validation is performed
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param resourceURI The URI of the resource being updated
+     * @param resourceURI The URI of the resource being deleted
      * @return ShapeTreeResponse containing status and response headers/attributes
      * @throws IOException IOException
      */
@@ -140,4 +140,5 @@ public interface ShapeTreeClient {
      * @param skipValidation boolean indicating whether validation should be performed on the client
      */
     void skipValidation(boolean skipValidation);
+
 }

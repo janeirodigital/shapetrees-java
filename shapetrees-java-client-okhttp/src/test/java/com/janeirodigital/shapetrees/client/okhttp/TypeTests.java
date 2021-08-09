@@ -1,7 +1,5 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-// TODO: Populate tests from primer examples
-
 import com.janeirodigital.shapetrees.client.okhttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.client.okhttp.fixtures.RequestMatchingFixtureDispatcher;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;

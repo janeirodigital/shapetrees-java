@@ -8,6 +8,7 @@ import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,8 +51,12 @@ class ProjectRecursiveTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
+        URI targetResource = getURI(server, "/data/");
+        URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
+        URI focusNode = getURI(server, "/data/#repository");
+
         // Plant the data collection recursively on already existing hierarchy
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/"), getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree"), getURI(server, "/data/#repository").toString());
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -68,8 +73,11 @@ class ProjectRecursiveTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator"), "GET", "/data/projects/.shapetree", null));
 
+        URI targetResource = getURI(server, "/data/projects/");
+        URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
+
         // Plant the projects collection recursively on already existing hierarchy
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server, "/data/projects/"), getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree"), null);
+        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }

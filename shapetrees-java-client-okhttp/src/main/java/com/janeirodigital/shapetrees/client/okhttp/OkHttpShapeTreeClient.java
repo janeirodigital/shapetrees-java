@@ -112,7 +112,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
      * @throws URISyntaxException
      */
     @Override
-    public ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, String focusNode) throws IOException, URISyntaxException {
+    public ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws IOException, URISyntaxException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
             throw new IOException("Must provide a valid context, target resource, and target shape tree to the plant shape tree");
@@ -141,7 +141,7 @@ public class OkHttpShapeTreeClient implements ShapeTreeClient {
         ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree.toString(),
                                                            targetResource.toString(),
                                                            locationUri,
-                                                           focusNode,
+                                                           focusNode == null ? null : focusNode.toString(),
                                                            null,
                                                            locationUri);
 
