@@ -210,7 +210,7 @@ public class RemoteResource {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
-        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(this.clientConfiguration);
+        OkHttpFetcher fetcher = OkHttpFetcher.getForConfig(this.clientConfiguration);
         fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), "text/turtle");
         // get media type from TEXT_TURTLE ?
 
@@ -276,7 +276,7 @@ public class RemoteResource {
         log.debug("RemoteResource#dereferencingURI({})", this.uri);
 
         try {
-            OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(this.clientConfiguration);
+            OkHttpFetcher fetcher = OkHttpFetcher.getForConfig(this.clientConfiguration);
             fetcher.fetchIntoRemoteResource("GET", this.uri, null, authorizationHeaderValue, null, null, this);
             this.invalidated = false;
         } catch (Exception e) {
