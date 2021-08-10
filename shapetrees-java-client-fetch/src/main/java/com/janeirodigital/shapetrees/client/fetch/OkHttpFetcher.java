@@ -6,18 +6,17 @@ import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.MediaType;
-import okhttp3.Response;
+import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
+import okhttp3.*;
 
 import javax.net.ssl.*;
 
@@ -30,7 +29,7 @@ public class OkHttpFetcher {
     private static final String PATCH = "PATCH";
     private static final String DELETE = "DELETE";
 
-    public OkHttpFetcher(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
+    private OkHttpFetcher(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
         OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(configuration.getUseValidation())) {
             clientBuilder.interceptors().add(new ValidatingShapeTreeInterceptor());
@@ -49,6 +48,32 @@ public class OkHttpFetcher {
         httpClient = clientBuilder.build();
     }
 
+    private static TrustManager[] getTrustAllCertsManager() {
+        // Create a trust manager that does not validate certificate chains
+        return new TrustManager[] {
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                        // All clients are trusted when SSL validation is skipped
+                    }
+
+                    @Override
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                        // All servers are trusted when SSL validation is skipped
+                    }
+
+                    @Override
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new java.security.cert.X509Certificate[]{};
+                    }
+                }
+        };
+    }
+
+    private static HostnameVerifier getTrustAllHostnameVerifier() {
+        return (hostname, session) -> true;
+    }
+
     private static final ConcurrentHashMap<ShapeTreeClientConfiguration, OkHttpFetcher> clientMap999 = new ConcurrentHashMap<>();
     public static OkHttpFetcher getFetcher999(ShapeTreeClientConfiguration configuration) throws ShapeTreeException {
         if (clientMap999.containsKey(configuration)) {
@@ -63,7 +88,7 @@ public class OkHttpFetcher {
         }
     }
 
-    public okhttp3.Response fetch(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
+    private okhttp3.Response fetch(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
         if (body == null)
             body = "";
 
@@ -112,34 +137,35 @@ public class OkHttpFetcher {
         }
     }
 
+    public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
+        return FetchHelper.mapFetchResponseToShapeTreeResource(response, resourceURI, headers);
+    }
+
     public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
         okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
         return FetchHelper.mapFetchResponseToShapeTreeResponse(response);
     }
 
-    private static TrustManager[] getTrustAllCertsManager() {
-        // Create a trust manager that does not validate certificate chains
-        return new TrustManager[] {
-                new X509TrustManager() {
-                    @Override
-                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-                        // All clients are trusted when SSL validation is skipped
-                    }
+    public void fetchIntoRemoteResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType, RemoteResource remoteResource) throws IOException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
 
-                    @Override
-                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-                        // All servers are trusted when SSL validation is skipped
-                    }
+        remoteResource.setExists(response.code() < 400);
 
-                    @Override
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return new java.security.cert.X509Certificate[]{};
-                    }
-                }
-        };
-    }
+        // Parse the headers for ease of use later
+        Map<String, List<String>> parsedHeaders = response.headers().toMultimap();
+        remoteResource.setResponseHeaders(parsedHeaders);
 
-    private static HostnameVerifier getTrustAllHostnameVerifier() {
-        return (hostname, session) -> true;
+        // We especially care about Link headers which require extra parsing of the rel values
+        if (parsedHeaders.get(HttpHeaders.LINK.getValue()) != null) {
+            remoteResource.setParsedLinkHeaders(HttpHeaderHelper.parseLinkHeadersToMap(response.headers(HttpHeaders.LINK.getValue())));
+        } else {
+            remoteResource.setParsedLinkHeaders(new HashMap<>());
+        }
+
+        // Save raw body
+        try (ResponseBody respBody = response.body()) {
+            remoteResource.setRawBody(respBody.string());
+        }
     }
 }

@@ -80,8 +80,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, writeHeaders(headers));
 
         OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(new ShapeTreeClientConfiguration(false, false));
-        okhttp3.Response response = fetcher.fetch(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
-        return FetchHelper.mapFetchResponseToShapeTreeResource(response, resourceURI, headers);
+        return fetcher.fetchShapeTreeResource(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
     }
 
     @Override
@@ -90,9 +89,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
 
         String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
         OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(new ShapeTreeClientConfiguration(false, false));
-        okhttp3.Response response = fetcher.fetch(method, updatedResource.getUri(), updatedResource.getAttributes(), context.getAuthorizationHeaderValue(), updatedResource.getBody(), contentType);
-        return FetchHelper.mapFetchResponseToShapeTreeResource(response, updatedResource.getUri(), updatedResource.getAttributes());
-
+        return fetcher.fetchShapeTreeResource(method, updatedResource.getUri(), updatedResource.getAttributes(), context.getAuthorizationHeaderValue(), updatedResource.getBody(), contentType);
     }
 
     @Override
@@ -100,11 +97,12 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
         OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(new ShapeTreeClientConfiguration(false, false));
-        okhttp3.Response response = fetcher.fetch("DELETE", deletedResource.getUri(), deletedResource.getAttributes(), context.getAuthorizationHeaderValue(), null, null);
-        if (!response.isSuccessful()) {
-            log.error("Error deleting resource {}, Status {} Message {}", deletedResource.getUri(), response.code(), response.message());
+        ShapeTreeResponse response = fetcher.fetchShapeTreeResponse("DELETE", deletedResource.getUri(), deletedResource.getAttributes(), context.getAuthorizationHeaderValue(), null, null);
+        int respCode = response.getStatusCode();
+        if (respCode < 200 || respCode >= 400) {
+            log.error("Error deleting resource {}, Status {}", deletedResource.getUri(), respCode);
         }
-        return FetchHelper.mapFetchResponseToShapeTreeResponse(response);
+        return response;
 
     }
 
