@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OkHttpFetcher {
     private static final OkHttpClient baseClient = new OkHttpClient();
     // Map from configuration to already-instantiated OkHttpFetcher.
-    private static final ConcurrentHashMap<ShapeTreeClientConfiguration, OkHttpFetcher> clientMap999 = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<ShapeTreeClientConfiguration, OkHttpFetcher> clientMap = new ConcurrentHashMap<>();
 
     private OkHttpClient httpClient;
 
@@ -46,12 +46,12 @@ public class OkHttpFetcher {
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
     public static OkHttpFetcher getForConfig(ShapeTreeClientConfiguration configuration) throws ShapeTreeException {
-        if (clientMap999.containsKey(configuration)) {
-            return clientMap999.get(configuration);
+        if (clientMap.containsKey(configuration)) {
+            return clientMap.get(configuration);
         }
         try {
             OkHttpFetcher client = new OkHttpFetcher(configuration);
-            clientMap999.put(configuration, client);
+            clientMap.put(configuration, client);
             return client;
         } catch (Exception ex) {
             throw new ShapeTreeException(500, ex.getMessage());
