@@ -210,17 +210,9 @@ public class RemoteResource {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
-        OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(this.clientConfiguration);
-        Request.Builder requestBuilder = new Request.Builder()
-                .url(this.uri.toURL())
-                .addHeader(HttpHeaders.CONTENT_TYPE.getValue(), TEXT_TURTLE)
-                .put(RequestBody.create(sw.toString(), MediaType.get(TEXT_TURTLE)));
-
-        if (authorizationHeaderValue != null) {
-            requestBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
-        }
-
-        httpClient.newCall(requestBuilder.build()).execute();
+        OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(this.clientConfiguration);
+        fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), "text/turtle");
+        // get media type from TEXT_TURTLE ?
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
@@ -284,40 +276,19 @@ public class RemoteResource {
     private void dereferenceURI() throws IOException {
         log.debug("RemoteResource#dereferencingURI({})", this.uri);
 
-        OkHttpClient httpClient = ShapeTreeHttpClientHolder.getForConfig(this.clientConfiguration);
-        Request.Builder requestBuilder = new Request.Builder()
-                .url(this.uri.toURL());
-
-        if (this.authorizationHeaderValue != null) {
-            requestBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);
-        }
-
-        Request request = requestBuilder.build();
-
-        try (Response response = httpClient.newCall(request).execute()) {
-            parseResponseToRemoteResource(response);
+        try {
+            OkHttpFetcher fetcher = OkHttpFetcher.getFetcher999(this.clientConfiguration);
+            fetcher.fetchIntoRemoteResource("GET", this.uri, null, authorizationHeaderValue, null, null, this);
             this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);
         }
     }
 
-    private void parseResponseToRemoteResource(Response response) throws IOException {
-        this.exists = response.code() < 400;
-
-        // Parse the headers for ease of use later
-        this.responseHeaders = response.headers().toMultimap();
-
-        // We especially care about Link headers which require extra parsing of the rel values
-        if (this.responseHeaders.get(HttpHeaders.LINK.getValue()) != null) {
-            this.parsedLinkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(response.headers(HttpHeaders.LINK.getValue()));
-        } else {
-            this.parsedLinkHeaders = new HashMap<>();
-        }
-
-        // Save raw body
-        try (ResponseBody body = response.body()) {
-            this.rawBody = body.string();
-        }
-    }
+    // Promiscuous hack for Fetcher.fetchIntoRemoteResource
+    // TODO: simulate friend with https://stackoverflow.com/a/18634125/1243605
+    public void setExists(boolean exists) { this.exists = exists; }
+    public void setResponseHeaders(Map<String, List<String>> responseHeaders) { this.responseHeaders = responseHeaders; }
+    public void setParsedLinkHeaders(Map<String, List<String>> parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
+    public void setRawBody(String rawBody) { this.rawBody = rawBody; }
 }
