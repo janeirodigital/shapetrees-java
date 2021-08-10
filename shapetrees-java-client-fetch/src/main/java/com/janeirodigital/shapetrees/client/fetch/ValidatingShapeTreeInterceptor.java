@@ -94,7 +94,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
     private Response createResponse(ShapeTreeRequest<Request> request, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
-        Headers headers = FetchHelper.convertHeaders(response.getResponseHeaders());
+        Headers headers = OkHttpFetcher.convertHeaders(response.getResponseHeaders());
         builder.headers(headers);
         String contentType = headers.get("Content-Type");
         if (contentType == null) {
