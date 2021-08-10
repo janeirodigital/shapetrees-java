@@ -58,14 +58,51 @@ public class OkHttpFetcher {
         }
     }
 
+    /**
+     * Maps an OkHttp Response object to a ShapeTreeResource object
+     * @param response OkHttp Response object
+     * @param resourceURI URI of request associated with response
+     * @param headers Request headers used in request associated with response
+     * @return ShapeTreeResource instance with contents and response headers from response
+     */
     public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
         okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
-        return mapFetchResponseToShapeTreeResource(response, resourceURI, headers);
+
+        ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
+
+        shapeTreeResource.setExists(response.isSuccessful());
+        shapeTreeResource.setContainer(isContainerFromHeaders(headers));
+        shapeTreeResource.setType(getResourceTypeFromHeaders(headers));
+
+        try {
+            shapeTreeResource.setBody(Objects.requireNonNull(response.body()).string());
+        } catch (IOException | NullPointerException ex) {
+            log.error("Exception retrieving body string");
+            shapeTreeResource.setBody(null);
+        }
+        shapeTreeResource.setAttributes(response.headers().toMultimap());
+        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), resourceURI.toString()))));
+
+        return shapeTreeResource;
     }
 
+    /**
+     * Maps an OkHttp Response object to a ShapeTreeResponse object
+     * @return ShapeTreeResponse with values from OkHttp response
+     */
     public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
         okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
-        return mapFetchResponseToShapeTreeResponse(response);
+
+        ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
+        try {
+            shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).string());
+        } catch (IOException | NullPointerException ex) {
+            log.error("Exception retrieving body string");
+            shapeTreeResponse.setBody(null);
+        }
+        shapeTreeResponse.setHeaders(response.headers().toMultimap());
+        shapeTreeResponse.setStatusCode(response.code());
+        return shapeTreeResponse;
     }
 
     public void fetchIntoRemoteResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType, RemoteResource remoteResource) throws IOException {
@@ -200,51 +237,6 @@ public class OkHttpFetcher {
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
-    }
-
-    // response mappers
-    /**
-     * Maps an OkHttp Response object to a ShapeTreeResource object
-     * @param response OkHttp Response object
-     * @param requestURI URI of request associated with response
-     * @param requestHeaders Request headers used in request associated with response
-     * @return ShapeTreeResource instance with contents and response headers from response
-     */
-    private static ShapeTreeResource mapFetchResponseToShapeTreeResource(Response response, URI requestURI, Map<String, List<String>> requestHeaders) {
-        ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
-
-        shapeTreeResource.setExists(response.isSuccessful());
-        shapeTreeResource.setContainer(isContainerFromHeaders(requestHeaders));
-        shapeTreeResource.setType(getResourceTypeFromHeaders(requestHeaders));
-
-        try {
-            shapeTreeResource.setBody(Objects.requireNonNull(response.body()).string());
-        } catch (IOException | NullPointerException ex) {
-            log.error("Exception retrieving body string");
-            shapeTreeResource.setBody(null);
-        }
-        shapeTreeResource.setAttributes(response.headers().toMultimap());
-        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), requestURI.toString()))));
-
-        return shapeTreeResource;
-    }
-
-    /**
-     * Maps an OkHttp Response object to a ShapeTreeResponse object
-     * @param response OkHttp Response object
-     * @return ShapeTreeResponse with values from OkHttp response
-     */
-    private static ShapeTreeResponse mapFetchResponseToShapeTreeResponse(Response response) {
-        ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
-        try {
-            shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).string());
-        } catch (IOException | NullPointerException ex) {
-            log.error("Exception retrieving body string");
-            shapeTreeResponse.setBody(null);
-        }
-        shapeTreeResponse.setHeaders(response.headers().toMultimap());
-        shapeTreeResponse.setStatusCode(response.code());
-        return shapeTreeResponse;
     }
 
     // header helpers

@@ -7,7 +7,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
