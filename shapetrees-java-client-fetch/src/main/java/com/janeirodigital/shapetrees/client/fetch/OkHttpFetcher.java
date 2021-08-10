@@ -45,8 +45,69 @@ public class OkHttpFetcher {
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
-    // !! made public for ShapeTreeHttpClientHolder
-    public OkHttpFetcher(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
+    public static OkHttpFetcher getForConfig(ShapeTreeClientConfiguration configuration) throws ShapeTreeException {
+        if (clientMap999.containsKey(configuration)) {
+            return clientMap999.get(configuration);
+        }
+        try {
+            OkHttpFetcher client = new OkHttpFetcher(configuration);
+            clientMap999.put(configuration, client);
+            return client;
+        } catch (Exception ex) {
+            throw new ShapeTreeException(500, ex.getMessage());
+        }
+    }
+
+    public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
+        return mapFetchResponseToShapeTreeResource(response, resourceURI, headers);
+    }
+
+    public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
+        return mapFetchResponseToShapeTreeResponse(response);
+    }
+
+    public void fetchIntoRemoteResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType, RemoteResource remoteResource) throws IOException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
+
+        remoteResource.setExists(response.code() < 400);
+
+        // Parse the headers for ease of use later
+        Map<String, List<String>> parsedHeaders = response.headers().toMultimap();
+        remoteResource.setResponseHeaders(parsedHeaders);
+
+        // We especially care about Link headers which require extra parsing of the rel values
+        if (parsedHeaders.get(HttpHeaders.LINK.getValue()) != null) {
+            remoteResource.setParsedLinkHeaders(HttpHeaderHelper.parseLinkHeadersToMap(response.headers(HttpHeaders.LINK.getValue())));
+        } else {
+            remoteResource.setParsedLinkHeaders(new HashMap<>());
+        }
+
+        // Save raw body
+        try (ResponseBody respBody = response.body()) {
+            remoteResource.setRawBody(respBody.string());
+        }
+    }
+
+    /**
+     * Converts "multi map" representation of headers to the OkHttp Headers class
+     * public for ValidatingShapeTreeInterceptor.createResponse
+     * @param headers Multi-map representation of headers
+     * @return OkHttp Headers object
+     */
+    public static Headers convertHeaders(Map<String, List<String>> headers) {
+        Headers.Builder okHttpHeaders = new Headers.Builder();
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()){
+            for (String value : entry.getValue()) {
+                okHttpHeaders.add(entry.getKey(), value);
+            }
+        }
+        return okHttpHeaders.build();
+    }
+
+    // constructor and its helpers
+    private OkHttpFetcher(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
         OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(configuration.getUseValidation())) {
             clientBuilder.interceptors().add(new ValidatingShapeTreeInterceptor());
@@ -91,19 +152,7 @@ public class OkHttpFetcher {
         return (hostname, session) -> true;
     }
 
-    public static OkHttpFetcher getForConfig(ShapeTreeClientConfiguration configuration) throws ShapeTreeException {
-        if (clientMap999.containsKey(configuration)) {
-            return clientMap999.get(configuration);
-        }
-        try {
-            OkHttpFetcher client = new OkHttpFetcher(configuration);
-            clientMap999.put(configuration, client);
-            return client;
-        } catch (Exception ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
-        }
-    }
-
+    // fetch functions
     private okhttp3.Response fetch(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
         if (body == null)
             body = "";
@@ -153,53 +202,7 @@ public class OkHttpFetcher {
         }
     }
 
-    public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
-        return mapFetchResponseToShapeTreeResource(response, resourceURI, headers);
-    }
-
-    public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
-        return mapFetchResponseToShapeTreeResponse(response);
-    }
-
-    public void fetchIntoRemoteResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType, RemoteResource remoteResource) throws IOException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
-
-        remoteResource.setExists(response.code() < 400);
-
-        // Parse the headers for ease of use later
-        Map<String, List<String>> parsedHeaders = response.headers().toMultimap();
-        remoteResource.setResponseHeaders(parsedHeaders);
-
-        // We especially care about Link headers which require extra parsing of the rel values
-        if (parsedHeaders.get(HttpHeaders.LINK.getValue()) != null) {
-            remoteResource.setParsedLinkHeaders(HttpHeaderHelper.parseLinkHeadersToMap(response.headers(HttpHeaders.LINK.getValue())));
-        } else {
-            remoteResource.setParsedLinkHeaders(new HashMap<>());
-        }
-
-        // Save raw body
-        try (ResponseBody respBody = response.body()) {
-            remoteResource.setRawBody(respBody.string());
-        }
-    }
-
-    /**
-     * Converts "multi map" representation of headers to the OkHttp Headers class
-     * @param headers Multi-map representation of headers
-     * @return OkHttp Headers object
-     */
-    public static Headers convertHeaders(Map<String, List<String>> headers) {
-        Headers.Builder okHttpHeaders = new Headers.Builder();
-        for (Map.Entry<String, List<String>> entry : headers.entrySet()){
-            for (String value : entry.getValue()) {
-                okHttpHeaders.add(entry.getKey(), value);
-            }
-        }
-        return okHttpHeaders.build();
-    }
-
+    // response mappers
     /**
      * Maps an OkHttp Response object to a ShapeTreeResource object
      * @param response OkHttp Response object
@@ -207,7 +210,7 @@ public class OkHttpFetcher {
      * @param requestHeaders Request headers used in request associated with response
      * @return ShapeTreeResource instance with contents and response headers from response
      */
-    public static ShapeTreeResource mapFetchResponseToShapeTreeResource(Response response, URI requestURI, Map<String, List<String>> requestHeaders) {
+    private static ShapeTreeResource mapFetchResponseToShapeTreeResource(Response response, URI requestURI, Map<String, List<String>> requestHeaders) {
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
 
         shapeTreeResource.setExists(response.isSuccessful());
@@ -231,7 +234,7 @@ public class OkHttpFetcher {
      * @param response OkHttp Response object
      * @return ShapeTreeResponse with values from OkHttp response
      */
-    public static ShapeTreeResponse mapFetchResponseToShapeTreeResponse(Response response) {
+    private static ShapeTreeResponse mapFetchResponseToShapeTreeResponse(Response response) {
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {
             shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).string());
@@ -244,6 +247,7 @@ public class OkHttpFetcher {
         return shapeTreeResponse;
     }
 
+    // header helpers
     private static boolean isContainerFromHeaders(Map<String, List<String>> requestHeaders) {
 
         List<String> linkHeaders = requestHeaders.get(HttpHeaders.LINK.getValue());
