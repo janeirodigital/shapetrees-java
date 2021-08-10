@@ -8,9 +8,6 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
