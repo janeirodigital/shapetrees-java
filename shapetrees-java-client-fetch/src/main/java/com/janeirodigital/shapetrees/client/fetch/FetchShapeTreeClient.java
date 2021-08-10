@@ -308,42 +308,44 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         }
     }
 
-    private void set999(Map<String, List<String>> map, String attr, String value) {
-        if (map.containsKey(attr)) {
-            map.get(attr).add(value);
-        } else {
-            ArrayList<String> list = new ArrayList<String>();
-            list.add(value);
-            map.put(attr, list);
+    private class Headers extends HashMap<String, List<String>> {
+        private void set(String attr, String value) {
+            if (this.containsKey(attr)) {
+                this.get(attr).add(value);
+            } else {
+                ArrayList<String> list = new ArrayList<String>();
+                list.add(value);
+                this.put(attr, list);
+            }
         }
     }
 
     private Map<String, List<String>> getCommonHeaders(ShapeTreeContext context, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
-        Map<String, List<String>> ret = new HashMap<>();
+        Headers ret = new Headers();
 
         if (context.getAuthorizationHeaderValue() != null) {
-            set999(ret, HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+            ret.set(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         }
 
         if (isContainer != null) {
             String resourceTypeUri = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-            set999(ret, HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
+            ret.set(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
         }
 
         if (focusNode != null) {
-            set999(ret, HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
+            ret.set(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
         }
 
         if (targetShapeTree != null) {
-            set999(ret, HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
+            ret.set(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
         }
 
         if (proposedResourceName != null) {
-            set999(ret, HttpHeaders.SLUG.getValue(), proposedResourceName);
+            ret.set(HttpHeaders.SLUG.getValue(), proposedResourceName);
         }
 
         if (contentType != null) {
-            set999(ret, HttpHeaders.CONTENT_TYPE.getValue(), contentType);
+            ret.set(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
         }
 
         return ret;
