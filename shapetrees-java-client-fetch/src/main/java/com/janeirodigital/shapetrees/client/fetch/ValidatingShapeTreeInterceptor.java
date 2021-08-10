@@ -39,7 +39,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
     @Override
     public Response intercept(@NotNull Chain chain) throws IOException {
 
-        ShapeTreeRequest<Request> shapeTreeRequest = new FetchShapeTreeRequest(chain.request());
+        ShapeTreeRequest shapeTreeRequest = new FetchShapeTreeRequest(chain.request());
         ResourceAccessor resourceAccessor = new FetchRemoteResourceAccessor();
 
         // Get the handler
@@ -50,14 +50,14 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
                 if (shapeTreeResponse.isValidRequest() && !shapeTreeResponse.isRequestFulfilled()) {
                     return chain.proceed(chain.request());
                 } else {
-                    return createResponse(shapeTreeRequest, shapeTreeResponse);
+                    return createResponse(shapeTreeRequest, chain.request(), shapeTreeResponse);
                 }
             } catch (ShapeTreeException ex){
                 log.error("Error processing shape tree request: ", ex);
-                return createErrorResponse(ex, shapeTreeRequest);
+                return createErrorResponse(ex, shapeTreeRequest, chain.request());
             } catch (Exception ex) {
                 log.error("Error processing shape tree request: ", ex);
-                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest);
+                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest, chain.request());
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
@@ -81,17 +81,17 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
     }
 
     // TODO: Update to a simple JSON-LD body
-    private Response createErrorResponse(ShapeTreeException exception, ShapeTreeRequest<Request> request) {
+    private Response createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, Request nativeRequest) {
         return new Response.Builder()
                 .code(exception.getStatusCode())
                 .body(ResponseBody.create(exception.getMessage(), MediaType.get("text/plain")))
-                .request(request.getNativeRequest())
+                .request(nativeRequest)
                 .protocol(Protocol.HTTP_2)
                 .message(exception.getMessage())
                 .build();
     }
 
-    private Response createResponse(ShapeTreeRequest<Request> request, ShapeTreeResponse response) {
+    private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
         Headers headers = OkHttpFetcher.convertHeaders(response.getResponseHeaders());
@@ -104,7 +104,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
                 .message("Success")
-                .request(request.getNativeRequest());
+                .request(nativeRequest);
 
         return builder.build();
     }

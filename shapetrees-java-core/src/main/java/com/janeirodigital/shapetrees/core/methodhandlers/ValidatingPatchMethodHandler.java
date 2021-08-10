@@ -16,7 +16,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
     }
 
     @Override
-    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest<?> shapeTreeRequest) {
+    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest shapeTreeRequest) {
         try {
 
             if (shapeTreeRequest.getContentType() == null || !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update")) {

@@ -5,5 +5,5 @@ import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
 
 public interface ValidatingMethodHandler {
-    ShapeTreeValidationResponse validateRequest(ShapeTreeRequest<?> shapeTreeRequest) throws ShapeTreeException;
+    ShapeTreeValidationResponse validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException;
 }
