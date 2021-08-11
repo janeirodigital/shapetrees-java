@@ -15,11 +15,11 @@ import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
-public class FetchShapeTreeRequest implements ShapeTreeRequest {
+public class OkHttpShapeTreeRequest implements ShapeTreeRequest {
     private final Request request;
     private ShapeTreeResourceType resourceType;
 
-    public FetchShapeTreeRequest(Request request) {
+    public OkHttpShapeTreeRequest(Request request) {
         this.request = request;
     }
 

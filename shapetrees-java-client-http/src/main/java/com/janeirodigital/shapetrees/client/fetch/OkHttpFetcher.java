@@ -10,7 +10,6 @@ import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
-import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 import javax.net.ssl.*;
@@ -129,7 +128,7 @@ public class OkHttpFetcher {
 
     /**
      * Converts "multi map" representation of headers to the OkHttp Headers class
-     * public for ValidatingShapeTreeInterceptor.createResponse
+     * public for OkHttpValidatingShapeTreeInterceptor.createResponse
      * @param headers Multi-map representation of headers
      * @return OkHttp Headers object
      */
@@ -147,7 +146,7 @@ public class OkHttpFetcher {
     private OkHttpFetcher(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
         OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(configuration.getUseValidation())) {
-            clientBuilder.interceptors().add(new ValidatingShapeTreeInterceptor());
+            clientBuilder.interceptors().add(new OkHttpValidatingShapeTreeInterceptor());
         }
         if (Boolean.TRUE.equals(configuration.getSkipSslValidation())) {
             // Install the all-trusting trust manager

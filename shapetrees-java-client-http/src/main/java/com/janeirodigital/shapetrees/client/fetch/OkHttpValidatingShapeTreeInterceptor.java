@@ -16,7 +16,7 @@ import java.io.IOException;
  * Interceptor used for client-side validation
  */
 @Slf4j
-public class ValidatingShapeTreeInterceptor implements Interceptor {
+public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
 
     private static final String POST = "POST";
     private static final String PUT = "PUT";
@@ -39,7 +39,7 @@ public class ValidatingShapeTreeInterceptor implements Interceptor {
     @Override
     public Response intercept(@NotNull Chain chain) throws IOException {
 
-        ShapeTreeRequest shapeTreeRequest = new FetchShapeTreeRequest(chain.request());
+        ShapeTreeRequest shapeTreeRequest = new OkHttpShapeTreeRequest(chain.request());
         ResourceAccessor resourceAccessor = new FetchRemoteResourceAccessor();
 
         // Get the handler
