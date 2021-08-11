@@ -1,7 +1,11 @@
-package com.janeirodigital.shapetrees.client.http;
+package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
+import com.janeirodigital.shapetrees.client.http.FetchShapeTreeClient;
+import com.janeirodigital.shapetrees.client.http.HttpClientManager;
+import com.janeirodigital.shapetrees.client.http.RemoteResource;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
+import com.janeirodigital.shapetrees.okhttp.OkHttpClientFactory;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
 import org.opentest4j.AssertionFailedError;
@@ -18,8 +22,8 @@ public abstract class BaseShapeTreeTest {
     protected static String TEXT_TURTLE = "text/turtle";
 
     public BaseShapeTreeTest() {
+        HttpClientManager.setFactory(new OkHttpClientFactory());
         this.context = new ShapeTreeContext();
-
         this.shapeTreeClient = new FetchShapeTreeClient();
     }
     

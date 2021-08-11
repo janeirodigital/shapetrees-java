@@ -1,5 +1,9 @@
-package com.janeirodigital.shapetrees.client.http;
+package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.client.http.HttpClient;
+import com.janeirodigital.shapetrees.client.http.HttpClientManager;
+import com.janeirodigital.shapetrees.client.http.RemoteResource;
+import com.janeirodigital.shapetrees.client.http.ShapeTreeClientConfiguration;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
@@ -9,7 +13,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import okhttp3.Headers;
-import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 
 import javax.net.ssl.*;
@@ -25,16 +28,14 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * OkHttp documentation (https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#okhttpclients-should-be-shared)
- * recommends that instance of the client be shared/reused.  OkHttpFetcher's getForConfig provides an
+ * recommends that instance of the client be shared/reused.  OkHttpClient's getForConfig provides an
  * instance of the OkHttpClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
  */
 @Slf4j
-public class OkHttpFetcher {
-    private static final OkHttpClient baseClient = new OkHttpClient();
-    // Map from configuration to already-instantiated OkHttpFetcher.
-    private static final ConcurrentHashMap<ShapeTreeClientConfiguration, OkHttpFetcher> clientMap = new ConcurrentHashMap<>();
+public class OkHttpClient implements HttpClient {
+    private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
-    private OkHttpClient httpClient;
+    private okhttp3.OkHttpClient httpClient;
 
     private static final String GET = "GET";
     private static final String PUT = "PUT";
@@ -43,19 +44,6 @@ public class OkHttpFetcher {
     private static final String DELETE = "DELETE";
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
-
-    public static OkHttpFetcher getForConfig(ShapeTreeClientConfiguration configuration) throws ShapeTreeException {
-        if (clientMap.containsKey(configuration)) {
-            return clientMap.get(configuration);
-        }
-        try {
-            OkHttpFetcher client = new OkHttpFetcher(configuration);
-            clientMap.put(configuration, client);
-            return client;
-        } catch (Exception ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
-        }
-    }
 
     /**
      * Maps an OkHttp Response object to a ShapeTreeResource object
@@ -143,8 +131,8 @@ public class OkHttpFetcher {
     }
 
     // constructor and its helpers
-    private OkHttpFetcher(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
-        OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
+    protected OkHttpClient(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
+        okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(configuration.getUseValidation())) {
             clientBuilder.interceptors().add(new OkHttpValidatingShapeTreeInterceptor());
         }

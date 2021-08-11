@@ -1,5 +1,6 @@
-package com.janeirodigital.shapetrees.client.http;
+package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.client.http.FetchRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -102,7 +103,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
-        Headers headers = OkHttpFetcher.convertHeaders(response.getResponseHeaders());
+        Headers headers = OkHttpClient.convertHeaders(response.getResponseHeaders());
         builder.headers(headers);
         String contentType = headers.get("Content-Type");
         if (contentType == null) {

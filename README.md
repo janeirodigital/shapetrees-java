@@ -11,7 +11,7 @@ Each module within the project has its own README.md to further explain its cont
    to interact with the API are present here
  * [shapetrees-java-client-core](shapetrees-java-client-core/README.md) - Defines a proposed interface for any shape
    tree client implementations
- * [shapetrees-java-client-okhttp](shapetrees-java-client-okhttp/README.md) - Provides a shape tree client implemented
-   with [OkHttp](https://github.com/square/okhttp/).  This client can perform client-side
+ * [shapetrees-java-client-com.janeirodigital.shapetrees.okhttp](shapetrees-java-client-com.janeirodigital.shapetrees.okhttp/README.md) - Provides a shape tree client implemented
+   with [OkHttp](https://github.com/square/com.janeirodigital.shapetrees.okhttp/).  This client can perform client-side
    validation by using an interceptor or interact directly with a server that performs server-side validation
    

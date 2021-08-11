@@ -7,6 +7,7 @@ import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -20,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@NoArgsConstructor
 @Slf4j
 public class FetchRemoteResourceAccessor implements ResourceAccessor {
 
@@ -73,7 +75,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, Map<String, List<String>> headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, writeHeaders(headers));
 
-        OkHttpFetcher fetcher = OkHttpFetcher.getForConfig(new ShapeTreeClientConfiguration(false, false));
+        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new ShapeTreeClientConfiguration(false, false));
         return fetcher.fetchShapeTreeResource(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
     }
 
@@ -82,7 +84,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
         String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
-        OkHttpFetcher fetcher = OkHttpFetcher.getForConfig(new ShapeTreeClientConfiguration(false, false));
+        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new ShapeTreeClientConfiguration(false, false));
         return fetcher.fetchShapeTreeResource(method, updatedResource.getUri(), updatedResource.getAttributes(), context.getAuthorizationHeaderValue(), updatedResource.getBody(), contentType);
     }
 
@@ -90,7 +92,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResponse deleteResource(ShapeTreeContext context, ShapeTreeResource deletedResource) throws ShapeTreeException {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
-        OkHttpFetcher fetcher = OkHttpFetcher.getForConfig(new ShapeTreeClientConfiguration(false, false));
+        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new ShapeTreeClientConfiguration(false, false));
         ShapeTreeResponse response = fetcher.fetchShapeTreeResponse("DELETE", deletedResource.getUri(), deletedResource.getAttributes(), context.getAuthorizationHeaderValue(), null, null);
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {

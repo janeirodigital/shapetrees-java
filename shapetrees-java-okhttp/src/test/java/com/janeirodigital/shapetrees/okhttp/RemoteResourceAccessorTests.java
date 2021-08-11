@@ -1,7 +1,7 @@
-package com.janeirodigital.shapetrees.client.http;
+package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.fixtures.DispatcherEntry;
-import com.janeirodigital.shapetrees.client.http.fixtures.RequestMatchingFixtureDispatcher;
+import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
+import com.janeirodigital.shapetrees.okhttp.fixtures.RequestMatchingFixtureDispatcher;
 import jdk.jfr.Label;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeAll;

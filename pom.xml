@@ -70,7 +70,8 @@
     <modules>
         <module>shapetrees-java-core</module>
         <module>shapetrees-java-client-core</module>
-        <module>shapetrees-java-client-fetch</module>
+        <module>shapetrees-java-client-http</module>
+        <module>shapetrees-java-okhttp</module>
     </modules>
 
     <build>

@@ -1,5 +1,6 @@
-package com.janeirodigital.shapetrees.client.http;
+package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.okhttp.OkHttpFetcher;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -1,7 +1,7 @@
-package com.janeirodigital.shapetrees.client.http;
+package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.fixtures.DispatcherEntry;
-import com.janeirodigital.shapetrees.client.http.fixtures.RequestMatchingFixtureDispatcher;
+import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
+import com.janeirodigital.shapetrees.okhttp.fixtures.RequestMatchingFixtureDispatcher;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import jdk.jfr.Label;
@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class DiscoverTests extends BaseShapeTreeTest {
+class DiscoverTests extends com.janeirodigital.shapetrees.okhttp.BaseShapeTreeTest {
 
-    private static RequestMatchingFixtureDispatcher dispatcher = null;
+    private static com.janeirodigital.shapetrees.client.http.fixtures.RequestMatchingFixtureDispatcher dispatcher = null;
 
     public DiscoverTests() {
         // Call BaseShapeTreeTest constructor
