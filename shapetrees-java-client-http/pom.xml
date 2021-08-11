@@ -45,24 +45,6 @@
             <version>${snakeyaml.version}</version>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.janeirodigital</groupId>-->
-<!--            <artifactId>shapetrees-java-okhttp</artifactId>-->
-<!--            <version>1.0.0</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-        <!--        <dependency>-->
-<!--            <groupId>com.janeirodigital</groupId>-->
-<!--            <artifactId>shapetrees-java-okhttp</artifactId>-->
-<!--            <version>1.0.0</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-        <!--        <dependency>-->
-<!--            <groupId>com.janeirodigital</groupId>-->
-<!--            <artifactId>shapetrees-java-okhttp</artifactId>-->
-<!--            <version>1.0.0</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
     </dependencies>
 
     <build>

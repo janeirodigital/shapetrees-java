@@ -1,8 +1,9 @@
 package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.client.http.RemoteResource;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.okhttp.fixtures.RequestMatchingFixtureDispatcher;
-import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.NodeFactory;
@@ -13,7 +14,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RemoteResourceTests extends BaseShapeTreeTest {

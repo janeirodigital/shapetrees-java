@@ -1,4 +1,8 @@
-package com.janeirodigital.shapetrees.client.http.fixtures;
+package com.janeirodigital.shapetrees.okhttp.fixtures;
+
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.apache.commons.text.StringSubstitutor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,10 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.RecordedRequest;
-import org.apache.commons.text.StringSubstitutor;
 
 /**
  * Originated from: https://github.com/orhanobut/mockwebserverplus (apache license)

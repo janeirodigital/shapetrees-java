@@ -1,7 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
-import com.janeirodigital.shapetrees.okhttp.fixtures.RequestMatchingFixtureDispatcher;
+import com.janeirodigital.shapetrees.client.http.FetchRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
@@ -12,6 +11,8 @@ import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTree;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ValidationResult;
+import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
+import com.janeirodigital.shapetrees.okhttp.fixtures.RequestMatchingFixtureDispatcher;
 import fr.inria.lille.shexjava.schema.ShexSchema;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
@@ -32,11 +33,8 @@ import java.util.Map;
 
 class ShapeTreeValidationTests extends BaseShapeTreeTest {
 
-    HttpClient.Factory clientFactory;
-
-    public ShapeTreeValidationTests(HttpClient.Factory clientFactory) {
+    public ShapeTreeValidationTests() {
         super();
-        this.factory = factory;
     }
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
@@ -45,7 +43,7 @@ class ShapeTreeValidationTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
 
-        resourceAccessor = new FetchRemoteResourceAccessor(new OkHttpFetcher());
+        resourceAccessor = new FetchRemoteResourceAccessor();
 
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
                 new DispatcherEntry(List.of("shapetrees/validation-shapetree-ttl"), "GET", "/static/shapetrees/validation/shapetree", null),

@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.okhttp.OkHttpFetcher;
+import com.janeirodigital.shapetrees.client.http.ShapeTreeClientConfiguration;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ class HttpClientTests {
     @SneakyThrows
     void testNonValidatingHandler() {
         ShapeTreeClientConfiguration config = new ShapeTreeClientConfiguration(false, false);
-        OkHttpFetcher client = OkHttpFetcher.getForConfig(config);
+        OkHttpClient client = new OkHttpClientFactory().getForConfig(config);
         Assertions.assertNotNull(client);
     }
 
@@ -19,7 +19,7 @@ class HttpClientTests {
     @SneakyThrows
     void testValidatingHandler() {
         ShapeTreeClientConfiguration config = new ShapeTreeClientConfiguration(true, false);
-        OkHttpFetcher client = OkHttpFetcher.getForConfig(config);
+        OkHttpClient client = new OkHttpClientFactory().getForConfig(config);
         Assertions.assertNotNull(client);
     }
 
@@ -27,7 +27,7 @@ class HttpClientTests {
     @SneakyThrows
     void testInsecureClientHandler() {
         ShapeTreeClientConfiguration config = new ShapeTreeClientConfiguration(true, true);
-        OkHttpFetcher client = OkHttpFetcher.getForConfig(config);
+        OkHttpClient client = new OkHttpClientFactory().getForConfig(config);
         Assertions.assertNotNull(client);
     }
 
@@ -35,8 +35,8 @@ class HttpClientTests {
     @SneakyThrows
     void testReusingClientsSameConfigInstance() {
         ShapeTreeClientConfiguration config = new ShapeTreeClientConfiguration(false, false);
-        OkHttpFetcher client1 = OkHttpFetcher.getForConfig(config);
-        OkHttpFetcher client2 = OkHttpFetcher.getForConfig(config);
+        OkHttpClient client1 = new OkHttpClientFactory().getForConfig(config);
+        OkHttpClient client2 = new OkHttpClientFactory().getForConfig(config);
 
         Assertions.assertEquals(client1, client2);
     }
@@ -46,8 +46,8 @@ class HttpClientTests {
     void testReusingClientsSameConfigDifferenceInstances() {
         ShapeTreeClientConfiguration config1 = new ShapeTreeClientConfiguration(true, false);
         ShapeTreeClientConfiguration config2 = new ShapeTreeClientConfiguration(true, false);
-        OkHttpFetcher client1 = OkHttpFetcher.getForConfig(config1);
-        OkHttpFetcher client2 = OkHttpFetcher.getForConfig(config2);
+        OkHttpClient client1 = new OkHttpClientFactory().getForConfig(config1);
+        OkHttpClient client2 = new OkHttpClientFactory().getForConfig(config2);
 
         Assertions.assertEquals(client1, client2);
     }
@@ -57,8 +57,8 @@ class HttpClientTests {
     void testReusingClientsDifferentConfigurations() {
         ShapeTreeClientConfiguration config1 = new ShapeTreeClientConfiguration(true, false);
         ShapeTreeClientConfiguration config2 = new ShapeTreeClientConfiguration(true, true);
-        OkHttpFetcher client1 = OkHttpFetcher.getForConfig(config1);
-        OkHttpFetcher client2 = OkHttpFetcher.getForConfig(config2);
+        OkHttpClient client1 = new OkHttpClientFactory().getForConfig(config1);
+        OkHttpClient client2 = new OkHttpClientFactory().getForConfig(config2);
 
         Assertions.assertNotEquals(client1, client2);
     }

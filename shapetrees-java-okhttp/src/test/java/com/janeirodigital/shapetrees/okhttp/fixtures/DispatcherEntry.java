@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.http.fixtures;
+package com.janeirodigital.shapetrees.okhttp.fixtures;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
