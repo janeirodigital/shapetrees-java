@@ -1,13 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
 
 
 public class HttpClientManager {
