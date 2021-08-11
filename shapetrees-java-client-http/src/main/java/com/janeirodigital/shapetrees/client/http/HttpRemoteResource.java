@@ -24,7 +24,7 @@ import java.util.Set;
  * web resources with convenient methods to access headers, link headers and the body as a graph
  */
 @Slf4j
-public class RemoteResource {
+public class HttpRemoteResource {
 
     private static final String TEXT_TURTLE = "text/turtle";
     private static final String APP_RDF_XML = "application/rdf+xml";
@@ -39,10 +39,10 @@ public class RemoteResource {
     private Map<String, List<String>> parsedLinkHeaders;
     private Graph parsedGraph;
     private String rawBody;
-    private final ShapeTreeClientConfiguration clientConfiguration = new ShapeTreeClientConfiguration(false, false);
+    private final HttpShapeTreeClientConfiguration clientConfiguration = new HttpShapeTreeClientConfiguration(false, false);
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
-    public RemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
+    public HttpRemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
         URI requestUri;
         try {
             requestUri = new URI(uriString);
@@ -54,7 +54,7 @@ public class RemoteResource {
         dereferenceURI();
     }
 
-    public RemoteResource(URI uri, String authorizationHeaderValue) throws IOException {
+    public HttpRemoteResource(URI uri, String authorizationHeaderValue) throws IOException {
         this.uri = uri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
@@ -75,7 +75,7 @@ public class RemoteResource {
         if (Boolean.FALSE.equals(this.exists)) return null;
 
         if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("RemoteResource#getBody({}) - Resource Invalidated - Refreshing", this.uri);
+            log.debug("HttpRemoteResource#getBody({}) - Resource Invalidated - Refreshing", this.uri);
             dereferenceURI();
         }
 
@@ -87,7 +87,7 @@ public class RemoteResource {
         if (Boolean.FALSE.equals(this.exists)) return null;
 
         if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("RemoteResource#getGraph({}) - Resource Invalidated - Refreshing", this.uri);
+            log.debug("HttpRemoteResource#getGraph({}) - Resource Invalidated - Refreshing", this.uri);
             dereferenceURI();
         }
 
@@ -185,7 +185,7 @@ public class RemoteResource {
 
     public String getFirstHeaderByName(String headerName) throws IOException {
         if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("RemoteResource#getFirstHeaderByName({}) - Resource Invalidated - Refreshing", this.uri);
+            log.debug("HttpRemoteResource#getFirstHeaderByName({}) - Resource Invalidated - Refreshing", this.uri);
             dereferenceURI();
         }
 
@@ -198,10 +198,10 @@ public class RemoteResource {
     }
 
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
-        log.debug("RemoteResource#updateGraph({})", this.uri);
+        log.debug("HttpRemoteResource#updateGraph({})", this.uri);
 
         if (Boolean.TRUE.equals(this.invalidated)) {
-            throw new ShapeTreeException(500, "Cannot call 'updateGraph' on an invalidated RemoteResource - ");
+            throw new ShapeTreeException(500, "Cannot call 'updateGraph' on an invalidated HttpRemoteResource - ");
         }
 
         StringWriter sw = new StringWriter();
@@ -216,12 +216,12 @@ public class RemoteResource {
             dereferenceURI();
         } else {
             this.invalidated = true;
-            log.debug("RemoteResource#updateGraph({}) - Invalidating Resource", this.uri);
+            log.debug("HttpRemoteResource#updateGraph({}) - Invalidating Resource", this.uri);
         }
     }
 
-    public RemoteResource getMetadataResource(String authorizationHeaderValue) throws IOException {
-        return new RemoteResource(this.getMetadataURI(), authorizationHeaderValue);
+    public HttpRemoteResource getMetadataResource(String authorizationHeaderValue) throws IOException {
+        return new HttpRemoteResource(this.getMetadataURI(), authorizationHeaderValue);
     }
 
     // Return the resource URI directly associated with a given resource
@@ -271,7 +271,7 @@ public class RemoteResource {
     }
 
     private void dereferenceURI() throws IOException {
-        log.debug("RemoteResource#dereferencingURI({})", this.uri);
+        log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
 
         try {
             HttpClient fetcher = HttpClientManager.getFactory().getForConfig(this.clientConfiguration);

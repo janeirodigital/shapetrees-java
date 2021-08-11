@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.FetchRemoteResourceAccessor;
+import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
@@ -43,7 +43,7 @@ class ShapeTreeValidationTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
 
-        resourceAccessor = new FetchRemoteResourceAccessor();
+        resourceAccessor = new HttpRemoteResourceAccessor();
 
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
                 new DispatcherEntry(List.of("shapetrees/validation-shapetree-ttl"), "GET", "/static/shapetrees/validation/shapetree", null),

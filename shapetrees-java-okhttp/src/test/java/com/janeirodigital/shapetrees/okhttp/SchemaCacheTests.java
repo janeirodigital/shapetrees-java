@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.RemoteResource;
+import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
@@ -80,7 +80,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
         log.info("Building schema cache");
         for (String schemaUrl : schemasToCache) {
             log.debug("Caching schema {}", schemaUrl);
-            RemoteResource shexShapeSchema = new RemoteResource(new URI(schemaUrl), null);
+            HttpRemoteResource shexShapeSchema = new HttpRemoteResource(new URI(schemaUrl), null);
             if (Boolean.FALSE.equals(shexShapeSchema.exists()) || shexShapeSchema.getBody() == null) {
                 log.warn("Schema at {} doesn't exist or is empty", schemaUrl);
                 continue;

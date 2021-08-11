@@ -17,6 +17,6 @@ public interface HttpClient {
                                                     String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException;
 
     public void fetchIntoRemoteResource(String method, URI resourceURI, Map<String, List<String>> headers,
-                                        String authorizationHeaderValue, String body, String contentType, RemoteResource remoteResource) throws IOException;
+                                        String authorizationHeaderValue, String body, String contentType, HttpRemoteResource remoteResource) throws IOException;
 
 }

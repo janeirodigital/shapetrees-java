@@ -21,15 +21,15 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class FetchShapeTreeClient implements ShapeTreeClient {
+public class HttpShapeTreeClient implements ShapeTreeClient {
 
     private boolean skipValidation = false;
-    private final ShapeTreeClientConfiguration validatingClientConfig;
-    private final ShapeTreeClientConfiguration nonValidatingClientConfig;
+    private final HttpShapeTreeClientConfiguration validatingClientConfig;
+    private final HttpShapeTreeClientConfiguration nonValidatingClientConfig;
 
-    public FetchShapeTreeClient() {
-        this.validatingClientConfig = new ShapeTreeClientConfiguration(true, false);
-        this.nonValidatingClientConfig = new ShapeTreeClientConfiguration(false, false);
+    public HttpShapeTreeClient() {
+        this.validatingClientConfig = new HttpShapeTreeClientConfiguration(true, false);
+        this.nonValidatingClientConfig = new HttpShapeTreeClientConfiguration(false, false);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         log.debug("Discovering shape tree locator managing {}", targetResource);
 
         // Lookup the target resource for pointer to associated shape tree locator
-        RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
+        HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
         if  (Boolean.FALSE.equals(resource.exists())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
@@ -73,7 +73,7 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         }
 
         // Lookup the associated shape tree locator resource based on the pointer
-        RemoteResource locatorResource = resource.getMetadataResource(context.getAuthorizationHeaderValue());
+        HttpRemoteResource locatorResource = resource.getMetadataResource(context.getAuthorizationHeaderValue());
 
         // Ensure the metadata resource exists
         // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
@@ -121,7 +121,7 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         log.debug("Focus node: {}", focusNode == null ? "None provided" : focusNode);
 
         // Lookup the target resource
-        RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
+        HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
         if (Boolean.FALSE.equals(resource.exists())) {
             return new ShapeTreeResponse(404, "Cannot find target resource to plant: " + targetResource, null);
@@ -260,7 +260,7 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
         log.debug("Unplanting shape tree {} managing {}: ", targetShapeTree, targetResource);
 
         // Lookup the target resource
-        RemoteResource resource = new RemoteResource(targetResource, context.getAuthorizationHeaderValue());
+        HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
         if (Boolean.FALSE.equals(resource.exists())) {
             return new ShapeTreeResponse(404, "Cannot find target resource to unplant: " + targetResource.toString(), null);
@@ -299,7 +299,7 @@ public class FetchShapeTreeClient implements ShapeTreeClient {
                                               null, body, contentType);
     }
 
-    private ShapeTreeClientConfiguration getConfiguration(boolean skipValidation) {
+    private HttpShapeTreeClientConfiguration getConfiguration(boolean skipValidation) {
         if (skipValidation) {
             return this.nonValidatingClientConfig;
         } else {

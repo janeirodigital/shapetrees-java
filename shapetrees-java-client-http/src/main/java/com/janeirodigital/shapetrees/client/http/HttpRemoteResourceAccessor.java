@@ -23,7 +23,7 @@ import java.util.Map;
 
 @NoArgsConstructor
 @Slf4j
-public class FetchRemoteResourceAccessor implements ResourceAccessor {
+public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
     private static final String POST = "POST";
     private static final String PUT = "PUT";
@@ -32,7 +32,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
     @Override
     public ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException {
         try {
-            return mapRemoteResourceToShapeTreeResource(new RemoteResource(resourceURI, context.getAuthorizationHeaderValue()));
+            return mapRemoteResourceToShapeTreeResource(new HttpRemoteResource(resourceURI, context.getAuthorizationHeaderValue()));
         } catch (Exception ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
@@ -41,7 +41,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
     @Override
     public List<ShapeTreeResource> getContainedResources(ShapeTreeContext context, URI containerResourceURI) throws ShapeTreeException {
         try {
-            RemoteResource containerResource = new RemoteResource(containerResourceURI, context.getAuthorizationHeaderValue());
+            HttpRemoteResource containerResource = new HttpRemoteResource(containerResourceURI, context.getAuthorizationHeaderValue());
 
             if (Boolean.FALSE.equals(containerResource.isContainer())) {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container");
@@ -75,7 +75,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, Map<String, List<String>> headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, writeHeaders(headers));
 
-        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new ShapeTreeClientConfiguration(false, false));
+        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new HttpShapeTreeClientConfiguration(false, false));
         return fetcher.fetchShapeTreeResource(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
     }
 
@@ -84,7 +84,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
         String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
-        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new ShapeTreeClientConfiguration(false, false));
+        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new HttpShapeTreeClientConfiguration(false, false));
         return fetcher.fetchShapeTreeResource(method, updatedResource.getUri(), updatedResource.getAttributes(), context.getAuthorizationHeaderValue(), updatedResource.getBody(), contentType);
     }
 
@@ -92,7 +92,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResponse deleteResource(ShapeTreeContext context, ShapeTreeResource deletedResource) throws ShapeTreeException {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
-        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new ShapeTreeClientConfiguration(false, false));
+        HttpClient fetcher = HttpClientManager.getFactory().getForConfig(new HttpShapeTreeClientConfiguration(false, false));
         ShapeTreeResponse response = fetcher.fetchShapeTreeResponse("DELETE", deletedResource.getUri(), deletedResource.getAttributes(), context.getAuthorizationHeaderValue(), null, null);
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {
@@ -116,7 +116,7 @@ public class FetchRemoteResourceAccessor implements ResourceAccessor {
         return sb.toString();
     }
 
-    private ShapeTreeResource mapRemoteResourceToShapeTreeResource(RemoteResource remoteResource) throws IOException {
+    private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws IOException {
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
         try {
             shapeTreeResource.setUri(remoteResource.getUri());

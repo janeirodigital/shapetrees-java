@@ -1,9 +1,8 @@
 package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.client.http.HttpClientManager;
-import com.janeirodigital.shapetrees.client.http.RemoteResource;
-import com.janeirodigital.shapetrees.client.http.ShapeTreeClientConfiguration;
+import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
+import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClientConfiguration;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
@@ -21,7 +20,6 @@ import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +90,7 @@ public class OkHttpClient implements HttpClient {
         return shapeTreeResponse;
     }
 
-    public void fetchIntoRemoteResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType, RemoteResource remoteResource) throws IOException {
+    public void fetchIntoRemoteResource(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType, HttpRemoteResource remoteResource) throws IOException {
         okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
 
         remoteResource.setExists(response.code() < 400);
@@ -131,7 +129,7 @@ public class OkHttpClient implements HttpClient {
     }
 
     // constructor and its helpers
-    protected OkHttpClient(ShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
+    protected OkHttpClient(HttpShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
         okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(configuration.getUseValidation())) {
             clientBuilder.interceptors().add(new OkHttpValidatingShapeTreeInterceptor());

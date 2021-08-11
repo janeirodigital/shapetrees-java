@@ -12,9 +12,9 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class RemoteResourceAccessorTests extends BaseShapeTreeTest {
+class HttpRemoteResourceAccessorTests extends BaseShapeTreeTest {
 
-    public RemoteResourceAccessorTests() {
+    public HttpRemoteResourceAccessorTests() {
         super();
     }
 

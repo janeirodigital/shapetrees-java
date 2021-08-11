@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.FetchRemoteResourceAccessor;
+import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -49,7 +49,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     public Response intercept(@NotNull Chain chain) throws IOException {
 
         ShapeTreeRequest shapeTreeRequest = new OkHttpShapeTreeRequest(chain.request());
-        ResourceAccessor resourceAccessor = new FetchRemoteResourceAccessor();
+        ResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
 
         // Get the handler
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
