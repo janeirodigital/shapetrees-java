@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.fetch.fixtures;
+package com.janeirodigital.shapetrees.client.http.fixtures;
 
 import java.io.BufferedReader;
 import java.io.IOException;

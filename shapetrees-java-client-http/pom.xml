@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shapetrees-java-client-fetch</artifactId>
+    <artifactId>shapetrees-java-client-http</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

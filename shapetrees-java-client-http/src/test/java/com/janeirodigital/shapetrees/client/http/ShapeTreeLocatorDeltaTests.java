@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.fetch;
+package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;

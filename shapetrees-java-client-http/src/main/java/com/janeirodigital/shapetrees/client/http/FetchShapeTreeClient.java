@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.fetch;
+package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

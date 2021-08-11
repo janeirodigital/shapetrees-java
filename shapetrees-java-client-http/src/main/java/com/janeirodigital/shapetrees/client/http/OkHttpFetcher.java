@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.fetch;
+package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -188,7 +188,7 @@ public class OkHttpFetcher {
         return (hostname, session) -> true;
     }
 
-    // fetch functions
+    // http functions
     private okhttp3.Response fetch(String method, URI resourceURI, Map<String, List<String>> headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
         if (body == null)
             body = "";

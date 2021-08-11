@@ -1,16 +1,24 @@
-package com.janeirodigital.shapetrees.client.fetch;
+package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
+import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import okio.Buffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Interceptor used for client-side validation
@@ -109,11 +117,11 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         return builder.build();
     }
 
-    private class FetchShapeTreeRequest implements ShapeTreeRequest {
+    private class OkHttpShapeTreeRequest implements ShapeTreeRequest {
         private final Request request;
         private ShapeTreeResourceType resourceType;
 
-        public FetchShapeTreeRequest(Request request) {
+        public OkHttpShapeTreeRequest(Request request) {
             this.request = request;
         }
 

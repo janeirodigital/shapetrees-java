@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.client.fetch;
+package com.janeirodigital.shapetrees.client.http;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;

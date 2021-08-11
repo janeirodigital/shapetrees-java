@@ -1,8 +1,6 @@
-package com.janeirodigital.shapetrees.client.fetch;
+package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
-import com.janeirodigital.shapetrees.client.fetch.FetchShapeTreeClient;
-import com.janeirodigital.shapetrees.client.fetch.RemoteResource;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
