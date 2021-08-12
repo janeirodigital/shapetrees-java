@@ -12,7 +12,7 @@ public class HttpClientManager {
         }
         return factory;
     }
-    public static void setFactory(HttpClientFactory factoryP) {
-        factory = factoryP;
+    public static void setFactory(HttpClientFactory clientFactory) {
+        factory = clientFactory;
     }
 }
