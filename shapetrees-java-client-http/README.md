@@ -24,11 +24,11 @@ A user library will invoke a variant of
 
 `HttpClientManager.setFactory(new OkHttpClientFactory());`
 
-to set the global HttpClient factory.
+to set the global HttpClient factory. After that,
 
-**Disable client-side validation**
+**Disable client-side Shape Tree validation**
 
-`client.skipValidation(true);`
+`client.skipShapeTreeValidation(true);`
 
 ## Client-side Validation
 Client-side validation is accomplished by intercepting requests from `HttpShapeTreeClient`. For example the <a href="{@docRoot}/shapetrees-java-okhttp/README">shapetrees-java-okhttp</a> uses a native <a href="https://square.github.io/okhttp/interceptors/">OkHttp interceptor</a>. 

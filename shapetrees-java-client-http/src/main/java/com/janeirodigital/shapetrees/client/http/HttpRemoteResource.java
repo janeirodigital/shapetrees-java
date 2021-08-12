@@ -39,7 +39,6 @@ public class HttpRemoteResource {
     private Map<String, List<String>> parsedLinkHeaders;
     private Graph parsedGraph;
     private String rawBody;
-    private final HttpShapeTreeClientConfiguration clientConfiguration = new HttpShapeTreeClientConfiguration(false, false);
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
     public HttpRemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
@@ -208,7 +207,7 @@ public class HttpRemoteResource {
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
         HttpClientFactory f = HttpClientManager.getFactory();
-        HttpClient fetcher = f.getForConfig(this.clientConfiguration);
+        HttpClient fetcher = f.get(false);
         fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), "text/turtle");
         // get media type from TEXT_TURTLE ?
 
@@ -274,7 +273,7 @@ public class HttpRemoteResource {
         log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
 
         try {
-            HttpClient fetcher = HttpClientManager.getFactory().getForConfig(this.clientConfiguration);
+            HttpClient fetcher = HttpClientManager.getFactory().get(false);
             fetcher.fetchIntoRemoteResource("GET", this.uri, null, authorizationHeaderValue, null, null, this);
             this.invalidated = false;
         } catch (Exception e) {

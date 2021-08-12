@@ -10,9 +10,9 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 public interface HttpClientFactory {
     /**
      * Reuses or constructs a new HttpClient tailored to the passed configuration
-     * @param configuration HttpShapeTreeClientConfiguration object
+     * @param useShapeTreeValidation whether or not the returned HttpClient must do ShapeTree validation (and Shape validation) on dereferenced resources
      * @return an implementation of HttpClient that can be used to map HTTP library (e.g. OkHttp)
      * requests and responses to `shapetrees-java-client-http` classes.
      */
-    public HttpClient getForConfig(HttpShapeTreeClientConfiguration configuration) throws ShapeTreeException;
+    public HttpClient get(boolean useShapeTreeValidation) throws ShapeTreeException;
 }

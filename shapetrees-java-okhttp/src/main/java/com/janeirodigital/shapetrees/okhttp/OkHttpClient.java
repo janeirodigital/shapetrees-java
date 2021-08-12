@@ -2,7 +2,6 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
-import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClientConfiguration;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
@@ -129,12 +128,12 @@ public class OkHttpClient implements HttpClient {
     }
 
     // constructor and its helpers
-    protected OkHttpClient(HttpShapeTreeClientConfiguration configuration) throws NoSuchAlgorithmException, KeyManagementException {
+    protected OkHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
-        if (Boolean.TRUE.equals(configuration.getUseValidation())) {
+        if (Boolean.TRUE.equals(useShapeTreeValidation)) {
             clientBuilder.interceptors().add(new OkHttpValidatingShapeTreeInterceptor());
         }
-        if (Boolean.TRUE.equals(configuration.getSkipSslValidation())) {
+        if (Boolean.FALSE.equals(useSslValidation)) {
             // Install the all-trusting trust manager
             final SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
             TrustManager[] trustAllCerts = getTrustAllCertsManager();
