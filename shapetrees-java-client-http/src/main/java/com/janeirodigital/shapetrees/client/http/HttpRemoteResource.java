@@ -282,8 +282,8 @@ public class HttpRemoteResource {
         }
     }
 
-    // Promiscuous hack for Fetcher.fetchIntoRemoteResource
-    // TODO: simulate friend with https://stackoverflow.com/a/18634125/1243605
+    // Promiscuous hack for Fetcher.fetchIntoRemoteResource: Only HttpClient.fetchIntoRemoteResource needs to call these functions.
+    // Is it possible to simulate a "friend" per https://stackoverflow.com/a/18634125/1243605 ?
     public void setExists(boolean exists) { this.exists = exists; }
     public void setResponseHeaders(Map<String, List<String>> responseHeaders) { this.responseHeaders = responseHeaders; }
     public void setParsedLinkHeaders(Map<String, List<String>> parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }

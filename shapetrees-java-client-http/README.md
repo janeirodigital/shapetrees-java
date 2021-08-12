@@ -11,20 +11,31 @@ The HTTP driver provides two modes of operation:
     
 ## Usage
 
-**Instantiation**
+This module requires a binding to a specific HTTP library (e.g. OkHttp). The binding requires implementation of
+
+ * [`HttpClient`](src/main/java/com/janeirodigital/shapetrees/client/http/HttpClient.java) - HTTP operations to fetch one of ShapeTreeResource, ShapeTreeResponse, or to update a passed RemoteResource.
+
+* [`HttpClientFactory`](src/main/java/com/janeirodigital/shapetrees/client/http/HttpClientFactory.java) - construct or reuse and `HttpClient` tailored to a `HttpShapeTreeClientConfiguration`, which controls SSL and Shape validation.
+
+
+**User Library Instantiation**
+
+A user library will invoke a variant of
 
 `HttpClientManager.setFactory(new OkHttpClientFactory());`
+
+to set the global HttpClient factory.
 
 **Disable client-side validation**
 
 `client.skipValidation(true);`
 
 ## Client-side Validation
-Client-side validation is accomplished by intercepting requests from `HttpShapeTreeClient`.
+Client-side validation is accomplished by intercepting requests from `HttpShapeTreeClient`. For example the <a href="{@docRoot}/shapetrees-java-okhttp/README">shapetrees-java-okhttp</a> uses a native <a href="https://square.github.io/okhttp/interceptors/">OkHttp interceptor</a>. 
 
-Several classes in this module implement interfaces provided by [shapetrees-java-core](../shapetrees-java-client-core/README.md):
+## implemententations of [shapetrees-java-core](../shapetrees-java-client-core/README.md) interfaces:
 
- * [`HttpClient`](src/main/java/com/janeirodigital/shapetrees/client/http/HttpClient.java)
+ * [`HttpShapeTreeClient`](src/main/java/com/janeirodigital/shapetrees/client/http/HttpShapeTreeClient.java)
    implements [`ShapeTreeRequest`](../shapetrees-java-core/src/main/java/com/janeirodigital/shapetrees/core/ShapeTreeRequest.java)
    which abstracts the notion of an HTTP request, required by the shape tree validation API.  This interface defines the key
    aspects of an HTTP requests used by shape tree processing an allows different HTTP client implementations
