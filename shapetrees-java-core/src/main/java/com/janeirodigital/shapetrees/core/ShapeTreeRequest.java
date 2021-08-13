@@ -9,8 +9,8 @@ import java.util.Map;
 public interface ShapeTreeRequest {
     String getMethod();
     URI getURI();
-    Map<String, List<String>> getHeaders();
-    Map<String, List<String>> getLinkHeaders();
+    HttpClientHeaders getHeaders();
+    HttpClientHeaders getLinkHeaders();
     List<String> getHeaderValues(String header);
     String getHeaderValue(String header);
     String getBody();

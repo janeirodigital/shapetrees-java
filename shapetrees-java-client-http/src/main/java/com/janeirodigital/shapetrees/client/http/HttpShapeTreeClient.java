@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
+import com.janeirodigital.shapetrees.core.HttpClientHeaders;
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
@@ -15,8 +16,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -295,20 +294,8 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
                                               null, body, contentType);
     }
 
-    private class Headers extends HashMap<String, List<String>> {
-        private void set(String attr, String value) {
-            if (this.containsKey(attr)) {
-                this.get(attr).add(value);
-            } else {
-                ArrayList<String> list = new ArrayList<String>();
-                list.add(value);
-                this.put(attr, list);
-            }
-        }
-    }
-
-    private Map<String, List<String>> getCommonHeaders(ShapeTreeContext context, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
-        Headers ret = new Headers();
+    private HttpClientHeaders getCommonHeaders(ShapeTreeContext context, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
+        HttpClientHeaders ret = new HttpClientHeaders();
 
         if (context.getAuthorizationHeaderValue() != null) {
             ret.set(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());

@@ -1,14 +1,10 @@
 package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
-import com.janeirodigital.shapetrees.core.ResourceAccessor;
-import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
-import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -137,13 +133,13 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
 
         @Override
-        public Map<String, List<String>> getHeaders() {
-            return this.request.headers().toMultimap();
+        public HttpClientHeaders getHeaders() {
+            return new HttpClientHeaders(this.request.headers().toMultimap());
         }
 
         @Override
-        public Map<String, List<String>> getLinkHeaders() {
-            return HttpHeaderHelper.parseLinkHeadersToMap(this.getHeaderValues(HttpHeaders.LINK.getValue()));
+        public HttpClientHeaders getLinkHeaders() {
+            return HttpClientHeaders.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
         }
 
         @Override

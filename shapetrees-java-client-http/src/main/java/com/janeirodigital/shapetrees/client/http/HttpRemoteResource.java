@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
+import com.janeirodigital.shapetrees.core.HttpClientHeaders;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -35,8 +36,8 @@ public class HttpRemoteResource {
     private final String authorizationHeaderValue;
     private Boolean invalidated = false;
     private Boolean exists;
-    private Map<String, List<String>> responseHeaders;
-    private Map<String, List<String>> parsedLinkHeaders;
+    private HttpClientHeaders responseHeaders;
+    private HttpClientHeaders parsedLinkHeaders;
     private Graph parsedGraph;
     private String rawBody;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
@@ -176,9 +177,9 @@ public class HttpRemoteResource {
 
     }
 
-    public Map<String, List<String>> getResponseHeaders() { return this.responseHeaders; }
+    public HttpClientHeaders getResponseHeaders() { return this.responseHeaders; }
 
-    public Map<String, List<String>> getLinkHeaders() {
+    public HttpClientHeaders getLinkHeaders() {
         return this.parsedLinkHeaders;
     }
 
@@ -284,7 +285,7 @@ public class HttpRemoteResource {
     // Promiscuous hack for Fetcher.fetchIntoRemoteResource: Only HttpClient.fetchIntoRemoteResource needs to call these functions.
     // Is it possible to simulate a "friend" per https://stackoverflow.com/a/18634125/1243605 ?
     public void setExists(boolean exists) { this.exists = exists; }
-    public void setResponseHeaders(Map<String, List<String>> responseHeaders) { this.responseHeaders = responseHeaders; }
-    public void setParsedLinkHeaders(Map<String, List<String>> parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
+    public void setResponseHeaders(HttpClientHeaders responseHeaders) { this.responseHeaders = responseHeaders; }
+    public void setParsedLinkHeaders(HttpClientHeaders parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
     public void setRawBody(String rawBody) { this.rawBody = rawBody; }
 }

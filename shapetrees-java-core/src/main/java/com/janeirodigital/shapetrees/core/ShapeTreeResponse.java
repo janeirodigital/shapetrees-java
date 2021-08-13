@@ -14,13 +14,13 @@ public class ShapeTreeResponse {
 
     protected int statusCode;
     protected String body;
-    protected Map<String, List<String>> headers;
+    protected HttpClientHeaders headers;
 
     public ShapeTreeResponse() {
-        headers = new HashMap<>();
+        headers = new HttpClientHeaders();
     }
 
-    public Map<String, List<String>> getResponseHeaders() {
+    public HttpClientHeaders getResponseHeaders() {
         return this.headers;
     }
 
