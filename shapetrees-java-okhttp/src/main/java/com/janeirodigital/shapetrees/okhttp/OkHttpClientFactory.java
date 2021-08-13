@@ -21,14 +21,14 @@ public class OkHttpClientFactory extends AbstractHttpClientFactory implements Ht
     private static synchronized OkHttpClient getProtected(boolean useSslValidation, boolean useClientShapeTreeValidation) throws ShapeTreeException {
 
         int ssl = useSslValidation ? VALIDATING : NON_VALIDATING;
-        int shapes = useClientShapeTreeValidation ? VALIDATING : NON_VALIDATING;
+        int shapeTrees = useClientShapeTreeValidation ? VALIDATING : NON_VALIDATING;
 
-        if (okHttpClients[ssl][shapes] != null) {
-            return okHttpClients[ssl][shapes];
+        if (okHttpClients[ssl][shapeTrees] != null) {
+            return okHttpClients[ssl][shapeTrees];
         }
         try {
             OkHttpClient client = new OkHttpClient(useSslValidation, useClientShapeTreeValidation);
-            okHttpClients[ssl][shapes] = client;
+            okHttpClients[ssl][shapeTrees] = client;
             return client;
         } catch (Exception ex) {
             throw new ShapeTreeException(500, ex.getMessage());
