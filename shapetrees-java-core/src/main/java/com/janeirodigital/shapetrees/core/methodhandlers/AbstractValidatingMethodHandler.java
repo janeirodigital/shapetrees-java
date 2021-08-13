@@ -6,7 +6,6 @@ import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
-import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.core.models.*;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.extern.slf4j.Slf4j;
@@ -553,7 +552,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         ensureShapeTreeResourceHasLinkHeaders(shapeTreeResource);
 
-        Map<String, List<String>> linkHeaders = HttpHeaderHelper.parseLinkHeadersToMap(shapeTreeResource.getAttributes().get(HttpHeaders.LINK.getValue()));
+        HttpClientHeaders linkHeaders = HttpClientHeaders.parseLinkHeaders(shapeTreeResource.getAttributes().get(HttpHeaders.LINK.getValue()));
 
         if (!linkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
             log.error("The resource {} does not contain a link header of {}", shapeTreeResource.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
@@ -648,8 +647,8 @@ public abstract class AbstractValidatingMethodHandler {
 
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
-            Map<String, List<String>> headers = new HashMap<>();
-            headers.put(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
+            HttpClientHeaders headers = new HttpClientHeaders();
+            headers.set(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
             this.resourceAccessor.createResource(shapeTreeContext,"POST", getShapeTreeMetadataURIForResource(primaryResource), headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
         } else {
             // Update the existing metadata resource for the primary resource

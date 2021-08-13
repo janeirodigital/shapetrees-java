@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
+import com.janeirodigital.shapetrees.core.HttpClientHeaders;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -72,8 +73,8 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, Map<String, List<String>> headers, String body, String contentType) throws ShapeTreeException {
-        log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, writeHeaders(headers));
+    public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
+        log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         return fetcher.fetchShapeTreeResource(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
@@ -100,20 +101,6 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         }
         return response;
 
-    }
-
-    private String writeHeaders(Map<String, List<String>> headers) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-            for (String value : entry.getValue()) {
-                if (sb.length() != 0) {
-                    sb.append(",");
-                }
-                sb.append(entry.getKey()).append("=").append(value);
-            }
-        }
-
-        return sb.toString();
     }
 
     private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws IOException {

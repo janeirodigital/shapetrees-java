@@ -19,7 +19,7 @@ public class ShapeTreeResource {
     private boolean container;
     private boolean metadata;
     private boolean managed;
-    private Map<String, List<String>> attributes;
+    private HttpClientHeaders attributes;
 
     public String getFirstAttributeValue(String attributeName) {
         if (!this.attributes.containsKey(attributeName)) return null;
