@@ -23,19 +23,19 @@ import java.util.Map;
 @Slf4j
 public class HttpShapeTreeClient implements ShapeTreeClient {
 
-    private boolean skipShapeTreeValidation = false;
+    private boolean useClientShapeTreeValidation = true;
 
     public HttpShapeTreeClient() {
     }
 
     @Override
     public boolean isShapeTreeValidationSkipped() {
-        return skipShapeTreeValidation;
+        return !useClientShapeTreeValidation;
     }
 
     @Override
     public void skipShapeTreeValidation(boolean skipValidation) {
-        this.skipShapeTreeValidation = skipValidation;
+        this.useClientShapeTreeValidation = !skipValidation;
     }
 
     /**
@@ -148,7 +148,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
 
         // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
-        HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
+        HttpClient fetcher = HttpClientManager.getFactory().get(useClientShapeTreeValidation);
         return fetcher.fetchShapeTreeResponse("PUT", new URI(resource.getMetadataURI()), null, context.getAuthorizationHeaderValue(), sw.toString(), "text/turtle");
     }
 
@@ -164,7 +164,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug ("Target Shape Tree: {}", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode.toString());
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
+        HttpClient fetcher = HttpClientManager.getFactory().get(useClientShapeTreeValidation);
         return fetcher.fetchShapeTreeResponse("POST", parentContainer,
                                               getCommonHeaders(context, focusNode, targetShapeTree, isContainer,
                                                                proposedResourceName, contentType),
@@ -184,10 +184,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug ("Target Shape Tree: {}", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
+        HttpClient fetcher = HttpClientManager.getFactory().get(useClientShapeTreeValidation);
         return fetcher.fetchShapeTreeResponse("PUT", resourceURI,
                                               getCommonHeaders(context, focusNode, targetShapeTree, isContainer,
-                                                               null, contentType),
+                                              null, contentType),
                                               null, bodyString,
                                               contentType);
     }
@@ -203,7 +203,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug("Updating shape tree instance via PUT at {}", resourceURI);
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
+        HttpClient fetcher = HttpClientManager.getFactory().get(useClientShapeTreeValidation);
         return fetcher.fetchShapeTreeResponse("PUT", resourceURI,
                                               getCommonHeaders(context, focusNode, null, null, null, contentType),
                                               null, bodyString,
@@ -223,7 +223,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         String contentType = "application/sparql-update";
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
+        HttpClient fetcher = HttpClientManager.getFactory().get(useClientShapeTreeValidation);
         return fetcher.fetchShapeTreeResponse("PATCH", resourceURI,
                                               getCommonHeaders(context, focusNode, null, null, null, contentType),
                                               null, patchString,
@@ -239,7 +239,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         log.debug("DELETE-ing shape tree instance at {}", resourceURI);
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
+        HttpClient fetcher = HttpClientManager.getFactory().get(useClientShapeTreeValidation);
         return fetcher.fetchShapeTreeResponse("DELETE", resourceURI,
                                               getCommonHeaders(context, null, null, null, null, null),
                                               null, null,
@@ -289,7 +289,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             contentType = "text/turtle";
         }
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
+        HttpClient fetcher = HttpClientManager.getFactory().get(useClientShapeTreeValidation);
         return fetcher.fetchShapeTreeResponse(method, new URI(resource.getMetadataURI()),
                                               null, // why no getCommonHeaders(context, null, null, null, null, null) ?
                                               null, body, contentType);

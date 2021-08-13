@@ -3,8 +3,6 @@ package com.janeirodigital.shapetrees.okhttp;
 import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 public class OkHttpClientFactory implements HttpClientFactory {
     boolean useSslValidation;
 
