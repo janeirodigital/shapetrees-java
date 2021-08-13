@@ -206,8 +206,10 @@ public class HttpRemoteResource {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
-        HttpClientFactory f = HttpClientManager.getFactory();
-        HttpClient fetcher = f.get(false);
+        HttpClientFactory factory = AbstractHttpClientFactory.getFactory();
+        if (factory == null) { throw new ShapeTreeException(500, "Must provide a valid HTTP client factory"); }
+
+        HttpClient fetcher = factory.get(false);
         fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), TEXT_TURTLE);
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
@@ -272,7 +274,10 @@ public class HttpRemoteResource {
         log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
 
         try {
-            HttpClient fetcher = HttpClientManager.getFactory().get(false);
+            HttpClientFactory factory = AbstractHttpClientFactory.getFactory();
+            if (factory == null) { throw new ShapeTreeException(500, "Must provide a valid HTTP client factory"); }
+
+            HttpClient fetcher = factory.get(false);
             fetcher.fetchIntoRemoteResource("GET", this.uri, null, authorizationHeaderValue, null, null, this);
             this.invalidated = false;
         } catch (Exception e) {

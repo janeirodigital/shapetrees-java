@@ -75,7 +75,10 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, Map<String, List<String>> headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, writeHeaders(headers));
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(false);
+        HttpClientFactory factory = AbstractHttpClientFactory.getFactory();
+        if (factory == null) { throw new ShapeTreeException(500, "Must provide a valid HTTP client factory"); }
+
+        HttpClient fetcher = factory.get(false);
         return fetcher.fetchShapeTreeResource(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
     }
 
@@ -84,7 +87,10 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
         String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
-        HttpClient fetcher = HttpClientManager.getFactory().get(false);
+        HttpClientFactory factory = AbstractHttpClientFactory.getFactory();
+        if (factory == null) { throw new ShapeTreeException(500, "Must provide a valid HTTP client factory"); }
+
+        HttpClient fetcher = factory.get(false);
         return fetcher.fetchShapeTreeResource(method, updatedResource.getUri(), updatedResource.getAttributes(), context.getAuthorizationHeaderValue(), updatedResource.getBody(), contentType);
     }
 
@@ -92,7 +98,10 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResponse deleteResource(ShapeTreeContext context, ShapeTreeResource deletedResource) throws ShapeTreeException {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(false);
+        HttpClientFactory factory = AbstractHttpClientFactory.getFactory();
+        if (factory == null) { throw new ShapeTreeException(500, "Must provide a valid HTTP client factory"); }
+
+        HttpClient fetcher = factory.get(false);
         ShapeTreeResponse response = fetcher.fetchShapeTreeResponse("DELETE", deletedResource.getUri(), deletedResource.getAttributes(), context.getAuthorizationHeaderValue(), null, null);
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {

@@ -1,9 +1,10 @@
 package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
-public class OkHttpClientFactory implements HttpClientFactory {
+public class OkHttpClientFactory extends AbstractHttpClientFactory implements HttpClientFactory {
     boolean useSslValidation;
     static final int NON_VALIDATING = 0;
     static final int VALIDATING = 1;
