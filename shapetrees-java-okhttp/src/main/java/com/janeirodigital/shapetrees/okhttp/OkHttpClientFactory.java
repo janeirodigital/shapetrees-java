@@ -5,30 +5,35 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
 public class OkHttpClientFactory implements HttpClientFactory {
     boolean useSslValidation;
+    static final int NON_VALIDATING = 0;
+    static final int VALIDATING = 1;
+    private static OkHttpClient[][] okHttpClients = {{null, null}, {null, null}};
 
     OkHttpClientFactory(boolean useSslValidation) {
         this.useSslValidation = useSslValidation;
     }
 
-    // Array of instantiatable OkHttpClients
-    final int NON_VALIDATING = 0;
-    final int VALIDATING = 1;
-    private static final OkHttpClient okHttpClients[][] = {{null, null}, {null, null}};
+    public OkHttpClient get(boolean useClientShapeTreeValidation) throws ShapeTreeException {
+        return getProtected(this.useSslValidation, useClientShapeTreeValidation);
+    }
 
-    public OkHttpClient get(boolean useShapeTreeValidation) throws ShapeTreeException {
+    private static synchronized OkHttpClient getProtected(boolean useSslValidation, boolean useClientShapeTreeValidation) throws ShapeTreeException {
+
         int ssl = useSslValidation ? VALIDATING : NON_VALIDATING;
-        int shapes = useShapeTreeValidation ? VALIDATING : NON_VALIDATING;
+        int shapes = useClientShapeTreeValidation ? VALIDATING : NON_VALIDATING;
 
         if (okHttpClients[ssl][shapes] != null) {
             return okHttpClients[ssl][shapes];
         }
         try {
-            OkHttpClient client = new OkHttpClient(useSslValidation, useShapeTreeValidation);
+            OkHttpClient client = new OkHttpClient(useSslValidation, useClientShapeTreeValidation);
             okHttpClients[ssl][shapes] = client;
             return client;
         } catch (Exception ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
+
     }
+
 }
 

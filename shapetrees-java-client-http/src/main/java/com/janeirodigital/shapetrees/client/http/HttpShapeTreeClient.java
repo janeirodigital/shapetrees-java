@@ -25,9 +25,6 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     private boolean useClientShapeTreeValidation = true;
 
-    public HttpShapeTreeClient() {
-    }
-
     @Override
     public boolean isShapeTreeValidationSkipped() {
         return !useClientShapeTreeValidation;
@@ -273,7 +270,9 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Remove location from locator that corresponds with the provided shape tree
         locator.removeShapeTreeLocationForShapeTree(targetShapeTree);
 
-        String method, body, contentType;
+        String method;
+        String body;
+        String contentType;
         if (locator.getLocations().isEmpty()) {
             method = "DELETE";
             body = null;
@@ -300,7 +299,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             if (this.containsKey(attr)) {
                 this.get(attr).add(value);
             } else {
-                ArrayList<String> list = new ArrayList<String>();
+                ArrayList<String> list = new ArrayList<>();
                 list.add(value);
                 this.put(attr, list);
             }

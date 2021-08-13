@@ -208,8 +208,7 @@ public class HttpRemoteResource {
 
         HttpClientFactory f = HttpClientManager.getFactory();
         HttpClient fetcher = f.get(false);
-        fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), "text/turtle");
-        // get media type from TEXT_TURTLE ?
+        fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), TEXT_TURTLE);
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
