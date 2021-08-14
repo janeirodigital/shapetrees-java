@@ -14,14 +14,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
  * Interceptor used for client-side validation
  */
 @Slf4j
-public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
+public class JavaHttpValidatingShapeTreeInterceptor implements Interceptor {
 
     private static final String POST = "POST";
     private static final String PUT = "PUT";
@@ -99,7 +98,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
-        Headers headers = OkHttpClient.convertHeaders(response.getResponseHeaders());
+        Headers headers = JavaHttpClient.convertHeaders(response.getResponseHeaders());
         builder.headers(headers);
         String contentType = headers.get("Content-Type");
         if (contentType == null) {

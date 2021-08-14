@@ -21,7 +21,7 @@ public abstract class BaseShapeTreeTest {
     protected static String TEXT_TURTLE = "text/turtle";
 
     public BaseShapeTreeTest() {
-        HttpClientManager.setFactory(new OkHttpClientFactory(false));
+        HttpClientManager.setFactory(new JavaHttpClientFactory(false));
         this.context = new ShapeTreeContext();
         this.shapeTreeClient = new HttpShapeTreeClient();
     }

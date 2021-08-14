@@ -3,21 +3,19 @@ package com.janeirodigital.shapetrees.javahttp;
 import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
-import java.util.concurrent.ConcurrentHashMap;
-
-public class OkHttpClientFactory implements HttpClientFactory {
+public class JavaHttpClientFactory implements HttpClientFactory {
     boolean useSslValidation;
 
-    OkHttpClientFactory(boolean useSslValidation) {
+    JavaHttpClientFactory(boolean useSslValidation) {
         this.useSslValidation = useSslValidation;
     }
 
     // Array of instantiatable OkHttpClients
     final int NON_VALIDATING = 0;
     final int VALIDATING = 1;
-    private static final OkHttpClient okHttpClients[][] = {{null, null}, {null, null}};
+    private static final JavaHttpClient okHttpClients[][] = {{null, null}, {null, null}};
 
-    public OkHttpClient get(boolean useShapeTreeValidation) throws ShapeTreeException {
+    public JavaHttpClient get(boolean useShapeTreeValidation) throws ShapeTreeException {
         int ssl = useSslValidation ? VALIDATING : NON_VALIDATING;
         int shapes = useShapeTreeValidation ? VALIDATING : NON_VALIDATING;
 
@@ -25,7 +23,7 @@ public class OkHttpClientFactory implements HttpClientFactory {
             return okHttpClients[ssl][shapes];
         }
         try {
-            OkHttpClient client = new OkHttpClient(useSslValidation, useShapeTreeValidation);
+            JavaHttpClient client = new JavaHttpClient(useSslValidation, useShapeTreeValidation);
             okHttpClients[ssl][shapes] = client;
             return client;
         } catch (Exception ex) {

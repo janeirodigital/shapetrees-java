@@ -25,11 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * OkHttp documentation (https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#okhttpclients-should-be-shared)
- * recommends that instance of the client be shared/reused.  OkHttpClient's getForConfig provides an
- * instance of the OkHttpClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
+ * recommends that instance of the client be shared/reused.  JavaHttpClient's getForConfig provides an
+ * instance of the JavaHttpClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
  */
 @Slf4j
-public class OkHttpClient implements HttpClient {
+public class JavaHttpClient implements HttpClient {
     private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
     private okhttp3.OkHttpClient httpClient;
@@ -113,7 +113,7 @@ public class OkHttpClient implements HttpClient {
 
     /**
      * Converts "multi map" representation of headers to the OkHttp Headers class
-     * public for OkHttpValidatingShapeTreeInterceptor.createResponse
+     * public for JavaHttpValidatingShapeTreeInterceptor.createResponse
      * @param headers Multi-map representation of headers
      * @return OkHttp Headers object
      */
@@ -128,10 +128,10 @@ public class OkHttpClient implements HttpClient {
     }
 
     // constructor and its helpers
-    protected OkHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
+    protected JavaHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
-            clientBuilder.interceptors().add(new OkHttpValidatingShapeTreeInterceptor());
+            clientBuilder.interceptors().add(new JavaHttpValidatingShapeTreeInterceptor());
         }
         if (Boolean.FALSE.equals(useSslValidation)) {
             // Install the all-trusting trust manager
