@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @NoArgsConstructor
 @Slf4j
@@ -77,7 +76,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, headers.toString());
 
         HttpClient fetcher = HttpClientManager.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
+        return fetcher.fetchShapeTreeResource(method, resourceURI, headers, body, contentType);
     }
 
     @Override
@@ -86,7 +85,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
         String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
         HttpClient fetcher = HttpClientManager.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(method, updatedResource.getUri(), updatedResource.getAttributes(), context.getAuthorizationHeaderValue(), updatedResource.getBody(), contentType);
+        return fetcher.fetchShapeTreeResource(method, updatedResource.getUri(), updatedResource.getAttributes(), updatedResource.getBody(), contentType);
     }
 
     @Override
@@ -94,7 +93,8 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
         HttpClient fetcher = HttpClientManager.getFactory().get(false);
-        ShapeTreeResponse response = fetcher.fetchShapeTreeResponse("DELETE", deletedResource.getUri(), deletedResource.getAttributes(), context.getAuthorizationHeaderValue(), null, null);
+        HttpClientHeaders allHeaders = deletedResource.getAttributes().plus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        ShapeTreeResponse response = fetcher.fetchShapeTreeResponse("DELETE", deletedResource.getUri(), allHeaders, null, null);
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {
             log.error("Error deleting resource {}, Status {}", deletedResource.getUri(), respCode);

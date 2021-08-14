@@ -17,7 +17,6 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -209,7 +208,11 @@ public class HttpRemoteResource {
 
         HttpClientFactory f = HttpClientManager.getFactory();
         HttpClient fetcher = f.get(false);
-        fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), "text/turtle");
+        HttpClientHeaders headers = new HttpClientHeaders();
+        if (authorizationHeaderValue != null) {
+            headers.set(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+        }
+        fetcher.fetchShapeTreeResponse("PUT", this.uri, headers, sw.toString(), "text/turtle");
         // get media type from TEXT_TURTLE ?
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
@@ -275,7 +278,7 @@ public class HttpRemoteResource {
 
         try {
             HttpClient fetcher = HttpClientManager.getFactory().get(false);
-            fetcher.fetchIntoRemoteResource("GET", this.uri, null, authorizationHeaderValue, null, null, this);
+            fetcher.fetchIntoRemoteResource("GET", this.uri, null, null, null, this);
             this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);
