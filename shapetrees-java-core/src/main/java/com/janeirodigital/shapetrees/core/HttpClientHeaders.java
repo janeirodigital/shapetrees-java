@@ -12,80 +12,97 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class HttpClientHeaders {
-    Map<String, List<String>> headers = new HashMap<>();
+    Map<String, List<String>> myMapOfLists = new HashMap<>();
 
     public HttpClientHeaders() {
     }
 
+    /**
+     * construct an HttpClientHeaders and set attr to value if both are not null.
+     * @param attr attribute (header) name to set
+     * @param value String value to assign to attr
+     */
     public HttpClientHeaders(String attr, String value) throws ShapeTreeException {
-        if (attr == null || value == null) throw new ShapeTreeException(500, "Malforned header (" + attr + ") or value (" + value + ")");
-        this.set(attr, value);
+//        if (attr == null || value == null) throw new ShapeTreeException(500, "Malforned header (" + attr + ") or value (" + value + ")"); - maybeSet deals with nulls
+        this.maybeSet(attr, value);
     }
 
-    public HttpClientHeaders(Map<String, List<String>> headers) {
-        this.headers = headers;
+    /**
+     * replace current map with passed map.
+     * @param newMap replacement for myMapOfLists
+     */
+    public HttpClientHeaders(Map<String, List<String>> newMap) {
+        this.myMapOfLists = newMap;
     }
 
-    public HttpClientHeaders plus(String attr, String value) {
+    // copy constructor
+    private HttpClientHeaders copy() {
         HttpClientHeaders ret = new HttpClientHeaders();
-        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-            ret.headers.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
+            ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }
-        set(attr, value);
         return ret;
     }
 
-    private static final Pattern LINK_HEADER_PATTERN = Pattern.compile("^<(.*?)>\\s*;\\s*rel\\s*=\"(.*?)\"\\s*");
-
     /**
-     * Parse link headers into a map that allows retrieval of one or more values for a given link relation
-     * @param headerValues Header values for Link headers
-     * @return Map of values parsed using the Link Relation as the key
+     * make a new HttpClientHeaders with the additional attr/value set.
+     * @param attr attribute (header) name to set
+     * @param value String value to assign to attr
+     * @returns original HttpClientHeaders if no change is made; otherwise a new copy.
      */
-    public static HttpClientHeaders parseLinkHeaders(List<String> headerValues) {
-        HttpClientHeaders linkHeaderMap = new HttpClientHeaders();
-        for (String headerValue : headerValues) {
-            Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
-            if (matcher.matches() && matcher.groupCount() >= 2) {
-                String uri = matcher.group(1);
-                String rel = matcher.group(2);
-                linkHeaderMap.headers.computeIfAbsent(rel, k -> new ArrayList<>());
-                linkHeaderMap.headers.get(rel).add(uri);
-            } else {
-                log.warn("Unable to parse link header: [{}]", headerValue);
-            }
+    public HttpClientHeaders maybePlus(String attr, String value) {
+        if (attr == null || value == null) {
+            return this;
         }
-        return linkHeaderMap;
+        HttpClientHeaders ret = copy();
+        maybeSet(attr, value);
+        return ret;
     }
 
-    public void set(String attr, String value) {
-        if (headers.containsKey(attr)) {
-            headers.get(attr).add(value);
+    /**
+     * set attr to value if both are not null.
+     * @param attr attribute (header) name to set
+     * @param value String value to assign to attr
+     */
+    public void maybeSet(String attr, String value) {
+        if (attr == null || value == null) {
+            return;
+        }
+
+        if (myMapOfLists.containsKey(attr)) {
+            myMapOfLists.get(attr).add(value);
             } else {
             ArrayList<String> list = new ArrayList<String>();
             list.add(value);
-            headers.put(attr, list);
+            myMapOfLists.put(attr, list);
         }
     }
-    public void set(String attr, List<String> values) {
-        headers.put(attr, values);
+
+    /**
+     * replaces the list of attrs (without regard to nulls)
+     * @param attr attribute (header) name to set
+     * @param values String values to assign to attr
+     */
+    public void setAll(String attr, List<String> values) {
+        myMapOfLists.put(attr, values);
     }
 
+    // Pass-through functions to headers - could be simpler if HttpClientHeaders extends a HashMap rather than contains a it.
     public Iterable<? extends Map.Entry<String, List<String>>> entrySet() {
-        return headers.entrySet();
+        return myMapOfLists.entrySet();
     }
 
     public boolean containsKey(String value) {
-        return headers.containsKey(value);
+        return myMapOfLists.containsKey(value);
     }
 
     public List<String> get(String value) {
-        return headers.get(value);
+        return myMapOfLists.get(value);
     }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
             for (String value : entry.getValue()) {
                 if (sb.length() != 0) {
                     sb.append(",");
@@ -98,7 +115,31 @@ public class HttpClientHeaders {
     }
 
     public List<String> computeIfAbsent(String header, Function<? super String, ? extends List<String>> f) { // Function <? super String, ? extends List<String>>
-        return headers.computeIfAbsent(header, f);
+        return myMapOfLists.computeIfAbsent(header, f);
+    }
+
+    private static final Pattern LINK_HEADER_PATTERN = Pattern.compile("^<(.*?)>\\s*;\\s*rel\\s*=\"(.*?)\"\\s*");
+
+    /**
+     * Re-use HttpClientHeaders to capture link headers as a mapping from link relation to list of values
+     * This is really a constructor but a named static function clarifies its intention.
+     * @param headerValues Header values for Link headers
+     * @return subset of this matching the pattern
+     */
+    public static HttpClientHeaders parseLinkHeaders(List<String> headerValues) {
+        HttpClientHeaders linkHeaderMap = new HttpClientHeaders();
+        for (String headerValue : headerValues) {
+            Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
+            if (matcher.matches() && matcher.groupCount() >= 2) {
+                String uri = matcher.group(1);
+                String rel = matcher.group(2);
+                linkHeaderMap.myMapOfLists.computeIfAbsent(rel, k -> new ArrayList<>());
+                linkHeaderMap.myMapOfLists.get(rel).add(uri);
+            } else {
+                log.warn("Unable to parse link header: [{}]", headerValue);
+            }
+        }
+        return linkHeaderMap;
     }
 }
 

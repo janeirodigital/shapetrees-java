@@ -208,10 +208,7 @@ public class HttpRemoteResource {
 
         HttpClientFactory f = HttpClientManager.getFactory();
         HttpClient fetcher = f.get(false);
-        HttpClientHeaders headers = new HttpClientHeaders();
-        if (authorizationHeaderValue != null) {
-            headers.set(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
-        }
+        HttpClientHeaders headers = new HttpClientHeaders(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
         fetcher.fetchShapeTreeResponse("PUT", this.uri, headers, sw.toString(), "text/turtle");
         // get media type from TEXT_TURTLE ?
 
