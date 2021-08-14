@@ -7,7 +7,7 @@ import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+//import okhttp3.*;
 import okio.Buffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +20,7 @@ import java.util.Objects;
  * Interceptor used for client-side validation
  */
 @Slf4j
-public class JavaHttpValidatingShapeTreeInterceptor implements Interceptor {
+public class JavaHttpValidatingShapeTreeInterceptor implements okhttp3.Interceptor {
 
     private static final String POST = "POST";
     private static final String PUT = "PUT";
@@ -41,9 +41,10 @@ public class JavaHttpValidatingShapeTreeInterceptor implements Interceptor {
      */
     @NotNull
     @Override
-    public Response intercept(@NotNull Chain chain) throws IOException {
+    public okhttp3.Response intercept(@NotNull Chain chain) throws IOException {
 
-        ShapeTreeRequest shapeTreeRequest = new OkHttpShapeTreeRequest(chain.request());
+        okhttp3.Request nativeRequest = chain.request();
+        ShapeTreeRequest shapeTreeRequest = new OkHttpShapeTreeRequest(nativeRequest);
         ResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
 
         // Get the handler
@@ -52,20 +53,20 @@ public class JavaHttpValidatingShapeTreeInterceptor implements Interceptor {
             try {
                 ShapeTreeValidationResponse shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (shapeTreeResponse.isValidRequest() && !shapeTreeResponse.isRequestFulfilled()) {
-                    return chain.proceed(chain.request());
+                    return chain.proceed(nativeRequest);
                 } else {
-                    return createResponse(shapeTreeRequest, chain.request(), shapeTreeResponse);
+                    return createResponse(shapeTreeRequest, nativeRequest, shapeTreeResponse);
                 }
             } catch (ShapeTreeException ex){
                 log.error("Error processing shape tree request: ", ex);
-                return createErrorResponse(ex, shapeTreeRequest, chain.request());
+                return createErrorResponse(ex, shapeTreeRequest, nativeRequest);
             } catch (Exception ex) {
                 log.error("Error processing shape tree request: ", ex);
-                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest, chain.request());
+                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest, nativeRequest);
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
-            return chain.proceed(chain.request());
+            return chain.proceed(nativeRequest);
         }
     }
 
@@ -85,28 +86,28 @@ public class JavaHttpValidatingShapeTreeInterceptor implements Interceptor {
     }
 
     // TODO: Update to a simple JSON-LD body
-    private Response createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, Request nativeRequest) {
-        return new Response.Builder()
+    private okhttp3.Response createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, okhttp3.Request nativeRequest) {
+        return new okhttp3.Response.Builder()
                 .code(exception.getStatusCode())
-                .body(ResponseBody.create(exception.getMessage(), MediaType.get("text/plain")))
+                .body(okhttp3.ResponseBody.create(exception.getMessage(), okhttp3.MediaType.get("text/plain")))
                 .request(nativeRequest)
-                .protocol(Protocol.HTTP_2)
+                .protocol(okhttp3.Protocol.HTTP_2)
                 .message(exception.getMessage())
                 .build();
     }
 
-    private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
-        Response.Builder builder = new Response.Builder();
+    private okhttp3.Response createResponse(ShapeTreeRequest request, okhttp3.Request nativeRequest, ShapeTreeResponse response) {
+        okhttp3.Response.Builder builder = new okhttp3.Response.Builder();
         builder.code(response.getStatusCode());
-        Headers headers = JavaHttpClient.convertHeaders(response.getResponseHeaders());
+        okhttp3.Headers headers = JavaHttpClient.convertHeaders(response.getResponseHeaders());
         builder.headers(headers);
         String contentType = headers.get("Content-Type");
         if (contentType == null) {
             contentType = "text/turtle";
         }
 
-        builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
-                .protocol(Protocol.HTTP_2)
+        builder.body(okhttp3.ResponseBody.create(response.getBody(), okhttp3.MediaType.get(contentType)))
+                .protocol(okhttp3.Protocol.HTTP_2)
                 .message("Success")
                 .request(nativeRequest);
 
@@ -114,10 +115,10 @@ public class JavaHttpValidatingShapeTreeInterceptor implements Interceptor {
     }
 
     private class OkHttpShapeTreeRequest implements ShapeTreeRequest {
-        private final Request request;
+        private final okhttp3.Request request;
         private ShapeTreeResourceType resourceType;
 
-        public OkHttpShapeTreeRequest(Request request) {
+        public OkHttpShapeTreeRequest(okhttp3.Request request) {
             this.request = request;
         }
 

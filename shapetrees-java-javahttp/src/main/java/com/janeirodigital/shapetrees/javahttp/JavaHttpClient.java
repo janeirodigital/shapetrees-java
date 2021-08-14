@@ -10,8 +10,10 @@ import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
-import okhttp3.Headers;
-import okhttp3.ResponseBody;
+//import okhttp3.Call;
+//import okhttp3.Headers;
+//import okhttp3.Request;
+//import okhttp3.ResponseBody;
 
 import javax.net.ssl.*;
 import java.io.IOException;
@@ -106,7 +108,7 @@ public class JavaHttpClient implements HttpClient {
         }
 
         // Save raw body
-        try (ResponseBody respBody = response.body()) {
+        try (okhttp3.ResponseBody respBody = response.body()) {
             remoteResource.setRawBody(respBody.string());
         }
     }
@@ -117,8 +119,8 @@ public class JavaHttpClient implements HttpClient {
      * @param headers Multi-map representation of headers
      * @return OkHttp Headers object
      */
-    public static Headers convertHeaders(HttpClientHeaders headers) {
-        Headers.Builder okHttpHeaders = new Headers.Builder();
+    public static okhttp3.Headers convertHeaders(HttpClientHeaders headers) {
+        okhttp3.Headers.Builder okHttpHeaders = new okhttp3.Headers.Builder();
         for (Map.Entry<String, List<String>> entry : headers.entrySet()){
             for (String value : entry.getValue()) {
                 okHttpHeaders.add(entry.getKey(), value);
@@ -213,7 +215,9 @@ public class JavaHttpClient implements HttpClient {
 
             }
 
-            return httpClient.newCall(ohHttpReqBuilder.build()).execute();
+            okhttp3.Request okHttpRequest = ohHttpReqBuilder.build();
+            okhttp3.Call okHttpCall = httpClient.newCall(okHttpRequest);
+            return okHttpCall.execute();
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
