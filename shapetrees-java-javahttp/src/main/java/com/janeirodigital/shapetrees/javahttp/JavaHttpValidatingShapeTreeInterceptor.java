@@ -70,6 +70,35 @@ public class JavaHttpValidatingShapeTreeInterceptor implements okhttp3.Intercept
         }
     }
 
+    @NotNull
+    public okhttp3.Response validatingWrap(okhttp3.Request okHttpRequest, okhttp3.OkHttpClient httpClient) throws IOException {
+
+        ShapeTreeRequest shapeTreeRequest = new OkHttpShapeTreeRequest(okHttpRequest);
+        ResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
+
+        // Get the handler
+        ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
+        if (handler != null) {
+            try {
+                ShapeTreeValidationResponse shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
+                if (shapeTreeResponse.isValidRequest() && !shapeTreeResponse.isRequestFulfilled()) {
+                    return httpClient.newCall(okHttpRequest).execute();
+                } else {
+                    return createResponse(shapeTreeRequest, okHttpRequest, shapeTreeResponse);
+                }
+            } catch (ShapeTreeException ex){
+                log.error("Error processing shape tree request: ", ex);
+                return createErrorResponse(ex, shapeTreeRequest, okHttpRequest);
+            } catch (Exception ex) {
+                log.error("Error processing shape tree request: ", ex);
+                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest, okHttpRequest);
+            }
+        } else {
+            log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
+            return httpClient.newCall(okHttpRequest).execute();
+        }
+    }
+
     private ValidatingMethodHandler getHandler(String requestMethod, ResourceAccessor resourceAccessor) {
         switch (requestMethod) {
             case POST:

@@ -35,6 +35,7 @@ public class JavaHttpClient implements HttpClient {
     private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
     private okhttp3.OkHttpClient httpClient;
+    private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
 
     private static final String GET = "GET";
     private static final String PUT = "PUT";
@@ -133,7 +134,10 @@ public class JavaHttpClient implements HttpClient {
     protected JavaHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
-            clientBuilder.interceptors().add(new JavaHttpValidatingShapeTreeInterceptor());
+            validatingWrapper = new JavaHttpValidatingShapeTreeInterceptor();
+            // clientBuilder.interceptors().add(new JavaHttpValidatingShapeTreeInterceptor());
+        } else {
+            validatingWrapper = null;
         }
         if (Boolean.FALSE.equals(useSslValidation)) {
             // Install the all-trusting trust manager
@@ -181,33 +185,33 @@ public class JavaHttpClient implements HttpClient {
             body = "";
 
         try {
-            okhttp3.Request.Builder ohHttpReqBuilder = new okhttp3.Request.Builder();
-            ohHttpReqBuilder.url(resourceURI.toURL());
+            okhttp3.Request.Builder okHttpReqBuilder = new okhttp3.Request.Builder();
+            okHttpReqBuilder.url(resourceURI.toURL());
 
             if (headers != null) {
-                ohHttpReqBuilder.headers(convertHeaders(headers));
+                okHttpReqBuilder.headers(convertHeaders(headers));
             }
 
             switch (method) {
 
                 case GET:
-                    ohHttpReqBuilder.get();
+                    okHttpReqBuilder.get();
                     break;
 
                 case PUT:
-                    ohHttpReqBuilder.put(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    okHttpReqBuilder.put(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
                     break;
 
                 case POST:
-                    ohHttpReqBuilder.post(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    okHttpReqBuilder.post(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
                     break;
 
                 case PATCH:
-                    ohHttpReqBuilder.patch(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    okHttpReqBuilder.patch(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
                     break;
 
                 case DELETE:
-                    ohHttpReqBuilder.delete();
+                    okHttpReqBuilder.delete();
                     break;
 
                 default:
@@ -215,9 +219,12 @@ public class JavaHttpClient implements HttpClient {
 
             }
 
-            okhttp3.Request okHttpRequest = ohHttpReqBuilder.build();
-            okhttp3.Call okHttpCall = httpClient.newCall(okHttpRequest);
-            return okHttpCall.execute();
+            okhttp3.Request okHttpRequest = okHttpReqBuilder.build();
+            if (validatingWrapper == null) {
+                return httpClient.newCall(okHttpRequest).execute();
+            } else {
+                return validatingWrapper.validatingWrap(okHttpRequest, httpClient);
+            }
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
