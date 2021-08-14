@@ -1,4 +1,5 @@
 package com.janeirodigital.shapetrees.core;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -16,8 +17,22 @@ public class HttpClientHeaders {
     public HttpClientHeaders() {
     }
 
+    public HttpClientHeaders(String attr, String value) throws ShapeTreeException {
+        if (attr == null || value == null) throw new ShapeTreeException(500, "Malforned header (" + attr + ") or value (" + value + ")");
+        this.set(attr, value);
+    }
+
     public HttpClientHeaders(Map<String, List<String>> headers) {
         this.headers = headers;
+    }
+
+    public HttpClientHeaders plus(String attr, String value) {
+        HttpClientHeaders ret = new HttpClientHeaders();
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            ret.headers.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+        set(attr, value);
+        return ret;
     }
 
     private static final Pattern LINK_HEADER_PATTERN = Pattern.compile("^<(.*?)>\\s*;\\s*rel\\s*=\"(.*?)\"\\s*");

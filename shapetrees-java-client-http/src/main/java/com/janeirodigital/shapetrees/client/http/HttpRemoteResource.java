@@ -17,7 +17,6 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -208,7 +207,11 @@ public class HttpRemoteResource {
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), TEXT_TURTLE);
+        HttpClientHeaders headers = new HttpClientHeaders();
+        if (authorizationHeaderValue != null) {
+            headers.set(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+        }
+        fetcher.fetchShapeTreeResponse("PUT", this.uri, headers, sw.toString(), TEXT_TURTLE);
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
@@ -273,7 +276,11 @@ public class HttpRemoteResource {
 
         try {
             HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-            fetcher.fetchIntoRemoteResource("GET", this.uri, null, authorizationHeaderValue, null, null, this);
+            HttpClientHeaders headers = new HttpClientHeaders();
+            if (authorizationHeaderValue != null) {
+                headers.set(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+            }
+            fetcher.fetchIntoRemoteResource("GET", this.uri, headers, null, null, this);
             this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);

@@ -49,8 +49,8 @@ public class OkHttpClient implements HttpClient {
      * @param headers Request headers used in request associated with response
      * @return ShapeTreeResource instance with contents and response headers from response
      */
-    public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, HttpClientHeaders headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
+    public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
 
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
 
@@ -74,8 +74,8 @@ public class OkHttpClient implements HttpClient {
      * Maps an OkHttp Response object to a ShapeTreeResponse object
      * @return ShapeTreeResponse with values from OkHttp response
      */
-    public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, HttpClientHeaders headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
+    public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
 
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {
@@ -89,8 +89,8 @@ public class OkHttpClient implements HttpClient {
         return shapeTreeResponse;
     }
 
-    public void fetchIntoRemoteResource(String method, URI resourceURI, HttpClientHeaders headers, String authorizationHeaderValue, String body, String contentType, HttpRemoteResource remoteResource) throws IOException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, authorizationHeaderValue, body, contentType);
+    public void fetchIntoRemoteResource(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType, HttpRemoteResource remoteResource) throws IOException {
+        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
 
         remoteResource.setExists(response.code() < 400);
 
@@ -174,7 +174,7 @@ public class OkHttpClient implements HttpClient {
     }
 
     // http functions
-    private okhttp3.Response fetch(String method, URI resourceURI, HttpClientHeaders headers, String authorizationHeaderValue, String body, String contentType) throws ShapeTreeException {
+    private okhttp3.Response fetch(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
         if (body == null)
             body = "";
 
@@ -184,10 +184,6 @@ public class OkHttpClient implements HttpClient {
 
             if (headers != null) {
                 ohHttpReqBuilder.headers(convertHeaders(headers));
-            }
-
-            if (authorizationHeaderValue != null) {
-                ohHttpReqBuilder.addHeader(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
             }
 
             switch (method) {
