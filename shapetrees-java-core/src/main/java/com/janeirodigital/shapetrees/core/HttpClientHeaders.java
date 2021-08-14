@@ -10,20 +10,27 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The HttpClientHeaders object is a multi-map with some constructors and put-ers tailored to the
+ * shapetrees-java libraries. The only behavior that's at all HTTP-specific is the
+ * parseLinkHeaders(List<String> headerValues) factory which includes logic for HTTP Link headers.
+ */
 @Slf4j
 public class HttpClientHeaders {
     Map<String, List<String>> myMapOfLists = new HashMap<>();
 
+    /**
+     * construct an empty HttpClientHeaders container
+     */
     public HttpClientHeaders() {
     }
 
     /**
-     * construct an HttpClientHeaders and set attr to value if both are not null.
+     * construct an HttpClientHeaders container and set attr to value if both are not null.
      * @param attr attribute (header) name to set
      * @param value String value to assign to attr
      */
     public HttpClientHeaders(String attr, String value) throws ShapeTreeException {
-//        if (attr == null || value == null) throw new ShapeTreeException(500, "Malforned header (" + attr + ") or value (" + value + ")"); - maybeSet deals with nulls
         this.maybeSet(attr, value);
     }
 
@@ -33,6 +40,28 @@ public class HttpClientHeaders {
      */
     public HttpClientHeaders(Map<String, List<String>> newMap) {
         this.myMapOfLists = newMap;
+    }
+
+    /**
+     * Re-use HttpClientHeaders to capture link headers as a mapping from link relation to list of values
+     * This is really a constructor but a named static function clarifies its intention.
+     * @param headerValues Header values for Link headers
+     * @return subset of this matching the pattern
+     */
+    public static HttpClientHeaders parseLinkHeaders(List<String> headerValues) {
+        HttpClientHeaders linkHeaderMap = new HttpClientHeaders();
+        for (String headerValue : headerValues) {
+            Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
+            if (matcher.matches() && matcher.groupCount() >= 2) {
+                String uri = matcher.group(1);
+                String rel = matcher.group(2);
+                linkHeaderMap.myMapOfLists.computeIfAbsent(rel, k -> new ArrayList<>());
+                linkHeaderMap.myMapOfLists.get(rel).add(uri);
+            } else {
+                log.warn("Unable to parse link header: [{}]", headerValue);
+            }
+        }
+        return linkHeaderMap;
     }
 
     // copy constructor
@@ -119,27 +148,5 @@ public class HttpClientHeaders {
     }
 
     private static final Pattern LINK_HEADER_PATTERN = Pattern.compile("^<(.*?)>\\s*;\\s*rel\\s*=\"(.*?)\"\\s*");
-
-    /**
-     * Re-use HttpClientHeaders to capture link headers as a mapping from link relation to list of values
-     * This is really a constructor but a named static function clarifies its intention.
-     * @param headerValues Header values for Link headers
-     * @return subset of this matching the pattern
-     */
-    public static HttpClientHeaders parseLinkHeaders(List<String> headerValues) {
-        HttpClientHeaders linkHeaderMap = new HttpClientHeaders();
-        for (String headerValue : headerValues) {
-            Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
-            if (matcher.matches() && matcher.groupCount() >= 2) {
-                String uri = matcher.group(1);
-                String rel = matcher.group(2);
-                linkHeaderMap.myMapOfLists.computeIfAbsent(rel, k -> new ArrayList<>());
-                linkHeaderMap.myMapOfLists.get(rel).add(uri);
-            } else {
-                log.warn("Unable to parse link header: [{}]", headerValue);
-            }
-        }
-        return linkHeaderMap;
-    }
 }
 
