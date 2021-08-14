@@ -648,7 +648,7 @@ public abstract class AbstractValidatingMethodHandler {
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
             HttpClientHeaders headers = new HttpClientHeaders();
-            headers.set(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
+            headers.setAll(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
             this.resourceAccessor.createResource(shapeTreeContext,"POST", getShapeTreeMetadataURIForResource(primaryResource), headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
         } else {
             // Update the existing metadata resource for the primary resource

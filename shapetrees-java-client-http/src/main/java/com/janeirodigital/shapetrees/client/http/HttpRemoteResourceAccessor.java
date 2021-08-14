@@ -95,7 +95,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        HttpClientHeaders allHeaders = deletedResource.getAttributes().plus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        HttpClientHeaders allHeaders = deletedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         ShapeTreeResponse response = fetcher.fetchShapeTreeResponse("DELETE", deletedResource.getUri(), allHeaders, null, null);
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {

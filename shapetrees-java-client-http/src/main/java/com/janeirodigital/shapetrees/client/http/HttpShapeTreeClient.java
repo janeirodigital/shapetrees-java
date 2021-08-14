@@ -17,8 +17,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class HttpShapeTreeClient implements ShapeTreeClient {
@@ -290,28 +288,28 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         HttpClientHeaders ret = new HttpClientHeaders();
 
         if (context.getAuthorizationHeaderValue() != null) {
-            ret.set(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+            ret.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         }
 
         if (isContainer != null) {
             String resourceTypeUri = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-            ret.set(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
+            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
         }
 
         if (focusNode != null) {
-            ret.set(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
+            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
         }
 
         if (targetShapeTree != null) {
-            ret.set(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
+            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
         }
 
         if (proposedResourceName != null) {
-            ret.set(HttpHeaders.SLUG.getValue(), proposedResourceName);
+            ret.maybeSet(HttpHeaders.SLUG.getValue(), proposedResourceName);
         }
 
         if (contentType != null) {
-            ret.set(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
+            ret.maybeSet(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
         }
 
         return ret;
