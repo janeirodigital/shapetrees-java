@@ -33,7 +33,7 @@ class HttpClientTests {
         JavaHttpClient client1 = new JavaHttpClientFactory(true).get(false);
         JavaHttpClient client2 = new JavaHttpClientFactory(true).get(false);
 
-        Assertions.assertEquals(client1, client2);
+        Assertions.assertNotEquals(client1, client2);
     }
 
     @Test
@@ -42,7 +42,7 @@ class HttpClientTests {
         JavaHttpClient client1 = new JavaHttpClientFactory(true).get(true);
         JavaHttpClient client2 = new JavaHttpClientFactory(true).get(true);
 
-        Assertions.assertEquals(client1, client2);
+        Assertions.assertNotEquals(client1, client2);
     }
 
     @Test
