@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JavaHttpClient implements HttpClient {
     private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
+    private static final boolean USE_INTERCEPTOR = false;
     private okhttp3.OkHttpClient httpClient;
     private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
 
@@ -133,11 +134,13 @@ public class JavaHttpClient implements HttpClient {
     // constructor and its helpers
     protected JavaHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
+        validatingWrapper = null;
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
-            validatingWrapper = new JavaHttpValidatingShapeTreeInterceptor();
-            // clientBuilder.interceptors().add(new JavaHttpValidatingShapeTreeInterceptor());
-        } else {
-            validatingWrapper = null;
+            if (USE_INTERCEPTOR) {
+                clientBuilder.interceptors().add(new JavaHttpValidatingShapeTreeInterceptor());
+            } else {
+                validatingWrapper = new JavaHttpValidatingShapeTreeInterceptor();
+            }
         }
         if (Boolean.FALSE.equals(useSslValidation)) {
             // Install the all-trusting trust manager
