@@ -2,7 +2,7 @@ name: JDK 11 Build
 
 on:
   push:
-    branches: master
+    branches: main
 
 jobs:
   build:

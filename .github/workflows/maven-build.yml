@@ -2,7 +2,7 @@ name: JDK 11 Build
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
