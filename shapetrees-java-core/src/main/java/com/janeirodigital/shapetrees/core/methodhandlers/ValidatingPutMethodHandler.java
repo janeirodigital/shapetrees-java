@@ -14,7 +14,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     }
 
     @Override
-    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest<?> shapeTreeRequest) {
+    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest shapeTreeRequest) {
         try {
 
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);

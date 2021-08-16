@@ -326,7 +326,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @param shapeTreeRequest Incoming request
      * @return ShapeTreeContext object populated with authentication details, if present
      */
-    protected ShapeTreeContext buildContextFromRequest(ShapeTreeRequest<?> shapeTreeRequest) {
+    protected ShapeTreeContext buildContextFromRequest(ShapeTreeRequest shapeTreeRequest) {
         ShapeTreeContext context = new ShapeTreeContext();
         context.setAuthorizationHeaderValue(shapeTreeRequest.getHeaderValue(HttpHeaders.AUTHORIZATION.getValue()));
         return context;
@@ -339,7 +339,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @return ShapeTreeResource representation of that URI
      * @throws ShapeTreeException ShapeTreeException
      */
-    protected ShapeTreeResource getRequestResource(ShapeTreeContext context, ShapeTreeRequest<?> shapeTreeRequest) throws ShapeTreeException {
+    protected ShapeTreeResource getRequestResource(ShapeTreeContext context, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
         return this.resourceAccessor.getResource(context, shapeTreeRequest.getURI());
     }
 
@@ -362,7 +362,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @return ShapeTreeResourceType aligning to current request
      * @throws ShapeTreeException ShapeTreeException throw, specifically if Content-Type is not included on request
      */
-    protected ShapeTreeResourceType determineResourceType(ShapeTreeRequest<?> shapeTreeRequest, ShapeTreeResource existingResource) throws ShapeTreeException {
+    protected ShapeTreeResourceType determineResourceType(ShapeTreeRequest shapeTreeRequest, ShapeTreeResource existingResource) throws ShapeTreeException {
         boolean isNonRdf;
         if (!shapeTreeRequest.getMethod().equals(DELETE)) {
             String incomingRequestContentType = shapeTreeRequest.getContentType();
@@ -421,7 +421,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @return Graph representation of request body
      * @throws ShapeTreeException ShapeTreeException
      */
-    protected Graph getIncomingBodyGraph(ShapeTreeRequest<?> shapeTreeRequest, URI baseURI, ShapeTreeResource targetResource) throws ShapeTreeException {
+    protected Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URI baseURI, ShapeTreeResource targetResource) throws ShapeTreeException {
         log.debug("Reading request body into graph with baseURI {}", baseURI);
 
         if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF
@@ -469,7 +469,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @return URI of focus node
      * @throws IOException IOException
      */
-    protected URI getIncomingResolvedFocusNode(ShapeTreeRequest<?> shapeTreeRequest, URI baseURI) throws IOException {
+    protected URI getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URI baseURI) throws IOException {
         if (shapeTreeRequest.getLinkHeaders().get(LinkRelations.FOCUS_NODE.getValue()) != null) {
             String focusNode = shapeTreeRequest.getLinkHeaders().get(LinkRelations.FOCUS_NODE.getValue()).get(0);
             return baseURI.resolve(focusNode);
@@ -483,7 +483,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @return URI value of target shape tree
      * @throws URISyntaxException URISyntaxException
      */
-    protected URI getIncomingTargetShapeTreeHint(ShapeTreeRequest<?> shapeTreeRequest) throws URISyntaxException {
+    protected URI getIncomingTargetShapeTreeHint(ShapeTreeRequest shapeTreeRequest) throws URISyntaxException {
         if (shapeTreeRequest.getLinkHeaders().get(LinkRelations.TARGET_SHAPETREE.getValue()) != null) {
             return new URI(shapeTreeRequest.getLinkHeaders().get(LinkRelations.TARGET_SHAPETREE.getValue()).get(0));
         }
@@ -495,7 +495,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @param shapeTreeRequest Request
      * @return Is the resource a container?
      */
-    protected Boolean getIsContainerFromRequest(ShapeTreeRequest<?> shapeTreeRequest) {
+    protected Boolean getIsContainerFromRequest(ShapeTreeRequest shapeTreeRequest) {
         // First try to determine based on link headers
         if (shapeTreeRequest.getLinkHeaders() != null && shapeTreeRequest.getLinkHeaders().get(LinkRelations.TYPE.getValue()) != null) {
             return (shapeTreeRequest.getLinkHeaders().get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||

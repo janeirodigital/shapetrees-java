@@ -15,4 +15,4 @@ exploration of specific classes:
    
  * [`methodhandlers`](src/main/java/com/janeirodigital/shapetrees/core/methodhandlers) - this package contains classes
    which validation standard HTTP methods (GET, POST, PUT, PATCH, DELETE) according to the shape tree specification.
-   To see an example of how these method handlers can be invoked, see the [sample client implementation](../shapetrees-java-client-okhttp/src/main/java/com/janeirodigital/shapetrees/client/okhttp/ValidatingShapeTreeInterceptor.java).
+   To see an example of how these method handlers can be invoked, see the [sample client implementation](../shapetrees-java-client-com.janeirodigital.shapetrees.okhttp/src/main/java/com/janeirodigital/shapetrees/client/com.janeirodigital.shapetrees.okhttp/ValidatingShapeTreeInterceptor.java).
