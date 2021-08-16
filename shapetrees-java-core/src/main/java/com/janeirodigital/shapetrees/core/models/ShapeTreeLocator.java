@@ -3,6 +3,7 @@ package com.janeirodigital.shapetrees.core.models;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
+import com.janeirodigital.shapetrees.core.vocabularies.RdfVocabulary;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,13 +47,9 @@ public class ShapeTreeLocator {
     public Graph getGraph() throws URISyntaxException {
 
         Graph locatorGraph = GraphHelper.getEmptyGraph();
-        String resourceBase = this.getURI().toString() + "#";
-        String locatorSubject = resourceBase + "locator";
+        String locatorSubject = this.getURI().toString();
 
-        // <> st:hasShapeTreeLocator <#locator>
-        locatorGraph.add(GraphHelper.newTriple(this.getURI().toString(), ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR, URI.create(locatorSubject)));
-
-        // <#locator> a st:ShapeTreeLocator
+        // <> a st:ShapeTreeLocator
         locatorGraph.add(GraphHelper.newTriple(locatorSubject, RDF.type.toString(), URI.create(ShapeTreeVocabulary.SHAPETREE_LOCATOR)));
 
         // For each location create a blank node and populate
@@ -131,15 +128,15 @@ public class ShapeTreeLocator {
 
     public static ShapeTreeLocator getShapeTreeLocatorFromGraph(String id, Graph shapeTreeMetadataGraph) {
 
-        ShapeTreeLocator locator = new ShapeTreeLocator();
+         ShapeTreeLocator locator = new ShapeTreeLocator();
 
         // Assign the ID of the locator
         locator.setId(id);
 
         // Look up the ShapeTreeLocator in the Metadata Graph via (any subject node, rdf:type, st:ShapeTreeLocator)
         List<Triple> shapeTreeLocatorTriples = shapeTreeMetadataGraph.find(Node.ANY,
-                                                                           NodeFactory.createURI(ShapeTreeVocabulary.HAS_SHAPE_TREE_LOCATOR),
-                                                                           Node.ANY).toList();
+                                                                           NodeFactory.createURI(RdfVocabulary.TYPE),
+                                                                           NodeFactory.createURI(ShapeTreeVocabulary.SHAPETREE_LOCATOR)).toList();
 
         // Shape Trees, §3: No more than one shape tree locator may be associated with a managed resource.
         // https://shapetrees.org/TR/specification/#locator
@@ -152,7 +149,7 @@ public class ShapeTreeLocator {
         }
 
         // Get the URI of the ShapeTreeLocator subject node
-        String locatorURI = shapeTreeLocatorTriples.get(0).getObject().getURI();
+        String locatorURI = shapeTreeLocatorTriples.get(0).getSubject().getURI();
 
         // Look up ShapeTreeLocation nodes (locator subject node, st:location, any st:location nodes).
         // There should be one result per nested ShapeTreeLocation, each identified by a unique uri.
