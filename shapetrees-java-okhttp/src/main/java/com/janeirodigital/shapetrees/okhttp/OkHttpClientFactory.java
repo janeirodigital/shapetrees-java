@@ -15,10 +15,10 @@ public class OkHttpClientFactory extends AbstractHttpClientFactory implements Ht
     }
 
     public OkHttpClient get(boolean useClientShapeTreeValidation) throws ShapeTreeException {
-        return getProtected(this.useSslValidation, useClientShapeTreeValidation);
+        return getForOptions(this.useSslValidation, useClientShapeTreeValidation);
     }
 
-    private static synchronized OkHttpClient getProtected(boolean useSslValidation, boolean useClientShapeTreeValidation) throws ShapeTreeException {
+    private static synchronized OkHttpClient getForOptions(boolean useSslValidation, boolean useClientShapeTreeValidation) throws ShapeTreeException {
 
         int ssl = useSslValidation ? VALIDATING : NON_VALIDATING;
         int shapeTrees = useClientShapeTreeValidation ? VALIDATING : NON_VALIDATING;
@@ -37,4 +37,3 @@ public class OkHttpClientFactory extends AbstractHttpClientFactory implements Ht
     }
 
 }
-
