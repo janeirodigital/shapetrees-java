@@ -19,7 +19,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     }
 
     @Override
-    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest<?> shapeTreeRequest) {
+    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest shapeTreeRequest) {
         try {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
@@ -47,7 +47,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
     }
 
-    private String getIncomingHeaderValueWithDefault(ShapeTreeRequest<?> shapeTreeRequest, String headerName, String defaultValue) {
+    private String getIncomingHeaderValueWithDefault(ShapeTreeRequest shapeTreeRequest, String headerName, String defaultValue) {
         if (shapeTreeRequest.getHeaders().containsKey(headerName)) {
             return shapeTreeRequest.getHeaders().get(headerName).stream().findFirst().orElse(defaultValue);
         } else {

@@ -133,12 +133,12 @@ public interface ShapeTreeClient {
      * Indicates whether validation is currently being applied on the client
      * @return boolean of whether client-side validation is being performed
      */
-    boolean isValidationSkipped();
+    boolean isShapeTreeValidationSkipped();
 
     /**
      * Determines whether validation should be performed on the client
      * @param skipValidation boolean indicating whether validation should be performed on the client
      */
-    void skipValidation(boolean skipValidation);
+    void skipShapeTreeValidation(boolean skipValidation);
 
 }

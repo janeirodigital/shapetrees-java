@@ -6,8 +6,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-public interface ShapeTreeRequest<T> {
-    T getNativeRequest();
+public interface ShapeTreeRequest {
     String getMethod();
     URI getURI();
     Map<String, List<String>> getHeaders();
