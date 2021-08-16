@@ -1,6 +1,6 @@
 # shapetrees-java
 
-[![codecov](https://codecov.io/gh/janeirodigital/shapetrees-java/branch/master/graph/badge.svg?token=GU1O02A6A5)](https://codecov.io/gh/janeirodigital/shapetrees-java)
+[![codecov](https://codecov.io/gh/xformativ/shapetrees-java/branch/develop/graph/badge.svg?token=GU1O02A6A5)](https://codecov.io/gh/xformativ/shapetrees-java)
 
 shapetrees-java is a Java (JDK11+) implementation of the [shape tree specification](https://shapetrees.org/TR/specification/index.html).
 
