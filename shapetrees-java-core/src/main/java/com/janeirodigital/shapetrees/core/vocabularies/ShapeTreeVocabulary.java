@@ -6,7 +6,6 @@ public final class ShapeTreeVocabulary {
     public static final String HAS_ROOT_SHAPE_TREE_LOCATION = Namespaces.SHAPETREE + "hasRootShapeTreeLocation";
     public static final String HAS_MANAGED_RESOURCE = Namespaces.SHAPETREE + "hasManagedResource";
     public static final String HAS_SHAPE_TREE = Namespaces.SHAPETREE + "hasShapeTree";
-    public static final String HAS_SHAPE_TREE_LOCATOR = Namespaces.SHAPETREE + "hasShapeTreeLocator";
     public static final String SHAPETREE_LOCATOR = Namespaces.SHAPETREE + "ShapeTreeLocator";
     public static final String EXPECTS_TYPE = Namespaces.SHAPETREE + "expectsType";
     public static final String REFERENCES = Namespaces.SHAPETREE + "references";
