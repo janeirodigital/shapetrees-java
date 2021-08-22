@@ -11,6 +11,7 @@ import java.net.URI;
 public interface HttpClient {
     public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, HttpClientHeaders headers,
                                                     String body, String contentType) throws ShapeTreeException;
+    public ShapeTreeResponse fetchShapeTreeResponse(HttpShapeTreeClient.Request request) throws ShapeTreeException;
 
     public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, HttpClientHeaders headers,
                                                     String body, String contentType) throws ShapeTreeException;

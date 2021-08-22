@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
+import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
 import com.janeirodigital.shapetrees.core.HttpClientHeaders;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
@@ -68,6 +69,10 @@ public class OkHttpClient implements HttpClient {
         shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), resourceURI.toString()))));
 
         return shapeTreeResource;
+    }
+
+    public ShapeTreeResponse fetchShapeTreeResponse(HttpShapeTreeClient.Request request) throws ShapeTreeException {
+        return fetchShapeTreeResponse(request.method, request.resourceURI, request.headers, request.body, request.contentType);
     }
 
     /**

@@ -8,6 +8,7 @@ import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -310,5 +311,14 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         return ret;
+    }
+
+    @AllArgsConstructor
+    public class Request {
+        public String method;
+        public URI resourceURI;
+        public HttpClientHeaders headers;
+        public String body;
+        public String contentType;
     }
 }
