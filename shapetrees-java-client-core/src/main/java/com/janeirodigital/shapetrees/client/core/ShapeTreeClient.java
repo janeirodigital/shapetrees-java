@@ -78,7 +78,7 @@ public interface ShapeTreeClient {
      * @throws IOException IOException
      * @throws URISyntaxException URISyntaxException
      */
-    ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
+//    ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
 
     /**
      * Creates a resource via HTTP PUT that has been validated against the provided target shape tree

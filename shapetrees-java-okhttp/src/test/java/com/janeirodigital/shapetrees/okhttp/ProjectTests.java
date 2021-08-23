@@ -134,7 +134,7 @@ class ProjectTests extends BaseShapeTreeTest {
         // Create the projects container as a shape tree instance.
         // 1. Will be validated by the parent DataRepositoryTree planted on /data
         // 2. Will have a locator/location created for it as an instance of DataCollectionTree
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        ShapeTreeResponse response = this.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -187,7 +187,7 @@ class ProjectTests extends BaseShapeTreeTest {
         // Create the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
         // 2. Will have a locator/location created for it as an instance of ProjectTree
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
+        ShapeTreeResponse response = this.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -398,7 +398,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#TaskTree");
 
         // create task-48 in milestone-3 - supply a target shape tree, but not a focus node
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, null, targetShapeTree, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        ShapeTreeResponse response = this.postShapeTreeInstance(context, targetContainer, null, targetShapeTree, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -428,7 +428,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetContainer = getURI(server, "/data/projects/project-1/milestone-3/");
 
         // create task-48 in milestone-3 - don't supply a target shape tree or focus node
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, null, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        ShapeTreeResponse response = this.postShapeTreeInstance(context, targetContainer, null, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -459,7 +459,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI focusNode = getURI(server, "/data/projects/project-1/milestone-3/task-48/#task");
 
         // create task-48 in milestone-3 - supply a focus node but no target shape tree
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, focusNode, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        ShapeTreeResponse response = this.postShapeTreeInstance(context, targetContainer, focusNode, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }

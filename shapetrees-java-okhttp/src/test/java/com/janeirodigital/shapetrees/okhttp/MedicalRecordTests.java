@@ -95,7 +95,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/conditions-container-locator"), "GET", "/ldp/data/conditions/?ext=shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1"), "POST", "/ldp/data/conditions/condition1.ttl", null));
 
-        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
+        ShapeTreeResponse response = this.postShapeTreeInstance(this.context,
                 getURI(server, "/ldp/data/conditions/"),
                 getURI(server, "http://hl7.org/fhir/Condition/example"),
                 getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),
@@ -117,7 +117,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
 
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/conditions-container-locator"), "GET", "/ldp/data/conditions/?ext=shapetree", null));
 
-        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
+        ShapeTreeResponse response = this.postShapeTreeInstance(this.context,
                 getURI(server, "/ldp/data/conditions/"),
                 getURI(server, "http://hl7.org/fhir/Condition/example"),
                 getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),
@@ -142,7 +142,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         // create invalid instance but skip validation
         this.shapeTreeClient.skipShapeTreeValidation(true);
         Assertions.assertTrue(this.shapeTreeClient.isShapeTreeValidationSkipped());
-        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
+        ShapeTreeResponse response = this.postShapeTreeInstance(this.context,
                 getURI(server, "/ldp/data/conditions/"),
                 getURI(server, "http://hl7.org/fhir/Condition/example"),
                 getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),

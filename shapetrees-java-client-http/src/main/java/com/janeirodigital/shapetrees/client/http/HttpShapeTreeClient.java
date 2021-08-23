@@ -151,8 +151,8 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         return fetcher.fetchShapeTreeResponse("PUT", new URI(resource.getMetadataURI()), headers, sw.toString(), "text/turtle");
     }
 
-    @Override
-    public ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
+//    @Override
+    public Request postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
 
         if (context == null || parentContainer == null) {
             throw new IOException("Must provide a valid context and parent container to post shape tree instance");
@@ -163,9 +163,8 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug ("Target Shape Tree: {}", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode.toString());
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
         HttpClientHeaders headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer, proposedResourceName, contentType);
-        return fetcher.fetchShapeTreeResponse("POST", parentContainer, headers, bodyString, contentType);
+        return new Request("POST", parentContainer, headers, bodyString, contentType);
     }
 
     // Create via HTTP PUT
