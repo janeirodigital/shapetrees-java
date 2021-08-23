@@ -19,14 +19,19 @@ import java.net.URISyntaxException;
 @Slf4j
 public abstract class BaseShapeTreeTest {
 
-    protected final JavaHttpClientFactory factory;    protected final HttpShapeTreeClient shapeTreeClient;
+    protected final OkHttpClientFactory factory;
+    protected final HttpShapeTreeClient shapeTreeClient;
     protected final ShapeTreeContext context;
+    protected OkHttpClient fetcher;
     protected static String TEXT_TURTLE = "text/turtle";
 
     public BaseShapeTreeTest() {
-        HttpClientManager.setFactory(new OkHttpClientFactory(false));
-        this.context = new ShapeTreeContext();
+        this.factory = new OkHttpClientFactory(false);
         this.shapeTreeClient = new HttpShapeTreeClient();
+        this.context = new ShapeTreeContext();
+        this.skipShapeTreeValidation(false);
+
+        HttpClientManager.setFactory(this.factory);
     }
     
     protected static void ensureExists(URI uri) throws IOException {
@@ -41,8 +46,15 @@ public abstract class BaseShapeTreeTest {
     }
 
     ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
-        HttpShapeTreeClient.Request request = this.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, proposedResourceName, isContainer, bodyString, contentType);
-        HttpClient fetcher = HttpClientManager.getFactory().get(true);
-        return fetcher.fetchShapeTreeResponse(request);
+        HttpShapeTreeClient.Request request = this.shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, proposedResourceName, isContainer, bodyString, contentType);
+        return this.fetcher.fetchShapeTreeResponse(request);
+    }
+
+    protected void skipShapeTreeValidation(boolean b) {
+        try {
+            this.fetcher = this.factory.get(!b);
+        } catch (ShapeTreeException e) {
+            throw new Error(e);
+        }
     }
 }

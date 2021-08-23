@@ -19,16 +19,19 @@ import java.net.URISyntaxException;
 @Slf4j
 public abstract class BaseShapeTreeTest {
 
+    protected final JavaHttpClientFactory factory;
     protected final HttpShapeTreeClient shapeTreeClient;
     protected final ShapeTreeContext context;
-    protected HttpClient fetcher;
+    protected JavaHttpClient fetcher;
     protected static String TEXT_TURTLE = "text/turtle";
 
     public BaseShapeTreeTest() {
-        HttpClientManager.setFactory(new JavaHttpClientFactory(false));
-        this.context = new ShapeTreeContext();
+        this.factory = new JavaHttpClientFactory(false);
         this.shapeTreeClient = new HttpShapeTreeClient();
+        this.context = new ShapeTreeContext();
         this.skipShapeTreeValidation(false);
+
+        HttpClientManager.setFactory(this.factory);
     }
     
     protected static void ensureExists(URI uri) throws IOException {
@@ -49,7 +52,7 @@ public abstract class BaseShapeTreeTest {
 
     protected void skipShapeTreeValidation(boolean b) {
         try {
-            this.fetcher = HttpClientManager.getFactory().get(!b);
+            this.fetcher = this.factory.get(!b);
         } catch (ShapeTreeException e) {
             throw new Error(e);
         }
