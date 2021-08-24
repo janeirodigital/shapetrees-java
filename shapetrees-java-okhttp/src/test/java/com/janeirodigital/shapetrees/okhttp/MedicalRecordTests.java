@@ -140,8 +140,8 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-create-response"), "POST", "/ldp/data/conditions/", null));
 
         // create invalid instance but skip validation
-        this.shapeTreeClient.skipShapeTreeValidation(true);
-        Assertions.assertTrue(this.shapeTreeClient.isShapeTreeValidationSkipped());
+        this.skipShapeTreeValidation(true);
+//        Assertions.assertTrue(this.shapeTreeClient.isShapeTreeValidationSkipped());
         ShapeTreeResponse response = this.postShapeTreeInstance(this.context,
                 getURI(server, "/ldp/data/conditions/"),
                 getURI(server, "http://hl7.org/fhir/Condition/example"),
