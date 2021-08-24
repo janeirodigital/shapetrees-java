@@ -51,14 +51,14 @@ public class OkHttpClient extends HttpClient {
      * @param headers Request headers used in request associated with response
      * @return ShapeTreeResource instance with contents and response headers from response
      */
-    public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
+    public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
+        okhttp3.Response response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
 
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
 
         shapeTreeResource.setExists(response.isSuccessful());
-        shapeTreeResource.setContainer(isContainerFromHeaders(headers));
-        shapeTreeResource.setType(getResourceTypeFromHeaders(headers));
+        shapeTreeResource.setContainer(isContainerFromHeaders(request.headers));
+        shapeTreeResource.setType(getResourceTypeFromHeaders(request.headers));
 
         try {
             shapeTreeResource.setBody(Objects.requireNonNull(response.body()).string());
@@ -67,7 +67,7 @@ public class OkHttpClient extends HttpClient {
             shapeTreeResource.setBody(null);
         }
         shapeTreeResource.setAttributes(new HttpClientHeaders(response.headers().toMultimap()));
-        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), resourceURI.toString()))));
+        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), request.resourceURI.toString()))));
 
         return shapeTreeResource;
     }

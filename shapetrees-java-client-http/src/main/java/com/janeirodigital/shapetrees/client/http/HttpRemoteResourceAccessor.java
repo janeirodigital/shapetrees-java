@@ -76,7 +76,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, headers.toString());
 
         HttpClient fetcher = HttpClientManager.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(method, resourceURI, headers, body, contentType);
+        return fetcher.fetchShapeTreeResource(new HttpRequest(method, resourceURI, headers, body, contentType));
     }
 
     @Override
@@ -85,7 +85,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
         String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
         HttpClient fetcher = HttpClientManager.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(method, updatedResource.getUri(), updatedResource.getAttributes(), updatedResource.getBody(), contentType);
+        return fetcher.fetchShapeTreeResource(new HttpRequest(method, updatedResource.getUri(), updatedResource.getAttributes(), updatedResource.getBody(), contentType));
     }
 
     @Override

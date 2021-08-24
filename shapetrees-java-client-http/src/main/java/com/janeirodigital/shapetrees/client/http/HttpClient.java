@@ -9,8 +9,7 @@ import java.io.IOException;
 import java.net.URI;
 
 public abstract class HttpClient {
-    public abstract ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, HttpClientHeaders headers,
-                                                             String body, String contentType) throws ShapeTreeException;
+    public abstract ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException;
 
     public abstract ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException;
 
