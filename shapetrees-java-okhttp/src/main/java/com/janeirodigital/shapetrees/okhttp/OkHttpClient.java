@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
+import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
 import com.janeirodigital.shapetrees.core.HttpClientHeaders;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
@@ -75,8 +76,8 @@ public class OkHttpClient extends HttpClient {
      * Maps an OkHttp Response object to a ShapeTreeResponse object
      * @return ShapeTreeResponse with values from OkHttp response
      */
-    public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
+    public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
+        okhttp3.Response response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
 
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {

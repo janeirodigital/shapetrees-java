@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpClientManager;
-import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
+import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.javahttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.javahttp.fixtures.RequestMatchingFixtureDispatcher;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -52,7 +52,7 @@ class TypeTests extends BaseShapeTreeTest {
         ShapeTreeResponse response;
 
         // Provide target shape tree
-        HttpShapeTreeClient.Request request = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/containers/"), null, getURI(server, "/static/shapetrees/type/shapetree#ContainerTree"), "valid-container", true, null, TEXT_TURTLE);
+        HttpRequest request = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/containers/"), null, getURI(server, "/static/shapetrees/type/shapetree#ContainerTree"), "valid-container", true, null, TEXT_TURTLE);
         HttpClient fetcher = HttpClientManager.getFactory().get(true);
         response = fetcher.fetchShapeTreeResponse(request);
         Assertions.assertEquals(201, response.getStatusCode());

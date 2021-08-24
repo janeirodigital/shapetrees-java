@@ -1,10 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
-import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
-import com.janeirodigital.shapetrees.client.http.HttpClientManager;
-import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
+import com.janeirodigital.shapetrees.client.http.*;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
@@ -46,7 +42,7 @@ public abstract class BaseShapeTreeTest {
     }
 
     ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
-        HttpShapeTreeClient.Request request = this.shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, proposedResourceName, isContainer, bodyString, contentType);
+        HttpRequest request = this.shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, proposedResourceName, isContainer, bodyString, contentType);
         return this.fetcher.fetchShapeTreeResponse(request);
     }
 
