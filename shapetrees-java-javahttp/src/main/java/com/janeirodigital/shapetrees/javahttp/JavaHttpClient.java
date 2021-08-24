@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * instance of the JavaHttpClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
  */
 @Slf4j
-public class JavaHttpClient implements HttpClient {
+public class JavaHttpClient extends HttpClient {
     private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
     private static final boolean USE_INTERCEPTOR = false;
@@ -92,10 +92,6 @@ public class JavaHttpClient implements HttpClient {
         shapeTreeResponse.setHeaders(new HttpClientHeaders(response.headers().toMultimap()));
         shapeTreeResponse.setStatusCode(response.code());
         return shapeTreeResponse;
-    }
-
-    public ShapeTreeResponse fetchShapeTreeResponse(HttpShapeTreeClient.Request request) throws ShapeTreeException {
-        return fetchShapeTreeResponse(request.method, request.resourceURI, request.headers, request.body, request.contentType);
     }
 
     public void fetchIntoRemoteResource(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType, HttpRemoteResource remoteResource) throws IOException {

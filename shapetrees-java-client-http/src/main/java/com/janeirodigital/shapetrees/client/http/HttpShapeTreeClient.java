@@ -19,19 +19,19 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 @Slf4j
-public class HttpShapeTreeClient implements ShapeTreeClient {
+public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
 
     private boolean skipShapeTreeValidation = false;
 
     public HttpShapeTreeClient() {
     }
 
-    @Override
+//    @Override
     public boolean isShapeTreeValidationSkipped() {
         return skipShapeTreeValidation;
     }
 
-    @Override
+//    @Override
     public void skipShapeTreeValidation(boolean skipValidation) {
         this.skipShapeTreeValidation = skipValidation;
     }
@@ -49,7 +49,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @return
      * @throws IOException
      */
-    @Override
+//    @Override
     public ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws IOException {
 
         if (targetResource == null) {
@@ -104,7 +104,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @throws IOException
      * @throws URISyntaxException
      */
-    @Override
+//    @Override
     public ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws IOException, URISyntaxException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
@@ -168,7 +168,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     // Create via HTTP PUT
-    @Override
+//    @Override
     public ShapeTreeResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws IOException {
 
         if (context == null || resourceURI == null) {
@@ -185,7 +185,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     // Update via HTTP PUT
-    @Override
+//    @Override
     public ShapeTreeResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String bodyString, String contentType) throws IOException {
 
         if (context == null || resourceURI == null) {
@@ -200,7 +200,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         return fetcher.fetchShapeTreeResponse("PUT", resourceURI, headers, bodyString, contentType);
     }
 
-    @Override
+//    @Override
     public ShapeTreeResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String patchString) throws IOException {
 
         if (context == null || resourceURI == null || patchString == null) {
@@ -218,7 +218,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         return fetcher.fetchShapeTreeResponse("PATCH", resourceURI, headers, patchString, contentType);
     }
 
-    @Override
+//    @Override
     public ShapeTreeResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws IOException {
 
         if (context == null || resourceURI == null) {
@@ -232,7 +232,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         return fetcher.fetchShapeTreeResponse("DELETE", resourceURI, headers,null,null);
     }
 
-    @Override
+//    @Override
     public ShapeTreeResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
