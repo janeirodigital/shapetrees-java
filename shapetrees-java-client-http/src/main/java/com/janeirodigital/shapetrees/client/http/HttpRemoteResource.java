@@ -275,7 +275,7 @@ public class HttpRemoteResource {
 
         try {
             HttpClient fetcher = HttpClientManager.getFactory().get(false);
-            fetcher.fetchIntoRemoteResource("GET", this.uri, null, null, null, this);
+            fetcher.fetchIntoRemoteResource(new HttpRequest("GET", this.uri, null, null, null), this);
             this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);

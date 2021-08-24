@@ -13,7 +13,6 @@ public abstract class HttpClient {
 
     public abstract ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException;
 
-    public abstract void fetchIntoRemoteResource(String method, URI resourceURI, HttpClientHeaders headers,
-                                                 String body, String contentType, HttpRemoteResource remoteResource) throws IOException;
+    public abstract void fetchIntoRemoteResource(HttpRequest response, HttpRemoteResource remoteResource) throws IOException;
 
 }

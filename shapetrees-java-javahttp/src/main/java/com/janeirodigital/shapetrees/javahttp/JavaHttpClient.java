@@ -95,8 +95,8 @@ public class JavaHttpClient extends HttpClient {
         return shapeTreeResponse;
     }
 
-    public void fetchIntoRemoteResource(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType, HttpRemoteResource remoteResource) throws IOException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
+    public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
+        okhttp3.Response response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
 
         remoteResource.setExists(response.code() < 400);
 
