@@ -41,11 +41,6 @@ public abstract class BaseShapeTreeTest {
         return new URI(server.url(path).toString());
     }
 
-    ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
-        HttpRequest request = this.shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, proposedResourceName, isContainer, bodyString, contentType);
-        return this.fetcher.fetchShapeTreeResponse(request);
-    }
-
     protected void skipShapeTreeValidation(boolean b) {
         try {
             this.fetcher = this.factory.get(!b);
