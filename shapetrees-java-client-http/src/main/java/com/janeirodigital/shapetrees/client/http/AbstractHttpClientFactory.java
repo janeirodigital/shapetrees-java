@@ -1,10 +1,16 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import lombok.Getter;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.Setter;
 import lombok.Synchronized;
 
 public abstract class AbstractHttpClientFactory {
-    @Setter(onMethod_={@Synchronized}) @Getter(onMethod_={@Synchronized})
+    @Setter(onMethod_={@Synchronized})
     private static HttpClientFactory factory;
+
+    @Synchronized
+    public static HttpClientFactory getFactory() throws ShapeTreeException {
+        if (factory == null) { throw new ShapeTreeException(500, "Must provide a valid HTTP client factory"); }
+        return AbstractHttpClientFactory.factory;
+    }
 }
