@@ -145,9 +145,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         HttpClientHeaders headers = new HttpClientHeaders();
-        if (context.getAuthorizationHeaderValue() != null) {
-            headers.set(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        }
+        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         return fetcher.fetchShapeTreeResponse("PUT", new URI(resource.getMetadataURI()), headers, sw.toString(), "text/turtle");
     }
 

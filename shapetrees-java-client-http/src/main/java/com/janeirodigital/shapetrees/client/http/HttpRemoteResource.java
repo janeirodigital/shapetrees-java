@@ -208,9 +208,7 @@ public class HttpRemoteResource {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         HttpClientHeaders headers = new HttpClientHeaders();
-        if (authorizationHeaderValue != null) {
-            headers.set(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
-        }
+        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
         fetcher.fetchShapeTreeResponse("PUT", this.uri, headers, sw.toString(), TEXT_TURTLE);
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
@@ -277,9 +275,7 @@ public class HttpRemoteResource {
         try {
             HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
             HttpClientHeaders headers = new HttpClientHeaders();
-            if (authorizationHeaderValue != null) {
-                headers.set(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
-            }
+            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
             fetcher.fetchIntoRemoteResource("GET", this.uri, headers, null, null, this);
             this.invalidated = false;
         } catch (Exception e) {
