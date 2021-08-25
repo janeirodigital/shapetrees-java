@@ -1,7 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.HttpClientHeaders;
-import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
@@ -179,7 +178,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
         HttpClient fetcher = HttpClientManager.getFactory().get(!skipShapeTreeValidation);
-        HttpClientHeaders headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer,null, contentType);
+        HttpClientHeaders headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer, null, contentType);
         return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURI, headers, bodyString, contentType));
     }
 
