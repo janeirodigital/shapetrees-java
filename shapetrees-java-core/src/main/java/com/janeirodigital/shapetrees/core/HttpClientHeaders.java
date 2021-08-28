@@ -84,7 +84,7 @@ public class HttpClientHeaders {
             return this;
         }
         HttpClientHeaders ret = copy();
-        maybeSet(attr, value);
+        ret.maybeSet(attr, value);
         return ret;
     }
 
@@ -100,7 +100,7 @@ public class HttpClientHeaders {
 
         if (myMapOfLists.containsKey(attr)) {
             myMapOfLists.get(attr).add(value);
-            } else {
+        } else {
             ArrayList<String> list = new ArrayList<String>();
             list.add(value);
             myMapOfLists.put(attr, list);

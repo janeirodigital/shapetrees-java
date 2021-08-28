@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.core.HttpClientHeaders;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
+import com.janeirodigital.shapetrees.core.HttpClientHeaders;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
@@ -10,32 +10,27 @@ import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
-//import okhttp3.Call;
-//import okhttp3.Headers;
-//import okhttp3.Request;
-//import okhttp3.ResponseBody;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
-
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 
 /**
- * OkHttp documentation (https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#okhttpclients-should-be-shared)
- * recommends that instance of the client be shared/reused.  JavaHttpClient's getForConfig provides an
- * instance of the JavaHttpClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
+ * java.net.http implementation of HttpClient
  */
 @Slf4j
 public class JavaHttpClient implements HttpClient {
-    private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
-
     private static final boolean USE_INTERCEPTOR = false;
-    private okhttp3.OkHttpClient httpClient;
+    private java.net.http.HttpClient httpClient;
     private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
 
     private static final String GET = "GET";
@@ -47,111 +42,119 @@ public class JavaHttpClient implements HttpClient {
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
     /**
-     * Maps an OkHttp Response object to a ShapeTreeResource object
-     * @param response OkHttp Response object
+     * Maps a java.net.http.HttpResponse object to a ShapeTreeResource object
+     * @param response java.net.http.HttpResponse object
      * @param resourceURI URI of request associated with response
      * @param headers Request headers used in request associated with response
      * @return ShapeTreeResource instance with contents and response headers from response
      */
     public ShapeTreeResource fetchShapeTreeResource(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
+        java.net.http.HttpResponse response = fetch(method, resourceURI, headers, body, contentType);
 
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
 
-        shapeTreeResource.setExists(response.isSuccessful());
+        shapeTreeResource.setExists(response.statusCode()/100 == 2);
         shapeTreeResource.setContainer(isContainerFromHeaders(headers));
         shapeTreeResource.setType(getResourceTypeFromHeaders(headers));
 
         try {
-            shapeTreeResource.setBody(Objects.requireNonNull(response.body()).string());
-        } catch (IOException | NullPointerException ex) {
+            shapeTreeResource.setBody(Objects.requireNonNull(response.body()).toString());
+        } catch (NullPointerException ex) {
             log.error("Exception retrieving body string");
             shapeTreeResource.setBody(null);
         }
-        shapeTreeResource.setAttributes(new HttpClientHeaders(response.headers().toMultimap()));
-        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), resourceURI.toString()))));
+        shapeTreeResource.setAttributes(new HttpClientHeaders(response.headers().map()));
+        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.headers().firstValue(HttpHeaders.LOCATION.getValue()).orElse(resourceURI.toString()))));
 
         return shapeTreeResource;
     }
 
     /**
-     * Maps an OkHttp Response object to a ShapeTreeResponse object
-     * @return ShapeTreeResponse with values from OkHttp response
+     * Maps an HttpResponse object to a ShapeTreeResponse object
+     * @return ShapeTreeResponse with values from HttpResponse
      */
     public ShapeTreeResponse fetchShapeTreeResponse(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
+        java.net.http.HttpResponse response = fetch(method, resourceURI, headers, body, contentType);
 
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {
-            shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).string());
-        } catch (IOException | NullPointerException ex) {
+            shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).toString());
+        } catch (NullPointerException ex) {
             log.error("Exception retrieving body string");
             shapeTreeResponse.setBody(null);
         }
-        shapeTreeResponse.setHeaders(new HttpClientHeaders(response.headers().toMultimap()));
-        shapeTreeResponse.setStatusCode(response.code());
+        shapeTreeResponse.setHeaders(new HttpClientHeaders(response.headers().map()));
+        shapeTreeResponse.setStatusCode(response.statusCode());
         return shapeTreeResponse;
     }
 
     public void fetchIntoRemoteResource(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType, HttpRemoteResource remoteResource) throws IOException {
-        okhttp3.Response response = fetch(method, resourceURI, headers, body, contentType);
+        java.net.http.HttpResponse response = fetch(method, resourceURI, headers, body, contentType);
 
-        remoteResource.setExists(response.code() < 400);
+        remoteResource.setExists(response.statusCode() < 400);
 
         // Parse the headers for ease of use later
-        HttpClientHeaders parsedHeaders = new HttpClientHeaders(response.headers().toMultimap());
+        HttpClientHeaders parsedHeaders = new HttpClientHeaders(response.headers().map());
         remoteResource.setResponseHeaders(parsedHeaders);
 
         // We especially care about Link headers which require extra parsing of the rel values
         if (parsedHeaders.get(HttpHeaders.LINK.getValue()) != null) {
-            remoteResource.setParsedLinkHeaders(HttpClientHeaders.parseLinkHeaders(response.headers(HttpHeaders.LINK.getValue())));
+            remoteResource.setParsedLinkHeaders(HttpClientHeaders.parseLinkHeaders(response.headers().allValues(HttpHeaders.LINK.getValue())));
         } else {
             remoteResource.setParsedLinkHeaders(new HttpClientHeaders());
         }
 
         // Save raw body
-        try (okhttp3.ResponseBody respBody = response.body()) {
-            remoteResource.setRawBody(respBody.string());
-        }
-    }
-
-    /**
-     * Converts "multi map" representation of headers to the OkHttp Headers class
-     * public for JavaHttpValidatingShapeTreeInterceptor.createResponse
-     * @param headers Multi-map representation of headers
-     * @return OkHttp Headers object
-     */
-    public static okhttp3.Headers convertHeaders(HttpClientHeaders headers) {
-        okhttp3.Headers.Builder okHttpHeaders = new okhttp3.Headers.Builder();
-        for (Map.Entry<String, List<String>> entry : headers.entrySet()){
-            for (String value : entry.getValue()) {
-                okHttpHeaders.add(entry.getKey(), value);
-            }
-        }
-        return okHttpHeaders.build();
+        String respBody = Objects.requireNonNull(response.body()).toString();
+        remoteResource.setRawBody(respBody);
     }
 
     // constructor and its helpers
     protected JavaHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
-        okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
+        java.net.http.HttpClient.Builder clientBuilder = java.net.http.HttpClient.newBuilder();
         validatingWrapper = null;
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
-            if (USE_INTERCEPTOR) {
-                clientBuilder.interceptors().add(new JavaHttpValidatingShapeTreeInterceptor());
-            } else {
-                validatingWrapper = new JavaHttpValidatingShapeTreeInterceptor();
-            }
+            validatingWrapper = new JavaHttpValidatingShapeTreeInterceptor();
         }
         if (Boolean.FALSE.equals(useSslValidation)) {
-            // Install the all-trusting trust manager
-            final SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-            TrustManager[] trustAllCerts = getTrustAllCertsManager();
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-            // Create an ssl socket factory with our all-trusting manager
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            TrustManager[] trustAllCerts = new TrustManager[] {
+                    new X509TrustManager() {
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return null;
+                        }
+                        @Override
+                        public void checkClientTrusted(X509Certificate[] arg0, String arg1)
+                                throws CertificateException {}
 
-            clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
-                    .hostnameVerifier(getTrustAllHostnameVerifier());
+                        @Override
+                        public void checkServerTrusted(X509Certificate[] arg0, String arg1)
+                                throws CertificateException {}
+
+                    }
+            };
+
+            SSLContext sc=null;
+            try {
+                sc = SSLContext.getInstance("SSL");
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            try {
+                sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            } catch (KeyManagementException e) {
+                e.printStackTrace();
+            }
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            // Create all-trusting host name verifier
+            HostnameVerifier validHosts = new HostnameVerifier() {
+                @Override
+                public boolean verify(String arg0, SSLSession arg1) {
+                    return true;
+                }
+            };
+            // All hosts will be valid
+            HttpsURLConnection.setDefaultHostnameVerifier(validHosts);
         }
         httpClient = clientBuilder.build();
     }
@@ -183,38 +186,49 @@ public class JavaHttpClient implements HttpClient {
     }
 
     // http functions
-    private okhttp3.Response fetch(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
+    private java.net.http.HttpResponse fetch(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
         if (body == null)
             body = "";
 
         try {
-            okhttp3.Request.Builder okHttpReqBuilder = new okhttp3.Request.Builder();
-            okHttpReqBuilder.url(resourceURI.toURL());
+            java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder();
+            requestBuilder.uri(resourceURI);
 
             if (headers != null) {
-                okHttpReqBuilder.headers(convertHeaders(headers));
+                for (Map.Entry<String, List<String>> entry : headers.entrySet()){
+                    for (String value : entry.getValue()) {
+                        try {
+                            requestBuilder.header(entry.getKey(), value);
+                        } catch (IllegalArgumentException ex) {
+                            // current illegal client headers: connection, content-length, date, expect, from, host, upgrade, via, warning
+                        }
+                    }
+                }
             }
 
             switch (method) {
 
                 case GET:
-                    okHttpReqBuilder.get();
+                    requestBuilder.GET();
                     break;
 
                 case PUT:
-                    okHttpReqBuilder.put(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.PUT(java.net.http.HttpRequest.BodyPublishers.ofString(body));
+                    requestBuilder.header("Content-Type", contentType);
                     break;
 
                 case POST:
-                    okHttpReqBuilder.post(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.POST(java.net.http.HttpRequest.BodyPublishers.ofString(body));
+                    requestBuilder.header("Content-Type", contentType);
                     break;
 
                 case PATCH:
-                    okHttpReqBuilder.patch(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.method("PATCH", java.net.http.HttpRequest.BodyPublishers.ofString(body));
+                    requestBuilder.header("Content-Type", contentType);
                     break;
 
                 case DELETE:
-                    okHttpReqBuilder.delete();
+                    requestBuilder.DELETE();
                     break;
 
                 default:
@@ -222,13 +236,13 @@ public class JavaHttpClient implements HttpClient {
 
             }
 
-            okhttp3.Request okHttpRequest = okHttpReqBuilder.build();
+            java.net.http.HttpRequest request = requestBuilder.build();
             if (validatingWrapper == null) {
-                return httpClient.newCall(okHttpRequest).execute();
+                return httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
             } else {
-                return validatingWrapper.validatingWrap(okHttpRequest, httpClient);
+                return validatingWrapper.validatingWrap(request, httpClient, body, contentType);
             }
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
     }
@@ -264,7 +278,7 @@ public class JavaHttpClient implements HttpClient {
         }
 
         if (requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()) != null &&
-            supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase()).get(0))) {
+            supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()).get(0))) {
             return ShapeTreeResourceType.RESOURCE;
         }
         return ShapeTreeResourceType.NON_RDF;

@@ -97,7 +97,7 @@ public class ShapeTree {
     }
 
     public ValidationResult validateGraph(Graph graph, URI focusNodeURI) throws IOException, URISyntaxException {
-
+        // if (true) return new ValidationResult(true, this, this, focusNodeURI); // [debug] ShExC parser brings debugger to its knees
         if (this.shape == null) {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
         }
