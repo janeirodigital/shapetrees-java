@@ -75,8 +75,9 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, headers.toString());
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(new HttpRequest(method, resourceURI, headers, body, contentType));
+        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        HttpClientHeaders allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        return fetcher.fetchShapeTreeResource(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
     }
 
     @Override
@@ -84,15 +85,16 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
         String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
-        HttpClient fetcher = HttpClientManager.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(new HttpRequest(method, updatedResource.getUri(), updatedResource.getAttributes(), updatedResource.getBody(), contentType));
+        HttpClientHeaders allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        return fetcher.fetchShapeTreeResource(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
     }
 
     @Override
     public ShapeTreeResponse deleteResource(ShapeTreeContext context, ShapeTreeResource deletedResource) throws ShapeTreeException {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
-        HttpClient fetcher = HttpClientManager.getFactory().get(false);
+        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         HttpClientHeaders allHeaders = deletedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         ShapeTreeResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", deletedResource.getUri(), allHeaders, null, null));
         int respCode = response.getStatusCode();

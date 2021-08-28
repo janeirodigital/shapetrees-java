@@ -1,8 +1,5 @@
 package com.janeirodigital.shapetrees.javahttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.client.http.HttpClientManager;
-import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.javahttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.javahttp.fixtures.RequestMatchingFixtureDispatcher;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
