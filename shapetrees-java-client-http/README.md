@@ -28,7 +28,7 @@ to set the global HttpClient factory. After that,
 
 **Disable client-side Shape Tree validation**
 
-`client.skipShapeTreeValidation(true);`
+`client.useClientShapeTreeValidation(false);`
 
 ## Client-side Validation
 Client-side validation is accomplished by intercepting requests from `HttpShapeTreeClient`. For example the <a href="{@docRoot}/shapetrees-java-okhttp/README">shapetrees-java-okhttp</a> uses a native <a href="https://square.github.io/okhttp/interceptors/">OkHttp interceptor</a>. 

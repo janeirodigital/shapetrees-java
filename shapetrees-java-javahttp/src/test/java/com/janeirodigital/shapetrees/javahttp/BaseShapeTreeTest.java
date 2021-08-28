@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
+import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
-import com.janeirodigital.shapetrees.client.http.HttpClientManager;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public abstract class BaseShapeTreeTest {
     protected static String TEXT_TURTLE = "text/turtle";
 
     public BaseShapeTreeTest() {
-        HttpClientManager.setFactory(new JavaHttpClientFactory(false));
+        AbstractHttpClientFactory.setFactory(new JavaHttpClientFactory(false));
         this.context = new ShapeTreeContext();
         this.shapeTreeClient = new HttpShapeTreeClient();
     }

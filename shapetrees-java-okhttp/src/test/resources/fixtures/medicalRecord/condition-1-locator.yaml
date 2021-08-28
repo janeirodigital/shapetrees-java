@@ -9,9 +9,6 @@ body: >
   PREFIX ex: <http://www.example.com/ns/ex#>
 
   <>
-    <http://www.w3.org/ns/shapetrees#hasShapeTreeLocator> <#locator> .
-
-  <#locator>
     a st:ShapeTreeLocator ;
     st:location <#ln1> .
 

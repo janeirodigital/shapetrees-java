@@ -206,11 +206,9 @@ public class HttpRemoteResource {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
-        HttpClientFactory f = HttpClientManager.getFactory();
-        HttpClient fetcher = f.get(false);
+        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         HttpClientHeaders headers = new HttpClientHeaders(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
-        fetcher.fetchShapeTreeResponse("PUT", this.uri, headers, sw.toString(), "text/turtle");
-        // get media type from TEXT_TURTLE ?
+        fetcher.fetchShapeTreeResponse("PUT", this.uri, headers, sw.toString(), TEXT_TURTLE);
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
@@ -274,8 +272,10 @@ public class HttpRemoteResource {
         log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
 
         try {
-            HttpClient fetcher = HttpClientManager.getFactory().get(false);
-            fetcher.fetchIntoRemoteResource("GET", this.uri, null, null, null, this);
+            HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+            HttpClientHeaders headers = new HttpClientHeaders();
+            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+            fetcher.fetchIntoRemoteResource("GET", this.uri, headers, null, null, this);
             this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);
