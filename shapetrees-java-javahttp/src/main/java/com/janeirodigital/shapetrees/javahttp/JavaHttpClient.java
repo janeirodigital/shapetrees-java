@@ -36,14 +36,6 @@ public class JavaHttpClient extends HttpClient {
     private java.net.http.HttpClient httpClient;
     private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
 
-    private static final String GET = "GET";
-    private static final String PUT = "PUT";
-    private static final String POST = "POST";
-    private static final String PATCH = "PATCH";
-    private static final String DELETE = "DELETE";
-
-    protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
-
     /**
      * Maps a java.net.http.HttpResponse object to a ShapeTreeResource object
      * @param response java.net.http.HttpResponse object
@@ -248,42 +240,5 @@ public class JavaHttpClient extends HttpClient {
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
-    }
-
-    // header helpers
-    private static boolean isContainerFromHeaders(HttpClientHeaders requestHeaders) {
-
-        List<String> linkHeaders = requestHeaders.get(HttpHeaders.LINK.getValue());
-
-        if (linkHeaders == null) { return false; }
-
-        HttpClientHeaders parsedLinkHeaders = HttpClientHeaders.parseLinkHeaders(linkHeaders);
-
-        if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null) {
-            return parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
-                    parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER);
-        }
-        return false;
-    }
-
-    private static ShapeTreeResourceType getResourceTypeFromHeaders(HttpClientHeaders requestHeaders) {
-
-        List<String> linkHeaders = requestHeaders.get(HttpHeaders.LINK.getValue());
-
-        if (linkHeaders == null) { return null; }
-
-        HttpClientHeaders parsedLinkHeaders = HttpClientHeaders.parseLinkHeaders(linkHeaders);
-
-        if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null &&
-           (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
-            parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER))) {
-            return ShapeTreeResourceType.CONTAINER;
-        }
-
-        if (requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()) != null &&
-            supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()).get(0))) {
-            return ShapeTreeResourceType.RESOURCE;
-        }
-        return ShapeTreeResourceType.NON_RDF;
     }
 }
