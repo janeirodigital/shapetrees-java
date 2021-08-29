@@ -44,7 +44,7 @@ public class OkHttpClient extends HttpClient {
      * @return ShapeTreeResource instance with contents and response headers from response
      */
     public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
-        okhttp3.Response response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
+        okhttp3.Response response = fetch(request);
 
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
 
@@ -69,7 +69,7 @@ public class OkHttpClient extends HttpClient {
      * @return ShapeTreeResponse with values from OkHttp response
      */
     public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
-        okhttp3.Response response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
+        okhttp3.Response response = fetch(request);
 
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {
@@ -84,7 +84,7 @@ public class OkHttpClient extends HttpClient {
     }
 
     public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
-        okhttp3.Response response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
+        okhttp3.Response response = fetch(request);
 
         remoteResource.setExists(response.code() < 400);
 
@@ -168,34 +168,34 @@ public class OkHttpClient extends HttpClient {
     }
 
     // http functions
-    private okhttp3.Response fetch(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
-        if (body == null)
-            body = "";
+    private okhttp3.Response fetch(HttpRequest request) throws ShapeTreeException {
+        if (request.body == null)
+            request.body = "";
 
         try {
             okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder();
-            requestBuilder.url(resourceURI.toURL());
+            requestBuilder.url(request.resourceURI.toURL());
 
-            if (headers != null) {
-                requestBuilder.headers(convertHeaders(headers));
+            if (request.headers != null) {
+                requestBuilder.headers(convertHeaders(request.headers));
             }
 
-            switch (method) {
+            switch (request.method) {
 
                 case GET:
                     requestBuilder.get();
                     break;
 
                 case PUT:
-                    requestBuilder.put(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.put(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
                 case POST:
-                    requestBuilder.post(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.post(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
                 case PATCH:
-                    requestBuilder.patch(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.patch(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
                 case DELETE:

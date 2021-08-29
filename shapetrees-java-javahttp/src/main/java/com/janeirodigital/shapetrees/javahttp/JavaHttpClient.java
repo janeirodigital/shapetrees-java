@@ -44,7 +44,7 @@ public class JavaHttpClient extends HttpClient {
      * @return ShapeTreeResource instance with contents and response headers from response
      */
     public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
-        java.net.http.HttpResponse response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
+        java.net.http.HttpResponse response = fetch(request);
 
         ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
 
@@ -69,7 +69,7 @@ public class JavaHttpClient extends HttpClient {
      * @return ShapeTreeResponse with values from HttpResponse
      */
     public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
-        java.net.http.HttpResponse response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
+        java.net.http.HttpResponse response = fetch(request);
 
         ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
         try {
@@ -84,7 +84,7 @@ public class JavaHttpClient extends HttpClient {
     }
 
     public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
-        java.net.http.HttpResponse response = fetch(request.method, request.resourceURI, request.headers, request.body, request.contentType);
+        java.net.http.HttpResponse response = fetch(request);
 
         remoteResource.setExists(response.statusCode() < 400);
 
@@ -181,16 +181,16 @@ public class JavaHttpClient extends HttpClient {
     }
 
     // http functions
-    private java.net.http.HttpResponse fetch(String method, URI resourceURI, HttpClientHeaders headers, String body, String contentType) throws ShapeTreeException {
-        if (body == null)
-            body = "";
+    private java.net.http.HttpResponse fetch(HttpRequest request) throws ShapeTreeException {
+        if (request.body == null)
+            request.body = "";
 
         try {
             java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder();
-            requestBuilder.uri(resourceURI);
+            requestBuilder.uri(request.resourceURI);
 
-            if (headers != null) {
-                for (Map.Entry<String, List<String>> entry : headers.entrySet()){
+            if (request.headers != null) {
+                for (Map.Entry<String, List<String>> entry : request.headers.entrySet()){
                     for (String value : entry.getValue()) {
                         try {
                             requestBuilder.header(entry.getKey(), value);
@@ -201,25 +201,25 @@ public class JavaHttpClient extends HttpClient {
                 }
             }
 
-            switch (method) {
+            switch (request.method) {
 
                 case GET:
                     requestBuilder.GET();
                     break;
 
                 case PUT:
-                    requestBuilder.PUT(java.net.http.HttpRequest.BodyPublishers.ofString(body));
-                    requestBuilder.header("Content-Type", contentType);
+                    requestBuilder.PUT(java.net.http.HttpRequest.BodyPublishers.ofString(request.body));
+                    requestBuilder.header("Content-Type", request.contentType);
                     break;
 
                 case POST:
-                    requestBuilder.POST(java.net.http.HttpRequest.BodyPublishers.ofString(body));
-                    requestBuilder.header("Content-Type", contentType);
+                    requestBuilder.POST(java.net.http.HttpRequest.BodyPublishers.ofString(request.body));
+                    requestBuilder.header("Content-Type", request.contentType);
                     break;
 
                 case PATCH:
-                    requestBuilder.method("PATCH", java.net.http.HttpRequest.BodyPublishers.ofString(body));
-                    requestBuilder.header("Content-Type", contentType);
+                    requestBuilder.method("PATCH", java.net.http.HttpRequest.BodyPublishers.ofString(request.body));
+                    requestBuilder.header("Content-Type", request.contentType);
                     break;
 
                 case DELETE:
@@ -231,11 +231,11 @@ public class JavaHttpClient extends HttpClient {
 
             }
 
-            java.net.http.HttpRequest request = requestBuilder.build();
+            java.net.http.HttpRequest nativeRequest = requestBuilder.build();
             if (validatingWrapper == null) {
-                return httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+                return httpClient.send(nativeRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
             } else {
-                return validatingWrapper.validatingWrap(request, httpClient, body, contentType);
+                return validatingWrapper.validatingWrap(nativeRequest, httpClient, request.body, request.contentType);
             }
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
