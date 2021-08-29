@@ -105,7 +105,7 @@ public class JavaHttpClient implements HttpClient {
         }
 
         // Save raw body
-        String respBody = Objects.requireNonNull(response.body()).toString();
+        String respBody = Objects.requireNonNull(response.body()).toString(); // @@ is requireNull useful here?
         remoteResource.setRawBody(respBody);
     }
 
@@ -278,7 +278,7 @@ public class JavaHttpClient implements HttpClient {
         }
 
         if (requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()) != null &&
-            supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()).get(0))) {
+            supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase()).get(0))) {
             return ShapeTreeResourceType.RESOURCE;
         }
         return ShapeTreeResourceType.NON_RDF;
