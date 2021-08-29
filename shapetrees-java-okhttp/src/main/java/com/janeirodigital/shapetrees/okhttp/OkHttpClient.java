@@ -181,33 +181,33 @@ public class OkHttpClient extends HttpClient {
             body = "";
 
         try {
-            okhttp3.Request.Builder ohHttpReqBuilder = new okhttp3.Request.Builder();
-            ohHttpReqBuilder.url(resourceURI.toURL());
+            okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder();
+            requestBuilder.url(resourceURI.toURL());
 
             if (headers != null) {
-                ohHttpReqBuilder.headers(convertHeaders(headers));
+                requestBuilder.headers(convertHeaders(headers));
             }
 
             switch (method) {
 
                 case GET:
-                    ohHttpReqBuilder.get();
+                    requestBuilder.get();
                     break;
 
                 case PUT:
-                    ohHttpReqBuilder.put(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.put(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
                     break;
 
                 case POST:
-                    ohHttpReqBuilder.post(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.post(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
                     break;
 
                 case PATCH:
-                    ohHttpReqBuilder.patch(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
+                    requestBuilder.patch(okhttp3.RequestBody.create(body, okhttp3.MediaType.get(contentType)));
                     break;
 
                 case DELETE:
-                    ohHttpReqBuilder.delete();
+                    requestBuilder.delete();
                     break;
 
                 default:
@@ -215,7 +215,7 @@ public class OkHttpClient extends HttpClient {
 
             }
 
-            return httpClient.newCall(ohHttpReqBuilder.build()).execute();
+            return httpClient.newCall(requestBuilder.build()).execute();
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }

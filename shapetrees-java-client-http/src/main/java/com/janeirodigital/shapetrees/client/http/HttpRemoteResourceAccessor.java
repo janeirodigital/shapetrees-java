@@ -85,6 +85,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
         String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
+        // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         HttpClientHeaders allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         return fetcher.fetchShapeTreeResource(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
