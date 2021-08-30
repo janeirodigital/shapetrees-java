@@ -2,16 +2,12 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
-import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
 import com.janeirodigital.shapetrees.core.HttpClientHeaders;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
-import com.janeirodigital.shapetrees.core.enums.LinkRelations;
-import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import okhttp3.Headers;
 import okhttp3.ResponseBody;
 
@@ -22,7 +18,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -111,7 +106,7 @@ public class OkHttpClient extends HttpClient {
      * @param headers Multi-map representation of headers
      * @return OkHttp Headers object
      */
-    public static Headers convertHeaders(HttpClientHeaders headers) {
+    public static Headers toNativeHeaders(HttpClientHeaders headers) {
         Headers.Builder okHttpHeaders = new Headers.Builder();
         for (Map.Entry<String, List<String>> entry : headers.entrySet()){
             for (String value : entry.getValue()) {
@@ -177,7 +172,7 @@ public class OkHttpClient extends HttpClient {
             requestBuilder.url(request.resourceURI.toURL());
 
             if (request.headers != null) {
-                requestBuilder.headers(convertHeaders(request.headers));
+                requestBuilder.headers(toNativeHeaders(request.headers));
             }
 
             switch (request.method) {

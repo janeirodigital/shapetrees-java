@@ -13,8 +13,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -99,12 +100,9 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
-        Headers headers = OkHttpClient.convertHeaders(response.getResponseHeaders());
-        builder.headers(headers);
-        String contentType = headers.get("Content-Type");
-        if (contentType == null) {
-            contentType = "text/turtle";
-        }
+        HttpClientHeaders responseHeaders = response.getResponseHeaders();
+        builder.headers(OkHttpClient.toNativeHeaders(responseHeaders));
+        String contentType = responseHeaders.computeIfAbsent(HttpHeaders.CONTENT_TYPE.getValue(), x -> new ArrayList<String>(Arrays.asList("text/turtle"))).stream().findFirst().orElseThrow();
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
@@ -155,7 +153,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         @Override
         public String getContentType() {
             if (this.getHeaders().containsKey(HttpHeaders.CONTENT_TYPE.getValue())) {
-                return this.getHeaders().get(HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElse(null);
+                return this.getHeaders().get(HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElseThrow();
             }
             return null;
         }
