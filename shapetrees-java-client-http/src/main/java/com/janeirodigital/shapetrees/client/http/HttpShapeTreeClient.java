@@ -1,10 +1,8 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.HttpClientHeaders;
+import com.janeirodigital.shapetrees.core.HttpHeaders;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
-import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
@@ -143,8 +141,8 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
 
         // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        HttpClientHeaders headers = new HttpClientHeaders();
-        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        HttpHeaders headers = new HttpHeaders();
+        headers.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", new URI(resource.getMetadataURI()), headers, sw.toString(), "text/turtle"));
     }
 
@@ -161,7 +159,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        HttpClientHeaders headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer, proposedResourceName, contentType);
+        HttpHeaders headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer, proposedResourceName, contentType);
         return fetcher.fetchShapeTreeResponse(new HttpRequest("POST", parentContainer, headers, bodyString, contentType));
     }
 
@@ -178,7 +176,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        HttpClientHeaders headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer,null, contentType);
+        HttpHeaders headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer,null, contentType);
         return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURI, headers, bodyString, contentType));
     }
 
@@ -194,7 +192,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        HttpClientHeaders headers = getCommonHeaders(context, focusNode, null, null, null, contentType);
+        HttpHeaders headers = getCommonHeaders(context, focusNode, null, null, null, contentType);
         return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURI, headers, bodyString, contentType));
     }
 
@@ -212,7 +210,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         String contentType = "application/sparql-update";
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        HttpClientHeaders headers = getCommonHeaders(context, focusNode, null, null, null, contentType);
+        HttpHeaders headers = getCommonHeaders(context, focusNode, null, null, null, contentType);
         return fetcher.fetchShapeTreeResponse(new HttpRequest("PATCH", resourceURI, headers, patchString, contentType));
     }
 
@@ -226,7 +224,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         log.debug("DELETE-ing shape tree instance at {}", resourceURI);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        HttpClientHeaders headers = getCommonHeaders(context, null, null, null, null, null);
+        HttpHeaders headers = getCommonHeaders(context, null, null, null, null, null);
         return fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", resourceURI, headers,null,null));
     }
 
@@ -281,32 +279,32 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
                                               body, contentType));
     }
 
-    private HttpClientHeaders getCommonHeaders(ShapeTreeContext context, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
-        HttpClientHeaders ret = new HttpClientHeaders();
+    private HttpHeaders getCommonHeaders(ShapeTreeContext context, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
+        HttpHeaders ret = new HttpHeaders();
 
         if (context.getAuthorizationHeaderValue() != null) {
-            ret.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         }
 
         if (isContainer != null) {
             String resourceTypeUri = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
+            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
         }
 
         if (focusNode != null) {
-            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
+            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
         }
 
         if (targetShapeTree != null) {
-            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
+            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
         }
 
         if (proposedResourceName != null) {
-            ret.maybeSet(HttpHeaders.SLUG.getValue(), proposedResourceName);
+            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.SLUG.getValue(), proposedResourceName);
         }
 
         if (contentType != null) {
-            ret.maybeSet(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
+            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue(), contentType);
         }
 
         return ret;

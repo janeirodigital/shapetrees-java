@@ -16,13 +16,13 @@ import java.util.regex.Pattern;
  * parseLinkHeaders(List<String> headerValues) factory which includes logic for HTTP Link headers.
  */
 @Slf4j
-public class HttpClientHeaders {
+public class HttpHeaders {
     Map<String, List<String>> myMapOfLists = new HashMap<>();
 
     /**
      * construct an empty HttpClientHeaders container
      */
-    public HttpClientHeaders() {
+    public HttpHeaders() {
     }
 
     /**
@@ -30,7 +30,7 @@ public class HttpClientHeaders {
      * @param attr attribute (header) name to set
      * @param value String value to assign to attr
      */
-    public HttpClientHeaders(String attr, String value) throws ShapeTreeException {
+    public HttpHeaders(String attr, String value) throws ShapeTreeException {
         this.maybeSet(attr, value);
     }
 
@@ -38,7 +38,7 @@ public class HttpClientHeaders {
      * replace current map with passed map.
      * @param newMap replacement for myMapOfLists
      */
-    public HttpClientHeaders(Map<String, List<String>> newMap) {
+    public HttpHeaders(Map<String, List<String>> newMap) {
         this.myMapOfLists = newMap;
     }
 
@@ -48,8 +48,8 @@ public class HttpClientHeaders {
      * @param headerValues Header values for Link headers
      * @return subset of this matching the pattern
      */
-    public static HttpClientHeaders parseLinkHeaders(List<String> headerValues) {
-        HttpClientHeaders linkHeaderMap = new HttpClientHeaders();
+    public static HttpHeaders parseLinkHeaders(List<String> headerValues) {
+        HttpHeaders linkHeaderMap = new HttpHeaders();
         for (String headerValue : headerValues) {
             Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
             if (matcher.matches() && matcher.groupCount() >= 2) {
@@ -65,8 +65,8 @@ public class HttpClientHeaders {
     }
 
     // copy constructor
-    private HttpClientHeaders copy() {
-        HttpClientHeaders ret = new HttpClientHeaders();
+    private HttpHeaders copy() {
+        HttpHeaders ret = new HttpHeaders();
         for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
             ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }
@@ -79,11 +79,11 @@ public class HttpClientHeaders {
      * @param value String value to assign to attr
      * @returns original HttpClientHeaders if no change is made; otherwise a new copy.
      */
-    public HttpClientHeaders maybePlus(String attr, String value) {
+    public HttpHeaders maybePlus(String attr, String value) {
         if (attr == null || value == null) {
             return this;
         }
-        HttpClientHeaders ret = copy();
+        HttpHeaders ret = copy();
         ret.maybeSet(attr, value);
         return ret;
     }

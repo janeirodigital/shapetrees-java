@@ -2,11 +2,10 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
-import com.janeirodigital.shapetrees.core.HttpClientHeaders;
+import com.janeirodigital.shapetrees.core.HttpHeaders;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.Headers;
 import okhttp3.ResponseBody;
@@ -53,8 +52,8 @@ public class OkHttpClient extends HttpClient {
             log.error("Exception retrieving body string");
             shapeTreeResource.setBody(null);
         }
-        shapeTreeResource.setAttributes(new HttpClientHeaders(response.headers().toMultimap()));
-        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), request.resourceURI.toString()))));
+        shapeTreeResource.setAttributes(new HttpHeaders(response.headers().toMultimap()));
+        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LOCATION.getValue(), request.resourceURI.toString()))));
 
         return shapeTreeResource;
     }
@@ -73,7 +72,7 @@ public class OkHttpClient extends HttpClient {
             log.error("Exception retrieving body string");
             shapeTreeResponse.setBody(null);
         }
-        shapeTreeResponse.setHeaders(new HttpClientHeaders(response.headers().toMultimap()));
+        shapeTreeResponse.setHeaders(new HttpHeaders(response.headers().toMultimap()));
         shapeTreeResponse.setStatusCode(response.code());
         return shapeTreeResponse;
     }
@@ -84,14 +83,14 @@ public class OkHttpClient extends HttpClient {
         remoteResource.setExists(response.code() < 400);
 
         // Parse the headers for ease of use later
-        HttpClientHeaders parsedHeaders = new HttpClientHeaders(response.headers().toMultimap());
+        HttpHeaders parsedHeaders = new HttpHeaders(response.headers().toMultimap());
         remoteResource.setResponseHeaders(parsedHeaders);
 
         // We especially care about Link headers which require extra parsing of the rel values
-        if (parsedHeaders.get(HttpHeaders.LINK.getValue()) != null) {
-            remoteResource.setParsedLinkHeaders(HttpClientHeaders.parseLinkHeaders(response.headers(HttpHeaders.LINK.getValue())));
+        if (parsedHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()) != null) {
+            remoteResource.setParsedLinkHeaders(HttpHeaders.parseLinkHeaders(response.headers(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue())));
         } else {
-            remoteResource.setParsedLinkHeaders(new HttpClientHeaders());
+            remoteResource.setParsedLinkHeaders(new HttpHeaders());
         }
 
         // Save raw body
@@ -106,7 +105,7 @@ public class OkHttpClient extends HttpClient {
      * @param headers Multi-map representation of headers
      * @return OkHttp Headers object
      */
-    public static Headers toNativeHeaders(HttpClientHeaders headers) {
+    public static Headers toNativeHeaders(HttpHeaders headers) {
         Headers.Builder okHttpHeaders = new Headers.Builder();
         for (Map.Entry<String, List<String>> entry : headers.entrySet()){
             for (String value : entry.getValue()) {

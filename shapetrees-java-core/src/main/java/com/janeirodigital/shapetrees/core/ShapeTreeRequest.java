@@ -4,13 +4,12 @@ import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 public interface ShapeTreeRequest {
     String getMethod();
     URI getURI();
-    HttpClientHeaders getHeaders();
-    HttpClientHeaders getLinkHeaders();
+    HttpHeaders getHeaders();
+    HttpHeaders getLinkHeaders();
     List<String> getHeaderValues(String header);
     String getHeaderValue(String header);
     String getBody();

@@ -1,16 +1,14 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.HttpClientHeaders;
+import com.janeirodigital.shapetrees.core.HttpHeaders;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
@@ -30,13 +28,13 @@ public abstract class HttpClient {
     public abstract void fetchIntoRemoteResource(HttpRequest response, HttpRemoteResource remoteResource) throws IOException;
 
     // header helpers
-    protected static boolean isContainerFromHeaders(HttpClientHeaders requestHeaders) {
+    protected static boolean isContainerFromHeaders(HttpHeaders requestHeaders) {
 
-        List<String> linkHeaders = requestHeaders.get(HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = requestHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return false; }
 
-        HttpClientHeaders parsedLinkHeaders = HttpClientHeaders.parseLinkHeaders(linkHeaders);
+        HttpHeaders parsedLinkHeaders = HttpHeaders.parseLinkHeaders(linkHeaders);
 
         if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null) {
             return parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
@@ -45,13 +43,13 @@ public abstract class HttpClient {
         return false;
     }
 
-    protected static ShapeTreeResourceType getResourceTypeFromHeaders(HttpClientHeaders requestHeaders) {
+    protected static ShapeTreeResourceType getResourceTypeFromHeaders(HttpHeaders requestHeaders) {
 
-        List<String> linkHeaders = requestHeaders.get(HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = requestHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return null; }
 
-        HttpClientHeaders parsedLinkHeaders = HttpClientHeaders.parseLinkHeaders(linkHeaders);
+        HttpHeaders parsedLinkHeaders = HttpHeaders.parseLinkHeaders(linkHeaders);
 
         if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null &&
            (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
@@ -59,8 +57,8 @@ public abstract class HttpClient {
             return ShapeTreeResourceType.CONTAINER;
         }
 
-        if (requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()) != null &&
-            supportedRDFContentTypes.contains(requestHeaders.get(HttpHeaders.CONTENT_TYPE.getValue()).get(0))) {
+        if (requestHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()) != null &&
+            supportedRDFContentTypes.contains(requestHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).get(0))) {
             return ShapeTreeResourceType.RESOURCE;
         }
         return ShapeTreeResourceType.NON_RDF;

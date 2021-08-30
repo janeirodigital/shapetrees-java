@@ -2,7 +2,6 @@ package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
@@ -98,7 +97,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         private ShapeTreeResourceType resourceType;
         private String body;
         private String contentType;
-        private HttpClientHeaders headers;
+        private HttpHeaders headers;
 
         public JavaHttpShapeTreeRequest(java.net.http.HttpRequest request, String body, String contentType) {
             this.request = request;
@@ -109,7 +108,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
             for (Map.Entry<String, List<String>> entry : headerMap.entrySet()) {
                 tm.put(entry.getKey(), entry.getValue());
             }
-            this.headers = new HttpClientHeaders(tm);
+            this.headers = new HttpHeaders(tm);
         }
 
         @Override
@@ -123,13 +122,13 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         }
 
         @Override
-        public HttpClientHeaders getHeaders() {
+        public HttpHeaders getHeaders() {
             return this.headers;
         }
 
         @Override
-        public HttpClientHeaders getLinkHeaders() {
-            return HttpClientHeaders.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
+        public HttpHeaders getLinkHeaders() {
+            return HttpHeaders.parseLinkHeaders(this.getHeaderValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
         }
 
         @Override
@@ -144,8 +143,8 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
         @Override
         public String getContentType() {
-            if (this.getHeaders().containsKey(HttpHeaders.CONTENT_TYPE.getValue())) {
-                return this.getHeaders().get(HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElse(null);
+            if (this.getHeaders().containsKey(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue())) {
+                return this.getHeaders().get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElse(null);
             }
             return null;
         }

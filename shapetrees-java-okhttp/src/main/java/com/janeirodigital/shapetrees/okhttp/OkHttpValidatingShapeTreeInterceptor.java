@@ -2,7 +2,6 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
@@ -100,9 +99,9 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
-        HttpClientHeaders responseHeaders = response.getResponseHeaders();
+        HttpHeaders responseHeaders = response.getResponseHeaders();
         builder.headers(OkHttpClient.toNativeHeaders(responseHeaders));
-        String contentType = responseHeaders.computeIfAbsent(HttpHeaders.CONTENT_TYPE.getValue(), x -> new ArrayList<String>(Arrays.asList("text/turtle"))).stream().findFirst().orElseThrow();
+        String contentType = responseHeaders.computeIfAbsent(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue(), x -> new ArrayList<String>(Arrays.asList("text/turtle"))).stream().findFirst().orElseThrow();
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
@@ -131,13 +130,13 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
 
         @Override
-        public HttpClientHeaders getHeaders() {
-            return new HttpClientHeaders(this.request.headers().toMultimap());
+        public HttpHeaders getHeaders() {
+            return new HttpHeaders(this.request.headers().toMultimap());
         }
 
         @Override
-        public HttpClientHeaders getLinkHeaders() {
-            return HttpClientHeaders.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
+        public HttpHeaders getLinkHeaders() {
+            return HttpHeaders.parseLinkHeaders(this.getHeaderValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
         }
 
         @Override
@@ -152,8 +151,8 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
 
         @Override
         public String getContentType() {
-            if (this.getHeaders().containsKey(HttpHeaders.CONTENT_TYPE.getValue())) {
-                return this.getHeaders().get(HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElseThrow();
+            if (this.getHeaders().containsKey(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue())) {
+                return this.getHeaders().get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElseThrow();
             }
             return null;
         }

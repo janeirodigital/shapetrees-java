@@ -1,7 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.HttpClientHeaders;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -35,8 +34,8 @@ public class HttpRemoteResource {
     private final String authorizationHeaderValue;
     private Boolean invalidated = false;
     private Boolean exists;
-    private HttpClientHeaders responseHeaders;
-    private HttpClientHeaders parsedLinkHeaders;
+    private HttpHeaders responseHeaders;
+    private HttpHeaders parsedLinkHeaders;
     private Graph parsedGraph;
     private String rawBody;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
@@ -91,7 +90,7 @@ public class HttpRemoteResource {
         }
 
         if (this.parsedGraph == null) {
-            this.parsedGraph = GraphHelper.readStringIntoGraph(baseURI, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
+            this.parsedGraph = GraphHelper.readStringIntoGraph(baseURI, this.rawBody, getFirstHeaderByName(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()));
         }
         return this.parsedGraph;
     }
@@ -133,7 +132,7 @@ public class HttpRemoteResource {
     }
 
     public Boolean isRdfResource() throws IOException {
-        String contentType = this.getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
+        String contentType = this.getFirstHeaderByName(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
         if (contentType != null) {
             return this.supportedRDFContentTypes.contains(contentType);
         } else {
@@ -176,9 +175,9 @@ public class HttpRemoteResource {
 
     }
 
-    public HttpClientHeaders getResponseHeaders() { return this.responseHeaders; }
+    public HttpHeaders getResponseHeaders() { return this.responseHeaders; }
 
-    public HttpClientHeaders getLinkHeaders() {
+    public HttpHeaders getLinkHeaders() {
         return this.parsedLinkHeaders;
     }
 
@@ -207,7 +206,7 @@ public class HttpRemoteResource {
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        HttpClientHeaders headers = new HttpClientHeaders(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+        HttpHeaders headers = new HttpHeaders(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
         fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", this.uri, headers, sw.toString(), TEXT_TURTLE));
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
@@ -273,8 +272,8 @@ public class HttpRemoteResource {
 
         try {
             HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-            HttpClientHeaders headers = new HttpClientHeaders();
-            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+            HttpHeaders headers = new HttpHeaders();
+            headers.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
             fetcher.fetchIntoRemoteResource(new HttpRequest("GET", this.uri, headers, null, null), this);
             this.invalidated = false;
         } catch (Exception e) {
@@ -285,7 +284,7 @@ public class HttpRemoteResource {
     // Promiscuous hack for Fetcher.fetchIntoRemoteResource: Only HttpClient.fetchIntoRemoteResource needs to call these functions.
     // Is it possible to simulate a "friend" per https://stackoverflow.com/a/18634125/1243605 ?
     public void setExists(boolean exists) { this.exists = exists; }
-    public void setResponseHeaders(HttpClientHeaders responseHeaders) { this.responseHeaders = responseHeaders; }
-    public void setParsedLinkHeaders(HttpClientHeaders parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
+    public void setResponseHeaders(HttpHeaders responseHeaders) { this.responseHeaders = responseHeaders; }
+    public void setParsedLinkHeaders(HttpHeaders parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
     public void setRawBody(String rawBody) { this.rawBody = rawBody; }
 }
