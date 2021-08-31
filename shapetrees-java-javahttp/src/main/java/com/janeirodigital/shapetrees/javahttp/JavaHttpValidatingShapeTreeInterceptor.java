@@ -82,14 +82,8 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
     @SneakyThrows
     private java.net.http.HttpResponse createResponse(ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest, ShapeTreeResponse response) {
-        // [ericP] I don't how to create a mutable HttpHeaders object so I make HttoRequest do it for me.
-        java.net.http.HttpRequest.Builder tempRequestBuilder = java.net.http.HttpRequest.newBuilder().uri(new URI("http://a.example/"));
-        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()){
-            for (String value : entry.getValue()) {
-                tempRequestBuilder.header(entry.getKey(), value);
-            }
-        }
-        return new MyHttpResponse(response.getStatusCode(), nativeRequest, tempRequestBuilder.build().headers(), response.getBody());
+        java.net.http.HttpHeaders headers = java.net.http.HttpHeaders.of(response.getHeaders().toMultimap(), (a, v) -> true);
+        return new MyHttpResponse(response.getStatusCode(), nativeRequest, headers, response.getBody());
     }
 
     private class JavaHttpShapeTreeRequest implements ShapeTreeRequest {

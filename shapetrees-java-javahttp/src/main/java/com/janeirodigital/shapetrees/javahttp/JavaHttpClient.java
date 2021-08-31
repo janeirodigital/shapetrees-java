@@ -8,6 +8,7 @@ import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.rdf4j.query.algebra.Str;
 
 import javax.net.ssl.*;
 import java.io.IOException;
@@ -183,7 +184,12 @@ public class JavaHttpClient extends HttpClient {
             requestBuilder.uri(request.resourceURI);
 
             if (request.headers != null) {
-                for (Map.Entry<String, List<String>> entry : request.headers.entrySet()){
+                String[] headerList = request.headers.toList("connection", "content-length", "date", "expect", "from", "host", "upgrade", "via", "warning");
+                if (headerList.length > 0) {
+                    requestBuilder.headers(headerList);
+                }
+                /*
+                for (Map.Entry<String, List<String>> entry : request.headers.toMultimap().entrySet()){
                     for (String value : entry.getValue()) {
                         try {
                             requestBuilder.header(entry.getKey(), value);
@@ -192,6 +198,7 @@ public class JavaHttpClient extends HttpClient {
                         }
                     }
                 }
+                 */
             }
 
             switch (request.method) {

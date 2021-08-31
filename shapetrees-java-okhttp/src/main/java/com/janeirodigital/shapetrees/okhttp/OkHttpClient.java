@@ -107,7 +107,7 @@ public class OkHttpClient extends HttpClient {
      */
     public static Headers toNativeHeaders(HttpHeaders headers) {
         Headers.Builder okHttpHeaders = new Headers.Builder();
-        for (Map.Entry<String, List<String>> entry : headers.entrySet()){
+        for (Map.Entry<String, List<String>> entry : headers.toMultimap().entrySet()){
             for (String value : entry.getValue()) {
                 okHttpHeaders.add(entry.getKey(), value);
             }

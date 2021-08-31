@@ -2,10 +2,7 @@ package com.janeirodigital.shapetrees.core;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,10 +113,24 @@ public class HttpHeaders {
         myMapOfLists.put(attr, values);
     }
 
-    // Pass-through functions to headers - could be simpler if HttpClientHeaders extends a HashMap rather than contains a it.
-    public Iterable<? extends Map.Entry<String, List<String>>> entrySet() {
-        return myMapOfLists.entrySet();
+    public Map<String, List<String>> toMultimap() { return myMapOfLists; }
+
+    public String[] toList(String... exclusions) {
+        List<String> ret = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
+            String attr = entry.getKey();
+// !!           if (!Arrays.stream(exclusions).anyMatch(s -> s.toLowerCase(Locale.ROOT).equals(attr.toLowerCase(Locale.ROOT)))) {
+            if (!Arrays.stream(exclusions).anyMatch(s -> s.equals(attr))) {
+                for (String value : entry.getValue()) {
+                    ret.add(attr);
+                    ret.add(value);
+                }
+            }
+        }
+        return ret.stream().toArray(String[]::new);
     }
+
+    // Pass-through functions to headers - could be simpler if HttpClientHeaders extends a HashMap rather than contains a it.
 
     public boolean containsKey(String value) {
         return myMapOfLists.containsKey(value);
