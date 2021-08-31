@@ -87,8 +87,9 @@ public class JavaHttpClient extends HttpClient {
         remoteResource.setResponseHeaders(parsedHeaders);
 
         // We especially care about Link headers which require extra parsing of the rel values
-        if (parsedHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()) != null) {
-            remoteResource.setParsedLinkHeaders(HttpHeaders.parseLinkHeaders(response.headers().allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue())));
+        final List<String> linkHeaders = parsedHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
+        if (linkHeaders.size() != 0) {
+            remoteResource.setParsedLinkHeaders(HttpHeaders.parseLinkHeaders(linkHeaders));
         } else {
             remoteResource.setParsedLinkHeaders(new HttpHeaders());
         }

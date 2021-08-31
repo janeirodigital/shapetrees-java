@@ -19,10 +19,8 @@ public class ShapeTreeResource {
     private boolean managed;
     private HttpHeaders attributes;
 
-    public String getFirstAttributeValue(String attributeName) {
-        if (!this.attributes.containsKey(attributeName)) return null;
-
-        return this.attributes.get(attributeName).stream().findFirst().orElse(null);
+    public String getFirstAttributeValueDelMe(String attributeName) {
+        return attributes.firstValue(attributeName).orElse(null);
     }
 
 

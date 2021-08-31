@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -155,7 +154,7 @@ public class HttpRemoteResource {
     public Boolean isMetadata() throws IOException {
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
         // with a metadata target, it is not a metadata resource (because it is pointing to one)
-        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && !this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             return false;
         }
         // If the resource doesn't exist, currently we need to do some inference based on the URI
@@ -187,12 +186,7 @@ public class HttpRemoteResource {
             dereferenceURI();
         }
 
-        List<String> headerValues = responseHeaders.get(headerName);
-        if (headerValues == null) {
-            return null;
-        }
-
-        return headerValues.get(0);
+        return responseHeaders.firstValue(headerName).orElse(null);
     }
 
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
@@ -242,12 +236,12 @@ public class HttpRemoteResource {
 
     @NotNull
     public String getMetadataURI() throws IOException {
-        if (!this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+        if (this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
             // TODO: Should this be gracefully handled by the client?
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
-        String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE_LOCATOR.getValue()).stream().findFirst().orElse(null);
+        String metaDataURIString = this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElse(null);
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
             URI shapeTreeContainerURI = this.getUri();

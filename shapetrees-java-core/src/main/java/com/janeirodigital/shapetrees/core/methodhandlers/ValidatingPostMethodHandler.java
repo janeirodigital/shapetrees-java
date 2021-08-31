@@ -48,10 +48,6 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     }
 
     private String getIncomingHeaderValueWithDefault(ShapeTreeRequest shapeTreeRequest, String headerName, String defaultValue) { // !! delme
-        if (shapeTreeRequest.getHeaders().containsKey(headerName)) {
-            return shapeTreeRequest.getHeaders().get(headerName).stream().findFirst().orElse(defaultValue);
-        } else {
-            return defaultValue;
-        }
+        return shapeTreeRequest.getHeaders().firstValue(headerName).orElse(defaultValue);
     }
 }

@@ -30,35 +30,36 @@ public abstract class HttpClient {
     // header helpers
     protected static boolean isContainerFromHeaders(HttpHeaders requestHeaders) {
 
-        List<String> linkHeaders = requestHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = requestHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return false; }
 
         HttpHeaders parsedLinkHeaders = HttpHeaders.parseLinkHeaders(linkHeaders);
 
-        if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null) {
-            return parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
-                    parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER);
+        List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
+        if (typeLinks != null) {
+            return typeLinks.contains(LdpVocabulary.CONTAINER) ||
+                    typeLinks.contains(LdpVocabulary.BASIC_CONTAINER);
         }
         return false;
     }
 
     protected static ShapeTreeResourceType getResourceTypeFromHeaders(HttpHeaders requestHeaders) {
 
-        List<String> linkHeaders = requestHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = requestHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return null; }
 
         HttpHeaders parsedLinkHeaders = HttpHeaders.parseLinkHeaders(linkHeaders);
 
-        if (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()) != null &&
-           (parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
-            parsedLinkHeaders.get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER))) {
+        List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
+        if (typeLinks != null &&
+           (typeLinks.contains(LdpVocabulary.CONTAINER) ||
+            typeLinks.contains(LdpVocabulary.BASIC_CONTAINER))) {
             return ShapeTreeResourceType.CONTAINER;
         }
 
-        if (requestHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()) != null &&
-            supportedRDFContentTypes.contains(requestHeaders.get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).get(0))) {
+        if (supportedRDFContentTypes.contains(requestHeaders.firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse(null))) {
             return ShapeTreeResourceType.RESOURCE;
         }
         return ShapeTreeResourceType.NON_RDF;

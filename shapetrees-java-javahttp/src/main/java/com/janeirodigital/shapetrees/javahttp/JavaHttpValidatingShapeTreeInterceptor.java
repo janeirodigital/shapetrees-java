@@ -132,15 +132,12 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
         @Override
         public String getHeaderValue(String header) {
-            return String.valueOf(this.request.headers().firstValue(header));
+            return this.request.headers().firstValue(header).orElse(null);
         }
 
         @Override
         public String getContentType() {
-            if (this.getHeaders().containsKey(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue())) {
-                return this.getHeaders().get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElse(null);
-            }
-            return null;
+            return this.getHeaders().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         }
 
         @Override

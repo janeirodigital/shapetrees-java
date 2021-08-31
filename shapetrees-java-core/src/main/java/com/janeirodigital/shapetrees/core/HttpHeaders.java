@@ -1,11 +1,15 @@
 package com.janeirodigital.shapetrees.core;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * The HttpClientHeaders object is a multi-map with some constructors and put-ers tailored to the
@@ -90,13 +94,20 @@ public class HttpHeaders {
      * @param attr attribute (header) name to set
      * @param value String value to assign to attr
      */
+    /*@SneakyThrows*/
     public void maybeSet(String attr, String value) {
         if (attr == null || value == null) {
             return;
         }
 
         if (myMapOfLists.containsKey(attr)) {
-            myMapOfLists.get(attr).add(value);
+            List<String> existingValues = myMapOfLists.get(attr);
+            boolean alreadySet = existingValues.stream().anyMatch(s -> s.equals(value));
+            if (!alreadySet) {
+                existingValues.add(value);
+            }/* else {
+                throw new Exception(attr + ": " + value + " already set.");
+            }*/
         } else {
             ArrayList<String> list = new ArrayList<String>();
             list.add(value);
@@ -130,14 +141,33 @@ public class HttpHeaders {
         return ret.stream().toArray(String[]::new);
     }
 
-    // Pass-through functions to headers - could be simpler if HttpClientHeaders extends a HashMap rather than contains a it.
-
-    public boolean containsKey(String value) {
-        return myMapOfLists.containsKey(value);
+    /**
+     * Returns an {@link Optional} containing the first header string value of
+     * the given named (and possibly multi-valued) header. If the header is not
+     * present, then the returned {@code Optional} is empty.
+     *
+     * @param name the header name
+     * @return an {@code Optional<String>} containing the first named header
+     *         string value, if present
+     */
+    public Optional<String> firstValue(String name) {
+        return allValues(name).stream().findFirst();
     }
 
-    public List<String> get(String value) {
-        return myMapOfLists.get(value);
+    /**
+     * Returns an unmodifiable List of all of the header string values of the
+     * given named header. Always returns a List, which may be empty if the
+     * header is not present.
+     *
+     * @param name the header name
+     * @return a List of headers string values
+     */
+    public List<String> allValues(String name) {
+        requireNonNull(name);
+        List<String> values = toMultimap().get(name);
+        // Making unmodifiable list out of empty in order to make a list which
+        // throws UOE unconditionally
+        return values != null ? values : List.of();
     }
 
     public String toString() {
@@ -152,10 +182,6 @@ public class HttpHeaders {
         }
 
         return sb.toString();
-    }
-
-    public List<String> computeIfAbsent(String header, Function<? super String, ? extends List<String>> f) { // Function <? super String, ? extends List<String>>
-        return myMapOfLists.computeIfAbsent(header, f);
     }
 
     private static final Pattern LINK_HEADER_PATTERN = Pattern.compile("^<(.*?)>\\s*;\\s*rel\\s*=\"(.*?)\"\\s*");

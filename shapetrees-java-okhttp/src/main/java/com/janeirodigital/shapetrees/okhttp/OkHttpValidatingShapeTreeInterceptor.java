@@ -101,7 +101,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         builder.code(response.getStatusCode());
         HttpHeaders responseHeaders = response.getResponseHeaders();
         builder.headers(OkHttpClient.toNativeHeaders(responseHeaders));
-        String contentType = responseHeaders.computeIfAbsent(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue(), x -> new ArrayList<String>(Arrays.asList("text/turtle"))).stream().findFirst().orElseThrow();
+        String contentType = responseHeaders.firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle");
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
@@ -151,10 +151,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
 
         @Override
         public String getContentType() {
-            if (this.getHeaders().containsKey(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue())) {
-                return this.getHeaders().get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElseThrow();
-            }
-            return null;
+            return this.getHeaders().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         }
 
         @Override

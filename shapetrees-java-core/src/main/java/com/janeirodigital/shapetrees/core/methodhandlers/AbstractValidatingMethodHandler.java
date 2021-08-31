@@ -468,8 +468,8 @@ public abstract class AbstractValidatingMethodHandler {
      * @throws IOException IOException
      */
     protected URI getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URI baseURI) throws IOException {
-        if (shapeTreeRequest.getLinkHeaders().get(LinkRelations.FOCUS_NODE.getValue()) != null) {
-            String focusNode = shapeTreeRequest.getLinkHeaders().get(LinkRelations.FOCUS_NODE.getValue()).get(0);
+        final String focusNode = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.FOCUS_NODE.getValue()).orElse(null);
+        if (focusNode != null) {
             return baseURI.resolve(focusNode);
         }
         return null;
@@ -482,8 +482,9 @@ public abstract class AbstractValidatingMethodHandler {
      * @throws URISyntaxException URISyntaxException
      */
     protected URI getIncomingTargetShapeTreeHint(ShapeTreeRequest shapeTreeRequest) throws URISyntaxException {
-        if (shapeTreeRequest.getLinkHeaders().get(LinkRelations.TARGET_SHAPETREE.getValue()) != null) {
-            return new URI(shapeTreeRequest.getLinkHeaders().get(LinkRelations.TARGET_SHAPETREE.getValue()).get(0));
+        final String targetShapeTree = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.TARGET_SHAPETREE.getValue()).orElse(null);
+        if (targetShapeTree != null) {
+            return new URI(targetShapeTree);
         }
         return null;
     }
@@ -495,9 +496,12 @@ public abstract class AbstractValidatingMethodHandler {
      */
     protected Boolean getIsContainerFromRequest(ShapeTreeRequest shapeTreeRequest) {
         // First try to determine based on link headers
-        if (shapeTreeRequest.getLinkHeaders() != null && shapeTreeRequest.getLinkHeaders().get(LinkRelations.TYPE.getValue()) != null) {
-            return (shapeTreeRequest.getLinkHeaders().get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.CONTAINER) ||
-                    shapeTreeRequest.getLinkHeaders().get(LinkRelations.TYPE.getValue()).contains(LdpVocabulary.BASIC_CONTAINER));
+        if (shapeTreeRequest.getLinkHeaders() != null) {
+            final List<String> typeLinks = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TYPE.getValue());
+            if (typeLinks.size() != 0) {
+                return (typeLinks.contains(LdpVocabulary.CONTAINER) ||
+                        typeLinks.contains(LdpVocabulary.BASIC_CONTAINER));
+            }
         }
         // As a secondary attempt, use slash path semantics
         return shapeTreeRequest.getURI().getPath().endsWith("/");
@@ -551,13 +555,13 @@ public abstract class AbstractValidatingMethodHandler {
 
         ensureShapeTreeResourceHasLinkHeaders(shapeTreeResource);
 
-        HttpHeaders linkHeaders = HttpHeaders.parseLinkHeaders(shapeTreeResource.getAttributes().get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
+        HttpHeaders linkHeaders = HttpHeaders.parseLinkHeaders(shapeTreeResource.getAttributes().allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
 
-        if (!linkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+        if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", shapeTreeResource.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
-        String metaDataURIString = linkHeaders.get(LinkRelations.SHAPETREE_LOCATOR.getValue()).stream().findFirst().orElse(null);
+        String metaDataURIString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElse(null);
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
             URI shapeTreeContainerURI = shapeTreeResource.getUri();
@@ -597,7 +601,7 @@ public abstract class AbstractValidatingMethodHandler {
     protected Graph getGraphForResource(ShapeTreeResource resource, URI baseURI) throws ShapeTreeException {
 
         if (!resource.isExists()) return null;
-        return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getFirstAttributeValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()));
+        return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getFirstAttributeValueDelMe(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()));
     }
 
     protected ShapeTreeLocator getShapeTreeLocatorFromRequest(ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws URISyntaxException, ShapeTreeException {
@@ -867,7 +871,7 @@ public abstract class AbstractValidatingMethodHandler {
 
     private void ensureShapeTreeResourceHasLinkHeaders(ShapeTreeResource primaryResource) throws ShapeTreeException {
         if (primaryResource.getAttributes() == null ||
-            primaryResource.getAttributes().get(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()) == null) {
+            primaryResource.getAttributes().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()).isEmpty()) {
             throw new ShapeTreeException(500, "No available headers for shape tree metadata discovery on " + primaryResource.getUri());
         }
     }

@@ -21,11 +21,6 @@ public class ShapeTreeResponse {
         return this.headers;
     }
 
-    public void addResponseHeader(String header, String value) {
-        this.headers.computeIfAbsent(header, k -> new ArrayList<>());
-        this.headers.get(header).add(value);
-    }
-
     public boolean exists() {
         return this.statusCode != 404;
     }

@@ -83,7 +83,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResource updateResource(ShapeTreeContext context, String method, ShapeTreeResource updatedResource) throws ShapeTreeException {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
-        String contentType = updatedResource.getFirstAttributeValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue());
+        String contentType = updatedResource.getFirstAttributeValueDelMe(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue());
         // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         HttpHeaders allHeaders = updatedResource.getAttributes().maybePlus(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
