@@ -27,7 +27,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ShapeTreeResource targetContainer = getRequestResource(shapeTreeContext, shapeTreeRequest);
 
             // Get resource name from the slug or default to UUID
-            String proposedName = getIncomingHeaderValueWithDefault(shapeTreeRequest, HttpHeaders.SLUG.getValue(), UUID.randomUUID().toString());
+            String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeaders.SLUG.getValue()).orElse(UUID.randomUUID().toString());
 
             // If the parent container is managed by a shape tree, the proposed resource being posted must be
             // validated against the parent tree.
@@ -44,10 +44,5 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
         } catch (Exception ex) {
             return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
         }
-
-    }
-
-    private String getIncomingHeaderValueWithDefault(ShapeTreeRequest shapeTreeRequest, String headerName, String defaultValue) { // !! delme
-        return shapeTreeRequest.getHeaders().firstValue(headerName).orElse(defaultValue);
     }
 }
