@@ -1,0 +1,202 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  @prefix st: <http://www.w3.org/ns/shapetrees#> .
+  @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+  @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+  @prefix med: <http://shapetrees.pub/ts/medical-record/> .
+
+  <>
+    st:hasShapeTreeDecoratorIndex med:decorator-index .
+
+  <#medicalRecords>
+    st:contains <#medicalRecord>, st:AllowOnly ;
+    # st:expectsType st:ShapeTreeContainer ;    # comment out expectsType to make invalid
+
+  st:references
+    [ st:hasShapeTree <#patients> ],
+    [ st:hasShapeTree <#appointments> ],
+    [ st:hasShapeTree <#conditions> ],
+    [ st:hasShapeTree <#encounters> ],
+    [ st:hasShapeTree <#prescriptions> ],
+    [ st:hasShapeTree <#allergies> ],
+    [ st:hasShapeTree <#observations> ],
+    [ st:hasShapeTree <#diagnosticReports> ],
+    [ st:hasShapeTree <#activities> ],
+    [ st:hasShapeTree <#practitioners> ],
+    [ st:hasShapeTree <#documents> ],
+    [ st:hasShapeTree <#questionnaire-responses> ] .
+
+  <#medicalRecord>
+    st:shape <medrecord-schema#medicalRecord> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource ;
+    st:references [
+      st:hasShapeTree <#patient> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:patient"
+    ],
+    [
+      st:hasShapeTree <#appointment> ;
+      st:viaShapePath "<@medrecord-schema#medicalRecord>/medrecord:appointment"
+    ],
+    [
+      st:hasShapeTree <#condition> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:condition"
+    ],
+    [
+      st:hasShapeTree <#encounter> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:encounter"
+    ],
+    [
+      st:hasShapeTree <#prescription> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:prescription"
+    ],
+    [
+      st:hasShapeTree <#allergy> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:allergy"
+    ],
+    [
+      st:hasShapeTree <#observation> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:observation"
+    ],
+    [
+      st:hasShapeTree <#diagnosticReport> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:diagnosticReport"
+    ] ,
+    [
+      st:hasShapeTree <#activity> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:activity"
+    ],
+    [
+      st:hasShapeTree <#practitioner> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:practitioner"
+    ],
+    [
+      st:hasShapeTree <#document> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:document"
+    ],
+    [
+      st:hasShapeTree <#questionnaire-response> ;
+      st:viaShapePath "@<medrecord-schema#medicalRecord>/medrecord:questionnaireResponse"
+    ] .
+
+  <#patients>
+    st:contains <#patient>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#patient>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Patient> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#appointments>
+    rdfs:label "appointments" ;
+    st:contains <#appointment>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#appointment>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Appointment> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#conditions>
+    rdfs:label "conditions" ;
+    st:contains <#condition>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#condition>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Condition> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#encounters>
+    rdfs:label "encounters" ;
+    st:contains <#encounter>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#encounter>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Encounter> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#prescriptions>
+    rdfs:label "prescriptions" ;
+    st:contains <#prescription>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#prescription>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#MedicationRequest> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#allergies>
+    rdfs:label "allergies" ;
+    st:contains <#allergy>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#allergy>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#AllergyIntolerance> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#observations>
+    rdfs:label "observations" ;
+    st:contains <#observation>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#observation>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Observation> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#diagnosticReports>
+    rdfs:label "diagnosticReports" ;
+    st:contains <#diagnosticReport>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#diagnosticReport>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#DiagnosticReport> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#activities>
+    rdfs:label "activities" ;
+    st:contains <#activity>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#activity>
+    st:shape <https://xformativ.pub/xfh-patient/as/shapes/shex#DailyActivitySummary> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#practitioners>
+    rdfs:label "practitioners" ;
+    st:contains <#practitioner>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#practitioner>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#Practitioner> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#documents>
+    rdfs:label "documents" ;
+    st:contains <#document>, st:AllowNonRDFSources ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#document>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#DocumentReference> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .
+
+  <#questionnaire-responses>
+    rdfs:label "questionnaire responses" ;
+    st:contains <#questionnaire-response>, st:AllowOnly ;
+    st:expectsType st:ShapeTreeContainer .
+
+  <#questionnaire-response>
+    st:shape <https://shapes.pub/ns/fhir/r4/shex#QuestionnaireResponse> ;
+    st:matchesUriTemplate "{id}" ;
+    st:expectsType st:Resource .

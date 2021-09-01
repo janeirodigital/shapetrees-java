@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -19,7 +20,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @NoArgsConstructor
 @Slf4j
@@ -72,20 +72,23 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, Map<String, List<String>> headers, String body, String contentType) throws ShapeTreeException {
-        log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, writeHeaders(headers));
+    public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
+        log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(method, resourceURI, headers, context.getAuthorizationHeaderValue(), body, contentType);
+        ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        return fetcher.fetchShapeTreeResource(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
     }
 
     @Override
     public ShapeTreeResource updateResource(ShapeTreeContext context, String method, ShapeTreeResource updatedResource) throws ShapeTreeException {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
-        String contentType = updatedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue());
+        String contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
+        // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
+        ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(method, updatedResource.getUri(), updatedResource.getAttributes(), context.getAuthorizationHeaderValue(), updatedResource.getBody(), contentType);
+        return fetcher.fetchShapeTreeResource(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
     }
 
     @Override
@@ -93,27 +96,14 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        ShapeTreeResponse response = fetcher.fetchShapeTreeResponse("DELETE", deletedResource.getUri(), deletedResource.getAttributes(), context.getAuthorizationHeaderValue(), null, null);
+        ResourceAttributes allHeaders = deletedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        ShapeTreeResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", deletedResource.getUri(), allHeaders, null, null));
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {
             log.error("Error deleting resource {}, Status {}", deletedResource.getUri(), respCode);
         }
         return response;
 
-    }
-
-    private String writeHeaders(Map<String, List<String>> headers) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-            for (String value : entry.getValue()) {
-                if (sb.length() != 0) {
-                    sb.append(",");
-                }
-                sb.append(entry.getKey()).append("=").append(value);
-            }
-        }
-
-        return sb.toString();
     }
 
     private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws IOException {

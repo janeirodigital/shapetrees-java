@@ -1,14 +1,10 @@
 package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
-import com.janeirodigital.shapetrees.core.ResourceAccessor;
-import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
-import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.helpers.HttpHeaderHelper;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -18,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -103,12 +98,9 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
-        Headers headers = OkHttpClient.convertHeaders(response.getResponseHeaders());
-        builder.headers(headers);
-        String contentType = headers.get("Content-Type");
-        if (contentType == null) {
-            contentType = "text/turtle";
-        }
+        ResourceAttributes responseHeaders = response.getResponseHeaders();
+        builder.headers(OkHttpClient.toNativeHeaders(responseHeaders));
+        String contentType = responseHeaders.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle");
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
@@ -137,13 +129,13 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
 
         @Override
-        public Map<String, List<String>> getHeaders() {
-            return this.request.headers().toMultimap();
+        public ResourceAttributes getHeaders() {
+            return new ResourceAttributes(this.request.headers().toMultimap());
         }
 
         @Override
-        public Map<String, List<String>> getLinkHeaders() {
-            return HttpHeaderHelper.parseLinkHeadersToMap(this.getHeaderValues(HttpHeaders.LINK.getValue()));
+        public ResourceAttributes getLinkHeaders() {
+            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
         }
 
         @Override
@@ -158,10 +150,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
 
         @Override
         public String getContentType() {
-            if (this.getHeaders().containsKey(HttpHeaders.CONTENT_TYPE.getValue())) {
-                return this.getHeaders().get(HttpHeaders.CONTENT_TYPE.getValue()).stream().findFirst().orElse(null);
-            }
-            return null;
+            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         }
 
         @Override

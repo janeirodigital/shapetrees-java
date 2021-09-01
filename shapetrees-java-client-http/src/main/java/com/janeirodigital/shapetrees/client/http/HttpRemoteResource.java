@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -15,8 +16,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -35,8 +34,8 @@ public class HttpRemoteResource {
     private final String authorizationHeaderValue;
     private Boolean invalidated = false;
     private Boolean exists;
-    private Map<String, List<String>> responseHeaders;
-    private Map<String, List<String>> parsedLinkHeaders;
+    private ResourceAttributes responseHeaders;
+    private ResourceAttributes parsedLinkHeaders;
     private Graph parsedGraph;
     private String rawBody;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
@@ -156,7 +155,7 @@ public class HttpRemoteResource {
     public Boolean isMetadata() throws IOException {
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
         // with a metadata target, it is not a metadata resource (because it is pointing to one)
-        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && !this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             return false;
         }
         // If the resource doesn't exist, currently we need to do some inference based on the URI
@@ -176,9 +175,9 @@ public class HttpRemoteResource {
 
     }
 
-    public Map<String, List<String>> getResponseHeaders() { return this.responseHeaders; }
+    public ResourceAttributes getResponseHeaders() { return this.responseHeaders; }
 
-    public Map<String, List<String>> getLinkHeaders() {
+    public ResourceAttributes getLinkHeaders() {
         return this.parsedLinkHeaders;
     }
 
@@ -188,12 +187,7 @@ public class HttpRemoteResource {
             dereferenceURI();
         }
 
-        List<String> headerValues = responseHeaders.get(headerName);
-        if (headerValues == null) {
-            return null;
-        }
-
-        return headerValues.get(0);
+        return responseHeaders.firstValue(headerName).orElse(null);
     }
 
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
@@ -207,7 +201,8 @@ public class HttpRemoteResource {
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        fetcher.fetchShapeTreeResponse("PUT", this.uri, null, authorizationHeaderValue, sw.toString(), TEXT_TURTLE);
+        ResourceAttributes headers = new ResourceAttributes(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+        fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", this.uri, headers, sw.toString(), TEXT_TURTLE));
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
@@ -242,12 +237,12 @@ public class HttpRemoteResource {
 
     @NotNull
     public String getMetadataURI() throws IOException {
-        if (!this.parsedLinkHeaders.containsKey(LinkRelations.SHAPETREE_LOCATOR.getValue())) {
+        if (this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
             // TODO: Should this be gracefully handled by the client?
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
-        String metaDataURIString = this.parsedLinkHeaders.get(LinkRelations.SHAPETREE_LOCATOR.getValue()).stream().findFirst().orElse(null);
+        String metaDataURIString = this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElse(null);
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
             URI shapeTreeContainerURI = this.getUri();
@@ -272,7 +267,9 @@ public class HttpRemoteResource {
 
         try {
             HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-            fetcher.fetchIntoRemoteResource("GET", this.uri, null, authorizationHeaderValue, null, null, this);
+            ResourceAttributes headers = new ResourceAttributes();
+            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+            fetcher.fetchIntoRemoteResource(new HttpRequest("GET", this.uri, headers, null, null), this);
             this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);
@@ -282,7 +279,7 @@ public class HttpRemoteResource {
     // Promiscuous hack for Fetcher.fetchIntoRemoteResource: Only HttpClient.fetchIntoRemoteResource needs to call these functions.
     // Is it possible to simulate a "friend" per https://stackoverflow.com/a/18634125/1243605 ?
     public void setExists(boolean exists) { this.exists = exists; }
-    public void setResponseHeaders(Map<String, List<String>> responseHeaders) { this.responseHeaders = responseHeaders; }
-    public void setParsedLinkHeaders(Map<String, List<String>> parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
+    public void setResponseHeaders(ResourceAttributes responseHeaders) { this.responseHeaders = responseHeaders; }
+    public void setParsedLinkHeaders(ResourceAttributes parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
     public void setRawBody(String rawBody) { this.rawBody = rawBody; }
 }

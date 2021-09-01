@@ -67,7 +67,7 @@ public class ShapeTree {
         if (targetResource.getType() != ShapeTreeResourceType.NON_RDF) {
             bodyGraph = GraphHelper.readStringIntoGraph(targetResource.getUri(),
                     targetResource.getBody(),
-                    targetResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue()));
+                    targetResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
         }
         
         return validateResource(targetResource.getName(), targetResource.getType(), bodyGraph, focusNodeURI);
@@ -97,7 +97,7 @@ public class ShapeTree {
     }
 
     public ValidationResult validateGraph(Graph graph, URI focusNodeURI) throws IOException, URISyntaxException {
-
+        // if (true) return new ValidationResult(true, this, this, focusNodeURI); // [debug] ShExC parser brings debugger to its knees
         if (this.shape == null) {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
         }
@@ -191,7 +191,7 @@ public class ShapeTree {
         if (containedResource.getType() != ShapeTreeResourceType.NON_RDF) {
             containedResourceGraph = GraphHelper.readStringIntoGraph(containedResource.getUri(),
                     containedResource.getBody(),
-                    containedResource.getFirstAttributeValue(HttpHeaders.CONTENT_TYPE.getValue()));
+                    containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
         }
 
         return validateContainedResource(requestedName, containedResource.getType(), targetShapeTreeURI, containedResourceGraph, focusNodeURI);
