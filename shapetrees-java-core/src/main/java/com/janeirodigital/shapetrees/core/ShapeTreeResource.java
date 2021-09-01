@@ -18,10 +18,4 @@ public class ShapeTreeResource {
     private boolean metadata;
     private boolean managed;
     private HttpHeaders attributes;
-
-    public String getFirstAttributeValueDelMe(String attributeName) {
-        return attributes.firstValue(attributeName).orElse(null);
-    }
-
-
 }

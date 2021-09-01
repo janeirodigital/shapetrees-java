@@ -601,7 +601,7 @@ public abstract class AbstractValidatingMethodHandler {
     protected Graph getGraphForResource(ShapeTreeResource resource, URI baseURI) throws ShapeTreeException {
 
         if (!resource.isExists()) return null;
-        return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getFirstAttributeValueDelMe(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()));
+        return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getAttributes().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
     }
 
     protected ShapeTreeLocator getShapeTreeLocatorFromRequest(ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws URISyntaxException, ShapeTreeException {
