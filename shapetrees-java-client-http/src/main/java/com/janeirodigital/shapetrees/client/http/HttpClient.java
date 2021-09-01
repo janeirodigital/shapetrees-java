@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.HttpHeaders;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
@@ -28,13 +28,13 @@ public abstract class HttpClient {
     public abstract void fetchIntoRemoteResource(HttpRequest response, HttpRemoteResource remoteResource) throws IOException;
 
     // header helpers
-    protected static boolean isContainerFromHeaders(HttpHeaders requestHeaders) {
+    protected static boolean isContainerFromHeaders(ResourceAttributes requestHeaders) {
 
         List<String> linkHeaders = requestHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return false; }
 
-        HttpHeaders parsedLinkHeaders = HttpHeaders.parseLinkHeaders(linkHeaders);
+        ResourceAttributes parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
 
         List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
         if (typeLinks != null) {
@@ -44,13 +44,13 @@ public abstract class HttpClient {
         return false;
     }
 
-    protected static ShapeTreeResourceType getResourceTypeFromHeaders(HttpHeaders requestHeaders) {
+    protected static ShapeTreeResourceType getResourceTypeFromHeaders(ResourceAttributes requestHeaders) {
 
         List<String> linkHeaders = requestHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return null; }
 
-        HttpHeaders parsedLinkHeaders = HttpHeaders.parseLinkHeaders(linkHeaders);
+        ResourceAttributes parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
 
         List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
         if (typeLinks != null &&

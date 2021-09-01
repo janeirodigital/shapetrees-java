@@ -12,8 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -99,7 +97,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
-        HttpHeaders responseHeaders = response.getResponseHeaders();
+        ResourceAttributes responseHeaders = response.getResponseHeaders();
         builder.headers(OkHttpClient.toNativeHeaders(responseHeaders));
         String contentType = responseHeaders.firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle");
 
@@ -130,13 +128,13 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
 
         @Override
-        public HttpHeaders getHeaders() {
-            return new HttpHeaders(this.request.headers().toMultimap());
+        public ResourceAttributes getHeaders() {
+            return new ResourceAttributes(this.request.headers().toMultimap());
         }
 
         @Override
-        public HttpHeaders getLinkHeaders() {
-            return HttpHeaders.parseLinkHeaders(this.getHeaderValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
+        public ResourceAttributes getLinkHeaders() {
+            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
         }
 
         @Override

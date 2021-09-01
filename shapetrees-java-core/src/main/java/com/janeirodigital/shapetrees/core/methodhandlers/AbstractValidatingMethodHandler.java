@@ -555,7 +555,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         ensureShapeTreeResourceHasLinkHeaders(shapeTreeResource);
 
-        HttpHeaders linkHeaders = HttpHeaders.parseLinkHeaders(shapeTreeResource.getAttributes().allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
+        ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(shapeTreeResource.getAttributes().allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
 
         if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", shapeTreeResource.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
@@ -650,7 +650,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
-            HttpHeaders headers = new HttpHeaders();
+            ResourceAttributes headers = new ResourceAttributes();
             headers.setAll(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
             this.resourceAccessor.createResource(shapeTreeContext,"POST", getShapeTreeMetadataURIForResource(primaryResource), headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
         } else {

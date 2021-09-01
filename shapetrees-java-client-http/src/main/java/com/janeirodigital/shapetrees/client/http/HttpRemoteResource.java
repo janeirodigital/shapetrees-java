@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.HttpHeaders;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -33,8 +33,8 @@ public class HttpRemoteResource {
     private final String authorizationHeaderValue;
     private Boolean invalidated = false;
     private Boolean exists;
-    private HttpHeaders responseHeaders;
-    private HttpHeaders parsedLinkHeaders;
+    private ResourceAttributes responseHeaders;
+    private ResourceAttributes parsedLinkHeaders;
     private Graph parsedGraph;
     private String rawBody;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
@@ -174,9 +174,9 @@ public class HttpRemoteResource {
 
     }
 
-    public HttpHeaders getResponseHeaders() { return this.responseHeaders; }
+    public ResourceAttributes getResponseHeaders() { return this.responseHeaders; }
 
-    public HttpHeaders getLinkHeaders() {
+    public ResourceAttributes getLinkHeaders() {
         return this.parsedLinkHeaders;
     }
 
@@ -200,7 +200,7 @@ public class HttpRemoteResource {
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        HttpHeaders headers = new HttpHeaders(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+        ResourceAttributes headers = new ResourceAttributes(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
         fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", this.uri, headers, sw.toString(), TEXT_TURTLE));
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
@@ -266,7 +266,7 @@ public class HttpRemoteResource {
 
         try {
             HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-            HttpHeaders headers = new HttpHeaders();
+            ResourceAttributes headers = new ResourceAttributes();
             headers.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
             fetcher.fetchIntoRemoteResource(new HttpRequest("GET", this.uri, headers, null, null), this);
             this.invalidated = false;
@@ -278,7 +278,7 @@ public class HttpRemoteResource {
     // Promiscuous hack for Fetcher.fetchIntoRemoteResource: Only HttpClient.fetchIntoRemoteResource needs to call these functions.
     // Is it possible to simulate a "friend" per https://stackoverflow.com/a/18634125/1243605 ?
     public void setExists(boolean exists) { this.exists = exists; }
-    public void setResponseHeaders(HttpHeaders responseHeaders) { this.responseHeaders = responseHeaders; }
-    public void setParsedLinkHeaders(HttpHeaders parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
+    public void setResponseHeaders(ResourceAttributes responseHeaders) { this.responseHeaders = responseHeaders; }
+    public void setParsedLinkHeaders(ResourceAttributes parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
     public void setRawBody(String rawBody) { this.rawBody = rawBody; }
 }

@@ -1,13 +1,10 @@
 package com.janeirodigital.shapetrees.core;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -17,37 +14,37 @@ import static java.util.Objects.requireNonNull;
  * parseLinkHeaders(List<String> headerValues) factory which includes logic for HTTP Link headers.
  */
 @Slf4j
-public class HttpHeaders {
+public class ResourceAttributes {
     Map<String, List<String>> myMapOfLists;
 
     /**
-     * construct a case-insensitive HttpHeaders container
+     * construct a case-insensitive ResourceAttributes container
      */
-    public HttpHeaders() {
+    public ResourceAttributes() {
         this.myMapOfLists = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     }
 
     /**
-     * construct a case-insensitive HttpHeaders container and set attr to value if both are not null.
+     * construct a case-insensitive ResourceAttributes container and set attr to value if both are not null.
      * @param attr attribute (header) name to set
      * @param value String value to assign to attr
      */
-    public HttpHeaders(String attr, String value) throws ShapeTreeException {
+    public ResourceAttributes(String attr, String value) throws ShapeTreeException {
         this.myMapOfLists = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         this.maybeSet(attr, value);
     }
 
     /**
-     * Construct HttpHeaders with passed map, which may be case-sensitive.
+     * Construct ResourceAttributes with passed map, which may be case-sensitive.
      * @param newMap replacement for myMapOfLists
      */
-    public HttpHeaders(Map<String, List<String>> newMap) {
+    public ResourceAttributes(Map<String, List<String>> newMap) {
         this.myMapOfLists = newMap;
     }
 
     // copy constructor
-    private HttpHeaders copy() {
-        HttpHeaders ret = new HttpHeaders();
+    private ResourceAttributes copy() {
+        ResourceAttributes ret = new ResourceAttributes();
         for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
             ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }
@@ -60,8 +57,8 @@ public class HttpHeaders {
      * @param headerValues Header values for Link headers
      * @return subset of this matching the pattern
      */
-    public static HttpHeaders parseLinkHeaders(List<String> headerValues) {
-        HttpHeaders linkHeaderMap = new HttpHeaders();
+    public static ResourceAttributes parseLinkHeaders(List<String> headerValues) {
+        ResourceAttributes linkHeaderMap = new ResourceAttributes();
         for (String headerValue : headerValues) {
             Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
             if (matcher.matches() && matcher.groupCount() >= 2) {
@@ -82,11 +79,11 @@ public class HttpHeaders {
      * @param value String value to assign to attr
      * @returns original HttpClientHeaders if no change is made; otherwise a new copy.
      */
-    public HttpHeaders maybePlus(String attr, String value) {
+    public ResourceAttributes maybePlus(String attr, String value) {
         if (attr == null || value == null) {
             return this;
         }
-        HttpHeaders ret = copy();
+        ResourceAttributes ret = copy();
         ret.maybeSet(attr, value);
         return ret;
     }

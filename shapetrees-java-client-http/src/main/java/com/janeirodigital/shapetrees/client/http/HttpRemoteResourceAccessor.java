@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.HttpHeaders;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
@@ -71,11 +71,11 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, HttpHeaders headers, String body, String contentType) throws ShapeTreeException {
+    public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        HttpHeaders allHeaders = headers.maybePlus(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        ResourceAttributes allHeaders = headers.maybePlus(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         return fetcher.fetchShapeTreeResource(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
     }
 
@@ -85,7 +85,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
         String contentType = updatedResource.getAttributes().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
-        HttpHeaders allHeaders = updatedResource.getAttributes().maybePlus(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         return fetcher.fetchShapeTreeResource(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
     }
@@ -95,7 +95,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        HttpHeaders allHeaders = deletedResource.getAttributes().maybePlus(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        ResourceAttributes allHeaders = deletedResource.getAttributes().maybePlus(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         ShapeTreeResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", deletedResource.getUri(), allHeaders, null, null));
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {

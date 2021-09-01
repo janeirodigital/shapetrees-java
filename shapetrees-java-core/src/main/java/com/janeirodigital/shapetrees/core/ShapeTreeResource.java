@@ -17,5 +17,5 @@ public class ShapeTreeResource {
     private boolean container;
     private boolean metadata;
     private boolean managed;
-    private HttpHeaders attributes;
+    private ResourceAttributes attributes;
 }

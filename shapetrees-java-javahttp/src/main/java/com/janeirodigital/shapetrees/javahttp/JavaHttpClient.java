@@ -2,13 +2,12 @@ package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
-import com.janeirodigital.shapetrees.core.HttpHeaders;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.query.algebra.Str;
 
 import javax.net.ssl.*;
 import java.io.IOException;
@@ -18,7 +17,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -52,7 +50,7 @@ public class JavaHttpClient extends HttpClient {
             log.error("Exception retrieving body string");
             shapeTreeResource.setBody(null);
         }
-        shapeTreeResource.setAttributes(new HttpHeaders(response.headers().map()));
+        shapeTreeResource.setAttributes(new ResourceAttributes(response.headers().map()));
         shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.headers().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LOCATION.getValue()).orElse(request.resourceURI.toString()))));
 
         return shapeTreeResource;
@@ -72,7 +70,7 @@ public class JavaHttpClient extends HttpClient {
             log.error("Exception retrieving body string");
             shapeTreeResponse.setBody(null);
         }
-        shapeTreeResponse.setHeaders(new HttpHeaders(response.headers().map()));
+        shapeTreeResponse.setHeaders(new ResourceAttributes(response.headers().map()));
         shapeTreeResponse.setStatusCode(response.statusCode());
         return shapeTreeResponse;
     }
@@ -83,15 +81,15 @@ public class JavaHttpClient extends HttpClient {
         remoteResource.setExists(response.statusCode() < 400);
 
         // Parse the headers for ease of use later
-        HttpHeaders parsedHeaders = new HttpHeaders(response.headers().map());
+        ResourceAttributes parsedHeaders = new ResourceAttributes(response.headers().map());
         remoteResource.setResponseHeaders(parsedHeaders);
 
         // We especially care about Link headers which require extra parsing of the rel values
         final List<String> linkHeaders = parsedHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
         if (linkHeaders.size() != 0) {
-            remoteResource.setParsedLinkHeaders(HttpHeaders.parseLinkHeaders(linkHeaders));
+            remoteResource.setParsedLinkHeaders(ResourceAttributes.parseLinkHeaders(linkHeaders));
         } else {
-            remoteResource.setParsedLinkHeaders(new HttpHeaders());
+            remoteResource.setParsedLinkHeaders(new ResourceAttributes());
         }
 
         // Save raw body

@@ -8,8 +8,8 @@ import java.util.List;
 public interface ShapeTreeRequest {
     String getMethod();
     URI getURI();
-    HttpHeaders getHeaders();
-    HttpHeaders getLinkHeaders();
+    ResourceAttributes getHeaders();
+    ResourceAttributes getLinkHeaders();
     List<String> getHeaderValues(String header);
     String getHeaderValue(String header);
     String getBody();

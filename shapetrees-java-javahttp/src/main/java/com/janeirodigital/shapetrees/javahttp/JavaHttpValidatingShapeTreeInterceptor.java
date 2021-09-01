@@ -75,7 +75,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
     // TODO: Update to a simple JSON-LD body
     private java.net.http.HttpResponse createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest) {
-        // java.net.http.HttpHeaders headers = new java.net.http.HttpHeaders();
+        // java.net.http.ResourceAttributes headers = new java.net.http.ResourceAttributes();
         // headers.set("Content-type", "text/plain");
         return new MyHttpResponse(exception.getStatusCode(), nativeRequest, null, exception.getMessage());
     }
@@ -91,7 +91,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         private ShapeTreeResourceType resourceType;
         private String body;
         private String contentType;
-        private HttpHeaders headers;
+        private ResourceAttributes headers;
 
         public JavaHttpShapeTreeRequest(java.net.http.HttpRequest request, String body, String contentType) {
             this.request = request;
@@ -102,7 +102,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
             for (Map.Entry<String, List<String>> entry : headerMap.entrySet()) {
                 tm.put(entry.getKey(), entry.getValue());
             }
-            this.headers = new HttpHeaders(tm);
+            this.headers = new ResourceAttributes(tm);
         }
 
         @Override
@@ -116,13 +116,13 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         }
 
         @Override
-        public HttpHeaders getHeaders() {
+        public ResourceAttributes getHeaders() {
             return this.headers;
         }
 
         @Override
-        public HttpHeaders getLinkHeaders() {
-            return HttpHeaders.parseLinkHeaders(this.getHeaderValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
+        public ResourceAttributes getLinkHeaders() {
+            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
         }
 
         @Override
