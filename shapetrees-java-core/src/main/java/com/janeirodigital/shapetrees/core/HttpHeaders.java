@@ -18,29 +18,40 @@ import static java.util.Objects.requireNonNull;
  */
 @Slf4j
 public class HttpHeaders {
-    Map<String, List<String>> myMapOfLists = new HashMap<>();
+    Map<String, List<String>> myMapOfLists;
 
     /**
-     * construct an empty HttpClientHeaders container
+     * construct a case-insensitive HttpHeaders container
      */
     public HttpHeaders() {
+        this.myMapOfLists = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     }
 
     /**
-     * construct an HttpClientHeaders container and set attr to value if both are not null.
+     * construct a case-insensitive HttpHeaders container and set attr to value if both are not null.
      * @param attr attribute (header) name to set
      * @param value String value to assign to attr
      */
     public HttpHeaders(String attr, String value) throws ShapeTreeException {
+        this.myMapOfLists = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         this.maybeSet(attr, value);
     }
 
     /**
-     * replace current map with passed map.
+     * Construct HttpHeaders with passed map, which may be case-sensitive.
      * @param newMap replacement for myMapOfLists
      */
     public HttpHeaders(Map<String, List<String>> newMap) {
         this.myMapOfLists = newMap;
+    }
+
+    // copy constructor
+    private HttpHeaders copy() {
+        HttpHeaders ret = new HttpHeaders();
+        for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
+            ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+        return ret;
     }
 
     /**
@@ -63,15 +74,6 @@ public class HttpHeaders {
             }
         }
         return linkHeaderMap;
-    }
-
-    // copy constructor
-    private HttpHeaders copy() {
-        HttpHeaders ret = new HttpHeaders();
-        for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
-            ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
-        }
-        return ret;
     }
 
     /**
@@ -124,13 +126,20 @@ public class HttpHeaders {
         myMapOfLists.put(attr, values);
     }
 
+    /**
+     * Returns a map of attributes to lists of values
+     */
     public Map<String, List<String>> toMultimap() { return myMapOfLists; }
 
+    /**
+     * Returns an array with alternating attributes and values.
+     * @param exclusions set of headers to exclude from returned array.
+     *                   (This is useful for HttpRequest.Builder().)
+     */
     public String[] toList(String... exclusions) {
         List<String> ret = new ArrayList<>();
         for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
             String attr = entry.getKey();
-// !!           if (!Arrays.stream(exclusions).anyMatch(s -> s.toLowerCase(Locale.ROOT).equals(attr.toLowerCase(Locale.ROOT)))) {
             if (!Arrays.stream(exclusions).anyMatch(s -> s.equals(attr))) {
                 for (String value : entry.getValue()) {
                     ret.add(attr);
