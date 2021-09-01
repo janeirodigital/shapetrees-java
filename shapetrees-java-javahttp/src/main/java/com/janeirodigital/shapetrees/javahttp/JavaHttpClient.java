@@ -6,6 +6,7 @@ import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
+import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,7 +52,7 @@ public class JavaHttpClient extends HttpClient {
             shapeTreeResource.setBody(null);
         }
         shapeTreeResource.setAttributes(new ResourceAttributes(response.headers().map()));
-        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.headers().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LOCATION.getValue()).orElse(request.resourceURI.toString()))));
+        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.headers().firstValue(HttpHeaders.LOCATION.getValue()).orElse(request.resourceURI.toString()))));
 
         return shapeTreeResource;
     }
@@ -85,7 +86,7 @@ public class JavaHttpClient extends HttpClient {
         remoteResource.setResponseHeaders(parsedHeaders);
 
         // We especially care about Link headers which require extra parsing of the rel values
-        final List<String> linkHeaders = parsedHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
+        final List<String> linkHeaders = parsedHeaders.allValues(HttpHeaders.LINK.getValue());
         if (linkHeaders.size() != 0) {
             remoteResource.setParsedLinkHeaders(ResourceAttributes.parseLinkHeaders(linkHeaders));
         } else {

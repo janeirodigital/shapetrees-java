@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
@@ -122,7 +123,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
         @Override
         public ResourceAttributes getLinkHeaders() {
-            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
+            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
         }
 
         @Override
@@ -137,7 +138,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
         @Override
         public String getContentType() {
-            return this.getHeaders().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
+            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         }
 
         @Override

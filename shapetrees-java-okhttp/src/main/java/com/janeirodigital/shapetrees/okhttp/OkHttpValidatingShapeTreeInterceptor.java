@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
@@ -99,7 +100,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         builder.code(response.getStatusCode());
         ResourceAttributes responseHeaders = response.getResponseHeaders();
         builder.headers(OkHttpClient.toNativeHeaders(responseHeaders));
-        String contentType = responseHeaders.firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle");
+        String contentType = responseHeaders.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle");
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
@@ -134,7 +135,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
 
         @Override
         public ResourceAttributes getLinkHeaders() {
-            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue()));
+            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
         }
 
         @Override
@@ -149,7 +150,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
 
         @Override
         public String getContentType() {
-            return this.getHeaders().firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
+            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         }
 
         @Override

@@ -3,6 +3,7 @@ package com.janeirodigital.shapetrees.client.http;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
+import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -30,7 +31,7 @@ public abstract class HttpClient {
     // header helpers
     protected static boolean isContainerFromHeaders(ResourceAttributes requestHeaders) {
 
-        List<String> linkHeaders = requestHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = requestHeaders.allValues(HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return false; }
 
@@ -46,7 +47,7 @@ public abstract class HttpClient {
 
     protected static ShapeTreeResourceType getResourceTypeFromHeaders(ResourceAttributes requestHeaders) {
 
-        List<String> linkHeaders = requestHeaders.allValues(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = requestHeaders.allValues(HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return null; }
 
@@ -59,7 +60,7 @@ public abstract class HttpClient {
             return ShapeTreeResourceType.CONTAINER;
         }
 
-        if (supportedRDFContentTypes.contains(requestHeaders.firstValue(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()).orElse(null))) {
+        if (supportedRDFContentTypes.contains(requestHeaders.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null))) {
             return ShapeTreeResourceType.RESOURCE;
         }
         return ShapeTreeResourceType.NON_RDF;

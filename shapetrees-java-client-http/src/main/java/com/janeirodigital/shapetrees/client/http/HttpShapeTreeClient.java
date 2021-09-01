@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
+import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
@@ -142,7 +143,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = new ResourceAttributes();
-        headers.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", new URI(resource.getMetadataURI()), headers, sw.toString(), "text/turtle"));
     }
 
@@ -283,28 +284,28 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         ResourceAttributes ret = new ResourceAttributes();
 
         if (context.getAuthorizationHeaderValue() != null) {
-            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+            ret.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         }
 
         if (isContainer != null) {
             String resourceTypeUri = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
+            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
         }
 
         if (focusNode != null) {
-            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
+            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
         }
 
         if (targetShapeTree != null) {
-            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
+            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
         }
 
         if (proposedResourceName != null) {
-            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.SLUG.getValue(), proposedResourceName);
+            ret.maybeSet(HttpHeaders.SLUG.getValue(), proposedResourceName);
         }
 
         if (contentType != null) {
-            ret.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue(), contentType);
+            ret.maybeSet(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
         }
 
         return ret;

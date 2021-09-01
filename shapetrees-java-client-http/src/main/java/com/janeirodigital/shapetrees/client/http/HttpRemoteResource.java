@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -89,7 +90,7 @@ public class HttpRemoteResource {
         }
 
         if (this.parsedGraph == null) {
-            this.parsedGraph = GraphHelper.readStringIntoGraph(baseURI, this.rawBody, getFirstHeaderByName(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue()));
+            this.parsedGraph = GraphHelper.readStringIntoGraph(baseURI, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
         }
         return this.parsedGraph;
     }
@@ -131,7 +132,7 @@ public class HttpRemoteResource {
     }
 
     public Boolean isRdfResource() throws IOException {
-        String contentType = this.getFirstHeaderByName(com.janeirodigital.shapetrees.core.enums.HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
+        String contentType = this.getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
         if (contentType != null) {
             return this.supportedRDFContentTypes.contains(contentType);
         } else {
@@ -200,7 +201,7 @@ public class HttpRemoteResource {
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        ResourceAttributes headers = new ResourceAttributes(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+        ResourceAttributes headers = new ResourceAttributes(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
         fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", this.uri, headers, sw.toString(), TEXT_TURTLE));
 
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
@@ -267,7 +268,7 @@ public class HttpRemoteResource {
         try {
             HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
             ResourceAttributes headers = new ResourceAttributes();
-            headers.maybeSet(com.janeirodigital.shapetrees.core.enums.HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
+            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
             fetcher.fetchIntoRemoteResource(new HttpRequest("GET", this.uri, headers, null, null), this);
             this.invalidated = false;
         } catch (Exception e) {
