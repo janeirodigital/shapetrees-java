@@ -3,7 +3,7 @@ package com.janeirodigital.shapetrees.core.models;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.contentloaders.DocumentContentsLoader;
+import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -37,7 +37,7 @@ import java.util.*;
 @Getter @Setter
 @Slf4j
 public class ShapeTree {
-    private DocumentContentsLoader documentContentsLoader;
+    private ExternalDocumentLoader externalDocumentLoader;
     private String id;
     private String expectedResourceType;
     private String shape;
@@ -46,8 +46,8 @@ public class ShapeTree {
     private List<URI> contains = new ArrayList<>();
     private List<ReferencedShapeTree> references;
 
-    public ShapeTree(DocumentContentsLoader documentContentsLoader) {
-        this.documentContentsLoader = documentContentsLoader;
+    public ShapeTree(ExternalDocumentLoader externalDocumentLoader) {
+        this.externalDocumentLoader = externalDocumentLoader;
     }
 
     public URI getURI() throws URISyntaxException {
@@ -115,7 +115,7 @@ public class ShapeTree {
             schema = SchemaCache.getSchema(shapeResourceURI);
         } else {
             log.debug("Did not find schema in cache {} will retrieve and parse", shapeResourceURI);
-            DocumentResponse shexShapeContents = documentContentsLoader.loadDocumentContents(shapeResourceURI);
+            DocumentResponse shexShapeContents = externalDocumentLoader.loadExternalDocument(shapeResourceURI);
             if (shexShapeContents == null || shexShapeContents.getBody() == null || shexShapeContents.getBody().isEmpty()) {
                 throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
             }

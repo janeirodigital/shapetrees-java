@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.core;
 
-import com.janeirodigital.shapetrees.core.contentloaders.DocumentContentsLoader;
+import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpDocumentContentsLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
@@ -27,11 +27,11 @@ public class ShapeTreeFactory {
     }
 
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
-    private static DocumentContentsLoader contentsLoader = new HttpDocumentContentsLoader(null, null);
+    private static ExternalDocumentLoader contentsLoader = new HttpDocumentContentsLoader(null, null);
 
     private static final Map<URI, ShapeTree> localShapeTreeCache = new HashMap<>();
 
-    public static void setContentsLoader(DocumentContentsLoader contentsLoader) {
+    public static void setContentsLoader(ExternalDocumentLoader contentsLoader) {
         ShapeTreeFactory.contentsLoader = contentsLoader;
     }
 
@@ -49,7 +49,7 @@ public class ShapeTreeFactory {
 
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
         try {
-            DocumentResponse contents = contentsLoader.loadDocumentContents(shapeTreeURI);
+            DocumentResponse contents = contentsLoader.loadExternalDocument(shapeTreeURI);
             Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType());
             Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);

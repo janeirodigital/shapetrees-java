@@ -12,11 +12,11 @@ import java.net.http.HttpResponse;
 import java.util.Set;
 
 /**
- * An implementation of DocumentContentsLoader that retrieves resources using
+ * An implementation of ExternalDocumentLoader that retrieves resources using
  * the JDK11 HttpClient with a slight wrinkle of checking against a white/black
  * list to have tighter control of where resources are retrieved from.
  */
-public class HttpDocumentContentsLoader implements DocumentContentsLoader {
+public class HttpDocumentContentsLoader implements ExternalDocumentLoader {
 
     private final HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
     private final Set<String> whiteListDomains;
@@ -28,7 +28,7 @@ public class HttpDocumentContentsLoader implements DocumentContentsLoader {
     }
 
     @Override
-    public DocumentResponse loadDocumentContents(URI resourceURI) throws ShapeTreeException {
+    public DocumentResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException {
         if (blackListDomains != null && blackListDomains.contains(resourceURI.getHost())) {
             throw new ShapeTreeException(426, "Provided URI is on the configured black-list");
         }
