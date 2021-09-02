@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.javahttp;
 
+import com.janeirodigital.shapetrees.core.contentloaders.BlackWhiteList;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -20,23 +21,15 @@ import java.util.Set;
 public class JavaHttpDocumentLoader implements ExternalDocumentLoader {
 
     private final HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
-    private final Set<String> whiteListDomains;
-    private final Set<String> blackListDomains;
+    private final BlackWhiteList blackWhiteList;
 
-    public JavaHttpDocumentLoader(Set<String> whiteListDomains, Set<String> blackListDomains) {
-        this.whiteListDomains = whiteListDomains;
-        this.blackListDomains = blackListDomains;
+    public JavaHttpDocumentLoader(BlackWhiteList blackWhiteList) {
+        this.blackWhiteList = blackWhiteList;
     }
 
     @Override
     public DocumentResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException {
-        if (blackListDomains != null && blackListDomains.contains(resourceURI.getHost())) {
-            throw new ShapeTreeException(426, "Provided URI is on the configured black-list");
-        }
-
-        if (whiteListDomains != null && !whiteListDomains.contains(resourceURI.getHost())) {
-            throw new ShapeTreeException(426, "Provided URI is NOT on the configured white-list");
-        }
+        blackWhiteList.check(resourceURI);
 
         try {
             HttpRequest request = HttpRequest.newBuilder().GET().uri(resourceURI).build();

@@ -3,6 +3,7 @@ package com.janeirodigital.shapetrees.javahttp;
 import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
+import com.janeirodigital.shapetrees.core.contentloaders.BlackWhiteList;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
@@ -30,7 +31,7 @@ public abstract class BaseShapeTreeTest {
         this.skipShapeTreeValidation(false);
 
         AbstractHttpClientFactory.setFactory(this.factory);
-        DocumentLoaderManager.setLoader(new JavaHttpDocumentLoader(null, null));
+        DocumentLoaderManager.setLoader(new JavaHttpDocumentLoader(new BlackWhiteList(null, null)));
     }
     
     protected static void ensureExists(URI uri) throws IOException {
