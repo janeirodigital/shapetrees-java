@@ -25,13 +25,13 @@ public abstract class BaseShapeTreeTest {
     protected static String TEXT_TURTLE = "text/turtle";
 
     public BaseShapeTreeTest() {
-        this.factory = new JavaHttpClientFactory(false);
+        this.factory = new JavaHttpClientFactory(false, new BlackWhiteList(null, null));
         this.context = new ShapeTreeContext();
         this.shapeTreeClient = new HttpShapeTreeClient();
         this.skipShapeTreeValidation(false);
 
         AbstractHttpClientFactory.setFactory(this.factory);
-        DocumentLoaderManager.setLoader(new JavaHttpDocumentLoader(new BlackWhiteList(null, null)));
+        DocumentLoaderManager.setLoader(this.factory);
     }
     
     protected static void ensureExists(URI uri) throws IOException {
