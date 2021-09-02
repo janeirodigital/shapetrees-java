@@ -4,7 +4,7 @@ import com.janeirodigital.shapetrees.core.contentloaders.DocumentContentsLoader;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpDocumentContentsLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
-import com.janeirodigital.shapetrees.core.models.DocumentContents;
+import com.janeirodigital.shapetrees.core.models.DocumentResponse;
 import com.janeirodigital.shapetrees.core.models.ReferencedShapeTree;
 import com.janeirodigital.shapetrees.core.models.ShapeTree;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
@@ -49,7 +49,7 @@ public class ShapeTreeFactory {
 
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
         try {
-            DocumentContents contents = contentsLoader.loadDocumentContents(shapeTreeURI);
+            DocumentResponse contents = contentsLoader.loadDocumentContents(shapeTreeURI);
             Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType());
             Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);

@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.core.contentloaders;
 
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.DocumentContents;
+import com.janeirodigital.shapetrees.core.models.DocumentResponse;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,7 +28,7 @@ public class HttpDocumentContentsLoader implements DocumentContentsLoader {
     }
 
     @Override
-    public DocumentContents loadDocumentContents(URI resourceURI) throws ShapeTreeException {
+    public DocumentResponse loadDocumentContents(URI resourceURI) throws ShapeTreeException {
         if (blackListDomains != null && blackListDomains.contains(resourceURI.getHost())) {
             throw new ShapeTreeException(426, "Provided URI is on the configured black-list");
         }
@@ -43,7 +43,7 @@ public class HttpDocumentContentsLoader implements DocumentContentsLoader {
 
             if (response.statusCode() != 200) { throw new IOException("Failed to load contents of document: " + resourceURI); }
 
-            return new DocumentContents(resourceURI, response.body(), response.headers().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle"));
+            return new DocumentResponse(resourceURI, response.body(), response.headers().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle"));
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, "Error retrieving resource " + ex.getMessage());
         }
