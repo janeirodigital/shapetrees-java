@@ -1,8 +1,6 @@
 package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
-import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
-import com.janeirodigital.shapetrees.core.contentloaders.HttpDocumentContentsLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.models.DocumentResponse;

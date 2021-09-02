@@ -1,5 +1,6 @@
-package com.janeirodigital.shapetrees.core.contentloaders;
+package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.DocumentResponse;
@@ -16,13 +17,13 @@ import java.util.Set;
  * the JDK11 HttpClient with a slight wrinkle of checking against a white/black
  * list to have tighter control of where resources are retrieved from.
  */
-public class HttpDocumentContentsLoader implements ExternalDocumentLoader {
+public class OkHttpDocumentLoader implements ExternalDocumentLoader {
 
     private final HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
     private final Set<String> whiteListDomains;
     private final Set<String> blackListDomains;
 
-    public HttpDocumentContentsLoader(Set<String> whiteListDomains, Set<String> blackListDomains) {
+    public OkHttpDocumentLoader(Set<String> whiteListDomains, Set<String> blackListDomains) {
         this.whiteListDomains = whiteListDomains;
         this.blackListDomains = blackListDomains;
     }
