@@ -30,12 +30,13 @@ public class JavaHttpClient extends HttpClient {
     private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
 
     /**
-     * Maps a java.net.http.HttpResponse object to a ShapeTreeResource object
-     * @param response java.net.http.HttpResponse object
-     * @param resourceURI URI of request associated with response
-     * @param headers Request headers used in request associated with response
-     * @return ShapeTreeResource instance with contents and response headers from response
+     * Execute an HTTP request to create a ShapeTreeResource object
+     * Implements `HttpClient` interface
+     * @param request an HTTP request with appropriate headers for ShapeTree interactions
+     * @return new ShapeTreeResource with response headers and contents
+     * @throws ShapeTreeException
      */
+    @Override
     public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
         java.net.http.HttpResponse response = fetch(request);
 
@@ -58,9 +59,13 @@ public class JavaHttpClient extends HttpClient {
     }
 
     /**
-     * Maps an HttpResponse object to a ShapeTreeResponse object
-     * @return ShapeTreeResponse with values from HttpResponse
+     * Execute an HTTP request to create a ShapeTreeResponse object
+     * Implements `HttpClient` interface
+     * @param request an HTTP request with appropriate headers for ShapeTree interactions
+     * @return new ShapeTreeResponse with response headers and contents
+     * @throws ShapeTreeException
      */
+    @Override
     public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
         java.net.http.HttpResponse response = fetch(request);
 
@@ -76,6 +81,13 @@ public class JavaHttpClient extends HttpClient {
         return shapeTreeResponse;
     }
 
+    /**
+     * Execute an HTTP request and store the results in the passed HttpRemoteResource
+     * @param request to execute
+     * @param remoteResource to be updated
+     * @throws IOException if HTTP request fails
+     */
+    @Override
     public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
         java.net.http.HttpResponse response = fetch(request);
 
@@ -98,7 +110,13 @@ public class JavaHttpClient extends HttpClient {
         remoteResource.setRawBody(respBody);
     }
 
-    // constructor and its helpers
+    /**
+     * Construct an JavaHttpClient with switches to enable or disable SSL and ShapeTree validation
+     * @param useSslValidation
+     * @param useShapeTreeValidation
+     * @throws NoSuchAlgorithmException potentially thrown while disabling SSL validation
+     * @throws KeyManagementException potentially thrown while disabling SSL validation
+     */
     protected JavaHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         java.net.http.HttpClient.Builder clientBuilder = java.net.http.HttpClient.newBuilder();
         validatingWrapper = null;
@@ -148,33 +166,12 @@ public class JavaHttpClient extends HttpClient {
         httpClient = clientBuilder.build();
     }
 
-    private static TrustManager[] getTrustAllCertsManager() {
-        // Create a trust manager that does not validate certificate chains
-        return new TrustManager[] {
-                new X509TrustManager() {
-                    @Override
-                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-                        // All clients are trusted when SSL validation is skipped
-                    }
-
-                    @Override
-                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-                        // All servers are trusted when SSL validation is skipped
-                    }
-
-                    @Override
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return new java.security.cert.X509Certificate[]{};
-                    }
-                }
-        };
-    }
-
-    private static HostnameVerifier getTrustAllHostnameVerifier() {
-        return (hostname, session) -> true;
-    }
-
-    // http functions
+    /**
+     * Internal function to execute HTTP request and return java.net.http response
+     * @param request
+     * @return
+     * @throws ShapeTreeException
+     */
     private java.net.http.HttpResponse fetch(HttpRequest request) throws ShapeTreeException {
         if (request.body == null)
             request.body = "";

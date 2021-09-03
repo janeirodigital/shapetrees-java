@@ -21,9 +21,7 @@ import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * OkHttp documentation (https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#okhttpclients-should-be-shared)
- * recommends that instance of the client be shared/reused.  OkHttpClient's getForConfig provides an
- * instance of the OkHttpClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
+ * okhttp implementation of HttpClient
  */
 @Slf4j
 public class OkHttpClient extends HttpClient {
@@ -32,12 +30,13 @@ public class OkHttpClient extends HttpClient {
     private okhttp3.OkHttpClient httpClient;
 
     /**
-     * Maps an OkHttp Response object to a ShapeTreeResource object
-     * @param response OkHttp Response object
-     * @param resourceURI URI of request associated with response
-     * @param headers Request headers used in request associated with response
-     * @return ShapeTreeResource instance with contents and response headers from response
+     * Execute an HTTP request to create a ShapeTreeResource object
+     * Implements `HttpClient` interface
+     * @param request an HTTP request with appropriate headers for ShapeTree interactions
+     * @return new ShapeTreeResource with response headers and contents
+     * @throws ShapeTreeException
      */
+    @Override
     public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
         okhttp3.Response response = fetch(request);
 
@@ -60,9 +59,13 @@ public class OkHttpClient extends HttpClient {
     }
 
     /**
-     * Maps an OkHttp Response object to a ShapeTreeResponse object
-     * @return ShapeTreeResponse with values from OkHttp response
+     * Execute an HTTP request to create a ShapeTreeResponse object
+     * Implements `HttpClient` interface
+     * @param request an HTTP request with appropriate headers for ShapeTree interactions
+     * @return new ShapeTreeResponse with response headers and contents
+     * @throws ShapeTreeException
      */
+    @Override
     public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
         okhttp3.Response response = fetch(request);
 
@@ -78,6 +81,13 @@ public class OkHttpClient extends HttpClient {
         return shapeTreeResponse;
     }
 
+    /**
+     * Execute an HTTP request and store the results in the passed HttpRemoteResource
+     * @param request to execute
+     * @param remoteResource to be updated
+     * @throws IOException if HTTP request fails
+     */
+    @Override
     public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
         okhttp3.Response response = fetch(request);
 
@@ -117,7 +127,13 @@ public class OkHttpClient extends HttpClient {
         return okHttpHeaders.build();
     }
 
-    // constructor and its helpers
+    /**
+     * Construct an OkHttpClient with switches to enable or disable SSL and ShapeTree validation
+     * @param useSslValidation
+     * @param useShapeTreeValidation
+     * @throws NoSuchAlgorithmException potentially thrown while disabling SSL validation
+     * @throws KeyManagementException potentially thrown while disabling SSL validation
+     */
     protected OkHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
@@ -132,11 +148,12 @@ public class OkHttpClient extends HttpClient {
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
             clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
-                    .hostnameVerifier(getTrustAllHostnameVerifier());
+                    .hostnameVerifier((hostname, session) -> true);
         }
         httpClient = clientBuilder.build();
     }
 
+    // permissive SSL trust manager
     private static TrustManager[] getTrustAllCertsManager() {
         // Create a trust manager that does not validate certificate chains
         return new TrustManager[] {
@@ -159,11 +176,12 @@ public class OkHttpClient extends HttpClient {
         };
     }
 
-    private static HostnameVerifier getTrustAllHostnameVerifier() {
-        return (hostname, session) -> true;
-    }
-
-    // http functions
+    /**
+     * Internal function to execute HTTP request and return okhttp response
+     * @param request
+     * @return
+     * @throws ShapeTreeException
+     */
     private okhttp3.Response fetch(HttpRequest request) throws ShapeTreeException {
         if (request.body == null)
             request.body = "";

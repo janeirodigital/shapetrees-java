@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * abstract base class for ShapeTree library network drivers
+ */
 public abstract class HttpClient {
     protected static final String GET = "GET";
     protected static final String PUT = "PUT";
@@ -22,16 +25,40 @@ public abstract class HttpClient {
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
+    /**
+     * Execute an HTTP request to create a ShapeTreeResource object
+     * Implements `HttpClient` interface
+     * @param request an HTTP request with appropriate headers for ShapeTree interactions
+     * @return new ShapeTreeResource with response headers and contents
+     * @throws ShapeTreeException
+     */
     public abstract ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException;
 
+    /**
+     * Execute an HTTP request to create a ShapeTreeResponse object
+     * Implements `HttpClient` interface
+     * @param request an HTTP request with appropriate headers for ShapeTree interactions
+     * @return new ShapeTreeResponse with response headers and contents
+     * @throws ShapeTreeException
+     */
     public abstract ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException;
 
-    public abstract void fetchIntoRemoteResource(HttpRequest response, HttpRemoteResource remoteResource) throws IOException;
+    /**
+     * Execute an HTTP request and store the results in the passed HttpRemoteResource
+     * @param request to execute
+     * @param remoteResource to be updated
+     * @throws IOException if HTTP request fails
+     */
+    public abstract void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException;
 
-    // header helpers
-    protected static boolean isContainerFromHeaders(ResourceAttributes requestHeaders) {
+    /**
+     * Look for a Link rel=type of ldp:Container or ldp:BasicContainer
+     * @param headers to parse
+     * @return
+     */
+    protected static boolean isContainerFromHeaders(ResourceAttributes headers) {
 
-        List<String> linkHeaders = requestHeaders.allValues(HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return false; }
 
@@ -45,9 +72,14 @@ public abstract class HttpClient {
         return false;
     }
 
-    protected static ShapeTreeResourceType getResourceTypeFromHeaders(ResourceAttributes requestHeaders) {
+    /**
+     * Determine a resource type by parsing Link rel=type headers
+     * @param headers to parse
+     * @return
+     */
+    protected static ShapeTreeResourceType getResourceTypeFromHeaders(ResourceAttributes headers) {
 
-        List<String> linkHeaders = requestHeaders.allValues(HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return null; }
 
@@ -60,7 +92,7 @@ public abstract class HttpClient {
             return ShapeTreeResourceType.CONTAINER;
         }
 
-        if (supportedRDFContentTypes.contains(requestHeaders.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null))) {
+        if (supportedRDFContentTypes.contains(headers.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null))) {
             return ShapeTreeResourceType.RESOURCE;
         }
         return ShapeTreeResourceType.NON_RDF;
