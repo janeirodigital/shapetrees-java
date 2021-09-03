@@ -2,21 +2,19 @@ package com.janeirodigital.shapetrees.core;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
-@Getter @Setter @AllArgsConstructor
+import java.net.URI;
+
+@Getter @AllArgsConstructor
 public class ShapeTreeResponse {
 
-    protected int statusCode;
+    private URI uri;
+    private ResourceAttributes resourceAttributes;
     protected String body;
-    protected ResourceAttributes headers;
+    protected int statusCode;
 
     public ShapeTreeResponse() {
-        headers = new ResourceAttributes();
-    }
-
-    public ResourceAttributes getResponseHeaders() {
-        return this.headers;
+        resourceAttributes = new ResourceAttributes();
     }
 
     public boolean exists() {

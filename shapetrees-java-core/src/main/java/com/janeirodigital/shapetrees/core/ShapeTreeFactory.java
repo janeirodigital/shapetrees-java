@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
+import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.models.DocumentResponse;
@@ -43,7 +44,7 @@ public class ShapeTreeFactory {
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
         try {
             DocumentResponse contents = DocumentLoaderManager.getLoader().loadExternalDocument(shapeTreeURI);
-            Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType());
+            Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType().orElse("text/turtle"));
             Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);
         } catch (RiotNotFoundException rnfe) {

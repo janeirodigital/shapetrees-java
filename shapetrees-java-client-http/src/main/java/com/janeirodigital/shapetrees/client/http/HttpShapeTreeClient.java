@@ -113,7 +113,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
         if (Boolean.FALSE.equals(resource.exists())) {
-            return new ShapeTreeResponse(404, "Cannot find target resource to plant: " + targetResource, null);
+            return new ShapeTreeResponse(targetResource, null, "Cannot find target resource to plant: " + targetResource, 404);
         }
 
         // Determine whether the target resource is already a managed resource
@@ -242,7 +242,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
         if (Boolean.FALSE.equals(resource.exists())) {
-            return new ShapeTreeResponse(404, "Cannot find target resource to unplant: " + targetResource.toString(), null);
+            return new ShapeTreeResponse(targetResource, null, "Cannot find target resource to unplant: " + targetResource.toString(), 404);
         }
 
         // Determine whether the target resource is already a managed resource
@@ -250,7 +250,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
 
         // If the target resource is not managed, initialize a new locator
         if (locator == null) {
-            return new ShapeTreeResponse(500, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource.toString(), null);
+            return new ShapeTreeResponse(targetResource, null, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource.toString(), 500);
         }
 
         // Remove location from locator that corresponds with the provided shape tree

@@ -1,12 +1,10 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.contentloaders.BlackWhiteList;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.DocumentResponse;
 
@@ -94,6 +92,6 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
 
         ShapeTreeResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURI, null, null, null));
         if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceURI); }
-        return new DocumentResponse(resourceURI, response.getBody(), response.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle"));
+        return new DocumentResponse(resourceURI, response.getResourceAttributes(), response.getBody());
     }
 }

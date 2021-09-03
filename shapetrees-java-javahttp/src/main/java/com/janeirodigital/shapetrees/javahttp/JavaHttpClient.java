@@ -69,16 +69,13 @@ public class JavaHttpClient extends HttpClient {
     public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
         java.net.http.HttpResponse response = fetch(request);
 
-        ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
+        String body = null;
         try {
-            shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).toString());
+            body = Objects.requireNonNull(response.body()).toString();
         } catch (NullPointerException ex) {
             log.error("Exception retrieving body string");
-            shapeTreeResponse.setBody(null);
         }
-        shapeTreeResponse.setHeaders(new ResourceAttributes(response.headers().map()));
-        shapeTreeResponse.setStatusCode(response.statusCode());
-        return shapeTreeResponse;
+        return new ShapeTreeResponse(request.resourceURI, new ResourceAttributes(response.headers().map()), body, response.statusCode());
     }
 
     /**

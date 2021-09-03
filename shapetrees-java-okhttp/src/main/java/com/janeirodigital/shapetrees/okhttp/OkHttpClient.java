@@ -69,16 +69,13 @@ public class OkHttpClient extends HttpClient {
     public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
         okhttp3.Response response = fetch(request);
 
-        ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
+        String body = null;
         try {
-            shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).string());
+            body = Objects.requireNonNull(response.body()).string();
         } catch (IOException | NullPointerException ex) {
             log.error("Exception retrieving body string");
-            shapeTreeResponse.setBody(null);
         }
-        shapeTreeResponse.setHeaders(new ResourceAttributes(response.headers().toMultimap()));
-        shapeTreeResponse.setStatusCode(response.code());
-        return shapeTreeResponse;
+        return new ShapeTreeResponse(request.resourceURI, new ResourceAttributes(response.headers().toMultimap()), body, response.code());
     }
 
     /**

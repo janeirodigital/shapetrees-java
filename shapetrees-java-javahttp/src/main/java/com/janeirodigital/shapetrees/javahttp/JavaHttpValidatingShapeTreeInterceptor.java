@@ -83,7 +83,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
     @SneakyThrows
     private java.net.http.HttpResponse createResponse(ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest, ShapeTreeResponse response) {
-        java.net.http.HttpHeaders headers = java.net.http.HttpHeaders.of(response.getHeaders().toMultimap(), (a, v) -> true);
+        java.net.http.HttpHeaders headers = java.net.http.HttpHeaders.of(response.getResourceAttributes().toMultimap(), (a, v) -> true);
         return new MyHttpResponse(response.getStatusCode(), nativeRequest, headers, response.getBody());
     }
 

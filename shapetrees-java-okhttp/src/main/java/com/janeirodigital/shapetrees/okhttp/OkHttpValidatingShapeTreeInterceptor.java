@@ -98,7 +98,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
-        ResourceAttributes responseHeaders = response.getResponseHeaders();
+        ResourceAttributes responseHeaders = response.getResourceAttributes();
         builder.headers(OkHttpClient.toNativeHeaders(responseHeaders));
         String contentType = responseHeaders.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle");
 
