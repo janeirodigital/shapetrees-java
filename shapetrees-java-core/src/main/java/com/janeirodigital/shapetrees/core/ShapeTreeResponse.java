@@ -13,10 +13,6 @@ public class ShapeTreeResponse {
     protected String body;
     protected int statusCode;
 
-    public ShapeTreeResponse() {
-        resourceAttributes = new ResourceAttributes();
-    }
-
     public boolean exists() {
         return this.statusCode != 404;
     }
