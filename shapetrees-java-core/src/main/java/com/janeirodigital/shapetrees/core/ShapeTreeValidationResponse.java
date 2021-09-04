@@ -10,7 +10,7 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
     public boolean isValidRequest() { return this.validRequest; }
     public boolean isRequestFulfilled() { return this.requestFulfilled; }
 
-    public ShapeTreeValidationResponse(ValidationResult validationResult) {
+    public ShapeTreeValidationResponse(ValidationResult validationResult) { // fail: {create,update}ShapeTreeInstance, assignShapeTreeToResource
 
         super(
                 null,
@@ -18,30 +18,25 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
                 Boolean.FALSE.equals(validationResult.isValid()) ? validationResult.getMessage() : null,
                 Boolean.FALSE.equals(validationResult.isValid()) ? 422 : 999
         );
-        this.requestFulfilled = false;
+        this.requestFulfilled = true;
         this.validRequest = Boolean.TRUE.equals(validationResult.isValid());
         this.validationResult = validationResult;
     }
 
-    public ShapeTreeValidationResponse(Boolean validRequest, Boolean requestFulfilled) {
-        this(validRequest, requestFulfilled, 201, "OK");
-    }
-
-    public ShapeTreeValidationResponse(Boolean validRequest, Boolean requestFulfilled, int statusCode, String body) {
-
+    public ShapeTreeValidationResponse(Boolean validRequest, Boolean requestFulfilled) { // pass: {manage,plant,unplant,assign,unassign}ShapeTree...{To,From}Resource
         super(
                 null,
                 new ResourceAttributes(),
-                body,
-                statusCode
+                "OK",
+                201
         );
-        this.requestFulfilled = requestFulfilled;
+        this.requestFulfilled = true;
         this.validRequest = validRequest;
         this.validationResult = null;
 
     }
 
-    public ShapeTreeValidationResponse(Boolean requestFulfilled, Boolean validRequest, ValidationResult validationResult) {
+    public ShapeTreeValidationResponse(Boolean requestFulfilled, Boolean validRequest, ValidationResult validationResult) { // passThroughResponse
 
         super(
                 null,
@@ -49,13 +44,13 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
                 null,
                 999
         );
-        this.requestFulfilled = requestFulfilled;
+        this.requestFulfilled = false;
         this.validRequest = validRequest;
         this.validationResult = validationResult;
 
     }
 
-    public ShapeTreeValidationResponse(ShapeTreeException ste) {
+    public ShapeTreeValidationResponse(ShapeTreeException ste) { // catch: {Delete,Patch,Post,Put}MethodHandler.validateRequest
         super(
                 null,
                 new ResourceAttributes(),
@@ -63,15 +58,10 @@ public class ShapeTreeValidationResponse extends ShapeTreeResponse {
                 ste.getStatusCode()
         );
         this.validRequest = false;
-        this.requestFulfilled = false;
+        this.requestFulfilled = true;
     }
 
-    public static ShapeTreeValidationResponse passThroughResponse() {
+    public static ShapeTreeValidationResponse passThroughResponse() { // unmanaged: {Delete,Patch,Post,Put}MethodHandler.validateRequest
         return new ShapeTreeValidationResponse(false, true, null);
     }
-
-    public static ShapeTreeValidationResponse passThroughResponse(ValidationResult validationResult) {
-        return new ShapeTreeValidationResponse(false, true, validationResult);
-    }
-
 }

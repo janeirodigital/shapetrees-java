@@ -51,7 +51,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         if (handler != null) {
             try {
                 ShapeTreeValidationResponse shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
-                if (shapeTreeResponse.isValidRequest() && !shapeTreeResponse.isRequestFulfilled()) {
+                if (!shapeTreeResponse.isRequestFulfilled()) {
                     return chain.proceed(chain.request());
                 } else {
                     return createResponse(shapeTreeRequest, chain.request(), shapeTreeResponse);
