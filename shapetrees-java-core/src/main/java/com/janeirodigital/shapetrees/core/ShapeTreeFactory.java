@@ -41,7 +41,7 @@ public class ShapeTreeFactory {
 
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
         try {
-            ShapeTreeResponse contents = DocumentLoaderManager.getLoader().loadExternalDocument(shapeTreeURI);
+            DocumentResponse contents = DocumentLoaderManager.getLoader().loadExternalDocument(shapeTreeURI);
             Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType().orElse("text/turtle"));
             Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);

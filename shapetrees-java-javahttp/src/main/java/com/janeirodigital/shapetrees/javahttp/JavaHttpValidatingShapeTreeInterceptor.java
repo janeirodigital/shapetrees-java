@@ -1,6 +1,5 @@
 package com.janeirodigital.shapetrees.javahttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
@@ -41,7 +40,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
         if (handler != null) {
             try {
-                Optional<ShapeTreeResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
+                Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (!shapeTreeResponse.isPresent()) {
                     return httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
                 } else {
@@ -83,7 +82,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     }
 
     @SneakyThrows
-    private java.net.http.HttpResponse createResponse(ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest, ShapeTreeResponse response) {
+    private java.net.http.HttpResponse createResponse(ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest, DocumentResponse response) {
         java.net.http.HttpHeaders headers = java.net.http.HttpHeaders.of(response.getResourceAttributes().toMultimap(), (a, v) -> true);
         return new MyHttpResponse(response.getStatusCode(), nativeRequest, headers, response.getBody());
     }

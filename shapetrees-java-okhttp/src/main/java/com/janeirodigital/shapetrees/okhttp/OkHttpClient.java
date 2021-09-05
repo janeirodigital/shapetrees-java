@@ -2,10 +2,10 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.Headers;
@@ -59,14 +59,14 @@ public class OkHttpClient extends HttpClient {
     }
 
     /**
-     * Execute an HTTP request to create a ShapeTreeResponse object
+     * Execute an HTTP request to create a DocumentResponse object
      * Implements `HttpClient` interface
      * @param request an HTTP request with appropriate headers for ShapeTree interactions
-     * @return new ShapeTreeResponse with response headers and contents
+     * @return new DocumentResponse with response headers and contents
      * @throws ShapeTreeException
      */
     @Override
-    public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
+    public DocumentResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
         okhttp3.Response response = fetch(request);
 
         String body = null;
@@ -75,7 +75,7 @@ public class OkHttpClient extends HttpClient {
         } catch (IOException | NullPointerException ex) {
             log.error("Exception retrieving body string");
         }
-        return new ShapeTreeResponse(new ResourceAttributes(response.headers().toMultimap()), body, response.code());
+        return new DocumentResponse(new ResourceAttributes(response.headers().toMultimap()), body, response.code());
     }
 
     /**

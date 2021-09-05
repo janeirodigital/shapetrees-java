@@ -113,7 +113,7 @@ public class ShapeTree {
             schema = SchemaCache.getSchema(shapeResourceURI);
         } else {
             log.debug("Did not find schema in cache {} will retrieve and parse", shapeResourceURI);
-            ShapeTreeResponse shexShapeContents = externalDocumentLoader.loadExternalDocument(shapeResourceURI);
+            DocumentResponse shexShapeContents = externalDocumentLoader.loadExternalDocument(shapeResourceURI);
             if (shexShapeContents == null || shexShapeContents.getBody() == null || shexShapeContents.getBody().isEmpty()) {
                 throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
             }

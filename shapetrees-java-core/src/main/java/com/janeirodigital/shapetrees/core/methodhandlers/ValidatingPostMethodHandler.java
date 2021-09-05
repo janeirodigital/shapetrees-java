@@ -1,9 +1,9 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
@@ -22,7 +22,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     }
 
     @Override
-    public Optional<ShapeTreeResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource

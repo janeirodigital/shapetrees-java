@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.contentloaders.BlackWhiteList;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -82,14 +82,14 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
      *   DocumentLoaderManager.setLoader(new OkHttpClientFactory(...));
      *
      * @param resourceURI URI of resource to be retrieved
-     * @return a ShapeTreeResponse with the results of a successful GET
+     * @return a DocumentResponse with the results of a successful GET
      * @throws ShapeTreeException if the GET was not successful
      */
     @Override
-    public ShapeTreeResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException {
+    public DocumentResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException {
         if (blackWhiteList != null) { blackWhiteList.check(resourceURI); }
 
-        ShapeTreeResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURI, null, null, null));
+        DocumentResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURI, null, null, null));
         if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceURI); }
         return response;
     }

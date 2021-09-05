@@ -33,7 +33,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
      * Responsible for initializing a shape tree validation handler based on the HTTP method that
      * was intercepted.
      *
-     * ShapeTreeResponse is used to determine whether an artificial response from the validation library should
+     * DocumentResponse is used to determine whether an artificial response from the validation library should
      * be returned or if the original request should be passed through to the 'real' server.
      *
      * @param chain OkHttp request chain
@@ -51,7 +51,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
         if (handler != null) {
             try {
-                Optional<ShapeTreeResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
+                Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (!shapeTreeResponse.isPresent()) {
                     return chain.proceed(chain.request());
                 } else {
@@ -96,7 +96,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
                 .build();
     }
 
-    private Response createResponse(ShapeTreeRequest request, Request nativeRequest, ShapeTreeResponse response) {
+    private Response createResponse(ShapeTreeRequest request, Request nativeRequest, DocumentResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
         ResourceAttributes responseHeaders = response.getResourceAttributes();

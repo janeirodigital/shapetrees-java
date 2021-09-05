@@ -7,7 +7,7 @@ import lombok.Getter;
 import java.util.Optional;
 
 @Getter @AllArgsConstructor
-public class ShapeTreeResponse {
+public class DocumentResponse {
     private final ResourceAttributes resourceAttributes;
     private final String body;
     private final int statusCode;

@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.client.http;
 
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
@@ -100,7 +100,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
      * @throws URISyntaxException
      */
 //    @Override
-    public ShapeTreeResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws IOException, URISyntaxException {
+    public DocumentResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws IOException, URISyntaxException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
             throw new IOException("Must provide a valid context, target resource, and target shape tree to the plant shape tree");
@@ -113,7 +113,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
         if (Boolean.FALSE.equals(resource.exists())) {
-            return new ShapeTreeResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
+            return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
 
         // Determine whether the target resource is already a managed resource
@@ -148,7 +148,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
     }
 
 //    @Override
-    public ShapeTreeResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
+    public DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
 
         if (context == null || parentContainer == null) {
             throw new IOException("Must provide a valid context and parent container to post shape tree instance");
@@ -166,7 +166,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
 
     // Create via HTTP PUT
 //    @Override
-    public ShapeTreeResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws IOException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws IOException {
 
         if (context == null || resourceURI == null) {
             throw new IOException("Must provide a valid context and target resource to create shape tree instance via PUT");
@@ -183,7 +183,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
 
     // Update via HTTP PUT
 //    @Override
-    public ShapeTreeResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String bodyString, String contentType) throws IOException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String bodyString, String contentType) throws IOException {
 
         if (context == null || resourceURI == null) {
             throw new IOException("Must provide a valid context and target resource to update shape tree instance via PUT");
@@ -198,7 +198,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
     }
 
 //    @Override
-    public ShapeTreeResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String patchString) throws IOException {
+    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String patchString) throws IOException {
 
         if (context == null || resourceURI == null || patchString == null) {
             throw new IOException("Must provide a valid context, target resource, and PATCH expression to PATCH shape tree instance");
@@ -216,7 +216,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
     }
 
 //    @Override
-    public ShapeTreeResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws IOException {
+    public DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws IOException {
 
         if (context == null || resourceURI == null) {
             throw new IOException("Must provide a valid context and target resource to DELETE shape tree instance");
@@ -230,7 +230,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
     }
 
 //    @Override
-    public ShapeTreeResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException {
+    public DocumentResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
             throw new IOException("Must provide a valid context, target resource, and target shape tree to unplant");
@@ -242,7 +242,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
         HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
         if (Boolean.FALSE.equals(resource.exists())) {
-            return new ShapeTreeResponse(null, "Cannot find target resource to unplant: " + targetResource.toString(), 404);
+            return new DocumentResponse(null, "Cannot find target resource to unplant: " + targetResource.toString(), 404);
         }
 
         // Determine whether the target resource is already a managed resource
@@ -250,7 +250,7 @@ public class HttpShapeTreeClient /*implements ShapeTreeClient*/ {
 
         // If the target resource is not managed, initialize a new locator
         if (locator == null) {
-            return new ShapeTreeResponse(null, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource.toString(), 500);
+            return new DocumentResponse(null, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource.toString(), 500);
         }
 
         // Remove location from locator that corresponds with the provided shape tree

@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -35,13 +35,13 @@ public abstract class HttpClient {
     public abstract ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException;
 
     /**
-     * Execute an HTTP request to create a ShapeTreeResponse object
+     * Execute an HTTP request to create a DocumentResponse object
      * Implements `HttpClient` interface
      * @param request an HTTP request with appropriate headers for ShapeTree interactions
-     * @return new ShapeTreeResponse with response headers and contents
+     * @return new DocumentResponse with response headers and contents
      * @throws ShapeTreeException
      */
-    public abstract ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException;
+    public abstract DocumentResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException;
 
     /**
      * Execute an HTTP request and store the results in the passed HttpRemoteResource
