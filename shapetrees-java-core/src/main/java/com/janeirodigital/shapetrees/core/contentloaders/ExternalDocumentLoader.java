@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.core.contentloaders;
 
+import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.DocumentResponse;
 
 import java.net.URI;
 
@@ -14,8 +14,8 @@ public interface ExternalDocumentLoader {
     /**
      * Describes the retrieval of a remote document
      * @param resourceURI URI of resource to be retrieved
-     * @return DocumentResponse representation which contains body and content type
+     * @return ShapeTreeResponse representation which contains body and content type
      * @throws ShapeTreeException ShapeTreeException
      */
-    DocumentResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException;
+    ShapeTreeResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException;
 }

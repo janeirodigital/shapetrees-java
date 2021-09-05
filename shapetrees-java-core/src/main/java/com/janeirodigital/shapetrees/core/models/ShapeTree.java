@@ -1,9 +1,6 @@
 package com.janeirodigital.shapetrees.core.models;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.SchemaCache;
-import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
@@ -116,7 +113,7 @@ public class ShapeTree {
             schema = SchemaCache.getSchema(shapeResourceURI);
         } else {
             log.debug("Did not find schema in cache {} will retrieve and parse", shapeResourceURI);
-            DocumentResponse shexShapeContents = externalDocumentLoader.loadExternalDocument(shapeResourceURI);
+            ShapeTreeResponse shexShapeContents = externalDocumentLoader.loadExternalDocument(shapeResourceURI);
             if (shexShapeContents == null || shexShapeContents.getBody() == null || shexShapeContents.getBody().isEmpty()) {
                 throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
             }
