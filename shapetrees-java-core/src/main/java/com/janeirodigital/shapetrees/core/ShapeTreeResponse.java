@@ -8,7 +8,6 @@ import java.net.URI;
 @Getter @AllArgsConstructor
 public class ShapeTreeResponse {
 
-    private URI uri;
     private ResourceAttributes resourceAttributes;
     protected String body;
     protected int statusCode;

@@ -75,7 +75,7 @@ public class OkHttpClient extends HttpClient {
         } catch (IOException | NullPointerException ex) {
             log.error("Exception retrieving body string");
         }
-        return new ShapeTreeResponse(request.resourceURI, new ResourceAttributes(response.headers().toMultimap()), body, response.code());
+        return new ShapeTreeResponse(new ResourceAttributes(response.headers().toMultimap()), body, response.code());
     }
 
     /**

@@ -75,7 +75,7 @@ public class JavaHttpClient extends HttpClient {
         } catch (NullPointerException ex) {
             log.error("Exception retrieving body string");
         }
-        return new ShapeTreeResponse(request.resourceURI, new ResourceAttributes(response.headers().map()), body, response.statusCode());
+        return new ShapeTreeResponse(new ResourceAttributes(response.headers().map()), body, response.statusCode());
     }
 
     /**

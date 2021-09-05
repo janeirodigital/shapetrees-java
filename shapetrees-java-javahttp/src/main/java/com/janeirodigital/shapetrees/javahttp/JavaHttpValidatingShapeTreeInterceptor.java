@@ -41,7 +41,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
         if (handler != null) {
             try {
-                Optional<ShapeTreeValidationResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
+                Optional<ShapeTreeResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (!shapeTreeResponse.isPresent()) {
                     return httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
                 } else {

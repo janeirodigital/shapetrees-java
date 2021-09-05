@@ -3,7 +3,7 @@ package com.janeirodigital.shapetrees.core.methodhandlers;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
+import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
     }
 
     @Override
-    public Optional<ShapeTreeValidationResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
+    public Optional<ShapeTreeResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
             if (shapeTreeRequest.getContentType() == null || !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update")) {
                 log.error("Received a patch without a content type of application/sparql-update");
                 throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");

@@ -39,9 +39,9 @@ public abstract class AbstractValidatingMethodHandler {
         this.resourceAccessor = resourceAccessor;
     }
 
-    protected ShapeTreeValidationResponse manageShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws IOException, URISyntaxException {
+    protected ShapeTreeResponse manageShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws IOException, URISyntaxException {
 
-        Optional<ShapeTreeValidationResponse> validationResponse = null;
+        Optional<ShapeTreeResponse> validationResponse = null;
         ShapeTreeLocator updatedRootLocator = getShapeTreeLocatorFromRequest(shapeTreeRequest, metadataResource);
         ShapeTreeLocator existingRootLocator = getShapeTreeLocatorFromResource(metadataResource);
         ShapeTreeResource primaryResource = getResourceForShapeTreeMetadataResource(shapeTreeContext, metadataResource);
@@ -65,8 +65,9 @@ public abstract class AbstractValidatingMethodHandler {
             if (validationResponse.isPresent()) { return validationResponse.get(); }
         }
 
-        return new ShapeTreeValidationResponse(); // synthesize an OK response
+        // !! Need a test with reduce and updated delta to make sure we never return success from plant or unplant.
 
+        return successfulValidation();
     }
 
     /**
@@ -75,40 +76,38 @@ public abstract class AbstractValidatingMethodHandler {
      * @param updatedRootLocator
      * @param delta
      * @param primaryResource
-     * @return ShapeTreeValidationResponse
+     * @return ShapeTreeResponse
      * @throws IOException
      * @throws URISyntaxException
      */
-    protected Optional<ShapeTreeValidationResponse> plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeLocator updatedRootLocator, ShapeTreeLocatorDelta delta, ShapeTreeResource primaryResource) throws IOException, URISyntaxException {
+    protected Optional<ShapeTreeResponse> plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeLocator updatedRootLocator, ShapeTreeLocatorDelta delta, ShapeTreeResource primaryResource) throws IOException, URISyntaxException {
 
         // Cannot directly update locations that are not root locations
         ensureUpdatedLocationsAreRootLocations(delta);
 
         // Run recursive assignment for each updated location in the root locator
         for (ShapeTreeLocation rootLocation : delta.getUpdatedLocations()) {
-            Optional<ShapeTreeValidationResponse> validationResponse = assignShapeTreeToResource(shapeTreeContext, updatedRootLocator, rootLocation, rootLocation, primaryResource, null);
+            Optional<ShapeTreeResponse> validationResponse = assignShapeTreeToResource(shapeTreeContext, updatedRootLocator, rootLocation, rootLocation, primaryResource, null);
             if (validationResponse.isPresent()) { return validationResponse; }
         }
 
         return Optional.empty();
-
     }
 
-    protected  Optional<ShapeTreeValidationResponse> unplantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeLocatorDelta delta, ShapeTreeResource primaryResource) throws ShapeTreeException, URISyntaxException {
+    protected  Optional<ShapeTreeResponse> unplantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeLocatorDelta delta, ShapeTreeResource primaryResource) throws ShapeTreeException, URISyntaxException {
 
         ensureRemovedLocationsAreRootLocations(delta); // Cannot unplant a non-root location
 
         // Run recursive unassignment for each removed location in the updated root locator
         for (ShapeTreeLocation rootLocation : delta.getRemovedLocations()) {
-            Optional<ShapeTreeValidationResponse> validationResponse = unassignShapeTreeFromResource(shapeTreeContext, rootLocation, primaryResource);
+            Optional<ShapeTreeResponse> validationResponse = unassignShapeTreeFromResource(shapeTreeContext, rootLocation, primaryResource);
             if (validationResponse.isPresent()) { return validationResponse; }
         }
 
         return Optional.empty();
-
     }
 
-    protected Optional<ShapeTreeValidationResponse> createShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, String proposedName) throws IOException, URISyntaxException {
+    protected Optional<ShapeTreeResponse> createShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, String proposedName) throws IOException, URISyntaxException {
 
         shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, null));
 
@@ -146,9 +145,8 @@ public abstract class AbstractValidatingMethodHandler {
         Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, targetResourceURI, null);
 
         ValidationResult validationResult = containerShapeTree.validateContainedResource(proposedName, shapeTreeRequest.getResourceType(), targetShapeTree, incomingBodyGraph, incomingFocusNode);
-
         if (Boolean.FALSE.equals(validationResult.isValid())) {
-            return Optional.of(new ShapeTreeValidationResponse(validationResult));
+            return failValidation(validationResult);
         }
 
         log.debug("Creating shape tree instance at {}", targetResourceURI);
@@ -161,10 +159,13 @@ public abstract class AbstractValidatingMethodHandler {
         log.debug("Assigning shape tree to created resource: {}", createdResource.getUri());
         // Note: By providing the positive advance validationResult, we let the assignment operation know that validation
         // has already been performed with a positive result, and avoid having it perform the validation a second time
-        return assignShapeTreeToResource(shapeTreeContext, null, rootShapeTreeLocation, containingLocation, createdResource, validationResult);
+        Optional<ShapeTreeResponse> assignResult = assignShapeTreeToResource(shapeTreeContext, null, rootShapeTreeLocation, containingLocation, createdResource, validationResult);
+        if (assignResult.isPresent()) { return assignResult; }
+
+        return Optional.of(successfulValidation());
     }
 
-    protected Optional<ShapeTreeValidationResponse> updateShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws IOException, URISyntaxException {
+    protected Optional<ShapeTreeResponse> updateShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws IOException, URISyntaxException {
 
 
         ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
@@ -186,7 +187,7 @@ public abstract class AbstractValidatingMethodHandler {
             // All must pass for the update to validate
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(URI.create(location.getShapeTree()));
             ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), getIncomingBodyGraph(shapeTreeRequest, targetResource.getUri(), targetResource), getIncomingResolvedFocusNode(shapeTreeRequest, targetResource.getUri()));
-            if (Boolean.FALSE.equals(validationResult.isValid())) { return Optional.of(new ShapeTreeValidationResponse(validationResult)); }
+            if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
 
         }
 
@@ -195,12 +196,12 @@ public abstract class AbstractValidatingMethodHandler {
 
     }
 
-    protected Optional<ShapeTreeValidationResponse> deleteShapeTreeInstance() {
+    protected Optional<ShapeTreeResponse> deleteShapeTreeInstance() {
         // Nothing to validate in a delete request, so the request is passed along
         return Optional.empty();
     }
 
-    protected Optional<ShapeTreeValidationResponse> assignShapeTreeToResource(ShapeTreeContext shapeTreeContext,
+    protected Optional<ShapeTreeResponse> assignShapeTreeToResource(ShapeTreeContext shapeTreeContext,
                                                                     ShapeTreeLocator rootLocator,
                                                                     ShapeTreeLocation rootLocation,
                                                                     ShapeTreeLocation parentLocation,
@@ -212,7 +213,7 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTreeLocator primaryResourceLocator = null;
         URI primaryResourceMatchingNode = null;
         ShapeTreeLocation primaryResourceLocation = null;
-        Optional<ShapeTreeValidationResponse> validationResponse = null;
+        Optional<ShapeTreeResponse> validationResponse = null;
         ShapeTreeResource primaryMetadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, primaryResource);
 
         ensureValidationResultIsUsableForAssignment(advanceValidationResult, "Invalid advance validation result provided for resource assignment");
@@ -227,7 +228,7 @@ public abstract class AbstractValidatingMethodHandler {
             primaryResourceShapeTree = ShapeTreeFactory.getShapeTree(URI.create(rootLocation.getShapeTree()));
             if (advanceValidationResult == null) {    // If this validation wasn't performed in advance
                 ValidationResult validationResult = primaryResourceShapeTree.validateResource(primaryResource);
-                if (Boolean.FALSE.equals(validationResult.isValid())) { return Optional.of(new ShapeTreeValidationResponse(validationResult)); }
+                if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
                 primaryResourceMatchingNode = validationResult.getMatchingFocusNode();
             }
 
@@ -238,7 +239,7 @@ public abstract class AbstractValidatingMethodHandler {
             if (advanceValidationResult == null) {    // If this validation wasn't performed in advance
                 ShapeTree parentShapeTree = ShapeTreeFactory.getShapeTree(URI.create(parentLocation.getShapeTree()));
                 ValidationResult validationResult = parentShapeTree.validateContainedResource(primaryResource);
-                if (Boolean.FALSE.equals(validationResult.isValid())) { return Optional.of(new ShapeTreeValidationResponse(validationResult)); }
+                if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
                 primaryResourceShapeTree = validationResult.getMatchingShapeTree();
                 primaryResourceMatchingNode = validationResult.getMatchingFocusNode();
             }
@@ -267,11 +268,11 @@ public abstract class AbstractValidatingMethodHandler {
 
         createOrUpdateMetadataResource(shapeTreeContext, primaryMetadataResource, primaryResource, primaryResourceLocator);
 
-        return Optional.of(new ShapeTreeValidationResponse());
+        return Optional.empty();
 
     }
 
-    protected Optional<ShapeTreeValidationResponse> unassignShapeTreeFromResource(ShapeTreeContext shapeTreeContext,
+    protected Optional<ShapeTreeResponse> unassignShapeTreeFromResource(ShapeTreeContext shapeTreeContext,
                                                                         ShapeTreeLocation rootLocation,
                                                                         ShapeTreeResource primaryResource) throws ShapeTreeException, URISyntaxException {
 
@@ -284,7 +285,7 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTreeLocation removeLocation = getShapeTreeLocationForRoot(primaryResourceLocator, rootLocation);
         ShapeTree primaryResourceShapeTree = ShapeTreeFactory.getShapeTree(URI.create(removeLocation.getShapeTree()));
 
-        Optional<ShapeTreeValidationResponse> validationResponse = null;
+        Optional<ShapeTreeResponse> validationResponse = null;
 
         // If the primary resource is a container, and its shape tree specifies its contents with st:contains
         // Recursively traverse the hierarchy and perform shape tree unassignment
@@ -309,7 +310,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         deleteOrUpdateMetadataResource(shapeTreeContext, primaryMetadataResource, primaryResourceLocator);
 
-        return Optional.of(new ShapeTreeValidationResponse());
+        return Optional.empty();
 
     }
 
@@ -872,6 +873,13 @@ public abstract class AbstractValidatingMethodHandler {
         }
     }
 
+    private ShapeTreeResponse successfulValidation() {
+        return new ShapeTreeResponse(new ResourceAttributes(), "OK", 201);
+    }
+
+    private Optional<ShapeTreeResponse> failValidation(ValidationResult validationResult) {
+        return Optional.of(new ShapeTreeResponse(new ResourceAttributes(), validationResult.getMessage(),422));
+    }
 }
 
 

@@ -1,9 +1,6 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
-import com.janeirodigital.shapetrees.core.ResourceAccessor;
-import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
@@ -18,7 +15,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     }
 
     @Override
-    public Optional<ShapeTreeValidationResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
+    public Optional<ShapeTreeResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
