@@ -6,7 +6,7 @@ import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.contentloaders.BlackWhiteList;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.DocumentResponse;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 
 import java.net.URI;
 
@@ -62,6 +62,6 @@ public class JavaHttpClientFactory implements HttpClientFactory, ExternalDocumen
 
         ShapeTreeResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURI, null, null, null));
         if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceURI); }
-        return new DocumentResponse(resourceURI, response.getResourceAttributes(), response.getBody());
+        return new DocumentResponse(response.getResourceAttributes(), response.getBody(), response.getStatusCode());
     }
 }

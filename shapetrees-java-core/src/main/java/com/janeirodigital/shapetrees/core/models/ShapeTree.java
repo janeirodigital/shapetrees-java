@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.core.models;
 
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;

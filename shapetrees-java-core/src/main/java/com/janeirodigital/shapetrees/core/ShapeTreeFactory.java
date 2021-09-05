@@ -1,10 +1,8 @@
 package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
-import com.janeirodigital.shapetrees.core.models.DocumentResponse;
 import com.janeirodigital.shapetrees.core.models.ReferencedShapeTree;
 import com.janeirodigital.shapetrees.core.models.ShapeTree;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
