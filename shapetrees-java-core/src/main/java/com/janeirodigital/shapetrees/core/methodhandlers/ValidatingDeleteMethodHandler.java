@@ -7,6 +7,10 @@ import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Optional;
+
 public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
     public ValidatingDeleteMethodHandler(ResourceAccessor resourceAccessor) {
@@ -14,27 +18,19 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
     }
 
     @Override
-    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest shapeTreeRequest) {
-        try {
-
+    public Optional<ShapeTreeValidationResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws IOException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
             ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
 
             if (targetResource.isMetadata() && targetResource.isExists()) {
                 // If the DELETE request is for an existing shapetree metadata resource,
                 // it must be evaluated to determine if unplanting is necessary
-                return manageShapeTree(shapeTreeContext, shapeTreeRequest, targetResource);
+                return Optional.of(manageShapeTree(shapeTreeContext, shapeTreeRequest, targetResource));
             }
 
             // Reaching this point means validation was not necessary
             // Pass the request along with no validation
-            return ShapeTreeValidationResponse.passThroughResponse();
-
-        } catch (ShapeTreeException ste) {
-            return new ShapeTreeValidationResponse(ste);
-        } catch (Exception ex) {
-            return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
-        }
+            return Optional.empty();
     }
 
 }

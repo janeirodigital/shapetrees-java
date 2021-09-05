@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.javahttp;
 
+import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
@@ -40,11 +41,11 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
         if (handler != null) {
             try {
-                ShapeTreeValidationResponse shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
-                if (shapeTreeResponse.isValidRequest() && !shapeTreeResponse.isRequestFulfilled()) {
+                Optional<ShapeTreeValidationResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
+                if (!shapeTreeResponse.isPresent()) {
                     return httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
                 } else {
-                    return createResponse(shapeTreeRequest, clientRequest, shapeTreeResponse);
+                    return createResponse(shapeTreeRequest, clientRequest, shapeTreeResponse.get());
                 }
             } catch (ShapeTreeException ex){
                 log.error("Error processing shape tree request: ", ex);
@@ -78,7 +79,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     private java.net.http.HttpResponse createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest) {
         // java.net.http.ResourceAttributes headers = new java.net.http.ResourceAttributes();
         // headers.set("Content-type", "text/plain");
-        return new MyHttpResponse(exception.getStatusCode(), nativeRequest, null, exception.getMessage());
+        return new MyHttpResponse(exception.getStatusCode(), nativeRequest, java.net.http.HttpHeaders.of(Collections.emptyMap(), (a, v) -> true), exception.getMessage());
     }
 
     @SneakyThrows

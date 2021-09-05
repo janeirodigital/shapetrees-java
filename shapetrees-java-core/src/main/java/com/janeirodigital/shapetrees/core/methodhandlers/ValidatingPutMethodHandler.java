@@ -7,6 +7,10 @@ import com.janeirodigital.shapetrees.core.ShapeTreeValidationResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Optional;
+
 public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
     public ValidatingPutMethodHandler(ResourceAccessor resourceAccessor) {
@@ -14,16 +18,14 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     }
 
     @Override
-    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest shapeTreeRequest) {
-        try {
-
+    public Optional<ShapeTreeValidationResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
 
             if (targetResource.isMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
-                return manageShapeTree(shapeTreeContext, shapeTreeRequest, targetResource);
+                return Optional.of(manageShapeTree(shapeTreeContext, shapeTreeRequest, targetResource));
             } else {
                 if (targetResource.isExists()) {
                     // The target resource already exists
@@ -43,12 +45,6 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
 
             // Reaching this point means validation was not necessary
             // Pass the request along with no validation
-            return ShapeTreeValidationResponse.passThroughResponse();
-
-        } catch (ShapeTreeException ste) {
-            return new ShapeTreeValidationResponse(ste);
-        } catch (Exception ex) {
-            return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
-        }
+            return Optional.empty();
     }
 }

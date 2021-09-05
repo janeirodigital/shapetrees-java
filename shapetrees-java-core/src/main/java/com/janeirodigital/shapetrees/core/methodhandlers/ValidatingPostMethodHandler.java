@@ -9,6 +9,9 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -19,8 +22,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     }
 
     @Override
-    public ShapeTreeValidationResponse validateRequest(ShapeTreeRequest shapeTreeRequest) {
-        try {
+    public Optional<ShapeTreeValidationResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource
@@ -37,12 +39,6 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
             // Reaching this point means validation was not necessary
             // Pass the request along with no validation
-            return ShapeTreeValidationResponse.passThroughResponse();
-
-        } catch (ShapeTreeException ste) {
-            return new ShapeTreeValidationResponse(ste);
-        } catch (Exception ex) {
-            return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
-        }
+            return Optional.empty();
     }
 }

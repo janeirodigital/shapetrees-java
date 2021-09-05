@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Interceptor used for client-side validation
@@ -50,17 +51,19 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
         if (handler != null) {
             try {
-                ShapeTreeValidationResponse shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
-                if (!shapeTreeResponse.isRequestFulfilled()) {
+                Optional<ShapeTreeValidationResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
+                if (!shapeTreeResponse.isPresent()) {
                     return chain.proceed(chain.request());
                 } else {
-                    return createResponse(shapeTreeRequest, chain.request(), shapeTreeResponse);
+                    return createResponse(shapeTreeRequest, chain.request(), shapeTreeResponse.get());
                 }
             } catch (ShapeTreeException ex){
                 log.error("Error processing shape tree request: ", ex);
+//                return new ShapeTreeValidationResponse(ste);
                 return createErrorResponse(ex, shapeTreeRequest, chain.request());
             } catch (Exception ex) {
                 log.error("Error processing shape tree request: ", ex);
+//                return new ShapeTreeValidationResponse(new ShapeTreeException(500, ex.getMessage()));
                 return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest, chain.request());
             }
         } else {
