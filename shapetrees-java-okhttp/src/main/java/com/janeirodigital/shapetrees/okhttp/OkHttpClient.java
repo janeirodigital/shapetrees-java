@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  * okhttp implementation of HttpClient
  */
 @Slf4j
-public class OkHttpClient extends HttpClient {
+public class OkHttpClient implements HttpClient {
     private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
     private okhttp3.OkHttpClient httpClient;
@@ -164,23 +164,23 @@ public class OkHttpClient extends HttpClient {
 
             switch (request.method) {
 
-                case GET:
+                case HttpClient.GET:
                     requestBuilder.get();
                     break;
 
-                case PUT:
+                case HttpClient.PUT:
                     requestBuilder.put(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
-                case POST:
+                case HttpClient.POST:
                     requestBuilder.post(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
-                case PATCH:
+                case HttpClient.PATCH:
                     requestBuilder.patch(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
-                case DELETE:
+                case HttpClient.DELETE:
                     requestBuilder.delete();
                     break;
 

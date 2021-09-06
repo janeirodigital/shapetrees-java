@@ -25,7 +25,7 @@ import java.util.Optional;
  * java.net.http implementation of HttpClient
  */
 @Slf4j
-public class JavaHttpClient extends HttpClient {
+public class JavaHttpClient implements HttpClient {
     private static final boolean USE_INTERCEPTOR = false;
     private java.net.http.HttpClient httpClient;
     private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
@@ -154,7 +154,7 @@ public class JavaHttpClient extends HttpClient {
                 if (headerList.length > 0) {
                     requestBuilder.headers(headerList);
                 }
-                /*
+                /* !!
                 for (Map.Entry<String, List<String>> entry : request.headers.toMultimap().entrySet()){
                     for (String value : entry.getValue()) {
                         try {
@@ -168,33 +168,20 @@ public class JavaHttpClient extends HttpClient {
             }
 
             switch (request.method) {
-
-                case GET:
-                    requestBuilder.GET();
+                case HttpClient.GET:
+                case HttpClient.DELETE:
+                    requestBuilder.method(request.method, java.net.http.HttpRequest.BodyPublishers.noBody());
                     break;
 
-                case PUT:
-                    requestBuilder.PUT(java.net.http.HttpRequest.BodyPublishers.ofString(request.body));
+                case HttpClient.PUT:
+                case HttpClient.POST:
+                case HttpClient.PATCH:
+                    requestBuilder.method(request.method, java.net.http.HttpRequest.BodyPublishers.ofString(request.body));
                     requestBuilder.header("Content-Type", request.contentType);
-                    break;
-
-                case POST:
-                    requestBuilder.POST(java.net.http.HttpRequest.BodyPublishers.ofString(request.body));
-                    requestBuilder.header("Content-Type", request.contentType);
-                    break;
-
-                case PATCH:
-                    requestBuilder.method("PATCH", java.net.http.HttpRequest.BodyPublishers.ofString(request.body));
-                    requestBuilder.header("Content-Type", request.contentType);
-                    break;
-
-                case DELETE:
-                    requestBuilder.DELETE();
                     break;
 
                 default:
                     throw new ShapeTreeException(500, "Unsupported HTTP method for resource creation");
-
             }
 
             java.net.http.HttpRequest nativeRequest = requestBuilder.build();
