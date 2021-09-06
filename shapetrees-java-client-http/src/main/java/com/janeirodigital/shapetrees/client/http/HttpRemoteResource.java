@@ -230,12 +230,12 @@ public class HttpRemoteResource {
             return URI.create(associatedString);
 
         } else {
-            return URI.create(getMetadataURI());
+            return getMetadataURI();
         }
     }
 
     @NotNull
-    public String getMetadataURI() throws IOException {
+    public URI getMetadataURI() throws IOException {
         if (this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
             // TODO: Should this be gracefully handled by the client?
@@ -258,7 +258,7 @@ public class HttpRemoteResource {
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
 
-        return metaDataURIString;
+        return URI.create(metaDataURIString);
     }
 
     private void dereferenceURI() throws IOException {

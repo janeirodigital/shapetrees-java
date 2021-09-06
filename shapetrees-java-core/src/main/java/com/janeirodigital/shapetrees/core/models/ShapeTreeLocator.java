@@ -33,15 +33,15 @@ import java.util.List;
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor
 public class ShapeTreeLocator {
 
-    private String id;
+    private URI id;
     private List<ShapeTreeLocation> locations = new ArrayList<>();   // Each ShapeTreeLocator has one or more ShapeTreeLocations
 
-    public ShapeTreeLocator(String id) {
+    public ShapeTreeLocator(URI id) {
         this.id = id;
     }
 
     public URI getURI() throws URISyntaxException {
-        return new URI(this.id);
+        return this.id;
     }
 
     public Graph getGraph() throws URISyntaxException {
@@ -126,7 +126,7 @@ public class ShapeTreeLocator {
         return null;
     }
 
-    public static ShapeTreeLocator getShapeTreeLocatorFromGraph(String id, Graph shapeTreeMetadataGraph) {
+    public static ShapeTreeLocator getShapeTreeLocatorFromGraph(URI id, Graph shapeTreeMetadataGraph) {
 
          ShapeTreeLocator locator = new ShapeTreeLocator();
 

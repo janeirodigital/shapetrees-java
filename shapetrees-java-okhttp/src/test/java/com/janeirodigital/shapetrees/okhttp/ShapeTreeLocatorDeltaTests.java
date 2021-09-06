@@ -33,8 +33,8 @@ class ShapeTreeLocatorDeltaTests extends BaseShapeTreeTest {
         existingLocator = new ShapeTreeLocator();
         updatedLocator = new ShapeTreeLocator();
         
-        existingLocator.setId("https://locator.example/#existing");
-        updatedLocator.setId("https://locator.example/#updated");
+        existingLocator.setId(URI.create("https://locator.example/#existing"));
+        updatedLocator.setId(URI.create("https://locator.example/#updated"));
         
         locationOne = new ShapeTreeLocation();
         locationOne.setShapeTree("http://shapetrees.example/#firstTree");

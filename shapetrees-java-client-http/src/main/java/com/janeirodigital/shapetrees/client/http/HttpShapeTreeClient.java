@@ -145,7 +145,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", new URI(resource.getMetadataURI()), headers, sw.toString(), "text/turtle"));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resource.getMetadataURI(), headers, sw.toString(), "text/turtle"));
     }
 
     @Override
@@ -276,7 +276,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, new URI(resource.getMetadataURI()),
+        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, resource.getMetadataURI(),
                                               null, // why no getCommonHeaders(context, null, null, null, null, null)
                                               body, contentType));
     }

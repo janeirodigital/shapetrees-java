@@ -605,7 +605,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, normalizeBaseURI(shapeTreeRequest.getURI(), null, ShapeTreeResourceType.RESOURCE), metadataResource);
         if (incomingBodyGraph == null) { return null; }
-        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(shapeTreeRequest.getURI().toString(), incomingBodyGraph);
+        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(shapeTreeRequest.getURI(), incomingBodyGraph);
     }
 
     protected ShapeTreeLocator getShapeTreeLocatorFromResource(ShapeTreeResource metadataResource) throws URISyntaxException, ShapeTreeException {
@@ -613,7 +613,7 @@ public abstract class AbstractValidatingMethodHandler {
         if (!metadataResource.isExists()) { return null; }
         Graph metadataResourceGraph = getGraphForResource(metadataResource, normalizeBaseURI(metadataResource.getUri(), null, metadataResource.getType()));
         if (metadataResourceGraph == null) { return null; }
-        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataResource.getUri().toString(), metadataResourceGraph);
+        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataResource.getUri(), metadataResourceGraph);
 
     }
 
@@ -685,11 +685,11 @@ public abstract class AbstractValidatingMethodHandler {
 
         if (!primaryMetadataResource.isExists()) {
             // If the existing metadata resource doesn't exist make a new shape tree locator
-            primaryResourceLocator = new ShapeTreeLocator(primaryMetadataResource.getUri().toString());
+            primaryResourceLocator = new ShapeTreeLocator(primaryMetadataResource.getUri());
         } else {
             // Get the existing shape tree locator from the metadata resource graph
             Graph primaryMetadataGraph = getGraphForResource(primaryMetadataResource, primaryMetadataResource.getUri());
-            primaryResourceLocator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(primaryMetadataResource.getUri().toString(), primaryMetadataGraph);
+            primaryResourceLocator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(primaryMetadataResource.getUri(), primaryMetadataGraph);
         }
 
         return primaryResourceLocator;

@@ -11,6 +11,7 @@ import org.apache.jena.graph.Triple;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -56,10 +57,8 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testRetrieveInvalidURIString() throws URISyntaxException, IOException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        Assertions.assertThrows(IOException.class, () -> new HttpRemoteResource(":invalid", null));
+    void testRetrieveInvalidURIString() throws URISyntaxException, IOException { // !! may as well deleted as it's only testing URI.create()
+        Assertions.assertThrows(java.lang.IllegalArgumentException.class, () -> new HttpRemoteResource(URI.create(":invalid"), null));
     }
 
     @Test
@@ -193,6 +192,4 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         Assertions.assertNull(resource.getGraph(getURI(server, "/static/resource/notpresent")));
         Assertions.assertNull(resource.getBody());
     }
-
-
 }
