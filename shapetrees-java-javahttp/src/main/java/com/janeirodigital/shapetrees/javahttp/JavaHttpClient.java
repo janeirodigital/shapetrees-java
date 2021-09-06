@@ -51,35 +51,6 @@ public class JavaHttpClient implements HttpClient {
     }
 
     /**
-     * Execute an HTTP request and store the results in the passed HttpRemoteResource
-     * @param request to execute
-     * @param remoteResource to be updated
-     * @throws IOException if HTTP request fails
-     */
-    @Override
-    public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
-        java.net.http.HttpResponse response = fetch(request);
-
-        remoteResource.setExists(response.statusCode() < 400);
-
-        // Parse the headers for ease of use later
-        ResourceAttributes parsedHeaders = new ResourceAttributes(response.headers().map());
-        remoteResource.setResponseHeaders(parsedHeaders);
-
-        // We especially care about Link headers which require extra parsing of the rel values
-        final List<String> linkHeaders = parsedHeaders.allValues(HttpHeaders.LINK.getValue());
-        if (linkHeaders.size() != 0) {
-            remoteResource.setParsedLinkHeaders(ResourceAttributes.parseLinkHeaders(linkHeaders));
-        } else {
-            remoteResource.setParsedLinkHeaders(new ResourceAttributes());
-        }
-
-        // Save raw body
-        String respBody = Objects.requireNonNull(response.body()).toString(); // @@ is requireNull useful here?
-        remoteResource.setRawBody(respBody);
-    }
-
-    /**
      * Construct an JavaHttpClient with switches to enable or disable SSL and ShapeTree validation
      * @param useSslValidation
      * @param useShapeTreeValidation

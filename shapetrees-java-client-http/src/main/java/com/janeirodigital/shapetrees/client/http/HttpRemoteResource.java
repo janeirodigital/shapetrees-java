@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
@@ -16,6 +17,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -168,11 +171,7 @@ public class HttpRemoteResource {
     public Boolean isManaged() throws IOException {
 
         if (Boolean.TRUE.equals(this.isMetadata())) { return false; }
-
-        if (Boolean.TRUE.equals(this.getMetadataResource(this.authorizationHeaderValue).exists())) { return true; }
-
-        return false;
-
+        return Boolean.TRUE.equals(this.getMetadataResource(this.authorizationHeaderValue).exists());
     }
 
     public ResourceAttributes getResponseHeaders() { return this.responseHeaders; }
@@ -187,7 +186,7 @@ public class HttpRemoteResource {
             dereferenceURI();
         }
 
-        return responseHeaders.firstValue(headerName).orElse(null);
+        return this.responseHeaders.firstValue(headerName).orElse(null);
     }
 
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
@@ -268,18 +267,23 @@ public class HttpRemoteResource {
         try {
             HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
             ResourceAttributes headers = new ResourceAttributes();
-            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
-            fetcher.fetchIntoRemoteResource(new HttpRequest("GET", this.uri, headers, null, null), this);
+            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);
+            HttpRequest req = new HttpRequest("GET", this.uri, headers, null, null);
+            DocumentResponse resp = fetcher.fetchShapeTreeResponse(req);
+            this.exists = resp.exists();
+            ResourceAttributes allHeaders = resp.getResourceAttributes();
+            this.responseHeaders = new ResourceAttributes(allHeaders.toMultimap());
+            final List<String> linkHeaders = allHeaders.allValues(HttpHeaders.LINK.getValue());
+            if (linkHeaders.size() != 0) {
+                this.parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
+            } else {
+                this.parsedLinkHeaders = new ResourceAttributes();
+            }
+            this.rawBody = Objects.requireNonNull(resp.getBody()); // @@ is requireNull useful here?
+            // fetcher.fetchIntoRemoteResource(req, this);
             this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);
         }
     }
-
-    // Promiscuous hack for Fetcher.fetchIntoRemoteResource: Only HttpClient.fetchIntoRemoteResource needs to call these functions.
-    // Is it possible to simulate a "friend" per https://stackoverflow.com/a/18634125/1243605 ?
-    public void setExists(boolean exists) { this.exists = exists; }
-    public void setResponseHeaders(ResourceAttributes responseHeaders) { this.responseHeaders = responseHeaders; }
-    public void setParsedLinkHeaders(ResourceAttributes parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
-    public void setRawBody(String rawBody) { this.rawBody = rawBody; }
 }

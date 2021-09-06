@@ -4,16 +4,11 @@ import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.Headers;
-import okhttp3.ResponseBody;
 
 import javax.net.ssl.*;
 import java.io.IOException;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -47,36 +42,6 @@ public class OkHttpClient implements HttpClient {
             log.error("Exception retrieving body string");
         }
         return new DocumentResponse(new ResourceAttributes(response.headers().toMultimap()), body, response.code());
-    }
-
-    /**
-     * Execute an HTTP request and store the results in the passed HttpRemoteResource
-     * @param request to execute
-     * @param remoteResource to be updated
-     * @throws IOException if HTTP request fails
-     */
-    @Override
-    public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
-        okhttp3.Response response = fetch(request);
-
-        remoteResource.setExists(response.code() < 400);
-
-        // Parse the headers for ease of use later
-        ResourceAttributes parsedHeaders = new ResourceAttributes(response.headers().toMultimap());
-        remoteResource.setResponseHeaders(parsedHeaders);
-
-        // We especially care about Link headers which require extra parsing of the rel values
-        final List<String> linkHeaders = parsedHeaders.allValues(HttpHeaders.LINK.getValue());
-        if (linkHeaders.size() != 0) {
-            remoteResource.setParsedLinkHeaders(ResourceAttributes.parseLinkHeaders(linkHeaders));
-        } else {
-            remoteResource.setParsedLinkHeaders(new ResourceAttributes());
-        }
-
-        // Save raw body
-        try (ResponseBody respBody = response.body()) {
-            remoteResource.setRawBody(respBody.string());
-        }
     }
 
     /**

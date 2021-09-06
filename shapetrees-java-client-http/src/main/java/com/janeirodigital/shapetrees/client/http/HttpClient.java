@@ -32,11 +32,4 @@ public interface HttpClient {
      */
     DocumentResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException;
 
-    /**
-     * Execute an HTTP request and store the results in the passed HttpRemoteResource
-     * @param request to execute
-     * @param remoteResource to be updated
-     * @throws IOException if HTTP request fails
-     */
-    void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException;
 }
