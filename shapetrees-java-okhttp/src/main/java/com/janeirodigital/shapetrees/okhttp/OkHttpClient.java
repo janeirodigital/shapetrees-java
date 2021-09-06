@@ -30,35 +30,6 @@ public class OkHttpClient extends HttpClient {
     private okhttp3.OkHttpClient httpClient;
 
     /**
-     * Execute an HTTP request to create a ShapeTreeResource object
-     * Implements `HttpClient` interface
-     * @param request an HTTP request with appropriate headers for ShapeTree interactions
-     * @return new ShapeTreeResource with response headers and contents
-     * @throws ShapeTreeException
-     */
-    @Override
-    public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
-        okhttp3.Response response = fetch(request);
-
-        ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
-
-        shapeTreeResource.setExists(response.isSuccessful());
-        shapeTreeResource.setContainer(isContainerFromHeaders(request.headers));
-        shapeTreeResource.setType(getResourceTypeFromHeaders(request.headers));
-
-        try {
-            shapeTreeResource.setBody(Objects.requireNonNull(response.body()).string());
-        } catch (IOException | NullPointerException ex) {
-            log.error("Exception retrieving body string");
-            shapeTreeResource.setBody(null);
-        }
-        shapeTreeResource.setAttributes(new ResourceAttributes(response.headers().toMultimap()));
-        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), request.resourceURI.toString()))));
-
-        return shapeTreeResource;
-    }
-
-    /**
      * Execute an HTTP request to create a DocumentResponse object
      * Implements `HttpClient` interface
      * @param request an HTTP request with appropriate headers for ShapeTree interactions

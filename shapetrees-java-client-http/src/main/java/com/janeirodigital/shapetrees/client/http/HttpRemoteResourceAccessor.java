@@ -77,7 +77,8 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        return fetcher.fetchShapeTreeResource(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
+        return new ShapeTreeResource(resourceURI, response);
     }
 
     @Override
@@ -88,7 +89,8 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
+        return new ShapeTreeResource(updatedResource.getUri(), response);
     }
 
     @Override

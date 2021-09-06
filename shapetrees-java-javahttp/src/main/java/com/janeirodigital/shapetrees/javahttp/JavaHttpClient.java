@@ -19,6 +19,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * java.net.http implementation of HttpClient
@@ -28,35 +29,6 @@ public class JavaHttpClient extends HttpClient {
     private static final boolean USE_INTERCEPTOR = false;
     private java.net.http.HttpClient httpClient;
     private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
-
-    /**
-     * Execute an HTTP request to create a ShapeTreeResource object
-     * Implements `HttpClient` interface
-     * @param request an HTTP request with appropriate headers for ShapeTree interactions
-     * @return new ShapeTreeResource with response headers and contents
-     * @throws ShapeTreeException
-     */
-    @Override
-    public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
-        java.net.http.HttpResponse response = fetch(request);
-
-        ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
-
-        shapeTreeResource.setExists(response.statusCode()/100 == 2);
-        shapeTreeResource.setContainer(isContainerFromHeaders(request.headers));
-        shapeTreeResource.setType(getResourceTypeFromHeaders(request.headers));
-
-        try {
-            shapeTreeResource.setBody(Objects.requireNonNull(response.body()).toString());
-        } catch (NullPointerException ex) {
-            log.error("Exception retrieving body string");
-            shapeTreeResource.setBody(null);
-        }
-        shapeTreeResource.setAttributes(new ResourceAttributes(response.headers().map()));
-        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.headers().firstValue(HttpHeaders.LOCATION.getValue()).orElse(request.resourceURI.toString()))));
-
-        return shapeTreeResource;
-    }
 
     /**
      * Execute an HTTP request to create a DocumentResponse object
