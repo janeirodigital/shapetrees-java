@@ -10,6 +10,6 @@ public interface ResourceAccessor {
     ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException;
     ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException;
     ShapeTreeResource updateResource(ShapeTreeContext context, String method, ShapeTreeResource updatedResource) throws ShapeTreeException;
-    ShapeTreeResponse deleteResource(ShapeTreeContext context, ShapeTreeResource updatedResource) throws ShapeTreeException;
+    DocumentResponse deleteResource(ShapeTreeContext context, ShapeTreeResource updatedResource) throws ShapeTreeException;
     List<ShapeTreeResource> getContainedResources(ShapeTreeContext context, URI containerResourceURI) throws ShapeTreeException;
 }

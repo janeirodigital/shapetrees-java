@@ -2,10 +2,10 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.Headers;
@@ -21,9 +21,7 @@ import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * OkHttp documentation (https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#okhttpclients-should-be-shared)
- * recommends that instance of the client be shared/reused.  OkHttpClient's getForConfig provides an
- * instance of the OkHttpClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
+ * okhttp implementation of HttpClient
  */
 @Slf4j
 public class OkHttpClient extends HttpClient {
@@ -32,12 +30,13 @@ public class OkHttpClient extends HttpClient {
     private okhttp3.OkHttpClient httpClient;
 
     /**
-     * Maps an OkHttp Response object to a ShapeTreeResource object
-     * @param response OkHttp Response object
-     * @param resourceURI URI of request associated with response
-     * @param headers Request headers used in request associated with response
-     * @return ShapeTreeResource instance with contents and response headers from response
+     * Execute an HTTP request to create a ShapeTreeResource object
+     * Implements `HttpClient` interface
+     * @param request an HTTP request with appropriate headers for ShapeTree interactions
+     * @return new ShapeTreeResource with response headers and contents
+     * @throws ShapeTreeException
      */
+    @Override
     public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
         okhttp3.Response response = fetch(request);
 
@@ -60,24 +59,32 @@ public class OkHttpClient extends HttpClient {
     }
 
     /**
-     * Maps an OkHttp Response object to a ShapeTreeResponse object
-     * @return ShapeTreeResponse with values from OkHttp response
+     * Execute an HTTP request to create a DocumentResponse object
+     * Implements `HttpClient` interface
+     * @param request an HTTP request with appropriate headers for ShapeTree interactions
+     * @return new DocumentResponse with response headers and contents
+     * @throws ShapeTreeException
      */
-    public ShapeTreeResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
+    @Override
+    public DocumentResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
         okhttp3.Response response = fetch(request);
 
-        ShapeTreeResponse shapeTreeResponse = new ShapeTreeResponse();
+        String body = null;
         try {
-            shapeTreeResponse.setBody(Objects.requireNonNull(response.body()).string());
+            body = Objects.requireNonNull(response.body()).string();
         } catch (IOException | NullPointerException ex) {
             log.error("Exception retrieving body string");
-            shapeTreeResponse.setBody(null);
         }
-        shapeTreeResponse.setHeaders(new ResourceAttributes(response.headers().toMultimap()));
-        shapeTreeResponse.setStatusCode(response.code());
-        return shapeTreeResponse;
+        return new DocumentResponse(new ResourceAttributes(response.headers().toMultimap()), body, response.code());
     }
 
+    /**
+     * Execute an HTTP request and store the results in the passed HttpRemoteResource
+     * @param request to execute
+     * @param remoteResource to be updated
+     * @throws IOException if HTTP request fails
+     */
+    @Override
     public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
         okhttp3.Response response = fetch(request);
 
@@ -117,7 +124,13 @@ public class OkHttpClient extends HttpClient {
         return okHttpHeaders.build();
     }
 
-    // constructor and its helpers
+    /**
+     * Construct an OkHttpClient with switches to enable or disable SSL and ShapeTree validation
+     * @param useSslValidation
+     * @param useShapeTreeValidation
+     * @throws NoSuchAlgorithmException potentially thrown while disabling SSL validation
+     * @throws KeyManagementException potentially thrown while disabling SSL validation
+     */
     protected OkHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
@@ -132,11 +145,12 @@ public class OkHttpClient extends HttpClient {
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
             clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
-                    .hostnameVerifier(getTrustAllHostnameVerifier());
+                    .hostnameVerifier((hostname, session) -> true);
         }
         httpClient = clientBuilder.build();
     }
 
+    // permissive SSL trust manager
     private static TrustManager[] getTrustAllCertsManager() {
         // Create a trust manager that does not validate certificate chains
         return new TrustManager[] {
@@ -159,11 +173,12 @@ public class OkHttpClient extends HttpClient {
         };
     }
 
-    private static HostnameVerifier getTrustAllHostnameVerifier() {
-        return (hostname, session) -> true;
-    }
-
-    // http functions
+    /**
+     * Internal function to execute HTTP request and return okhttp response
+     * @param request
+     * @return
+     * @throws ShapeTreeException
+     */
     private okhttp3.Response fetch(HttpRequest request) throws ShapeTreeException {
         if (request.body == null)
             request.body = "";

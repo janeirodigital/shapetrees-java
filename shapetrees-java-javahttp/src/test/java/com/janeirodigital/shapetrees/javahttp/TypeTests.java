@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.javahttp;
 
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.javahttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.javahttp.fixtures.RequestMatchingFixtureDispatcher;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
@@ -46,7 +46,7 @@ class TypeTests extends BaseShapeTreeTest {
 
         // Add fixture to handle successful POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-container"), "POST", "/containers/valid-container/", null));
-        ShapeTreeResponse response;
+        DocumentResponse response;
 
         // Provide target shape tree
         response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/containers/"), null, getURI(server, "/static/shapetrees/type/shapetree#ContainerTree"), "valid-container", true, null, TEXT_TURTLE);
@@ -66,7 +66,7 @@ class TypeTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response;
+        DocumentResponse response;
 
         // Provide target shape tree for a resource when container shape tree is expected
         response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/containers/"), null, getURI(server, "/static/shapetrees/type/shapetree#ResourceTree"), "invalid-resource", false, null, TEXT_TURTLE);
@@ -91,7 +91,7 @@ class TypeTests extends BaseShapeTreeTest {
 
         // Add fixture to handle successful POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-resource"), "POST", "/resources/valid-resource", null));
-        ShapeTreeResponse response;
+        DocumentResponse response;
 
         // Provide target shape tree
         response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/resources/"), null, getURI(server, "/static/shapetrees/type/shapetree#ResourceTree"), "valid-resource", false, null, TEXT_TURTLE);
@@ -110,7 +110,7 @@ class TypeTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response;
+        DocumentResponse response;
 
         // Provide target shape tree for a container when resource shape tree is expected
         response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/resources/"), null, getURI(server, "/static/shapetrees/type/shapetree#ContainerTree"), "invalid-container", true, null, TEXT_TURTLE);
@@ -135,7 +135,7 @@ class TypeTests extends BaseShapeTreeTest {
 
         // Add fixture to handle successful POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-non-rdf-resource"), "POST", "/non-rdf-resources/valid-non-rdf-resource", null));
-        ShapeTreeResponse response;
+        DocumentResponse response;
 
         response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/non-rdf-resources/"), null, getURI(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree"), "valid-non-rdf-resource", false, null, "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
@@ -151,7 +151,7 @@ class TypeTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTreeResponse response;
+        DocumentResponse response;
 
         // Provide target shape tree for a resource when non-rdf-resource shape tree is expected
         response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/non-rdf-resources/"), null, getURI(server, "/static/shapetrees/type/shapetree#ResourceTree"), "invalid-non-rdf-resource", false, null, TEXT_TURTLE);

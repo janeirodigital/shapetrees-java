@@ -40,11 +40,11 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
         if (handler != null) {
             try {
-                ShapeTreeValidationResponse shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
-                if (shapeTreeResponse.isValidRequest() && !shapeTreeResponse.isRequestFulfilled()) {
+                Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
+                if (!shapeTreeResponse.isPresent()) {
                     return httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
                 } else {
-                    return createResponse(shapeTreeRequest, clientRequest, shapeTreeResponse);
+                    return createResponse(shapeTreeRequest, clientRequest, shapeTreeResponse.get());
                 }
             } catch (ShapeTreeException ex){
                 log.error("Error processing shape tree request: ", ex);
@@ -78,12 +78,12 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     private java.net.http.HttpResponse createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest) {
         // java.net.http.ResourceAttributes headers = new java.net.http.ResourceAttributes();
         // headers.set("Content-type", "text/plain");
-        return new MyHttpResponse(exception.getStatusCode(), nativeRequest, null, exception.getMessage());
+        return new MyHttpResponse(exception.getStatusCode(), nativeRequest, java.net.http.HttpHeaders.of(Collections.emptyMap(), (a, v) -> true), exception.getMessage());
     }
 
     @SneakyThrows
-    private java.net.http.HttpResponse createResponse(ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest, ShapeTreeResponse response) {
-        java.net.http.HttpHeaders headers = java.net.http.HttpHeaders.of(response.getHeaders().toMultimap(), (a, v) -> true);
+    private java.net.http.HttpResponse createResponse(ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest, DocumentResponse response) {
+        java.net.http.HttpHeaders headers = java.net.http.HttpHeaders.of(response.getResourceAttributes().toMultimap(), (a, v) -> true);
         return new MyHttpResponse(response.getStatusCode(), nativeRequest, headers, response.getBody());
     }
 

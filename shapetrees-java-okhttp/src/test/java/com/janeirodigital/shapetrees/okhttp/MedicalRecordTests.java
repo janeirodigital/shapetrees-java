@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.okhttp.fixtures.RequestMatchingFixtureDispatcher;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import jdk.jfr.Label;
@@ -44,7 +44,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         // Plant medical record on /ldp/data/medical-record
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server,"/ldp/data/medical-records/"), getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"), null);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server,"/ldp/data/medical-records/"), getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"), null);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -80,7 +80,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         // Plant medical record on /ldp/data/medical-record
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server,"/ldp/data/conditions/"), getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"), null);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, getURI(server,"/ldp/data/conditions/"), getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"), null);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -95,7 +95,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/conditions-container-locator"), "GET", "/ldp/data/conditions/?ext=shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1"), "POST", "/ldp/data/conditions/condition1.ttl", null));
 
-        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
+        DocumentResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
                 getURI(server, "/ldp/data/conditions/"),
                 getURI(server, "http://hl7.org/fhir/Condition/example"),
                 getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),
@@ -117,7 +117,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
 
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/conditions-container-locator"), "GET", "/ldp/data/conditions/?ext=shapetree", null));
 
-        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
+        DocumentResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
                 getURI(server, "/ldp/data/conditions/"),
                 getURI(server, "http://hl7.org/fhir/Condition/example"),
                 getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),
@@ -142,7 +142,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         // create invalid instance but skip validation
         this.shapeTreeClient.skipShapeTreeValidation(true);
         Assertions.assertTrue(this.shapeTreeClient.isShapeTreeValidationSkipped());
-        ShapeTreeResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
+        DocumentResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,
                 getURI(server, "/ldp/data/conditions/"),
                 getURI(server, "http://hl7.org/fhir/Condition/example"),
                 getURI(server, "/static/shapetrees/medical-record/shapetree#condition"),
@@ -168,7 +168,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
 
         // update condition instance
 
-        ShapeTreeResponse response = this.shapeTreeClient.putShapeTreeInstance(this.context,
+        DocumentResponse response = this.shapeTreeClient.putShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 getURI(server,"http://hl7.org/fhir/Condition/example"),
                 getConditionTtl(),
@@ -189,7 +189,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-locator"), "GET", "/ldp/data/conditions/condition1.ttl?ext=shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-patch-response"), "PATCH", "/ldp/data/conditions/condition1.ttl", null));
 
-        ShapeTreeResponse response = this.shapeTreeClient.patchShapeTreeInstance(this.context,
+        DocumentResponse response = this.shapeTreeClient.patchShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 getURI(server,"http://hl7.org/fhir/Condition/example"),
                 "INSERT DATA { <#a> <#b> <#c> . }"
@@ -208,7 +208,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-locator"), "GET", "/ldp/data/conditions/condition1.ttl?ext=shapetree", null));
 
         // fail to validate on update with patch
-        ShapeTreeResponse response = this.shapeTreeClient.patchShapeTreeInstance(this.context,
+        DocumentResponse response = this.shapeTreeClient.patchShapeTreeInstance(this.context,
                 getURI(server,"/ldp/data/conditions/condition1.ttl"),
                 getURI(server,"http://hl7.org/fhir/Condition/example"),
                 "DELETE DATA { <http://hl7.org/fhir/Condition/example> a <http://hl7.org/fhir/Condition> . }"
@@ -228,7 +228,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-delete-response"), "DELETE", "/ldp/data/conditions/condition1.ttl", null));
 
         // delete data instance
-        ShapeTreeResponse response = this.shapeTreeClient.deleteShapeTreeInstance(this.context, getURI(server,"/ldp/data/conditions/condition1.ttl"));
+        DocumentResponse response = this.shapeTreeClient.deleteShapeTreeInstance(this.context, getURI(server,"/ldp/data/conditions/condition1.ttl"));
         Assertions.assertEquals(204, response.getStatusCode());
     }
 

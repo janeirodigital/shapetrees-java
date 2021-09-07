@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.okhttp.fixtures.RequestMatchingFixtureDispatcher;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
@@ -56,7 +56,7 @@ class ProjectRecursiveTests extends BaseShapeTreeTest {
         URI focusNode = getURI(server, "/data/#repository");
 
         // Plant the data collection recursively on already existing hierarchy
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -77,7 +77,7 @@ class ProjectRecursiveTests extends BaseShapeTreeTest {
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
 
         // Plant the projects collection recursively on already existing hierarchy
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }

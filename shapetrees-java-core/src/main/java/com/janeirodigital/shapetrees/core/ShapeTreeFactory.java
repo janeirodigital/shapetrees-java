@@ -1,10 +1,8 @@
 package com.janeirodigital.shapetrees.core;
 
-import com.janeirodigital.shapetrees.core.contentloaders.DocumentContentsLoader;
-import com.janeirodigital.shapetrees.core.contentloaders.HttpDocumentContentsLoader;
+import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
-import com.janeirodigital.shapetrees.core.models.DocumentContents;
 import com.janeirodigital.shapetrees.core.models.ReferencedShapeTree;
 import com.janeirodigital.shapetrees.core.models.ShapeTree;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
@@ -27,13 +25,7 @@ public class ShapeTreeFactory {
     }
 
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
-    private static DocumentContentsLoader contentsLoader = new HttpDocumentContentsLoader(null, null);
-
     private static final Map<URI, ShapeTree> localShapeTreeCache = new HashMap<>();
-
-    public static void setContentsLoader(DocumentContentsLoader contentsLoader) {
-        ShapeTreeFactory.contentsLoader = contentsLoader;
-    }
 
     public static ShapeTree getShapeTree(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
 
@@ -49,8 +41,8 @@ public class ShapeTreeFactory {
 
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
         try {
-            DocumentContents contents = contentsLoader.loadDocumentContents(shapeTreeURI);
-            Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType());
+            DocumentResponse contents = DocumentLoaderManager.getLoader().loadExternalDocument(shapeTreeURI);
+            Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType().orElse("text/turtle"));
             Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);
         } catch (RiotNotFoundException rnfe) {
@@ -68,7 +60,7 @@ public class ShapeTreeFactory {
             return;
         }
 
-        ShapeTree shapeTree = new ShapeTree(contentsLoader);
+        ShapeTree shapeTree = new ShapeTree(DocumentLoaderManager.getLoader());
         // Set the URI as the ID (string representation)
         shapeTree.setId(shapeTreeURIString);
         // Set the expected resource type

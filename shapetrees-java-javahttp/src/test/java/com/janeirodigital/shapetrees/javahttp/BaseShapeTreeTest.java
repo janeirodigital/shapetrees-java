@@ -1,9 +1,10 @@
 package com.janeirodigital.shapetrees.javahttp;
 
-import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
 import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
+import com.janeirodigital.shapetrees.core.contentloaders.BlackWhiteList;
+import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +25,13 @@ public abstract class BaseShapeTreeTest {
     protected static String TEXT_TURTLE = "text/turtle";
 
     public BaseShapeTreeTest() {
-        this.factory = new JavaHttpClientFactory(false);
+        this.factory = new JavaHttpClientFactory(false, new BlackWhiteList(null, null));
         this.context = new ShapeTreeContext();
         this.shapeTreeClient = new HttpShapeTreeClient();
         this.skipShapeTreeValidation(false);
 
         AbstractHttpClientFactory.setFactory(this.factory);
+        DocumentLoaderManager.setLoader(this.factory);
     }
     
     protected static void ensureExists(URI uri) throws IOException {

@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.okhttp.fixtures.RequestMatchingFixtureDispatcher;
-import com.janeirodigital.shapetrees.core.ShapeTreeResponse;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
@@ -68,7 +68,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
 
         // Perform plant on /data container that doesn't exist yet (fails)
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);
         // Look for 404 because /data doesn't exist
         Assertions.assertEquals(404, response.getStatusCode());
 
@@ -89,7 +89,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI focusNode = getURI(server, "/data/#repository");
 
         // Plant the data repository on newly created data container
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -109,7 +109,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI focusNode = getURI(server, "/data/#repository");
 
         // Plant the data repository on newly created data container
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
         Assertions.assertEquals(500, response.getStatusCode());
 
     }
@@ -134,7 +134,7 @@ class ProjectTests extends BaseShapeTreeTest {
         // Create the projects container as a shape tree instance.
         // 1. Will be validated by the parent DataRepositoryTree planted on /data
         // 2. Will have a locator/location created for it as an instance of DataCollectionTree
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -158,7 +158,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI focusNode = getURI(server, "/data/projects/#collection");
 
         // Plant the second shape tree (ProjectCollectionTree) on /data/projects/
-        ShapeTreeResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
         Assertions.assertEquals(201, response.getStatusCode());
 
 
@@ -187,7 +187,7 @@ class ProjectTests extends BaseShapeTreeTest {
         // Create the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
         // 2. Will have a locator/location created for it as an instance of ProjectTree
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -217,7 +217,7 @@ class ProjectTests extends BaseShapeTreeTest {
         // Update the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
         // 2. Will have a locator/location created for it as an instance of ProjectTree
-        ShapeTreeResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(200, response.getStatusCode());
 
     }
@@ -242,7 +242,7 @@ class ProjectTests extends BaseShapeTreeTest {
 
         // Create the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        ShapeTreeResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, targetShapeTree, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, targetShapeTree, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -271,7 +271,7 @@ class ProjectTests extends BaseShapeTreeTest {
 
         // Update the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        ShapeTreeResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -303,7 +303,7 @@ class ProjectTests extends BaseShapeTreeTest {
         // Create the milestone-3 container in /projects/project-1/ as a shape tree instance using PUT to create
         // 1. Will be validated by the parent ProjectTree planted on /data/projects/project-1/
         // 2. Will have a locator/location created for it as an instance of MilestoneTree
-        ShapeTreeResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, targetShapeTree, true, getMilestoneThreeBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, targetShapeTree, true, getMilestoneThreeBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -335,7 +335,7 @@ class ProjectTests extends BaseShapeTreeTest {
 
         // Update the milestone-3 container in /projects/project-1/ using PATCH
         // 1. Will be validated by the MilestoneTree planted on /data/projects/project-1/milestone-3/
-        ShapeTreeResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, focusNode, getMilestoneThreeSparqlPatch());
+        DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, focusNode, getMilestoneThreeSparqlPatch());
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -367,7 +367,7 @@ class ProjectTests extends BaseShapeTreeTest {
 
         // Create the task-6 container in /projects/project-1/milestone-3/ using PATCH
         // 1. Will be validated by the parent MilestoneTree planted on /data/projects/project-1/milestone-3/
-        ShapeTreeResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, focusNode, getTaskSixSparqlPatch());
+        DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, focusNode, getTaskSixSparqlPatch());
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -398,7 +398,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#TaskTree");
 
         // create task-48 in milestone-3 - supply a target shape tree, but not a focus node
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, null, targetShapeTree, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, null, targetShapeTree, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -428,7 +428,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetContainer = getURI(server, "/data/projects/project-1/milestone-3/");
 
         // create task-48 in milestone-3 - don't supply a target shape tree or focus node
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, null, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, null, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -459,7 +459,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI focusNode = getURI(server, "/data/projects/project-1/milestone-3/task-48/#task");
 
         // create task-48 in milestone-3 - supply a focus node but no target shape tree
-        ShapeTreeResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, focusNode, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, focusNode, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -493,7 +493,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetResource = getURI(server, "/data/projects/project-1/milestone-3/task-48/attachment-48");
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#AttachmentTree");
 
-        ShapeTreeResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -527,7 +527,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetResource = getURI(server, "/data/projects/project-1/milestone-3/task-48/random.png");
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#AttachmentTree");
 
-        ShapeTreeResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -548,12 +548,12 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetShapeTreeTwo = getURI(server, "/static/shapetrees/project/shapetree#ProjectsTree");
 
         // Try first by providing the Milestone Shape Tree as the unplant target
-        ShapeTreeResponse responseOne = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTreeOne);
+        DocumentResponse responseOne = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTreeOne);
         Assertions.assertEquals(500, responseOne.getStatusCode());
 
         // Try again by providing the (incorrect) Project Shape Tree as the unplant target (which is the shape tree at the root of the hierarchy) - this will be caught by the client immediately
         Assertions.assertThrows(IllegalStateException.class, () -> {
-            ShapeTreeResponse responseTwo = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTreeTwo);
+            DocumentResponse responseTwo = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTreeTwo);
         });
 
     }
@@ -605,7 +605,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetResource = getURI(server, "/data/projects/");
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
 
-        ShapeTreeResponse response = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTree);
+        DocumentResponse response = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTree);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -634,7 +634,7 @@ class ProjectTests extends BaseShapeTreeTest {
 
         // Unplant the data collection, recursing down the tree (only two levels)
         // Since the projects collection still manages /data/projects/, it should not delete the locator, only update it
-        ShapeTreeResponse response = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTree);
+        DocumentResponse response = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTree);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -652,7 +652,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetResource = getURI(server, "/data/.shapetree");
 
         // Plant the data repository on newly created data container
-        ShapeTreeResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, null, getPlantDataRepositorySparqlPatch(server));
+        DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, null, getPlantDataRepositorySparqlPatch(server));
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -674,7 +674,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetResource = getURI(server, "/data/projects/.shapetree");
 
         // Update the locator directly for the /data/projects/ with PATCH
-        ShapeTreeResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, null, getUpdateDataRepositorySparqlPatch(server));
+        DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, null, getUpdateDataRepositorySparqlPatch(server));
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
