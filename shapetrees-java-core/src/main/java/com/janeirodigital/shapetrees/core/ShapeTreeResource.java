@@ -27,6 +27,22 @@ public class ShapeTreeResource {
     private boolean managed;
     private ResourceAttributes attributes;
 
+    @Override
+    public String toString() {
+        return "ShapeTreeResource{" +
+                "uri=" + uri +
+                ", associatedUri=" + associatedUri +
+                ", name='" + name + '\'' +
+                ", body='" + body + '\'' +
+                ", type=" + type +
+                ", exists=" + exists +
+                ", container=" + container +
+                ", metadata=" + metadata +
+                ", managed=" + managed +
+                ", attributes=" + attributes +
+                '}';
+    }
+
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
     public ShapeTreeResource(URI uri,

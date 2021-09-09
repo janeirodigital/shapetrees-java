@@ -286,4 +286,19 @@ public class HttpRemoteResource {
             log.error("Error dereferencing URI", e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "HttpRemoteResource{" +
+                "uri=" + uri +
+                ", authorizationHeaderValue='" + authorizationHeaderValue + '\'' +
+                ", invalidated=" + invalidated +
+                ", exists=" + exists +
+                ", responseHeaders=" + responseHeaders +
+                ", parsedLinkHeaders=" + parsedLinkHeaders +
+                ", parsedGraph=" + parsedGraph +
+                ", rawBody='" + rawBody + '\'' +
+                ", supportedRDFContentTypes=" + supportedRDFContentTypes +
+                '}';
+    }
 }

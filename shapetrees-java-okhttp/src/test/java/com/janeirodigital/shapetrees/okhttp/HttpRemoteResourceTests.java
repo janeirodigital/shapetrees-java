@@ -57,7 +57,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testRetrieveInvalidURIString() throws URISyntaxException, IOException { // !! may as well deleted as it's only testing URI.create()
+    void testRetrieveInvalidURIString() throws URISyntaxException, IOException { // TODO: may as well deleted as it's only testing URI.create()
         Assertions.assertThrows(java.lang.IllegalArgumentException.class, () -> new HttpRemoteResource(URI.create(":invalid"), null));
     }
 
