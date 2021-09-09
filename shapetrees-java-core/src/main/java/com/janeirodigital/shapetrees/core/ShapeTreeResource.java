@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@Getter @Setter @Slf4j
+@Getter @Slf4j
 public class ShapeTreeResource {
     private URI uri;
     private URI associatedUri;
     private String name;
-    private String body;
+    @Setter private String body;
     ShapeTreeResourceType type;
     private boolean exists;
     private boolean container;
@@ -29,7 +29,34 @@ public class ShapeTreeResource {
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
-    public ShapeTreeResource() {}
+    public ShapeTreeResource(URI uri,
+                             boolean exists,
+                             String name,
+                             boolean metadata,
+                             boolean container,
+                             ResourceAttributes attributes,
+                             URI associatedUri,
+                             ShapeTreeResourceType type,
+                             boolean managed,
+                             String body) {
+        this.uri = uri;
+        this.exists = exists;
+        this.name = name;
+        this.metadata = metadata;
+        this.container = container;
+        this.attributes = attributes;
+        this.associatedUri = associatedUri;
+
+        if (this.exists) {
+            this.type = type;
+            this.managed = managed;
+            this.body = body;
+        } else {
+            this.type = null;
+            this.managed = false;
+            this.body = null;
+        }
+    }
 
     public ShapeTreeResource(URI fetchURI, DocumentResponse response) {
         this.exists = response.getStatusCode()/100 == 2;

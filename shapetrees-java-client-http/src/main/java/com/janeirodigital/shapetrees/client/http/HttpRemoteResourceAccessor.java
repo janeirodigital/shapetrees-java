@@ -5,6 +5,7 @@ import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
@@ -109,49 +110,41 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws IOException {
-        ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
+        URI uri;
         try {
-            shapeTreeResource.setUri(remoteResource.getUri());
+            uri = remoteResource.getUri();
         } catch (IOException ex) {
             throw new ShapeTreeException(500, "Error resolving URI");
         }
 
-        shapeTreeResource.setExists(remoteResource.exists());
-
-        shapeTreeResource.setName(remoteResource.getName());
-
-        shapeTreeResource.setMetadata(remoteResource.isMetadata());
-
-        shapeTreeResource.setContainer(remoteResource.isContainer());
-
-        shapeTreeResource.setAttributes(remoteResource.getResponseHeaders());
-
+        boolean exists = remoteResource.exists();
+        ShapeTreeResourceType type = null;
+        boolean managed = false;
+        String body = null;
+        URI associatedUri = null;
         try {
-            shapeTreeResource.setAssociatedUri(remoteResource.getAssociatedURI());
+            associatedUri = remoteResource.getAssociatedURI();
+            if (exists) {
+                type = remoteResource.getResourceType();
+                managed = remoteResource.isManaged();
+                body = remoteResource.getBody();
+            }
         } catch (IOException iex) {
-            shapeTreeResource.setAssociatedUri(null);
+            // use defaults set above
         }
 
-        if (shapeTreeResource.isExists()) {
-            try {
-                shapeTreeResource.setType(remoteResource.getResourceType());
-            } catch (IOException iex) {
-                shapeTreeResource.setType(null);
-            }
+        return new ShapeTreeResource(
+                uri,
+                exists,
+                remoteResource.getName(),
+                remoteResource.isMetadata(),
+                remoteResource.isContainer(),
+                remoteResource.getResponseHeaders(),
 
-            try {
-                shapeTreeResource.setManaged(remoteResource.isManaged());
-            } catch (IOException iex) {
-                shapeTreeResource.setManaged(false);
-            }
-
-            try {
-                shapeTreeResource.setBody(remoteResource.getBody());
-            } catch (IOException iex) {
-                shapeTreeResource.setBody(null);
-            }
-        }
-
-        return shapeTreeResource;
+                associatedUri,
+                type,
+                managed,
+                body
+        );
     }
 }
