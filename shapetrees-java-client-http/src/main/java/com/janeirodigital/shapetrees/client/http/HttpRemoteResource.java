@@ -43,26 +43,15 @@ public class HttpRemoteResource {
     private String rawBody;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
-    public HttpRemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
-        URI requestUri;
-        try {
-            requestUri = new URI(uriString);
-        } catch (URISyntaxException ex) {
-            throw new IOException("Request URI is not a value URI");
-        }
-        this.uri = requestUri;
-        this.authorizationHeaderValue = authorizationHeaderValue;
-        dereferenceURI();
-    }
-
-    public HttpRemoteResource(URI uri, String authorizationHeaderValue) throws IOException {
+    public HttpRemoteResource(URI uri, String authorizationHeaderValue) throws ShapeTreeException {
         this.uri = uri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
     }
 
-    public URI getUri() throws IOException {
+    public URI getUri() throws ShapeTreeException {
         if (Boolean.TRUE.equals(this.invalidated)) {
+            log.debug("HttpRemoteResource#getUri({}) - Resource Invalidated - Refreshing", this.uri);
             dereferenceURI();
         }
         return this.uri;
@@ -155,7 +144,7 @@ public class HttpRemoteResource {
         return (this.uri.getQuery() == null && uriPath.endsWith("/"));
     }
 
-    public Boolean isMetadata() throws IOException {
+    public Boolean isMetadata() throws ShapeTreeException {
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
         // with a metadata target, it is not a metadata resource (because it is pointing to one)
         if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && !this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
@@ -261,7 +250,7 @@ public class HttpRemoteResource {
         return URI.create(metaDataURIString);
     }
 
-    private void dereferenceURI() throws IOException {
+    private void dereferenceURI() throws ShapeTreeException { // TODO: swallows STE instead of throwing it
         log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
 
         try {

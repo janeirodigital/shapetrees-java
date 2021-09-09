@@ -32,11 +32,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
     @Override
     public ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException {
-        try {
-            return mapRemoteResourceToShapeTreeResource(new HttpRemoteResource(resourceURI, context.getAuthorizationHeaderValue()));
-        } catch (Exception ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
-        }
+        return mapRemoteResourceToShapeTreeResource(new HttpRemoteResource(resourceURI, context.getAuthorizationHeaderValue()));
     }
 
     @Override
@@ -109,19 +105,15 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
     }
 
-    private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws IOException {
-        URI uri;
-        try {
-            uri = remoteResource.getUri();
-        } catch (IOException ex) {
-            throw new ShapeTreeException(500, "Error resolving URI");
-        }
-
+    private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws ShapeTreeException {
+        URI uri = remoteResource.getUri();
         boolean exists = remoteResource.exists();
+
         ShapeTreeResourceType type = null;
         boolean managed = false;
         String body = null;
         URI associatedUri = null;
+
         try {
             associatedUri = remoteResource.getAssociatedURI();
             if (exists) {
