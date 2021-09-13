@@ -113,9 +113,9 @@ public class ShapeTree {
             schema = SchemaCache.getSchema(shapeResourceURI);
         } else {
             log.debug("Did not find schema in cache {} will retrieve and parse", shapeResourceURI);
-            DocumentResponse shexShapeContents = externalDocumentLoader.loadExternalDocument(shapeResourceURI);
+            DocumentResponse shexShapeContents = this.externalDocumentLoader.loadExternalDocument(shapeResourceURI);
             if (shexShapeContents == null || shexShapeContents.getBody() == null || shexShapeContents.getBody().isEmpty()) {
-                throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
+                throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + this.id + ") - Shape at (" + resolvedShapeURI + ") is not found or is empty");
             }
 
             String shapeBody = shexShapeContents.getBody();
@@ -218,7 +218,7 @@ public class ShapeTree {
             } else {
                 // We have a misunderstanding if a target shape tree is supplied but doesn't exist in st:contains
                 return new ValidationResult(false, this, "Target shape tree " +
-                            targetShapeTreeURI.toString() + "was provided but not found in st:contains");
+                        targetShapeTreeURI + "was provided but not found in st:contains");
             }
 
         } else {

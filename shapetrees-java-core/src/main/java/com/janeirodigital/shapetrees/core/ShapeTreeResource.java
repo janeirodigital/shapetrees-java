@@ -16,30 +16,30 @@ import java.util.Set;
 
 @Getter @Slf4j
 public class ShapeTreeResource {
-    private URI uri;
+    private final URI uri;
     private URI associatedUri;
     private String name;
     @Setter private String body;
     ShapeTreeResourceType type;
-    private boolean exists;
-    private boolean container;
+    private final boolean exists;
+    private final boolean container;
     private boolean metadata;
     private boolean managed;
-    private ResourceAttributes attributes;
+    private final ResourceAttributes attributes;
 
     @Override
     public String toString() {
         return "ShapeTreeResource{" +
-                "uri=" + uri +
-                ", associatedUri=" + associatedUri +
-                ", name='" + name + '\'' +
-                ", body='" + body + '\'' +
-                ", type=" + type +
-                ", exists=" + exists +
-                ", container=" + container +
-                ", metadata=" + metadata +
-                ", managed=" + managed +
-                ", attributes=" + attributes +
+                "uri=" + this.uri +
+                ", associatedUri=" + this.associatedUri +
+                ", name='" + this.name + '\'' +
+                ", body='" + this.body + '\'' +
+                ", type=" + this.type +
+                ", exists=" + this.exists +
+                ", container=" + this.container +
+                ", metadata=" + this.metadata +
+                ", managed=" + this.managed +
+                ", attributes=" + this.attributes +
                 '}';
     }
 

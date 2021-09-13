@@ -35,7 +35,7 @@ public class HttpRemoteResource {
     private Boolean exists;
     private ResourceAttributes responseHeaders;
     private ResourceAttributes parsedLinkHeaders;
-    private Optional<Graph> parsedGraph;
+    private final Optional<Graph> parsedGraph;
     private String rawBody;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
@@ -69,7 +69,7 @@ public class HttpRemoteResource {
     }
 
     // Lazy-load graph when requested
-    public Optional<Graph> getGraph() throws IOException {
+    public Optional<Graph> getGraph() {
 
         return this.parsedGraph;
     }
@@ -119,10 +119,6 @@ public class HttpRemoteResource {
         }
     }
 
-    public Boolean isNonRdfSource() throws IOException {
-        return !isRdfResource();
-    }
-
     public Boolean isContainer() {
         String uriPath = this.uri.getPath();
         // Some implementations use the query string to denote auxiliary metadata for containers or resources
@@ -131,17 +127,15 @@ public class HttpRemoteResource {
         return (this.uri.getQuery() == null && uriPath.endsWith("/"));
     }
 
-    public Boolean isMetadata() throws ShapeTreeException {
+    public Boolean isMetadata() {
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
         // with a metadata target, it is not a metadata resource (because it is pointing to one)
-        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && !this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
+        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isPresent()) {
             return false;
         }
         // If the resource doesn't exist, currently we need to do some inference based on the URI
         if (this.getUri().getPath() != null && this.getUri().getPath().matches(".*\\.shapetree$")) { return true; }
-        if (this.getUri().getQuery() != null && this.getUri().getQuery().matches(".*ext\\=shapetree$")) { return true; }
-
-        return false;
+        return this.getUri().getQuery() != null && this.getUri().getQuery().matches(".*ext\\=shapetree$");
     }
 
     public Boolean isManaged() throws IOException {
@@ -228,7 +222,7 @@ public class HttpRemoteResource {
         return URI.create(metaDataURIString);
     }
 
-    private void dereferenceURI() throws ShapeTreeException { // TODO: swallows STE instead of throwing it
+    private void dereferenceURI() { // TODO: swallows STE instead of throwing it
         log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
 
         try {
@@ -243,7 +237,7 @@ public class HttpRemoteResource {
             Map<String, List<String>> allHeadersAsMap = allHeaders.toMultimap();
             if (this.uri.getPath().endsWith(".shapetree") && !allHeadersAsMap.containsKey("content-type")) {
                 Map<String, List<String>> mutable = new TreeMap<>(allHeadersAsMap);
-                mutable.put("content-type", Arrays.asList("text/turtle"));
+                mutable.put("content-type", List.of("text/turtle"));
                 allHeadersAsMap = mutable;
             }
             this.responseHeaders = new ResourceAttributes(allHeadersAsMap); // TODO: allHeaders.toMultimap()
@@ -262,14 +256,14 @@ public class HttpRemoteResource {
     @Override
     public String toString() {
         return "HttpRemoteResource{" +
-                "uri=" + uri +
-                ", authorizationHeaderValue='" + authorizationHeaderValue + '\'' +
-                ", exists=" + exists +
-                ", responseHeaders=" + responseHeaders +
-                ", parsedLinkHeaders=" + parsedLinkHeaders +
-                ", parsedGraph=" + parsedGraph +
-                ", rawBody='" + rawBody + '\'' +
-                ", supportedRDFContentTypes=" + supportedRDFContentTypes +
+                "uri=" + this.uri +
+                ", authorizationHeaderValue='" + this.authorizationHeaderValue + '\'' +
+                ", exists=" + this.exists +
+                ", responseHeaders=" + this.responseHeaders +
+                ", parsedLinkHeaders=" + this.parsedLinkHeaders +
+                ", parsedGraph=" + this.parsedGraph +
+                ", rawBody='" + this.rawBody + '\'' +
+                ", supportedRDFContentTypes=" + this.supportedRDFContentTypes +
                 '}';
     }
 }

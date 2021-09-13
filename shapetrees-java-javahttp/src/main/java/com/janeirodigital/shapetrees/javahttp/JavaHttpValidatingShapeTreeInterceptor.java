@@ -90,9 +90,9 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     private class JavaHttpShapeTreeRequest implements ShapeTreeRequest {
         private final java.net.http.HttpRequest request;
         private ShapeTreeResourceType resourceType;
-        private String body;
-        private String contentType;
-        private ResourceAttributes headers;
+        private final String body;
+        private final String contentType;
+        private final ResourceAttributes headers;
 
         public JavaHttpShapeTreeRequest(java.net.http.HttpRequest request, String body, String contentType) {
             this.request = request;
@@ -167,12 +167,12 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
         @Override
         public int statusCode() {
-            return _statusCode;
+            return this._statusCode;
         }
 
         @Override
         public java.net.http.HttpRequest request() {
-            return _request;
+            return this._request;
         }
 
         @Override
@@ -182,12 +182,12 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
         @Override
         public java.net.http.HttpHeaders headers() {
-            return _headers;
+            return this._headers;
         }
 
         @Override
         public String body() {
-            return _body;
+            return this._body;
         }
 
         @Override
@@ -204,5 +204,5 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         public java.net.http.HttpClient.Version version() {
             return null;
         }
-    };
+    }
 }

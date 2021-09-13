@@ -40,7 +40,7 @@ public class JavaHttpClientFactory implements HttpClientFactory, ExternalDocumen
      */
     public JavaHttpClient get(boolean useShapeTreeValidation) throws ShapeTreeException {
         try {
-            return new JavaHttpClient(useSslValidation, useShapeTreeValidation);
+            return new JavaHttpClient(this.useSslValidation, useShapeTreeValidation);
         } catch (Exception ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
@@ -57,7 +57,8 @@ public class JavaHttpClientFactory implements HttpClientFactory, ExternalDocumen
      */
     @Override
     public DocumentResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException {
-        if (blackWhiteList != null) { blackWhiteList.check(resourceURI); }
+        if (this.blackWhiteList != null) {
+            this.blackWhiteList.check(resourceURI); }
 
         DocumentResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURI, null, null, null));
         if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceURI); }

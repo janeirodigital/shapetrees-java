@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OkHttpClient implements HttpClient {
     private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
-    private okhttp3.OkHttpClient httpClient;
+    private final okhttp3.OkHttpClient httpClient;
 
     /**
      * Execute an HTTP request to create a DocumentResponse object
@@ -83,7 +83,7 @@ public class OkHttpClient implements HttpClient {
             clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
                     .hostnameVerifier((hostname, session) -> true);
         }
-        httpClient = clientBuilder.build();
+        this.httpClient = clientBuilder.build();
     }
 
     // permissive SSL trust manager
@@ -154,7 +154,7 @@ public class OkHttpClient implements HttpClient {
 
             }
 
-            return httpClient.newCall(requestBuilder.build()).execute();
+            return this.httpClient.newCall(requestBuilder.build()).execute();
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }

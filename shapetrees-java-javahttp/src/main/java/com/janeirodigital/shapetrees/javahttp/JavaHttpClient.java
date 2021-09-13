@@ -27,7 +27,7 @@ import java.util.Optional;
 @Slf4j
 public class JavaHttpClient implements HttpClient {
     private static final boolean USE_INTERCEPTOR = false;
-    private java.net.http.HttpClient httpClient;
+    private final java.net.http.HttpClient httpClient;
     private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
 
     /**
@@ -59,9 +59,9 @@ public class JavaHttpClient implements HttpClient {
      */
     protected JavaHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         java.net.http.HttpClient.Builder clientBuilder = java.net.http.HttpClient.newBuilder();
-        validatingWrapper = null;
+        this.validatingWrapper = null;
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
-            validatingWrapper = new JavaHttpValidatingShapeTreeInterceptor();
+            this.validatingWrapper = new JavaHttpValidatingShapeTreeInterceptor();
         }
         if (Boolean.FALSE.equals(useSslValidation)) {
             TrustManager[] trustAllCerts = new TrustManager[] {
@@ -103,7 +103,7 @@ public class JavaHttpClient implements HttpClient {
             // All hosts will be valid
             HttpsURLConnection.setDefaultHostnameVerifier(validHosts);
         }
-        httpClient = clientBuilder.build();
+        this.httpClient = clientBuilder.build();
     }
 
     /**
@@ -157,10 +157,10 @@ public class JavaHttpClient implements HttpClient {
             }
 
             java.net.http.HttpRequest nativeRequest = requestBuilder.build();
-            if (validatingWrapper == null) {
-                return httpClient.send(nativeRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
+            if (this.validatingWrapper == null) {
+                return this.httpClient.send(nativeRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
             } else {
-                return validatingWrapper.validatingWrap(nativeRequest, httpClient, request.body, request.contentType);
+                return this.validatingWrapper.validatingWrap(nativeRequest, this.httpClient, request.body, request.contentType);
             }
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, ex.getMessage());

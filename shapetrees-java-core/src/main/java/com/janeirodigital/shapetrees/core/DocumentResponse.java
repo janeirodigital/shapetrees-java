@@ -13,7 +13,7 @@ public class DocumentResponse {
     private final int statusCode;
 
     public Optional<String> getContentType() {
-        return resourceAttributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue());
+        return this.resourceAttributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue());
     }
 
     public boolean exists() {

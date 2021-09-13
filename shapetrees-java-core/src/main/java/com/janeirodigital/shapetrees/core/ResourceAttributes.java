@@ -45,7 +45,7 @@ public class ResourceAttributes {
     // copy constructor
     private ResourceAttributes copy() {
         ResourceAttributes ret = new ResourceAttributes();
-        for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : this.myMapOfLists.entrySet()) {
             ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }
         return ret;
@@ -99,8 +99,8 @@ public class ResourceAttributes {
             return;
         }
 
-        if (myMapOfLists.containsKey(attr)) {
-            List<String> existingValues = myMapOfLists.get(attr);
+        if (this.myMapOfLists.containsKey(attr)) {
+            List<String> existingValues = this.myMapOfLists.get(attr);
             boolean alreadySet = existingValues.stream().anyMatch(s -> s.equals(value));
             if (!alreadySet) {
                 existingValues.add(value);
@@ -110,7 +110,7 @@ public class ResourceAttributes {
         } else {
             ArrayList<String> list = new ArrayList<String>();
             list.add(value);
-            myMapOfLists.put(attr, list);
+            this.myMapOfLists.put(attr, list);
         }
     }
 
@@ -120,13 +120,13 @@ public class ResourceAttributes {
      * @param values String values to assign to attr
      */
     public void setAll(String attr, List<String> values) {
-        myMapOfLists.put(attr, values);
+        this.myMapOfLists.put(attr, values);
     }
 
     /**
      * Returns a map of attributes to lists of values
      */
-    public Map<String, List<String>> toMultimap() { return myMapOfLists; }
+    public Map<String, List<String>> toMultimap() { return this.myMapOfLists; }
 
     /**
      * Returns an array with alternating attributes and values.
@@ -135,7 +135,7 @@ public class ResourceAttributes {
      */
     public String[] toList(String... exclusions) {
         List<String> ret = new ArrayList<>();
-        for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : this.myMapOfLists.entrySet()) {
             String attr = entry.getKey();
             if (!Arrays.stream(exclusions).anyMatch(s -> s.equals(attr))) {
                 for (String value : entry.getValue()) {
@@ -178,7 +178,7 @@ public class ResourceAttributes {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, List<String>> entry : myMapOfLists.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : this.myMapOfLists.entrySet()) {
             for (String value : entry.getValue()) {
                 if (sb.length() != 0) {
                     sb.append(",");
