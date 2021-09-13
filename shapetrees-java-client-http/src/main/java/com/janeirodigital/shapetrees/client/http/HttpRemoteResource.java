@@ -16,10 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Convenience class that encapsulates an OkHttp-based http client to quickly retrieve
@@ -35,11 +32,10 @@ public class HttpRemoteResource {
 
     private final URI uri;
     private final String authorizationHeaderValue;
-    private Boolean invalidated = false;
     private Boolean exists;
     private ResourceAttributes responseHeaders;
     private ResourceAttributes parsedLinkHeaders;
-    private Graph parsedGraph;
+    private Optional<Graph> parsedGraph;
     private String rawBody;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
@@ -47,13 +43,18 @@ public class HttpRemoteResource {
         this.uri = uri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
+        if (this.exists() && isRdfResource()) {
+            try {
+                this.parsedGraph = Optional.of(GraphHelper.readStringIntoGraph(uri, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue())));
+            } catch (IOException e) {
+                throw new ShapeTreeException(500, "Unable to parse graph at " + uri.toString());
+            }
+        } else {
+            this.parsedGraph = Optional.empty();
+        }
     }
 
-    public URI getUri() throws ShapeTreeException {
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("HttpRemoteResource#getUri({}) - Resource Invalidated - Refreshing", this.uri);
-            dereferenceURI();
-        }
+    public URI getUri() {
         return this.uri;
     }
 
@@ -61,29 +62,15 @@ public class HttpRemoteResource {
         return this.exists;
     }
 
-    public String getBody() throws IOException {
-        if (Boolean.FALSE.equals(this.exists)) return null;
-
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("HttpRemoteResource#getBody({}) - Resource Invalidated - Refreshing", this.uri);
-            dereferenceURI();
-        }
+    public String getBody() {
+        if (Boolean.FALSE.equals(this.exists)) return null; // TODO: this means we can get get an error message back to a user.
 
         return this.rawBody;
     }
 
     // Lazy-load graph when requested
-    public Graph getGraph(URI baseURI) throws IOException {
-        if (Boolean.FALSE.equals(this.exists)) return null;
+    public Optional<Graph> getGraph() throws IOException {
 
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("HttpRemoteResource#getGraph({}) - Resource Invalidated - Refreshing", this.uri);
-            dereferenceURI();
-        }
-
-        if (this.parsedGraph == null) {
-            this.parsedGraph = GraphHelper.readStringIntoGraph(baseURI, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
-        }
         return this.parsedGraph;
     }
 
@@ -123,7 +110,7 @@ public class HttpRemoteResource {
 
     }
 
-    public Boolean isRdfResource() throws IOException {
+    public Boolean isRdfResource() {
         String contentType = this.getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
         if (contentType != null) {
             return this.supportedRDFContentTypes.contains(contentType);
@@ -169,21 +156,13 @@ public class HttpRemoteResource {
         return this.parsedLinkHeaders;
     }
 
-    public String getFirstHeaderByName(String headerName) throws IOException {
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("HttpRemoteResource#getFirstHeaderByName({}) - Resource Invalidated - Refreshing", this.uri);
-            dereferenceURI();
-        }
-
+    public String getFirstHeaderByName(String headerName) {
         return this.responseHeaders.firstValue(headerName).orElse(null);
     }
 
+    // TODO: only referenced in HttpRemoteResourceTests; !remove
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
         log.debug("HttpRemoteResource#updateGraph({})", this.uri);
-
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            throw new ShapeTreeException(500, "Cannot call 'updateGraph' on an invalidated HttpRemoteResource - ");
-        }
 
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
@@ -195,8 +174,7 @@ public class HttpRemoteResource {
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
         } else {
-            this.invalidated = true;
-            log.debug("HttpRemoteResource#updateGraph({}) - Invalidating Resource", this.uri);
+            log.debug("HttpRemoteResource#updateGraph({}) - Invalidating Resource feature removed", this.uri);
         }
     }
 
@@ -261,7 +239,14 @@ public class HttpRemoteResource {
             DocumentResponse resp = fetcher.fetchShapeTreeResponse(req);
             this.exists = resp.exists();
             ResourceAttributes allHeaders = resp.getResourceAttributes();
-            this.responseHeaders = new ResourceAttributes(allHeaders.toMultimap());
+            // TODO: push into test harness
+            Map<String, List<String>> allHeadersAsMap = allHeaders.toMultimap();
+            if (this.uri.getPath().endsWith(".shapetree") && !allHeadersAsMap.containsKey("content-type")) {
+                Map<String, List<String>> mutable = new TreeMap<>(allHeadersAsMap);
+                mutable.put("content-type", Arrays.asList("text/turtle"));
+                allHeadersAsMap = mutable;
+            }
+            this.responseHeaders = new ResourceAttributes(allHeadersAsMap); // TODO: allHeaders.toMultimap()
             final List<String> linkHeaders = allHeaders.allValues(HttpHeaders.LINK.getValue());
             if (linkHeaders.size() != 0) {
                 this.parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
@@ -269,8 +254,6 @@ public class HttpRemoteResource {
                 this.parsedLinkHeaders = new ResourceAttributes();
             }
             this.rawBody = Objects.requireNonNull(resp.getBody()); // @@ is requireNull useful here?
-            // fetcher.fetchIntoRemoteResource(req, this);
-            this.invalidated = false;
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);
         }
@@ -281,7 +264,6 @@ public class HttpRemoteResource {
         return "HttpRemoteResource{" +
                 "uri=" + uri +
                 ", authorizationHeaderValue='" + authorizationHeaderValue + '\'' +
-                ", invalidated=" + invalidated +
                 ", exists=" + exists +
                 ", responseHeaders=" + responseHeaders +
                 ", parsedLinkHeaders=" + parsedLinkHeaders +

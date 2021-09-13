@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @NoArgsConstructor
 @Slf4j
@@ -44,11 +45,11 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container");
             }
 
-            Graph containerGraph = containerResource.getGraph(containerResourceURI);
+            Optional<Graph> containerGraph = containerResource.getGraph();
 
-            if (containerGraph == null) { return Collections.emptyList(); }
+            if (containerGraph.isEmpty()) { return Collections.emptyList(); }
 
-            List<Triple> containerTriples = containerGraph.find(NodeFactory.createURI(containerResourceURI.toString()),
+            List<Triple> containerTriples = containerGraph.get().find(NodeFactory.createURI(containerResourceURI.toString()),
                                                                                       NodeFactory.createURI(LdpVocabulary.CONTAINS),
                                                                                       Node.ANY).toList();
 
