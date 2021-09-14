@@ -34,7 +34,7 @@ public abstract class BaseShapeTreeTest {
         DocumentLoaderManager.setLoader(this.factory);
     }
     
-    protected static void ensureExists(URI uri) throws IOException {
+    protected static void ensureExists(URI uri) throws ShapeTreeException {
         HttpRemoteResource resource = new HttpRemoteResource(uri, null);
         if (!resource.exists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");

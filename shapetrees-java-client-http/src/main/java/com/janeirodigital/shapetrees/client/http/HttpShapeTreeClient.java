@@ -5,6 +5,7 @@ import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
@@ -46,10 +47,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @throws IOException
      */
     @Override
-    public ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws IOException {
+    public ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws ShapeTreeException {
 
         if (targetResource == null) {
-            throw new IOException("Must provide a value target resource for discovery");
+            throw new ShapeTreeException(500, "Must provide a value target resource for discovery");
         }
 
         log.debug("Discovering shape tree locator managing {}", targetResource);
@@ -101,10 +102,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @throws URISyntaxException
      */
     @Override
-    public DocumentResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws IOException, URISyntaxException {
+    public DocumentResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws ShapeTreeException, URISyntaxException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
-            throw new IOException("Must provide a valid context, target resource, and target shape tree to the plant shape tree");
+            throw new ShapeTreeException(500, "Must provide a valid context, target resource, and target shape tree to the plant shape tree");
         }
 
         log.debug("Planting shape tree {} on {}: ", targetShapeTree, targetResource);
@@ -149,10 +150,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws IOException {
+    public DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException {
 
         if (context == null || parentContainer == null) {
-            throw new IOException("Must provide a valid context and parent container to post shape tree instance");
+            throw new ShapeTreeException(500, "Must provide a valid context and parent container to post shape tree instance");
         }
 
         log.debug("POST-ing shape tree instance to {}", parentContainer);
@@ -167,10 +168,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     // Create via HTTP PUT
     @Override
-    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws IOException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException {
 
         if (context == null || resourceURI == null) {
-            throw new IOException("Must provide a valid context and target resource to create shape tree instance via PUT");
+            throw new ShapeTreeException(500, "Must provide a valid context and target resource to create shape tree instance via PUT");
         }
 
         log.debug("Creating shape tree instance via PUT at {}", resourceURI);
@@ -184,10 +185,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     // Update via HTTP PUT
     @Override
-    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String bodyString, String contentType) throws IOException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String bodyString, String contentType) throws ShapeTreeException {
 
         if (context == null || resourceURI == null) {
-            throw new IOException("Must provide a valid context and target resource to update shape tree instance via PUT");
+            throw new ShapeTreeException(500, "Must provide a valid context and target resource to update shape tree instance via PUT");
         }
 
         log.debug("Updating shape tree instance via PUT at {}", resourceURI);
@@ -199,10 +200,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String patchString) throws IOException {
+    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String patchString) throws ShapeTreeException {
 
         if (context == null || resourceURI == null || patchString == null) {
-            throw new IOException("Must provide a valid context, target resource, and PATCH expression to PATCH shape tree instance");
+            throw new ShapeTreeException(500, "Must provide a valid context, target resource, and PATCH expression to PATCH shape tree instance");
         }
 
         log.debug("PATCH-ing shape tree instance at {}", resourceURI);
@@ -217,10 +218,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws IOException {
+    public DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException {
 
         if (context == null || resourceURI == null) {
-            throw new IOException("Must provide a valid context and target resource to DELETE shape tree instance");
+            throw new ShapeTreeException(500, "Must provide a valid context and target resource to DELETE shape tree instance");
         }
 
         log.debug("DELETE-ing shape tree instance at {}", resourceURI);
@@ -231,10 +232,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public DocumentResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException {
+    public DocumentResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws ShapeTreeException, URISyntaxException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
-            throw new IOException("Must provide a valid context, target resource, and target shape tree to unplant");
+            throw new ShapeTreeException(500, "Must provide a valid context, target resource, and target shape tree to unplant");
         }
 
         log.debug("Unplanting shape tree {} managing {}: ", targetShapeTree, targetResource);

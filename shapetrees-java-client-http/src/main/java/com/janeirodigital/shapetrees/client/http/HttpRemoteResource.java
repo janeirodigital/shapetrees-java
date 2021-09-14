@@ -46,7 +46,7 @@ public class HttpRemoteResource {
         if (this.exists() && isRdfResource()) {
             try {
                 this.parsedGraph = Optional.of(GraphHelper.readStringIntoGraph(uri, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue())));
-            } catch (IOException e) {
+            } catch (ShapeTreeException e) {
                 throw new ShapeTreeException(500, "Unable to parse graph at " + uri.toString());
             }
         } else {
@@ -96,7 +96,7 @@ public class HttpRemoteResource {
 
     }
 
-    public ShapeTreeResourceType getResourceType() throws IOException {
+    public ShapeTreeResourceType getResourceType() {
 
         if (Boolean.TRUE.equals(isContainer())) {
             return ShapeTreeResourceType.CONTAINER;
@@ -138,8 +138,7 @@ public class HttpRemoteResource {
         return this.getUri().getQuery() != null && this.getUri().getQuery().matches(".*ext\\=shapetree$");
     }
 
-    public Boolean isManaged() throws IOException {
-
+    public Boolean isManaged() throws ShapeTreeException {
         if (Boolean.TRUE.equals(this.isMetadata())) { return false; }
         return Boolean.TRUE.equals(this.getMetadataResource(this.authorizationHeaderValue).exists());
     }
@@ -155,7 +154,7 @@ public class HttpRemoteResource {
     }
 
     // TODO: only referenced in HttpRemoteResourceTests; !remove
-    public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
+    public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws ShapeTreeException {
         log.debug("HttpRemoteResource#updateGraph({})", this.uri);
 
         StringWriter sw = new StringWriter();
@@ -172,12 +171,12 @@ public class HttpRemoteResource {
         }
     }
 
-    public HttpRemoteResource getMetadataResource(String authorizationHeaderValue) throws IOException {
+    public HttpRemoteResource getMetadataResource(String authorizationHeaderValue) throws ShapeTreeException {
         return new HttpRemoteResource(this.getMetadataURI(), authorizationHeaderValue);
     }
 
     // Return the resource URI directly associated with a given resource
-    public URI getAssociatedURI() throws IOException {
+    public URI getAssociatedURI() throws ShapeTreeException {
         // If metadata - it is primary uri
         // If not metadata - it is metadata uri
         if (Boolean.TRUE.equals(this.isMetadata())) {
@@ -196,7 +195,7 @@ public class HttpRemoteResource {
     }
 
     @NotNull
-    public URI getMetadataURI() throws IOException {
+    public URI getMetadataURI() throws ShapeTreeException {
         if (this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
             // TODO: Should this be gracefully handled by the client?

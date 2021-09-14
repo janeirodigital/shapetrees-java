@@ -10,7 +10,6 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.junit.jupiter.api.*;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -39,7 +38,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testRetrieveResourceNoLinkHeaders() throws URISyntaxException, IOException {
+    void testRetrieveResourceNoLinkHeaders() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-no-link-headers"), null);
@@ -48,7 +47,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testRetrieveResourceEmptyLinkHeader() throws URISyntaxException, IOException {
+    void testRetrieveResourceEmptyLinkHeader() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-empty-link-header"), null);
@@ -57,12 +56,12 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testRetrieveInvalidURIString() throws URISyntaxException, IOException { // TODO: may as well deleted as it's only testing URI.create()
+    void testRetrieveInvalidURIString() throws URISyntaxException, ShapeTreeException { // TODO: may as well deleted as it's only testing URI.create()
         Assertions.assertThrows(java.lang.IllegalArgumentException.class, () -> new HttpRemoteResource(URI.create(":invalid"), null));
     }
 
     @Test
-    void testIsContainerNewResourceNoSlash() throws URISyntaxException, IOException {
+    void testIsContainerNewResourceNoSlash() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/not-existing-no-slash"), null);
@@ -71,7 +70,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testIsContainerNewResourceSlash() throws URISyntaxException, IOException {
+    void testIsContainerNewResourceSlash() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/not-existing-slash/"), null);
@@ -80,7 +79,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testIsContainerNewResourceSlashWithFragment() throws URISyntaxException, IOException {
+    void testIsContainerNewResourceSlashWithFragment() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/not-existing-slash/#withfragment"), null);
@@ -89,7 +88,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testIsContainerExistingContainerNoSlash() throws URISyntaxException, IOException {
+    void testIsContainerExistingContainerNoSlash() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
@@ -98,7 +97,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void testIsContainerExistingContainer() throws URISyntaxException, IOException {
+    void testIsContainerExistingContainer() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header/"), null);
@@ -108,7 +107,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
 
 
     @Test
-    void testNonExistingHeader() throws URISyntaxException, IOException {
+    void testNonExistingHeader() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
@@ -117,7 +116,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void updateGraphTestInvalidatedRefresh() throws URISyntaxException, IOException {
+    void updateGraphTestInvalidatedRefresh() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
@@ -128,7 +127,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void doubleUpdateGraphWithoutRefresh() throws URISyntaxException, IOException {
+    void doubleUpdateGraphWithoutRefresh() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
@@ -140,7 +139,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void updateGraphWithoutRefreshGetBody() throws URISyntaxException, IOException {
+    void updateGraphWithoutRefreshGetBody() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
@@ -152,7 +151,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void updateGraphWithoutRefreshGetGraph() throws URISyntaxException, IOException {
+    void updateGraphWithoutRefreshGetGraph() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
@@ -164,7 +163,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void updateGetHeaderForCoverage() throws URISyntaxException, IOException {
+    void updateGetHeaderForCoverage() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
@@ -176,7 +175,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void getLinkHeaders() throws URISyntaxException, IOException {
+    void getLinkHeaders() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
@@ -185,7 +184,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     }
 
     @Test
-    void test404Target() throws URISyntaxException, IOException {
+    void test404Target() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/notpresent"), null);

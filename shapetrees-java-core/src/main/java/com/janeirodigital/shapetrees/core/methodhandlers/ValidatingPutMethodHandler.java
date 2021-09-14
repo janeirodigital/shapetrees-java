@@ -15,7 +15,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws IOException, URISyntaxException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);

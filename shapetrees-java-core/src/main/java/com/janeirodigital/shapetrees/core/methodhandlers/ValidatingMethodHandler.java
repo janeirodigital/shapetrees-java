@@ -9,5 +9,5 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 
 public interface ValidatingMethodHandler {
-    Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws IOException, URISyntaxException;
+    Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws IOException, URISyntaxException, ShapeTreeException;
 }
