@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 @Slf4j
 public class HttpShapeTreeClient implements ShapeTreeClient {
@@ -63,8 +64,13 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             return null;
         }
 
-        // Lookup the associated shape tree locator resource based on the pointer
-        HttpRemoteResource locatorResource = resource.getMetadataResource(context.getAuthorizationHeaderValue());
+        // Lookup the associated shape tree locator resource based on the pointer  TODO: decide on API for failure
+        Optional<URI> metadataUri = resource.getMetadataURI();
+        if (metadataUri.isEmpty()) {
+            log.debug(noMetadataUri(resource));
+            return null;
+        }
+        HttpRemoteResource locatorResource = new HttpRemoteResource(metadataUri.get(), context.getAuthorizationHeaderValue());
 
         // Ensure the metadata resource exists
         // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
@@ -75,7 +81,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Populate a ShapeTreeLocator from the graph in locatorResource and return it
-        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(resource.getMetadataURI(),
+        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri.get(),
                                                              locatorResource.getGraph().get());
 
     }
@@ -122,8 +128,9 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         ShapeTreeLocator locator = discoverShapeTree(context, targetResource);
 
         // If the target resource is not managed, initialize a new locator
+        final URI metadataUri = expectMetadataUri(resource);
         if (locator == null) {
-            locator = new ShapeTreeLocator(resource.getMetadataURI());
+            locator = new ShapeTreeLocator(metadataUri);
         }
 
         // Initialize a shape tree location based on the supplied parameters
@@ -146,7 +153,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resource.getMetadataURI(), headers, sw.toString(), "text/turtle"));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", metadataUri, headers, sw.toString(), "text/turtle"));
     }
 
     @Override
@@ -277,7 +284,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, resource.getMetadataURI(),
+        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, expectMetadataUri(resource),
                                               null, // why no getCommonHeaders(context, null, null, null, null, null)
                                               body, contentType));
     }
@@ -313,4 +320,15 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         return ret;
     }
 
+    // TODO: [spec] what should does-not-support-metadata response code be?
+    // also, is it "Metadata" or "ShapeTrees"?
+    private URI expectMetadataUri(HttpRemoteResource resource) throws ShapeTreeException {
+        return resource.getMetadataURI().orElseThrow(
+                () -> new ShapeTreeException(500, noMetadataUri(resource))
+        );
+    }
+
+    private String noMetadataUri(HttpRemoteResource resource) {
+        return "Server of <" + resource.getUri() + "> returned no ShapeTree Locator (see <https://shapetrees.org/TR/specification/#locator>).";
+    }
 }

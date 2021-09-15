@@ -43,7 +43,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-no-link-headers"), null);
         assertTrue(resource.exists());
-        Assertions.assertThrows(ShapeTreeException.class, resource::getMetadataURI);
+        Assertions.assertTrue(resource.getMetadataURI().isEmpty());
     }
 
     @Test
@@ -52,7 +52,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-empty-link-header"), null);
         assertTrue(resource.exists());
-        Assertions.assertThrows(ShapeTreeException.class, resource::getMetadataURI);
+        Assertions.assertTrue(resource.getMetadataURI().isEmpty());
     }
 
     @Test
