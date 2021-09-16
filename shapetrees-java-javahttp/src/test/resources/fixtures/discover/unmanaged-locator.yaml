@@ -1,4 +1,7 @@
 statusCode : 404
 delay: 0
 headers:
+  - 'Content-type:text/plain'
 body: >
+
+  The resource </unmanaged.shapetree> was not found on this server.
