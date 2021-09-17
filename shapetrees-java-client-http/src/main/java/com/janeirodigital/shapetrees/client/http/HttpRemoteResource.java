@@ -13,7 +13,6 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.*;
@@ -36,7 +35,7 @@ public class HttpRemoteResource {
     private ResourceAttributes responseHeaders;
     private ResourceAttributes parsedLinkHeaders;
     private final Optional<Graph> parsedGraph;
-    private String rawBody;
+    private String body;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
     public HttpRemoteResource(URI uri, String authorizationHeaderValue) throws ShapeTreeException {
@@ -45,7 +44,7 @@ public class HttpRemoteResource {
         dereferenceURI();
         if (this.exists() && isRdfResource()) {
             try {
-                this.parsedGraph = Optional.of(GraphHelper.readStringIntoGraph(uri, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue())));
+                this.parsedGraph = Optional.of(GraphHelper.readStringIntoGraph(uri, this.body, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue())));
             } catch (ShapeTreeException e) {
                 throw new ShapeTreeException(500, "Unable to parse graph at " + uri.toString());
             }
@@ -65,7 +64,7 @@ public class HttpRemoteResource {
     public String getBody() {
         if (Boolean.FALSE.equals(this.exists)) return null; // TODO: this means we can get get an error message back to a user.
 
-        return this.rawBody;
+        return this.body;
     }
 
     // Lazy-load graph when requested
@@ -174,7 +173,7 @@ public class HttpRemoteResource {
     }
 
     // Return the resource URI directly associated with a given resource
-    public Optional<URI> getAssociatedURI() {
+    public Optional<URI> getAssociatedUri() {
         // If metadata - it is primary uri
         // If not metadata - it is metadata uri
         if (Boolean.TRUE.equals(this.isMetadata())) {
@@ -232,7 +231,7 @@ public class HttpRemoteResource {
         } else {
             this.parsedLinkHeaders = new ResourceAttributes();
         }
-        this.rawBody = resp.getBody();
+        this.body = resp.getBody();
     }
 
     @Override
@@ -244,7 +243,7 @@ public class HttpRemoteResource {
                 ", responseHeaders=" + this.responseHeaders +
                 ", parsedLinkHeaders=" + this.parsedLinkHeaders +
                 ", parsedGraph=" + this.parsedGraph +
-                ", rawBody='" + this.rawBody + '\'' +
+                ", rawBody='" + this.body + '\'' +
                 ", supportedRDFContentTypes=" + this.supportedRDFContentTypes +
                 '}';
     }

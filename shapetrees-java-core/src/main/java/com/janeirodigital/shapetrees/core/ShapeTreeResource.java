@@ -17,7 +17,7 @@ import java.util.Set;
 @Getter @Slf4j
 public class ShapeTreeResource {
     private final URI uri;
-    private URI associatedUri;
+    private Optional<URI> associatedUri;
     private String name;
     @Setter private String body;
     ShapeTreeResourceType type;
@@ -51,7 +51,7 @@ public class ShapeTreeResource {
                              boolean metadata,
                              boolean container,
                              ResourceAttributes attributes,
-                             URI associatedUri,
+                             Optional<URI> associatedUri,
                              ShapeTreeResourceType type,
                              boolean managed,
                              String body) {

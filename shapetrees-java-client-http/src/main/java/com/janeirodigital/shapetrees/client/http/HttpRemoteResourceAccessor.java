@@ -16,7 +16,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -113,7 +112,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         ShapeTreeResourceType type = null;
         boolean managed = false;
         String body = null;
-        Optional<URI> associatedUriOpt = remoteResource.getAssociatedURI();
+        Optional<URI> associatedUriOpt = remoteResource.getAssociatedUri();
         if (exists) {
             type = remoteResource.getResourceType();
             managed = remoteResource.isManaged();
@@ -128,7 +127,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
                 remoteResource.isContainer(),
                 remoteResource.getResponseHeaders(),
 
-                associatedUriOpt.orElse(null),
+                associatedUriOpt,
                 type,
                 managed,
                 body

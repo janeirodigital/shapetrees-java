@@ -632,7 +632,9 @@ public abstract class AbstractValidatingMethodHandler {
 
     protected ShapeTreeResource getResourceForShapeTreeMetadataResource(ShapeTreeContext shapeTreeContext, ShapeTreeResource metadataResource) throws ShapeTreeException {
 
-        ShapeTreeResource primaryResource = this.resourceAccessor.getResource(shapeTreeContext, metadataResource.getAssociatedUri());
+        ShapeTreeResource primaryResource = this.resourceAccessor.getResource(shapeTreeContext, metadataResource.getAssociatedUri().orElseThrow(
+                () -> new ShapeTreeException(500, "Can't find resource managed by <" + metadataResource.getUri() + ">")
+        ));
         ensureResourceIsAssociatedWithMetadataResource(primaryResource, metadataResource, "Primary resource is not associated with metadata resource");
         return primaryResource;
 
