@@ -215,28 +215,24 @@ public class HttpRemoteResource {
         return Optional.of(URI.create(metaDataURIString));
     }
 
-    private void dereferenceURI() { // TODO: swallows STE instead of throwing it
+    private void dereferenceURI() throws ShapeTreeException {
         log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
 
-        try {
-            HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-            ResourceAttributes headers = new ResourceAttributes();
-            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);
-            HttpRequest req = new HttpRequest("GET", this.uri, headers, null, null);
-            DocumentResponse resp = fetcher.fetchShapeTreeResponse(req);
-            this.exists = resp.exists();
-            ResourceAttributes allHeaders = resp.getResourceAttributes();
-            this.responseHeaders = new ResourceAttributes(allHeaders.toMultimap());
-            final List<String> linkHeaders = allHeaders.allValues(HttpHeaders.LINK.getValue());
-            if (linkHeaders.size() != 0) {
-                this.parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
-            } else {
-                this.parsedLinkHeaders = new ResourceAttributes();
-            }
-            this.rawBody = Objects.requireNonNull(resp.getBody()); // @@ is requireNull useful here?
-        } catch (Exception e) {
-            log.error("Error dereferencing URI", e);
+        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        ResourceAttributes headers = new ResourceAttributes();
+        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);
+        HttpRequest req = new HttpRequest("GET", this.uri, headers, null, null);
+        DocumentResponse resp = fetcher.fetchShapeTreeResponse(req);
+        this.exists = resp.exists();
+        ResourceAttributes allHeaders = resp.getResourceAttributes();
+        this.responseHeaders = new ResourceAttributes(allHeaders.toMultimap());
+        final List<String> linkHeaders = allHeaders.allValues(HttpHeaders.LINK.getValue());
+        if (linkHeaders.size() != 0) {
+            this.parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
+        } else {
+            this.parsedLinkHeaders = new ResourceAttributes();
         }
+        this.rawBody = resp.getBody();
     }
 
     @Override
