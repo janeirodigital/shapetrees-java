@@ -5,7 +5,6 @@ import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,15 +16,16 @@ import java.util.Set;
 @Getter @Slf4j
 public class ShapeTreeResource {
     private final URI uri;
+    private final boolean exists;
+    @Setter private String body;
+    private final ResourceAttributes attributes;
+
     private Optional<URI> associatedUri;
     private String name;
-    @Setter private String body;
-    ShapeTreeResourceType type;
-    private final boolean exists;
+    ShapeTreeResourceType resourceType;
     private final boolean container;
     private boolean metadata;
     private boolean managed;
-    private final ResourceAttributes attributes;
 
     @Override
     public String toString() {
@@ -34,7 +34,7 @@ public class ShapeTreeResource {
                 ", associatedUri=" + this.associatedUri +
                 ", name='" + this.name + '\'' +
                 ", body='" + this.body + '\'' +
-                ", type=" + this.type +
+                ", type=" + this.resourceType +
                 ", exists=" + this.exists +
                 ", container=" + this.container +
                 ", metadata=" + this.metadata +
@@ -52,7 +52,7 @@ public class ShapeTreeResource {
                              boolean container,
                              ResourceAttributes attributes,
                              Optional<URI> associatedUri,
-                             ShapeTreeResourceType type,
+                             ShapeTreeResourceType resourceType,
                              boolean managed,
                              String body) {
         this.uri = uri;
@@ -64,29 +64,33 @@ public class ShapeTreeResource {
         this.associatedUri = associatedUri;
 
         if (this.exists) {
-            this.type = type;
+            this.resourceType = resourceType;
             this.managed = managed;
             this.body = body;
         } else {
-            this.type = null;
+            this.resourceType = null;
             this.managed = false;
             this.body = null;
         }
     }
 
     public ShapeTreeResource(URI fetchURI, DocumentResponse response) {
+        Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
+        this.uri = location.isPresent() ? URI.create(location.get()) : fetchURI;
         this.exists = response.getStatusCode()/100 == 2;
         this.container = isContainerFromHeaders(response.getResourceAttributes());
-        this.type = getResourceTypeFromHeaders(response.getResourceAttributes());
+        this.attributes = new ResourceAttributes(response.getResourceAttributes().toMultimap());
+        this.resourceType = getResourceTypeFromHeaders(response.getResourceAttributes());
 
         this.body = response.getBody();
         if (response.getBody() == null) {
             log.error("Exception retrieving body string");
         }
-        this.attributes = new ResourceAttributes(response.getResourceAttributes().toMultimap());
-        Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
-        URI uri = location.isPresent() ? URI.create(location.get()) : fetchURI;
-        this.uri = uri;
+
+        this.name = null;
+        this.metadata = false;
+        this.associatedUri = Optional.empty();
+        this.managed = false; // TODO: Wasn't set before. playing with values
     }
 
     /**

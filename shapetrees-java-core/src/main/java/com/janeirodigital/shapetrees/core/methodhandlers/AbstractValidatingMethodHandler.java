@@ -611,7 +611,7 @@ public abstract class AbstractValidatingMethodHandler {
     protected ShapeTreeLocator getShapeTreeLocatorFromResource(ShapeTreeResource metadataResource) throws URISyntaxException, ShapeTreeException {
 
         if (!metadataResource.isExists()) { return null; }
-        Graph metadataResourceGraph = getGraphForResource(metadataResource, normalizeBaseURI(metadataResource.getUri(), null, metadataResource.getType()));
+        Graph metadataResourceGraph = getGraphForResource(metadataResource, normalizeBaseURI(metadataResource.getUri(), null, metadataResource.getResourceType()));
         if (metadataResourceGraph == null) { return null; }
         return ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataResource.getUri(), metadataResourceGraph);
 
@@ -894,7 +894,7 @@ class SortByShapeTreeResourceType implements Comparator<ShapeTreeResource>, Seri
     // 3. Non-RDF Resources
 
     public int compare (ShapeTreeResource a, ShapeTreeResource b) {
-        return a.getType().compareTo(b.getType());
+        return a.getResourceType().compareTo(b.getResourceType());
     }
 
 }

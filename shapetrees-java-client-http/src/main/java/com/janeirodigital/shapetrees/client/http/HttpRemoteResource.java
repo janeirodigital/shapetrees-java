@@ -23,19 +23,19 @@ import java.util.*;
  */
 @Slf4j
 public class HttpRemoteResource {
-
     private static final String TEXT_TURTLE = "text/turtle";
     private static final String APP_RDF_XML = "application/rdf+xml";
     private static final String APP_N3 = "application/n-triples";
     private static final String APP_LD_JSON = "application/ld+json";
 
     private final URI uri;
-    private final String authorizationHeaderValue;
     private Boolean exists;
+    private String body;
+
+    private final String authorizationHeaderValue;
     private ResourceAttributes responseHeaders;
     private ResourceAttributes parsedLinkHeaders;
     private final Optional<Graph> parsedGraph;
-    private String body;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
     public HttpRemoteResource(URI uri, String authorizationHeaderValue) throws ShapeTreeException {
