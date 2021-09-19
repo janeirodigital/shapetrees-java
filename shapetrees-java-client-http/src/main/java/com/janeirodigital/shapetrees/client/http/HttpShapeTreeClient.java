@@ -3,6 +3,7 @@ package com.janeirodigital.shapetrees.client.http;
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -17,7 +18,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Optional;
 
 @Slf4j
 public class HttpShapeTreeClient implements ShapeTreeClient {
@@ -57,21 +57,22 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug("Discovering shape tree locator managing {}", targetResource);
 
         // Lookup the target resource for pointer to associated shape tree locator
-        HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
+        final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
+        ShapeTreeResource resource = resourceAccessor.getResource(context, targetResource);
 
-        if  (Boolean.FALSE.equals(resource.exists())) {
+        if  (Boolean.FALSE.equals(resource.isExists())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
             return null;
         }
 
         // Lookup the associated shape tree locator resource based on the pointer  TODO: decide on API for failure
         URI metadataUri = expectMetadataUri(resource);
-        HttpRemoteResource locatorResource = new HttpRemoteResource(metadataUri, context.getAuthorizationHeaderValue());
+        ShapeTreeResource locatorResource = resourceAccessor.getResource(context, metadataUri);
 
         // Ensure the metadata resource exists
         // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
         // and no shape tree locator will be returned.
-        if (Boolean.FALSE.equals(locatorResource.exists())) {
+        if (Boolean.FALSE.equals(locatorResource.isExists())) {
             log.debug("Shape tree locator for {} does not exist", targetResource);
             return null;
         }
@@ -116,7 +117,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource
         HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
-        if (Boolean.FALSE.equals(resource.exists())) {
+        if (Boolean.FALSE.equals(resource.isExists())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
 
@@ -246,7 +247,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource
         HttpRemoteResource resource = new HttpRemoteResource(targetResource, context.getAuthorizationHeaderValue());
 
-        if (Boolean.FALSE.equals(resource.exists())) {
+        if (Boolean.FALSE.equals(resource.isExists())) {
             return new DocumentResponse(null, "Cannot find target resource to unplant: " + targetResource, 404);
         }
 
@@ -318,13 +319,13 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     // TODO: [spec] what should does-not-support-metadata response code be? throw or just log?
     // also, is it "Metadata" or "ShapeTrees"?
-    private URI expectMetadataUri(HttpRemoteResource resource) throws ShapeTreeException {
-        return resource.getMetadataURI().orElseThrow(
+    private URI expectMetadataUri(ShapeTreeResource resource) throws ShapeTreeException {
+        return resource.getAssociatedUri().orElseThrow(
                 () -> new ShapeTreeException(500, noMetadataUri(resource))
         );
     }
 
-    private String noMetadataUri(HttpRemoteResource resource) {
+    private String noMetadataUri(ShapeTreeResource resource) {
         return "Server of <" + resource.getUri() + "> returned no ShapeTree Locator (see <https://shapetrees.org/TR/specification/#locator>).";
     }
 }

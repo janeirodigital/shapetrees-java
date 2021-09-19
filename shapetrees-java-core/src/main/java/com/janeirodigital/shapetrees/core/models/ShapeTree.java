@@ -179,16 +179,15 @@ public class ShapeTree {
 
     public ValidationResult validateContainedResource(ShapeTreeResource containedResource, URI targetShapeTreeURI, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
-        String requestedName = containedResource.getName();
         Graph containedResourceGraph = null;
-
+// !! containedResource.getGraph().get();
         if (containedResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
             containedResourceGraph = GraphHelper.readStringIntoGraph(containedResource.getUri(),
                     containedResource.getBody(),
                     containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
         }
 
-        return validateContainedResource(requestedName, containedResource.getResourceType(), targetShapeTreeURI, containedResourceGraph, focusNodeURI);
+        return validateContainedResource(containedResource.getName(), containedResource.getResourceType(), targetShapeTreeURI, containedResourceGraph, focusNodeURI);
 
     }
 

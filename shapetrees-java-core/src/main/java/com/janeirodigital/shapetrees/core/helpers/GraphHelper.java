@@ -29,7 +29,7 @@ public class GraphHelper {
      * @param contentType Content type string
      * @return Serialization language
      */
-    public static Lang getLangForContentType(String contentType) {
+    public static Lang getLangForContentType(String contentType) { // !! Optional<String>
         if (contentType == null) {
             return Lang.TURTLE;
         }

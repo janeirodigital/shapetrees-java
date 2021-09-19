@@ -7,6 +7,7 @@ import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.jena.graph.Graph;
 
 import java.net.URI;
 import java.util.List;
@@ -15,17 +16,17 @@ import java.util.Set;
 
 @Getter @Slf4j
 public class ShapeTreeResource {
-    private final URI uri;
-    private final boolean exists;
-    @Setter private String body;
-    private final ResourceAttributes attributes;
-
-    private Optional<URI> associatedUri;
-    private String name;
-    ShapeTreeResourceType resourceType;
-    private final boolean container;
-    private boolean metadata;
-    private boolean managed;
+    protected URI uri;
+    protected boolean exists;
+    @Setter protected String body;
+    protected ResourceAttributes attributes;
+    protected Optional<URI> associatedUri;
+    protected String name;
+    protected ShapeTreeResourceType resourceType;
+    protected boolean container;
+    protected boolean metadata;
+    protected boolean managed;
+    protected Optional<Graph> graph;
 
     @Override
     public String toString() {
@@ -45,40 +46,20 @@ public class ShapeTreeResource {
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
-    public ShapeTreeResource(URI uri,
-                             boolean exists,
-                             String name,
-                             boolean metadata,
-                             boolean container,
-                             ResourceAttributes attributes,
-                             Optional<URI> associatedUri,
-                             ShapeTreeResourceType resourceType,
-                             boolean managed,
-                             String body) {
-        this.uri = uri;
-        this.exists = exists;
+    public ShapeTreeResource(URI fetchURI, DocumentResponse response, String name, Optional<URI> associatedUri, boolean managed, boolean metadata) {
+        this(fetchURI, response);
+
         this.name = name;
         this.metadata = metadata;
-        this.container = container;
-        this.attributes = attributes;
         this.associatedUri = associatedUri;
-
-        if (this.exists) {
-            this.resourceType = resourceType;
-            this.managed = managed;
-            this.body = body;
-        } else {
-            this.resourceType = null;
-            this.managed = false;
-            this.body = null;
-        }
+        this.managed = managed;
     }
 
     public ShapeTreeResource(URI fetchURI, DocumentResponse response) {
         Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
         this.uri = location.isPresent() ? URI.create(location.get()) : fetchURI;
         this.exists = response.getStatusCode()/100 == 2;
-        this.container = isContainerFromHeaders(response.getResourceAttributes());
+        this.container = isContainerFromHeaders(response.getResourceAttributes(), fetchURI);
         this.attributes = new ResourceAttributes(response.getResourceAttributes().toMultimap());
         this.resourceType = getResourceTypeFromHeaders(response.getResourceAttributes());
 
@@ -91,6 +72,10 @@ public class ShapeTreeResource {
         this.metadata = false;
         this.associatedUri = Optional.empty();
         this.managed = false; // TODO: Wasn't set before. playing with values
+        this.graph = Optional.empty();
+    }
+
+    protected ShapeTreeResource() {
     }
 
     /**
@@ -98,16 +83,16 @@ public class ShapeTreeResource {
      * @param headers to parse
      * @return
      */
-    protected static boolean isContainerFromHeaders(ResourceAttributes headers) {
+    protected static boolean isContainerFromHeaders(ResourceAttributes headers, URI uri) {
 
         List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
 
-        if (linkHeaders == null) { return false; }
+        if (linkHeaders.size() == 0) { return uri.getPath().endsWith("/"); }
 
         ResourceAttributes parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
 
         List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
-        if (typeLinks != null) {
+        if (typeLinks.size() != 0) {
             return typeLinks.contains(LdpVocabulary.CONTAINER) ||
                     typeLinks.contains(LdpVocabulary.BASIC_CONTAINER);
         }
