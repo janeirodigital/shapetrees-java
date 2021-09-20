@@ -13,7 +13,6 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,7 +51,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
 
     @Test
     @Order(2)
-    void testPreloadCache() throws URISyntaxException, IOException {
+    void testPreloadCache() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/fhir/r4/shex").toString()));
@@ -62,7 +61,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
 
     @Test
     @Order(3)
-    void testClearPutGet() throws URISyntaxException, IOException {
+    void testClearPutGet() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
@@ -75,7 +74,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
 
     }
 
-    public static Map<URI, ShexSchema> buildSchemaCache(List<String> schemasToCache) throws URISyntaxException, IOException {
+    public static Map<URI, ShexSchema> buildSchemaCache(List<String> schemasToCache) throws URISyntaxException, ShapeTreeException {
         Map<URI, ShexSchema> schemaCache = new HashMap<>();
         log.info("Building schema cache");
         for (String schemaUrl : schemasToCache) {

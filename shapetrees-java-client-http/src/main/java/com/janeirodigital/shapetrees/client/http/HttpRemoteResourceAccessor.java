@@ -122,8 +122,9 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
                 managed = remoteResource.isManaged();
                 body = remoteResource.getBody();
             }
-        } catch (IOException iex) {
+        } catch (ShapeTreeException ex) {
             // use defaults set above
+            log.debug("mapRemoteResourceToShapeTreeResource of <{}> ignored ShapeTreeException: {}", uri, ex.getMessage());
         }
 
         return new ShapeTreeResource(

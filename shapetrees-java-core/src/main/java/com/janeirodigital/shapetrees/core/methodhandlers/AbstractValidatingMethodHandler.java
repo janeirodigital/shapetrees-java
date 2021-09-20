@@ -39,7 +39,7 @@ public abstract class AbstractValidatingMethodHandler {
         this.resourceAccessor = resourceAccessor;
     }
 
-    protected DocumentResponse manageShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws IOException, URISyntaxException {
+    protected DocumentResponse manageShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws ShapeTreeException, URISyntaxException {
 
         Optional<DocumentResponse> validationResponse = null;
         ShapeTreeLocator updatedRootLocator = getShapeTreeLocatorFromRequest(shapeTreeRequest, metadataResource);
@@ -80,7 +80,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @throws IOException
      * @throws URISyntaxException
      */
-    protected Optional<DocumentResponse> plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeLocator updatedRootLocator, ShapeTreeLocatorDelta delta, ShapeTreeResource primaryResource) throws IOException, URISyntaxException {
+    protected Optional<DocumentResponse> plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeLocator updatedRootLocator, ShapeTreeLocatorDelta delta, ShapeTreeResource primaryResource) throws ShapeTreeException, URISyntaxException {
 
         // Cannot directly update locations that are not root locations
         ensureUpdatedLocationsAreRootLocations(delta);
@@ -107,7 +107,7 @@ public abstract class AbstractValidatingMethodHandler {
         return Optional.empty();
     }
 
-    protected Optional<DocumentResponse> createShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, String proposedName) throws IOException, URISyntaxException {
+    protected Optional<DocumentResponse> createShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, String proposedName) throws URISyntaxException, ShapeTreeException {
 
         shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, null));
 
@@ -165,7 +165,7 @@ public abstract class AbstractValidatingMethodHandler {
         return Optional.of(successfulValidation());
     }
 
-    protected Optional<DocumentResponse> updateShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws IOException, URISyntaxException {
+    protected Optional<DocumentResponse> updateShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
 
 
         ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
@@ -207,7 +207,7 @@ public abstract class AbstractValidatingMethodHandler {
                                                                    ShapeTreeLocation parentLocation,
                                                                    ShapeTreeResource primaryResource,
                                                                    ValidationResult advanceValidationResult)
-            throws IOException, URISyntaxException {
+            throws ShapeTreeException, URISyntaxException {
 
         ShapeTree primaryResourceShapeTree = null;
         ShapeTreeLocator primaryResourceLocator = null;
@@ -464,7 +464,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @return URI of focus node
      * @throws IOException IOException
      */
-    protected URI getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URI baseURI) throws IOException {
+    protected URI getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URI baseURI) {
         final String focusNode = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.FOCUS_NODE.getValue()).orElse(null);
         if (focusNode != null) {
             return baseURI.resolve(focusNode);

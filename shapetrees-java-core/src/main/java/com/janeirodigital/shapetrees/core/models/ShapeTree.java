@@ -52,13 +52,11 @@ public class ShapeTree {
         return new URI(this.id);
     }
 
-    public ValidationResult validateResource(ShapeTreeResource targetResource) throws IOException, URISyntaxException {
-
+    public ValidationResult validateResource(ShapeTreeResource targetResource) throws ShapeTreeException, URISyntaxException {
         return validateResource(targetResource, null);
-
     }
 
-    public ValidationResult validateResource(ShapeTreeResource targetResource, URI focusNodeURI) throws IOException, URISyntaxException {
+    public ValidationResult validateResource(ShapeTreeResource targetResource, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
         Graph bodyGraph = null;
 
@@ -69,10 +67,9 @@ public class ShapeTree {
         }
         
         return validateResource(targetResource.getName(), targetResource.getType(), bodyGraph, focusNodeURI);
-
     }
 
-    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URI focusNodeURI) throws IOException, URISyntaxException {
+    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
         // Check whether the proposed resource is the same type as what is expected by the shape tree
         if (!this.expectedResourceType.equals(resourceType.getValue())) {
@@ -94,7 +91,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateGraph(Graph graph, URI focusNodeURI) throws IOException, URISyntaxException {
+    public ValidationResult validateGraph(Graph graph, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
         // if (true) return new ValidationResult(true, this, this, focusNodeURI); // [debug] ShExC parser brings debugger to its knees
         if (this.shape == null) {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
@@ -170,7 +167,7 @@ public class ShapeTree {
         }
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource containedResource) throws IOException, URISyntaxException {
+    public ValidationResult validateContainedResource(ShapeTreeResource containedResource) throws ShapeTreeException, URISyntaxException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
@@ -181,7 +178,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource containedResource, URI targetShapeTreeURI, URI focusNodeURI) throws IOException, URISyntaxException {
+    public ValidationResult validateContainedResource(ShapeTreeResource containedResource, URI targetShapeTreeURI, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
         String requestedName = containedResource.getName();
         Graph containedResourceGraph = null;
@@ -196,7 +193,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URI targetShapeTreeURI, Graph bodyGraph, URI focusNodeURI) throws IOException, URISyntaxException {
+    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URI targetShapeTreeURI, Graph bodyGraph, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains

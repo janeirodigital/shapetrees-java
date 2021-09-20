@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.client.core;
 
 import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 
@@ -25,7 +26,7 @@ public interface ShapeTreeClient {
      * @return A ShapeTreeLocator associated with targetResource
      * @throws IOException IOException
      */
-    ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws IOException;
+    ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws IOException, ShapeTreeException;
 
     /**
      * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,
@@ -49,7 +50,7 @@ public interface ShapeTreeClient {
      * @throws IOException IOException
      * @throws URISyntaxException URISyntaxException
      */
-    DocumentResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws IOException, URISyntaxException;
+    DocumentResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws IOException, URISyntaxException, ShapeTreeException;
 
     /**
      * Shape Trees, §4.3: This operation unassigns a planted root shape tree from a root shape tree instance. If
@@ -62,7 +63,7 @@ public interface ShapeTreeClient {
      * @param targetResource URI of target resource to unplant shape tree from
      * @param targetShapeTree URI of shape tree being unplanted
      */
-    DocumentResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException;
+    DocumentResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws IOException, URISyntaxException, ShapeTreeException;
 
     /**
      * Creates a resource via HTTP POST that has been validated against the provided shape tree
@@ -78,7 +79,7 @@ public interface ShapeTreeClient {
      * @throws IOException IOException
      * @throws URISyntaxException URISyntaxException
      */
-    DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
+    DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException, ShapeTreeException;
 
     /**
      * Creates a resource via HTTP PUT that has been validated against the provided target shape tree
@@ -93,7 +94,7 @@ public interface ShapeTreeClient {
      * @throws IOException
      * @throws URISyntaxException
      */
-    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException;
+    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws IOException, URISyntaxException, ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PUT that has been validated against an associated shape tree
@@ -106,7 +107,7 @@ public interface ShapeTreeClient {
      * @throws IOException
      * @throws URISyntaxException
      */
-    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, String bodyString, String contentType) throws IOException, URISyntaxException;
+    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, String bodyString, String contentType) throws IOException, URISyntaxException, ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PATCH that has been validated against an associated shape tree
@@ -118,7 +119,7 @@ public interface ShapeTreeClient {
      * @throws IOException
      * @throws URISyntaxException
      */
-    DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, String patchString) throws IOException, URISyntaxException;
+    DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, String patchString) throws IOException, URISyntaxException, ShapeTreeException;
 
     /**
      * Deletes an existing resource.  Provided as a convenience - no validation is performed
@@ -127,7 +128,7 @@ public interface ShapeTreeClient {
      * @return DocumentResponse containing status and response headers/attributes
      * @throws IOException IOException
      */
-    DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws IOException;
+    DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws IOException, ShapeTreeException;
 
     /**
      * Indicates whether validation is currently being applied on the client
