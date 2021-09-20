@@ -4,16 +4,11 @@ import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.Headers;
-import okhttp3.ResponseBody;
 
 import javax.net.ssl.*;
 import java.io.IOException;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -24,39 +19,10 @@ import lombok.extern.slf4j.Slf4j;
  * okhttp implementation of HttpClient
  */
 @Slf4j
-public class OkHttpClient extends HttpClient {
+public class OkHttpClient implements HttpClient {
     private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
-    private okhttp3.OkHttpClient httpClient;
-
-    /**
-     * Execute an HTTP request to create a ShapeTreeResource object
-     * Implements `HttpClient` interface
-     * @param request an HTTP request with appropriate headers for ShapeTree interactions
-     * @return new ShapeTreeResource with response headers and contents
-     * @throws ShapeTreeException
-     */
-    @Override
-    public ShapeTreeResource fetchShapeTreeResource(HttpRequest request) throws ShapeTreeException {
-        okhttp3.Response response = fetch(request);
-
-        ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
-
-        shapeTreeResource.setExists(response.isSuccessful());
-        shapeTreeResource.setContainer(isContainerFromHeaders(request.headers));
-        shapeTreeResource.setType(getResourceTypeFromHeaders(request.headers));
-
-        try {
-            shapeTreeResource.setBody(Objects.requireNonNull(response.body()).string());
-        } catch (IOException | NullPointerException ex) {
-            log.error("Exception retrieving body string");
-            shapeTreeResource.setBody(null);
-        }
-        shapeTreeResource.setAttributes(new ResourceAttributes(response.headers().toMultimap()));
-        shapeTreeResource.setUri(URI.create(Objects.requireNonNull(response.header(HttpHeaders.LOCATION.getValue(), request.resourceURI.toString()))));
-
-        return shapeTreeResource;
-    }
+    private final okhttp3.OkHttpClient httpClient;
 
     /**
      * Execute an HTTP request to create a DocumentResponse object
@@ -76,36 +42,6 @@ public class OkHttpClient extends HttpClient {
             log.error("Exception retrieving body string");
         }
         return new DocumentResponse(new ResourceAttributes(response.headers().toMultimap()), body, response.code());
-    }
-
-    /**
-     * Execute an HTTP request and store the results in the passed HttpRemoteResource
-     * @param request to execute
-     * @param remoteResource to be updated
-     * @throws IOException if HTTP request fails
-     */
-    @Override
-    public void fetchIntoRemoteResource(HttpRequest request, HttpRemoteResource remoteResource) throws IOException {
-        okhttp3.Response response = fetch(request);
-
-        remoteResource.setExists(response.code() < 400);
-
-        // Parse the headers for ease of use later
-        ResourceAttributes parsedHeaders = new ResourceAttributes(response.headers().toMultimap());
-        remoteResource.setResponseHeaders(parsedHeaders);
-
-        // We especially care about Link headers which require extra parsing of the rel values
-        final List<String> linkHeaders = parsedHeaders.allValues(HttpHeaders.LINK.getValue());
-        if (linkHeaders.size() != 0) {
-            remoteResource.setParsedLinkHeaders(ResourceAttributes.parseLinkHeaders(linkHeaders));
-        } else {
-            remoteResource.setParsedLinkHeaders(new ResourceAttributes());
-        }
-
-        // Save raw body
-        try (ResponseBody respBody = response.body()) {
-            remoteResource.setRawBody(respBody.string());
-        }
     }
 
     /**
@@ -147,7 +83,7 @@ public class OkHttpClient extends HttpClient {
             clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
                     .hostnameVerifier((hostname, session) -> true);
         }
-        httpClient = clientBuilder.build();
+        this.httpClient = clientBuilder.build();
     }
 
     // permissive SSL trust manager
@@ -193,23 +129,23 @@ public class OkHttpClient extends HttpClient {
 
             switch (request.method) {
 
-                case GET:
+                case HttpClient.GET:
                     requestBuilder.get();
                     break;
 
-                case PUT:
+                case HttpClient.PUT:
                     requestBuilder.put(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
-                case POST:
+                case HttpClient.POST:
                     requestBuilder.post(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
-                case PATCH:
+                case HttpClient.PATCH:
                     requestBuilder.patch(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
                     break;
 
-                case DELETE:
+                case HttpClient.DELETE:
                     requestBuilder.delete();
                     break;
 
@@ -218,7 +154,7 @@ public class OkHttpClient extends HttpClient {
 
             }
 
-            return httpClient.newCall(requestBuilder.build()).execute();
+            return this.httpClient.newCall(requestBuilder.build()).execute();
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }

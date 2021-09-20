@@ -5,6 +5,7 @@ import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
@@ -20,6 +21,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @NoArgsConstructor
 @Slf4j
@@ -31,11 +33,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
     @Override
     public ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException {
-        try {
-            return mapRemoteResourceToShapeTreeResource(new HttpRemoteResource(resourceURI, context.getAuthorizationHeaderValue()));
-        } catch (Exception ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
-        }
+        return mapRemoteResourceToShapeTreeResource(new HttpRemoteResource(resourceURI, context.getAuthorizationHeaderValue()));
     }
 
     @Override
@@ -47,11 +45,11 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container");
             }
 
-            Graph containerGraph = containerResource.getGraph(containerResourceURI);
+            Optional<Graph> containerGraph = containerResource.getGraph();
 
-            if (containerGraph == null) { return Collections.emptyList(); }
+            if (containerGraph.isEmpty()) { return Collections.emptyList(); }
 
-            List<Triple> containerTriples = containerGraph.find(NodeFactory.createURI(containerResourceURI.toString()),
+            List<Triple> containerTriples = containerGraph.get().find(NodeFactory.createURI(containerResourceURI.toString()),
                                                                                       NodeFactory.createURI(LdpVocabulary.CONTAINS),
                                                                                       Node.ANY).toList();
 
@@ -77,7 +75,8 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        return fetcher.fetchShapeTreeResource(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
+        return new ShapeTreeResource(resourceURI, response);
     }
 
     @Override
@@ -88,7 +87,8 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        return fetcher.fetchShapeTreeResource(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
+        return new ShapeTreeResource(updatedResource.getUri(), response);
     }
 
     @Override
@@ -106,50 +106,38 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
     }
 
-    private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws IOException {
-        ShapeTreeResource shapeTreeResource = new ShapeTreeResource();
-        try {
-            shapeTreeResource.setUri(remoteResource.getUri());
-        } catch (IOException ex) {
-            throw new ShapeTreeException(500, "Error resolving URI");
-        }
+    private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws ShapeTreeException {
+        URI uri = remoteResource.getUri();
+        boolean exists = remoteResource.exists();
 
-        shapeTreeResource.setExists(remoteResource.exists());
-
-        shapeTreeResource.setName(remoteResource.getName());
-
-        shapeTreeResource.setMetadata(remoteResource.isMetadata());
-
-        shapeTreeResource.setContainer(remoteResource.isContainer());
-
-        shapeTreeResource.setAttributes(remoteResource.getResponseHeaders());
+        ShapeTreeResourceType type = null;
+        boolean managed = false;
+        String body = null;
+        URI associatedUri = null;
 
         try {
-            shapeTreeResource.setAssociatedUri(remoteResource.getAssociatedURI());
+            associatedUri = remoteResource.getAssociatedURI();
+            if (exists) {
+                type = remoteResource.getResourceType();
+                managed = remoteResource.isManaged();
+                body = remoteResource.getBody();
+            }
         } catch (IOException iex) {
-            shapeTreeResource.setAssociatedUri(null);
+            // use defaults set above
         }
 
-        if (shapeTreeResource.isExists()) {
-            try {
-                shapeTreeResource.setType(remoteResource.getResourceType());
-            } catch (IOException iex) {
-                shapeTreeResource.setType(null);
-            }
+        return new ShapeTreeResource(
+                uri,
+                exists,
+                remoteResource.getName(),
+                remoteResource.isMetadata(),
+                remoteResource.isContainer(),
+                remoteResource.getResponseHeaders(),
 
-            try {
-                shapeTreeResource.setManaged(remoteResource.isManaged());
-            } catch (IOException iex) {
-                shapeTreeResource.setManaged(false);
-            }
-
-            try {
-                shapeTreeResource.setBody(remoteResource.getBody());
-            } catch (IOException iex) {
-                shapeTreeResource.setBody(null);
-            }
-        }
-
-        return shapeTreeResource;
+                associatedUri,
+                type,
+                managed,
+                body
+        );
     }
 }

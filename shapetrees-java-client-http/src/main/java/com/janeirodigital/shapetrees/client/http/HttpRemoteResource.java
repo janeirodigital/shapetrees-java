@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
@@ -15,8 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Convenience class that encapsulates an OkHttp-based http client to quickly retrieve
@@ -32,36 +32,29 @@ public class HttpRemoteResource {
 
     private final URI uri;
     private final String authorizationHeaderValue;
-    private Boolean invalidated = false;
     private Boolean exists;
     private ResourceAttributes responseHeaders;
     private ResourceAttributes parsedLinkHeaders;
-    private Graph parsedGraph;
+    private final Optional<Graph> parsedGraph;
     private String rawBody;
     protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, APP_RDF_XML, APP_N3, APP_LD_JSON);
 
-    public HttpRemoteResource(String uriString, String authorizationHeaderValue) throws IOException {
-        URI requestUri;
-        try {
-            requestUri = new URI(uriString);
-        } catch (URISyntaxException ex) {
-            throw new IOException("Request URI is not a value URI");
-        }
-        this.uri = requestUri;
-        this.authorizationHeaderValue = authorizationHeaderValue;
-        dereferenceURI();
-    }
-
-    public HttpRemoteResource(URI uri, String authorizationHeaderValue) throws IOException {
+    public HttpRemoteResource(URI uri, String authorizationHeaderValue) throws ShapeTreeException {
         this.uri = uri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
+        if (this.exists() && isRdfResource()) {
+            try {
+                this.parsedGraph = Optional.of(GraphHelper.readStringIntoGraph(uri, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue())));
+            } catch (IOException e) {
+                throw new ShapeTreeException(500, "Unable to parse graph at " + uri.toString());
+            }
+        } else {
+            this.parsedGraph = Optional.empty();
+        }
     }
 
-    public URI getUri() throws IOException {
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            dereferenceURI();
-        }
+    public URI getUri() {
         return this.uri;
     }
 
@@ -69,29 +62,15 @@ public class HttpRemoteResource {
         return this.exists;
     }
 
-    public String getBody() throws IOException {
-        if (Boolean.FALSE.equals(this.exists)) return null;
-
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("HttpRemoteResource#getBody({}) - Resource Invalidated - Refreshing", this.uri);
-            dereferenceURI();
-        }
+    public String getBody() {
+        if (Boolean.FALSE.equals(this.exists)) return null; // TODO: this means we can get get an error message back to a user.
 
         return this.rawBody;
     }
 
     // Lazy-load graph when requested
-    public Graph getGraph(URI baseURI) throws IOException {
-        if (Boolean.FALSE.equals(this.exists)) return null;
+    public Optional<Graph> getGraph() {
 
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("HttpRemoteResource#getGraph({}) - Resource Invalidated - Refreshing", this.uri);
-            dereferenceURI();
-        }
-
-        if (this.parsedGraph == null) {
-            this.parsedGraph = GraphHelper.readStringIntoGraph(baseURI, this.rawBody, getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue()));
-        }
         return this.parsedGraph;
     }
 
@@ -131,17 +110,13 @@ public class HttpRemoteResource {
 
     }
 
-    public Boolean isRdfResource() throws IOException {
+    public Boolean isRdfResource() {
         String contentType = this.getFirstHeaderByName(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
         if (contentType != null) {
             return this.supportedRDFContentTypes.contains(contentType);
         } else {
             return false;
         }
-    }
-
-    public Boolean isNonRdfSource() throws IOException {
-        return !isRdfResource();
     }
 
     public Boolean isContainer() {
@@ -152,27 +127,21 @@ public class HttpRemoteResource {
         return (this.uri.getQuery() == null && uriPath.endsWith("/"));
     }
 
-    public Boolean isMetadata() throws IOException {
+    public Boolean isMetadata() {
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
         // with a metadata target, it is not a metadata resource (because it is pointing to one)
-        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && !this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
+        if (Boolean.TRUE.equals(this.exists()) && this.parsedLinkHeaders != null && this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isPresent()) {
             return false;
         }
         // If the resource doesn't exist, currently we need to do some inference based on the URI
         if (this.getUri().getPath() != null && this.getUri().getPath().matches(".*\\.shapetree$")) { return true; }
-        if (this.getUri().getQuery() != null && this.getUri().getQuery().matches(".*ext\\=shapetree$")) { return true; }
-
-        return false;
+        return this.getUri().getQuery() != null && this.getUri().getQuery().matches(".*ext\\=shapetree$");
     }
 
     public Boolean isManaged() throws IOException {
 
         if (Boolean.TRUE.equals(this.isMetadata())) { return false; }
-
-        if (Boolean.TRUE.equals(this.getMetadataResource(this.authorizationHeaderValue).exists())) { return true; }
-
-        return false;
-
+        return Boolean.TRUE.equals(this.getMetadataResource(this.authorizationHeaderValue).exists());
     }
 
     public ResourceAttributes getResponseHeaders() { return this.responseHeaders; }
@@ -181,21 +150,13 @@ public class HttpRemoteResource {
         return this.parsedLinkHeaders;
     }
 
-    public String getFirstHeaderByName(String headerName) throws IOException {
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            log.debug("HttpRemoteResource#getFirstHeaderByName({}) - Resource Invalidated - Refreshing", this.uri);
-            dereferenceURI();
-        }
-
-        return responseHeaders.firstValue(headerName).orElse(null);
+    public String getFirstHeaderByName(String headerName) {
+        return this.responseHeaders.firstValue(headerName).orElse(null);
     }
 
+    // TODO: only referenced in HttpRemoteResourceTests; !remove
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws IOException {
         log.debug("HttpRemoteResource#updateGraph({})", this.uri);
-
-        if (Boolean.TRUE.equals(this.invalidated)) {
-            throw new ShapeTreeException(500, "Cannot call 'updateGraph' on an invalidated HttpRemoteResource - ");
-        }
 
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
@@ -207,8 +168,7 @@ public class HttpRemoteResource {
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
         } else {
-            this.invalidated = true;
-            log.debug("HttpRemoteResource#updateGraph({}) - Invalidating Resource", this.uri);
+            log.debug("HttpRemoteResource#updateGraph({}) - Invalidating Resource feature removed", this.uri);
         }
     }
 
@@ -231,12 +191,12 @@ public class HttpRemoteResource {
             return URI.create(associatedString);
 
         } else {
-            return URI.create(getMetadataURI());
+            return getMetadataURI();
         }
     }
 
     @NotNull
-    public String getMetadataURI() throws IOException {
+    public URI getMetadataURI() throws IOException {
         if (this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
             // TODO: Should this be gracefully handled by the client?
@@ -259,27 +219,51 @@ public class HttpRemoteResource {
             throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
 
-        return metaDataURIString;
+        return URI.create(metaDataURIString);
     }
 
-    private void dereferenceURI() throws IOException {
+    private void dereferenceURI() { // TODO: swallows STE instead of throwing it
         log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
 
         try {
             HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
             ResourceAttributes headers = new ResourceAttributes();
-            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), authorizationHeaderValue);
-            fetcher.fetchIntoRemoteResource(new HttpRequest("GET", this.uri, headers, null, null), this);
-            this.invalidated = false;
+            headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);
+            HttpRequest req = new HttpRequest("GET", this.uri, headers, null, null);
+            DocumentResponse resp = fetcher.fetchShapeTreeResponse(req);
+            this.exists = resp.exists();
+            ResourceAttributes allHeaders = resp.getResourceAttributes();
+            // TODO: push into test harness
+            Map<String, List<String>> allHeadersAsMap = allHeaders.toMultimap();
+            if (this.uri.getPath().endsWith(".shapetree") && !allHeadersAsMap.containsKey("content-type")) {
+                Map<String, List<String>> mutable = new TreeMap<>(allHeadersAsMap);
+                mutable.put("content-type", List.of("text/turtle"));
+                allHeadersAsMap = mutable;
+            }
+            this.responseHeaders = new ResourceAttributes(allHeadersAsMap); // TODO: allHeaders.toMultimap()
+            final List<String> linkHeaders = allHeaders.allValues(HttpHeaders.LINK.getValue());
+            if (linkHeaders.size() != 0) {
+                this.parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
+            } else {
+                this.parsedLinkHeaders = new ResourceAttributes();
+            }
+            this.rawBody = Objects.requireNonNull(resp.getBody()); // @@ is requireNull useful here?
         } catch (Exception e) {
             log.error("Error dereferencing URI", e);
         }
     }
 
-    // Promiscuous hack for Fetcher.fetchIntoRemoteResource: Only HttpClient.fetchIntoRemoteResource needs to call these functions.
-    // Is it possible to simulate a "friend" per https://stackoverflow.com/a/18634125/1243605 ?
-    public void setExists(boolean exists) { this.exists = exists; }
-    public void setResponseHeaders(ResourceAttributes responseHeaders) { this.responseHeaders = responseHeaders; }
-    public void setParsedLinkHeaders(ResourceAttributes parsedLinkHeaders) { this.parsedLinkHeaders = parsedLinkHeaders; }
-    public void setRawBody(String rawBody) { this.rawBody = rawBody; }
+    @Override
+    public String toString() {
+        return "HttpRemoteResource{" +
+                "uri=" + this.uri +
+                ", authorizationHeaderValue='" + this.authorizationHeaderValue + '\'' +
+                ", exists=" + this.exists +
+                ", responseHeaders=" + this.responseHeaders +
+                ", parsedLinkHeaders=" + this.parsedLinkHeaders +
+                ", parsedGraph=" + this.parsedGraph +
+                ", rawBody='" + this.rawBody + '\'' +
+                ", supportedRDFContentTypes=" + this.supportedRDFContentTypes +
+                '}';
+    }
 }

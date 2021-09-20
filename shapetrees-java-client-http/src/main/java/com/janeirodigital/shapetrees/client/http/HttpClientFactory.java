@@ -14,5 +14,5 @@ public interface HttpClientFactory {
      * @return an implementation of HttpClient that can be used to map HTTP library (e.g. OkHttp)
      * requests and responses to `shapetrees-java-client-http` classes.
      */
-    public HttpClient get(boolean useShapeTreeValidation) throws ShapeTreeException;
+    HttpClient get(boolean useShapeTreeValidation) throws ShapeTreeException;
 }

@@ -22,7 +22,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, IOException, URISyntaxException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws IOException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource

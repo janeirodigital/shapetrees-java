@@ -22,7 +22,7 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
     boolean useSslValidation;
     static final int NON_VALIDATING = 0;
     static final int VALIDATING = 1;
-    private static OkHttpClient[][] okHttpClients = {{null, null}, {null, null}};
+    private static final OkHttpClient[][] okHttpClients = {{null, null}, {null, null}};
     private final BlackWhiteList blackWhiteList;
 
     /**
@@ -87,7 +87,8 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
      */
     @Override
     public DocumentResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException {
-        if (blackWhiteList != null) { blackWhiteList.check(resourceURI); }
+        if (this.blackWhiteList != null) {
+            this.blackWhiteList.check(resourceURI); }
 
         DocumentResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURI, null, null, null));
         if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceURI); }
