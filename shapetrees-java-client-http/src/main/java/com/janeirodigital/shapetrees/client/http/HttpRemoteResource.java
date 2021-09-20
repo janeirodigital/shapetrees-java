@@ -140,7 +140,9 @@ public class HttpRemoteResource {
 
     public Boolean isManaged() throws ShapeTreeException {
         if (Boolean.TRUE.equals(this.isMetadata())) { return false; }
-        return Boolean.TRUE.equals(this.getMetadataResource(this.authorizationHeaderValue).exists());
+        Optional<URI> metadataUri = this.getMetadataURI();
+        if (metadataUri.isEmpty()) { return false; }
+        return Boolean.TRUE.equals(new HttpRemoteResource(metadataUri.get(), this.authorizationHeaderValue).exists());
     }
 
     public ResourceAttributes getResponseHeaders() { return this.responseHeaders; }
@@ -171,12 +173,8 @@ public class HttpRemoteResource {
         }
     }
 
-    public HttpRemoteResource getMetadataResource(String authorizationHeaderValue) throws ShapeTreeException {
-        return new HttpRemoteResource(this.getMetadataURI(), authorizationHeaderValue);
-    }
-
     // Return the resource URI directly associated with a given resource
-    public URI getAssociatedURI() throws ShapeTreeException {
+    public Optional<URI> getAssociatedURI() {
         // If metadata - it is primary uri
         // If not metadata - it is metadata uri
         if (Boolean.TRUE.equals(this.isMetadata())) {
@@ -187,7 +185,7 @@ public class HttpRemoteResource {
             // Rebuild without the query string in case that was employed
             String associatedString = this.getUri().getScheme() + "://" + this.getUri().getAuthority() + basePath;
 
-            return URI.create(associatedString);
+            return Optional.of(URI.create(associatedString));
 
         } else {
             return getMetadataURI();
@@ -195,14 +193,14 @@ public class HttpRemoteResource {
     }
 
     @NotNull
-    public URI getMetadataURI() throws ShapeTreeException {
-        if (this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
-            log.error("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
-            // TODO: Should this be gracefully handled by the client?
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
+    public Optional<URI> getMetadataURI() {
+        final Optional<String> optLocatorString = this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue());
+        if (optLocatorString.isEmpty()) {
+            log.info("The resource {} does not contain a link header of {}", this.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
+            return Optional.empty();
         }
-        String metaDataURIString = this.parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElse(null);
-        if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
+        String metaDataURIString = optLocatorString.get();
+        if (metaDataURIString.startsWith("/")) {
             // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
             URI shapeTreeContainerURI = this.getUri();
             String portFragment;
@@ -214,11 +212,7 @@ public class HttpRemoteResource {
             metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + portFragment + metaDataURIString;
         }
 
-        if (metaDataURIString == null) {
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
-        }
-
-        return URI.create(metaDataURIString);
+        return Optional.of(URI.create(metaDataURIString));
     }
 
     private void dereferenceURI() { // TODO: swallows STE instead of throwing it

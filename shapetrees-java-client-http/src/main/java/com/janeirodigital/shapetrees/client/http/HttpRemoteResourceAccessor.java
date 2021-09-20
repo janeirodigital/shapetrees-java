@@ -113,18 +113,11 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         ShapeTreeResourceType type = null;
         boolean managed = false;
         String body = null;
-        URI associatedUri = null;
-
-        try {
-            associatedUri = remoteResource.getAssociatedURI();
-            if (exists) {
-                type = remoteResource.getResourceType();
-                managed = remoteResource.isManaged();
-                body = remoteResource.getBody();
-            }
-        } catch (ShapeTreeException ex) {
-            // use defaults set above
-            log.debug("mapRemoteResourceToShapeTreeResource of <{}> ignored ShapeTreeException: {}", uri, ex.getMessage());
+        Optional<URI> associatedUriOpt = remoteResource.getAssociatedURI();
+        if (exists) {
+            type = remoteResource.getResourceType();
+            managed = remoteResource.isManaged();
+            body = remoteResource.getBody();
         }
 
         return new ShapeTreeResource(
@@ -135,7 +128,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
                 remoteResource.isContainer(),
                 remoteResource.getResponseHeaders(),
 
-                associatedUri,
+                associatedUriOpt.orElse(null),
                 type,
                 managed,
                 body
