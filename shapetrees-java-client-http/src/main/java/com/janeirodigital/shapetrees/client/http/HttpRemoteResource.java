@@ -226,14 +226,7 @@ public class HttpRemoteResource {
             DocumentResponse resp = fetcher.fetchShapeTreeResponse(req);
             this.exists = resp.exists();
             ResourceAttributes allHeaders = resp.getResourceAttributes();
-            // TODO: push into test harness
-            Map<String, List<String>> allHeadersAsMap = allHeaders.toMultimap();
-            if (this.uri.getPath().endsWith(".shapetree") && !allHeadersAsMap.containsKey("content-type")) {
-                Map<String, List<String>> mutable = new TreeMap<>(allHeadersAsMap);
-                mutable.put("content-type", List.of("text/turtle"));
-                allHeadersAsMap = mutable;
-            }
-            this.responseHeaders = new ResourceAttributes(allHeadersAsMap); // TODO: allHeaders.toMultimap()
+            this.responseHeaders = new ResourceAttributes(allHeaders.toMultimap());
             final List<String> linkHeaders = allHeaders.allValues(HttpHeaders.LINK.getValue());
             if (linkHeaders.size() != 0) {
                 this.parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
