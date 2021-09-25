@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,7 +44,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param targetResource The URI of the target resource for shape tree discovery
      * @return
-     * @throws IOException
+     * @throws ShapeTreeException
      */
     @Override
     public ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws ShapeTreeException {
@@ -101,7 +100,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @param targetShapeTree A URI representing the shape tree to plant for targetResource
      * @param focusNode An optional URI representing the target subject within targetResource used for shape validation
      * @return The URI of the Shape Tree Locator that was planted for targetResource
-     * @throws IOException
+     * @throws ShapeTreeException
      * @throws URISyntaxException
      */
     @Override

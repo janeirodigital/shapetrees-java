@@ -9,7 +9,6 @@ import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 

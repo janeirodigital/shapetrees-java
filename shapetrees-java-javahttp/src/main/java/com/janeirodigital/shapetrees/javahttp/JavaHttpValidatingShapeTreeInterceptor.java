@@ -28,8 +28,6 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     private static final String PATCH = "PATCH";
     private static final String DELETE = "DELETE";
 
-    // public java.net.http.HttpResponse intercept(@NotNull Chain chain) throws IOException {}
-
     @NotNull
     public java.net.http.HttpResponse validatingWrap(java.net.http.HttpRequest clientRequest, java.net.http.HttpClient httpClient, String body, String contentType) throws IOException, InterruptedException {
 
