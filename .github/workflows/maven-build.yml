@@ -23,13 +23,10 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
-      - name: Build with Maven
-        run: mvn -B clean compile test package --file pom.xml -s ${{ github.workspace }}/settings.xml
+      - name: Build with Maven and Analyze with Sonar
+        run: mvn -B clean verify --file pom.xml -s ${{ github.workspace }}/settings.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=xformativ_shapetrees-java
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
-      - name: Analyze with Sonar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=xformativ_shapetrees-java
