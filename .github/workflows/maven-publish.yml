@@ -1,4 +1,4 @@
-name: JDK 11 Build
+name: Build and Publish
 
 on:
   push:
@@ -28,9 +28,3 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
-      - name: Code Coverage
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-          verbose: true
