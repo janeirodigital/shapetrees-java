@@ -1,6 +1,6 @@
 # shapetrees-java
 
-[![codecov](https://codecov.io/gh/xformativ/shapetrees-java/branch/develop/graph/badge.svg?token=GU1O02A6A5)](https://codecov.io/gh/xformativ/shapetrees-java)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=xformativ_shapetrees-java&metric=coverage&token=648f4f007e540678a04a39c974cdf0046567acec)](https://sonarcloud.io/dashboard?id=xformativ_shapetrees-java)
 
 shapetrees-java is a Java (JDK11+) implementation of the [shape tree specification](https://shapetrees.org/TR/specification/index.html).
 
