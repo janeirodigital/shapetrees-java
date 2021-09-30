@@ -1,4 +1,4 @@
-name: JDK 11 Build
+name: Build and Analyze
 
 on:
   pull_request:
