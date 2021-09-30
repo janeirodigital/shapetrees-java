@@ -14,7 +14,7 @@
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.skip>true</sonar.skip>
     </properties>
 
     <build>
@@ -23,9 +23,15 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>${basedir}</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
-                        <phase>test</phase>
+                        <id>report</id>
+                        <phase>verify</phase>
                         <goals>
                             <goal>report-aggregate</goal>
                         </goals>
@@ -57,6 +63,12 @@
         <dependency>
             <groupId>com.janeirodigital</groupId>
             <artifactId>shapetrees-java-okhttp</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.janeirodigital</groupId>
+            <artifactId>shapetrees-java-javahttp</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
