@@ -24,7 +24,7 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
       - name: Build with Maven and Analyze with Sonar
-        run: mvn -B clean verify --file pom.xml -s ${{ github.workspace }}/settings.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=xformativ_shapetrees-java
+        run: mvn -B clean compile test package verify --file pom.xml -s ${{ github.workspace }}/settings.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=xformativ_shapetrees-java
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
