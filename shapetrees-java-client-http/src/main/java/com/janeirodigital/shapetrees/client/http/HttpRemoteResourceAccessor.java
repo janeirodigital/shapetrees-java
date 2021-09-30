@@ -76,6 +76,9 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
+        if (!response.exists()) {
+            throw new ShapeTreeException(500, "Unable to create <" + resourceURI + ">");
+        }
         return new ShapeTreeResource(resourceURI, response);
     }
 
