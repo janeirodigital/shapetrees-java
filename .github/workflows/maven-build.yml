@@ -28,13 +28,7 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
-      - name: Code Coverage
-        uses: codecov/codecov-action@v2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-          verbose: true
-      - name: Build and analyze
+      - name: Analyze with Sonar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
