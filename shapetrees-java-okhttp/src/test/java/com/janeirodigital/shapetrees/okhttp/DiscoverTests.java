@@ -53,7 +53,7 @@ class DiscoverTests extends com.janeirodigital.shapetrees.okhttp.BaseShapeTreeTe
         URI targetResource = getURI(server, "/unmanaged");
 
         // Use the discover operation to see if the root container is managed
-        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
 
         // The root container isn't managed so check to ensure that a NULL value is returned
         Assertions.assertNull(locator);
@@ -70,7 +70,7 @@ class DiscoverTests extends com.janeirodigital.shapetrees.okhttp.BaseShapeTreeTe
         URI targetResource = getURI(server, "/managed");
 
         // Perform a discover on a resource that has a shape tree locator already planted
-        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
 
         // Ensure that it was planted successfully
         Assertions.assertNotNull(locator);
@@ -98,7 +98,7 @@ class DiscoverTests extends com.janeirodigital.shapetrees.okhttp.BaseShapeTreeTe
 
         // If a locator resource has multiple shapetree locators it is considered invalid
         Assertions.assertThrows(IllegalStateException.class, () -> {
-            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
         });
 
     }
@@ -115,7 +115,7 @@ class DiscoverTests extends com.janeirodigital.shapetrees.okhttp.BaseShapeTreeTe
 
         // If a locator resource exists, but has no locators it is considered invalid
         Assertions.assertThrows(IllegalStateException.class, () -> {
-            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
         });
 
     }
@@ -132,7 +132,7 @@ class DiscoverTests extends com.janeirodigital.shapetrees.okhttp.BaseShapeTreeTe
 
         // If a locator resource exists, but has no locators it is considered invalid
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
         });
     }
 }

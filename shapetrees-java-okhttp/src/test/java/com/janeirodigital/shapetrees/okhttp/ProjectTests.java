@@ -51,7 +51,7 @@ class ProjectTests extends BaseShapeTreeTest {
         URI targetResource = getURI(server,"/");
 
         // Use the discover operation to see if the root container is managed
-        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
 
         // The root container isn't managed so check to ensure that a NULL value is returned
         Assertions.assertNull(locator);

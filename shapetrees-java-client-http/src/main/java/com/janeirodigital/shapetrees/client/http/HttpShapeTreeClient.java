@@ -17,6 +17,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 @Slf4j
 public class HttpShapeTreeClient implements ShapeTreeClient {
@@ -47,7 +48,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @throws ShapeTreeException
      */
     @Override
-    public ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws ShapeTreeException {
+    public Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URI targetResource) throws ShapeTreeException {
 
         if (targetResource == null) {
             throw new ShapeTreeException(500, "Must provide a value target resource for discovery");
@@ -61,7 +62,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         if  (Boolean.FALSE.equals(resource.isExists())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
-            return null;
+            return Optional.empty();
         }
 
         // Lookup the associated shape tree locator resource based on the pointer  TODO: decide on API for failure
@@ -73,12 +74,12 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // and no shape tree locator will be returned.
         if (Boolean.FALSE.equals(locatorResource.isExists())) {
             log.debug("Shape tree locator for {} does not exist", targetResource);
-            return null;
+            return Optional.empty();
         }
 
         // Populate a ShapeTreeLocator from the graph in locatorResource and return it
-        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri,
-                                                             locatorResource.getGraph().get());
+        return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri,
+                                                             locatorResource.getGraph().get()));
 
     }
 
@@ -119,15 +120,12 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         if (Boolean.FALSE.equals(resource.isExists())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
+        final URI metadataUri = expectMetadataUri(resource);
 
         // Determine whether the target resource is already a managed resource
-        ShapeTreeLocator locator = discoverShapeTree(context, targetResource);
-
-        // If the target resource is not managed, initialize a new locator
-        final URI metadataUri = expectMetadataUri(resource);
-        if (locator == null) {
-            locator = new ShapeTreeLocator(metadataUri);
-        }
+        ShapeTreeLocator locator = discoverShapeTree(context, targetResource)
+            // If the target resource is not managed, initialize a new locator
+            .orElse(new ShapeTreeLocator(metadataUri));
 
         // Initialize a shape tree location based on the supplied parameters
         URI locationUri = locator.mintLocation();
@@ -251,12 +249,11 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Determine whether the target resource is already a managed resource
-        ShapeTreeLocator locator = discoverShapeTree(context, targetResource);
-
-        // If the target resource is not managed, initialize a new locator
-        if (locator == null) {
+        Optional<ShapeTreeLocator> discovered = discoverShapeTree(context, targetResource);
+        if (discovered.isEmpty()) {
             return new DocumentResponse(null, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource, 500);
         }
+        ShapeTreeLocator locator = discovered.get();
 
         // Remove location from locator that corresponds with the provided shape tree
         locator.removeShapeTreeLocationForShapeTree(targetShapeTree);
