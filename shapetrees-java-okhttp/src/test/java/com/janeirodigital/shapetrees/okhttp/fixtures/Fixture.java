@@ -33,7 +33,7 @@ public class Fixture {
      *
      * @param fileName filename should not contain extension or relative path. ie: login
      */
-    public static Fixture parseFrom(String fileName, RecordedRequest request) throws IOException {
+    public static Fixture parseFrom(String fileName, RecordedRequest request) {
         return parseFrom(fileName, new YamlParser(), request);
     }
 
@@ -44,17 +44,19 @@ public class Fixture {
      * @param fileName filename should not contain extension or relative path. ie: login
      * @param parser   parser is required for parsing operation, it should not be null
      */
-    public static Fixture parseFrom(String fileName, Parser parser, RecordedRequest request) throws IOException {
+    public static Fixture parseFrom(String fileName, Parser parser, RecordedRequest request) {
         if (fileName == null) {
             throw new NullPointerException("File name should not be null");
         }
         String path = "fixtures/" + fileName + ".yaml";
-        String inputString = readPathIntoString(path);
-        Map<String,String> variables = new HashMap<>();
+        Map<String, String> variables = new HashMap<>();
         variables.put("SERVER_BASE", getServerBaseFromRequest(request));
         StringSubstitutor substitutor = new StringSubstitutor(variables);
-
-        return parser.parse(substitutor.replace(inputString));
+        try {
+            return parser.parse(substitutor.replace(readPathIntoString(path)));
+        } catch (IOException ex) {
+            throw new IllegalStateException("Test Harness: Error reading from " + path + ": " + ex.getStackTrace());
+        }
     }
 
     private static String getServerBaseFromRequest(RecordedRequest request) {
@@ -66,7 +68,7 @@ public class Fixture {
         InputStream inputStream = loader.getResourceAsStream(path);
 
         if (inputStream == null) {
-            throw new IllegalStateException("Invalid path: " + path);
+            throw new IllegalStateException("Test Harness: Invalid path: " + path);
         }
 
         return inputStream;

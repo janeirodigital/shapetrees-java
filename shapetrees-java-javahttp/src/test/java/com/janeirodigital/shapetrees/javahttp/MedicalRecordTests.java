@@ -98,7 +98,8 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
         server.setDispatcher(dispatcher);
 
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/conditions-container-locator"), "GET", "/ldp/data/conditions/?ext=shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1"), "POST", "/ldp/data/conditions/condition1.ttl", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/condition-1-create-response"), "POST", "/ldp/data/conditions/condition1.ttl", null));
+//        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/404"), "GET", "/ldp/data/conditions/condition1.ttl", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/ldp/data/conditions/condition1.ttl?ext=shapetree", null));
 
         DocumentResponse response = this.shapeTreeClient.postShapeTreeInstance(this.context,

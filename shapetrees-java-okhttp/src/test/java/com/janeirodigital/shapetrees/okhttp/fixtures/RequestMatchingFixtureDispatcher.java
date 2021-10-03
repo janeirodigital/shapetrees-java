@@ -8,6 +8,7 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,16 +23,20 @@ public class RequestMatchingFixtureDispatcher extends Dispatcher {
         this.configuredFixtures = configuredFixtures;
     }
 
-    @SneakyThrows
     @NotNull
     @Override
     public MockResponse dispatch(@NotNull RecordedRequest recordedRequest) {
         for (DispatcherEntry entry : configuredFixtures) {
             if (matchesRequest(recordedRequest, entry)) {
                 String fixtureName = getFixtureName(entry);
-                return Fixture.parseFrom(fixtureName, recordedRequest).toMockResponse();
+                MockResponse resp = Fixture.parseFrom(fixtureName, recordedRequest).toMockResponse();
+                if (resp.getStatus() == "200" && recordedRequest.getMethod() == "POST") {
+                    log.error("Mock: response to POST {} with {} returns a 200", recordedRequest, entry);
+                }
+                return resp;
             }
         }
+        log.error("Mock: no response found for {} {}", recordedRequest.getMethod(), recordedRequest.getPath());
         return new MockResponse().setResponseCode(404);
     }
 

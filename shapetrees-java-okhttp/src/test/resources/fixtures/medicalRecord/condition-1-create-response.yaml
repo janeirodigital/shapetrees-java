@@ -4,4 +4,5 @@ headers:
   - 'Content-type:text/turtle'
   - 'Link:<http://www.w3.org/ns/ldp#Resource>; rel="type"'
   - 'Location:${SERVER_BASE}/ldp/data/conditions/condition1'
+  - 'Link:</ldp/data/conditions/condition1.ttl?ext=shapetree>; rel="http://www.w3.org/ns/shapetrees#ShapeTreeLocator"'
 body: >

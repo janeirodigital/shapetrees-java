@@ -120,7 +120,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         // Prepare the target resource for validation and creation
         URI targetResourceURI = normalizeBaseURI(targetContainer.getUri(), proposedName, shapeTreeRequest.getResourceType());
-        ensureTargetResourceDoesNotExist(shapeTreeContext, targetResourceURI,"Cannot create a shape tree instance in a non-container resource");
+        ensureTargetResourceDoesNotExist(shapeTreeContext, targetResourceURI,"Cannot create a shape tree instance in a non-container resource " + targetResourceURI);
 
         ShapeTreeResource containerMetadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, targetContainer);
         ensureShapeTreeResourceExists(containerMetadataResource, "Should not be creating a shape tree instance on an unmanaged target container");
@@ -556,7 +556,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", shapeTreeResource.getUri(), LinkRelations.SHAPETREE_LOCATOR.getValue());
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
+            throw new ShapeTreeException(500, "The resource <" + shapeTreeResource.getUri() + "> has no Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
         String metaDataURIString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElse(null);
         if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
