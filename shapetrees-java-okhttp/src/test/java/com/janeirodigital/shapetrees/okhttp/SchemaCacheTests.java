@@ -80,7 +80,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
         for (String schemaUrl : schemasToCache) {
             log.debug("Caching schema {}", schemaUrl);
             HttpRemoteResource shexShapeSchema = new HttpRemoteResource(new URI(schemaUrl), null);
-            if (Boolean.FALSE.equals(shexShapeSchema.exists()) || shexShapeSchema.getBody() == null) {
+            if (Boolean.FALSE.equals(shexShapeSchema.isExists()) || shexShapeSchema.getBody() == null) {
                 log.warn("Schema at {} doesn't exist or is empty", schemaUrl);
                 continue;
             }

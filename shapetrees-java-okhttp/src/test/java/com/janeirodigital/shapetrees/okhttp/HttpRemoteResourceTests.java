@@ -42,8 +42,8 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-no-link-headers"), null);
-        assertTrue(resource.exists());
-        Assertions.assertTrue(resource.getMetadataURI().isEmpty());
+        assertTrue(resource.isExists());
+        Assertions.assertTrue(resource.getAssociatedUri().isEmpty());
     }
 
     @Test
@@ -51,8 +51,8 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-empty-link-header"), null);
-        assertTrue(resource.exists());
-        Assertions.assertTrue(resource.getMetadataURI().isEmpty());
+        assertTrue(resource.isExists());
+        Assertions.assertTrue(resource.getAssociatedUri().isEmpty());
     }
 
     @Test
@@ -65,7 +65,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/not-existing-no-slash"), null);
-        assertFalse(resource.exists());
+        assertFalse(resource.isExists());
         assertFalse(resource.isContainer());
     }
 
@@ -74,7 +74,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/not-existing-slash/"), null);
-        assertFalse(resource.exists());
+        assertFalse(resource.isExists());
         assertTrue(resource.isContainer());
     }
 
@@ -83,7 +83,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/not-existing-slash/#withfragment"), null);
-        assertFalse(resource.exists());
+        assertFalse(resource.isExists());
         assertTrue(resource.isContainer());
     }
 
@@ -92,8 +92,8 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
-        assertTrue(resource.exists());
-        assertFalse(resource.isContainer());
+        assertTrue(resource.isExists());
+        assertTrue(resource.isContainer());
     }
 
     @Test
@@ -101,7 +101,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header/"), null);
-        assertTrue(resource.exists());
+        assertTrue(resource.isExists());
         assertTrue(resource.isContainer());
     }
 
@@ -111,8 +111,8 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
-        assertTrue(resource.exists());
-        Assertions.assertNull(resource.getFirstHeaderByName("invalid"));
+        assertTrue(resource.isExists());
+        Assertions.assertNull(resource.getAttributes().firstValue("invalid").orElse(null));
     }
 
     @Test
@@ -123,7 +123,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         Graph graph = resource.getGraph().get();
         graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
         resource.updateGraph(graph, true, null);
-        assertTrue(resource.exists());
+        assertTrue(resource.isExists());
     }
 
     @Test
@@ -134,7 +134,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         Graph graph = resource.getGraph().get();
         graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
         resource.updateGraph(graph, false, null);
-        assertTrue(resource.exists());
+        assertTrue(resource.isExists());
 //        Assertions.assertThrows(ShapeTreeException.class, () -> resource.updateGraph(graph, false, null)); HttpRemoteResource.invalidated has been removed
     }
 
@@ -146,7 +146,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         Graph graph = resource.getGraph().get();
         graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
         resource.updateGraph(graph, false, null);
-        assertTrue(resource.exists());
+        assertTrue(resource.isExists());
         Assertions.assertNotNull(resource.getBody());
     }
 
@@ -158,7 +158,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         Graph graph = resource.getGraph().get();
         graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
         resource.updateGraph(graph, false, null);
-        assertTrue(resource.exists());
+        assertTrue(resource.isExists());
         Assertions.assertNotNull(resource.getGraph());
     }
 
@@ -170,25 +170,25 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
         Graph graph = resource.getGraph().get();
         graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
         resource.updateGraph(graph, false, null);
-        assertTrue(resource.exists());
-        Assertions.assertNotNull(resource.getFirstHeaderByName("Link"));
+        assertTrue(resource.isExists());
+        Assertions.assertNotNull(resource.getAttributes().firstValue("Link").orElse(null));
     }
-
+/*
     @Test
     void getLinkHeaders() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/resource-container-link-header"), null);
-        assertTrue(resource.exists());
+        assertTrue(resource.isExists());
         Assertions.assertNotNull(resource.getLinkHeaders());
     }
-
+*/
     @Test
     void test404Target() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         HttpRemoteResource resource = new HttpRemoteResource(getURI(server, "/static/resource/notpresent"), null);
-        Assertions.assertNull(resource.getBody()); // TODO: this means we can get get an error message back to a user.
+        Assertions.assertEquals(resource.getBody(), "");
         assertTrue(resource.getGraph().isEmpty());
     }
 }

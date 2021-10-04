@@ -5,6 +5,7 @@ import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
@@ -16,7 +17,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +33,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
     @Override
     public ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException {
-        return mapRemoteResourceToShapeTreeResource(new HttpRemoteResource(resourceURI, context.getAuthorizationHeaderValue()));
+        return new HttpRemoteResource(resourceURI, context.getAuthorizationHeaderValue());
     }
 
     @Override
@@ -104,34 +104,5 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         }
         return response;
 
-    }
-
-    private ShapeTreeResource mapRemoteResourceToShapeTreeResource(HttpRemoteResource remoteResource) throws ShapeTreeException {
-        URI uri = remoteResource.getUri();
-        boolean exists = remoteResource.exists();
-
-        ShapeTreeResourceType type = null;
-        boolean managed = false;
-        String body = null;
-        Optional<URI> associatedUriOpt = remoteResource.getAssociatedURI();
-        if (exists) {
-            type = remoteResource.getResourceType();
-            managed = remoteResource.isManaged();
-            body = remoteResource.getBody();
-        }
-
-        return new ShapeTreeResource(
-                uri,
-                exists,
-                remoteResource.getName(),
-                remoteResource.isMetadata(),
-                remoteResource.isContainer(),
-                remoteResource.getResponseHeaders(),
-
-                associatedUriOpt.orElse(null),
-                type,
-                managed,
-                body
-        );
     }
 }

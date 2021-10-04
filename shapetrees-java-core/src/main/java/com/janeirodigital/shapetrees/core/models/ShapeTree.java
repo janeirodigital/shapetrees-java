@@ -24,7 +24,6 @@ import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URI;
@@ -60,13 +59,13 @@ public class ShapeTree {
 
         Graph bodyGraph = null;
 
-        if (targetResource.getType() != ShapeTreeResourceType.NON_RDF) {
+        if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
             bodyGraph = GraphHelper.readStringIntoGraph(targetResource.getUri(),
                     targetResource.getBody(),
                     targetResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
         }
         
-        return validateResource(targetResource.getName(), targetResource.getType(), bodyGraph, focusNodeURI);
+        return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeURI);
     }
 
     public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
@@ -180,16 +179,15 @@ public class ShapeTree {
 
     public ValidationResult validateContainedResource(ShapeTreeResource containedResource, URI targetShapeTreeURI, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
-        String requestedName = containedResource.getName();
         Graph containedResourceGraph = null;
-
-        if (containedResource.getType() != ShapeTreeResourceType.NON_RDF) {
+// !! containedResource.getGraph().get();
+        if (containedResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
             containedResourceGraph = GraphHelper.readStringIntoGraph(containedResource.getUri(),
                     containedResource.getBody(),
                     containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
         }
 
-        return validateContainedResource(requestedName, containedResource.getType(), targetShapeTreeURI, containedResourceGraph, focusNodeURI);
+        return validateContainedResource(containedResource.getName(), containedResource.getResourceType(), targetShapeTreeURI, containedResourceGraph, focusNodeURI);
 
     }
 

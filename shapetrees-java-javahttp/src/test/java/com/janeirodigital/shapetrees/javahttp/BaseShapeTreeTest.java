@@ -36,7 +36,7 @@ public abstract class BaseShapeTreeTest {
     
     protected static void ensureExists(URI uri) throws ShapeTreeException {
         HttpRemoteResource resource = new HttpRemoteResource(uri, null);
-        if (!resource.exists()) {
+        if (!resource.isExists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }
     }

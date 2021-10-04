@@ -130,23 +130,20 @@ public class OkHttpClient implements HttpClient {
             switch (request.method) {
 
                 case HttpClient.GET:
-                    requestBuilder.get();
-                    break;
-
-                case HttpClient.PUT:
-                    requestBuilder.put(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
-                    break;
-
-                case HttpClient.POST:
-                    requestBuilder.post(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
-                    break;
-
-                case HttpClient.PATCH:
-                    requestBuilder.patch(okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
+                    requestBuilder.method(request.method, null);
+//                    requestBuilder.get();
                     break;
 
                 case HttpClient.DELETE:
-                    requestBuilder.delete();
+                    requestBuilder.method(request.method, okhttp3.RequestBody.create(null, new byte[0])); // apparently needed 'cause delete CAN have a body
+//                    requestBuilder.delete();
+                    break;
+
+                case HttpClient.PUT:
+                case HttpClient.POST:
+                case HttpClient.PATCH:
+                    requestBuilder.method(request.method, okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
+                    requestBuilder.addHeader("Content-Type", request.contentType);
                     break;
 
                 default:
