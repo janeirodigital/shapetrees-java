@@ -60,7 +60,7 @@ public class MedicalRecordTests extends BaseShapeTreeTest {
 
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("medicalRecord/medical-records-container-locator"), "GET", "/ldp/data/medical-records/?ext=shapetree", null));
 
-        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, getURI(server,"/ldp/data/medical-records/"));
+        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, getURI(server,"/ldp/data/medical-records/")).orElse(null);
 
         Assertions.assertNotNull(locator);
         Assertions.assertEquals(getURI(server, "/ldp/data/medical-records/?ext=shapetree"), locator.getURI());

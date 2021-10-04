@@ -7,6 +7,7 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 /**
  * This interface defines a proposed API to be used for any client-side implementations of
@@ -25,7 +26,7 @@ public interface ShapeTreeClient {
      * @return A ShapeTreeLocator associated with targetResource
      * @throws ShapeTreeException ShapeTreeException
      */
-    ShapeTreeLocator discoverShapeTree(ShapeTreeContext context, URI targetResource) throws ShapeTreeException;
+    Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URI targetResource) throws ShapeTreeException;
 
     /**
      * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,
