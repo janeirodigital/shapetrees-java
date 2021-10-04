@@ -65,12 +65,8 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Lookup the associated shape tree locator resource based on the pointer  TODO: decide on API for failure
-        Optional<URI> metadataUri = resource.getMetadataURI();
-        if (metadataUri.isEmpty()) {
-            log.debug(noMetadataUri(resource));
-            return null;
-        }
-        HttpRemoteResource locatorResource = new HttpRemoteResource(metadataUri.get(), context.getAuthorizationHeaderValue());
+        URI metadataUri = expectMetadataUri(resource);
+        HttpRemoteResource locatorResource = new HttpRemoteResource(metadataUri, context.getAuthorizationHeaderValue());
 
         // Ensure the metadata resource exists
         // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
@@ -81,7 +77,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Populate a ShapeTreeLocator from the graph in locatorResource and return it
-        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri.get(),
+        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri,
                                                              locatorResource.getGraph().get());
 
     }
@@ -320,7 +316,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         return ret;
     }
 
-    // TODO: [spec] what should does-not-support-metadata response code be?
+    // TODO: [spec] what should does-not-support-metadata response code be? throw or just log?
     // also, is it "Metadata" or "ShapeTrees"?
     private URI expectMetadataUri(HttpRemoteResource resource) throws ShapeTreeException {
         return resource.getMetadataURI().orElseThrow(

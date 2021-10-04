@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import com.janeirodigital.shapetrees.okhttp.fixtures.DispatcherEntry;
@@ -36,6 +37,7 @@ class DiscoverTests extends com.janeirodigital.shapetrees.okhttp.BaseShapeTreeTe
         dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-1-locator"), "GET", "/managed-invalid-1.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-2"), "GET", "/managed-invalid-2", null));
         dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-2-locator"), "GET", "/managed-invalid-2.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("discover/no-locator"), "GET", "/no-locator", null));
 
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
     }
@@ -118,4 +120,19 @@ class DiscoverTests extends com.janeirodigital.shapetrees.okhttp.BaseShapeTreeTe
 
     }
 
+    @Order(5)
+    @SneakyThrows
+    @Test
+    @Label("Discover server doesn't support ShapeTrees")
+    void failToDiscoverDueToNoLocatorLink() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
+        URI targetResource = getURI(server, "/no-locator");
+
+        // If a locator resource exists, but has no locators it is considered invalid
+        Assertions.assertThrows(ShapeTreeException.class, () -> {
+            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+        });
+    }
 }
