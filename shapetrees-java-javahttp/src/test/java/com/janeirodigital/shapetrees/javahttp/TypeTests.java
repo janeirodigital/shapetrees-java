@@ -46,6 +46,7 @@ class TypeTests extends BaseShapeTreeTest {
 
         // Add fixture to handle successful POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-container"), "POST", "/containers/valid-container/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/containers/valid-container/.shapetree", null));
         DocumentResponse response;
 
         // Provide target shape tree
@@ -91,6 +92,7 @@ class TypeTests extends BaseShapeTreeTest {
 
         // Add fixture to handle successful POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-resource"), "POST", "/resources/valid-resource", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/resources/valid-resource.shapetree", null));
         DocumentResponse response;
 
         // Provide target shape tree
@@ -135,6 +137,7 @@ class TypeTests extends BaseShapeTreeTest {
 
         // Add fixture to handle successful POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-non-rdf-resource"), "POST", "/non-rdf-resources/valid-non-rdf-resource", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/non-rdf-resources/valid-non-rdf-resource.shapetree", null)); // TODO: should this fail? should it have already failed?
         DocumentResponse response;
 
         response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/non-rdf-resources/"), null, getURI(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree"), "valid-non-rdf-resource", false, null, "application/octet-stream");
