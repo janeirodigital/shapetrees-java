@@ -45,7 +45,7 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         server.setDispatcher(dispatcher);
 
         // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-container"), "POST", "/containers/valid-container/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-container-create-response"), "POST", "/containers/valid-container/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/containers/valid-container/.shapetree", null));
         DocumentResponse response;
 
@@ -91,7 +91,7 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         server.setDispatcher(dispatcher);
 
         // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-resource"), "POST", "/resources/valid-resource", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-resource-create-response"), "POST", "/resources/valid-resource", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/resources/valid-resource.shapetree", null));
         DocumentResponse response;
 
@@ -136,7 +136,7 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         server.setDispatcher(dispatcher);
 
         // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-non-rdf-resource"), "POST", "/non-rdf-resources/valid-non-rdf-resource", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-non-rdf-resource-create-response"), "POST", "/non-rdf-resources/valid-non-rdf-resource", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/non-rdf-resources/valid-non-rdf-resource.shapetree", null)); // TODO: should this fail? should it have already failed?
         DocumentResponse response;
 

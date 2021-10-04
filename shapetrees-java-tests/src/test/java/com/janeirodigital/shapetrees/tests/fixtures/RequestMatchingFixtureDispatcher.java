@@ -30,8 +30,11 @@ public class RequestMatchingFixtureDispatcher extends Dispatcher {
             if (matchesRequest(recordedRequest, entry)) {
                 String fixtureName = getFixtureName(entry);
                 MockResponse resp = Fixture.parseFrom(fixtureName, recordedRequest).toMockResponse();
-                if (resp.getStatus() == "200" && recordedRequest.getMethod() == "POST") {
-                    log.error("Mock: response to POST {} with {} returns a 200", recordedRequest, entry);
+                if (resp.getStatus().contains("200") && recordedRequest.getMethod().equals("POST")) {
+                    final String msg = "Mock: response to POST " + recordedRequest + " with " + entry + " returns a 200";
+                    log.error("Mock: response to {} with {} returns a 200", recordedRequest, entry);
+                    resp.setStatus("HTTP/1.1 999 " + msg);
+                    resp.setBody(msg);
                 }
                 return resp;
             }
