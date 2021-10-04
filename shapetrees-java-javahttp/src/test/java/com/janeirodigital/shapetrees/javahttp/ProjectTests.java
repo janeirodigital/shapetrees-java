@@ -397,7 +397,7 @@ class ProjectTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
 
         URI targetContainer = getURI(server, "/data/projects/project-1/milestone-3/");
@@ -429,7 +429,7 @@ class ProjectTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
 
         URI targetContainer = getURI(server, "/data/projects/project-1/milestone-3/");
@@ -460,7 +460,7 @@ class ProjectTests extends BaseShapeTreeTest {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
 
         URI targetContainer = getURI(server, "/data/projects/project-1/milestone-3/");
