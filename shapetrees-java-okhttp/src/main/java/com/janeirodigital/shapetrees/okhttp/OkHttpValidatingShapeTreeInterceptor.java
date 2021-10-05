@@ -53,7 +53,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             try {
                 Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (!shapeTreeResponse.isPresent()) {
-                    return chain.proceed(chain.request());
+                    return OkHttpClient.check(chain.proceed(chain.request()));
                 } else {
                     return createResponse(shapeTreeRequest, chain.request(), shapeTreeResponse.get());
                 }
@@ -66,7 +66,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
-            return chain.proceed(chain.request());
+            return OkHttpClient.check(chain.proceed(chain.request()));
         }
     }
 

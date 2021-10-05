@@ -30,11 +30,12 @@ public class RequestMatchingFixtureDispatcher extends Dispatcher {
             if (matchesRequest(recordedRequest, entry)) {
                 String fixtureName = getFixtureName(entry);
                 MockResponse resp = Fixture.parseFrom(fixtureName, recordedRequest).toMockResponse();
+                // status isn't a number, it's e.g. "HTTP/1.1 200 OK"
                 if (resp.getStatus().contains("200") && recordedRequest.getMethod().equals("POST")) {
-                    final String msg = "Mock: response to POST " + recordedRequest + " with " + entry + " returns a 200";
-                    log.error("Mock: response to {} with {} returns a 200", recordedRequest, entry);
-                    resp.setStatus("HTTP/1.1 999 " + msg);
-                    resp.setBody(msg);
+                    final String msg = "Mock: response to POST " + recordedRequest + " with " + entry + " returns " + resp.getStatus();
+                    log.error(msg);
+                    resp.setStatus("HTTP/1.1 999 " + msg); // This will show up in a stack trace,
+                    resp.setBody(msg);                     // but we can add it as a body as well.
                 }
                 return resp;
             }

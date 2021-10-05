@@ -1,4 +1,4 @@
-statusCode : 200
+statusCode : 201
 delay: 0
 headers:
   - 'Content-type:application/octet-stream'
