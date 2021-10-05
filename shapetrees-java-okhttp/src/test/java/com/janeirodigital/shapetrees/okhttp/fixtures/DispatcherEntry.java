@@ -13,4 +13,14 @@ public class DispatcherEntry {
     private String expectedMethod;
     private String expectedPath;
     private Map<String, List<String>> expectedHeaders;
+
+    @Override
+    public String toString() {
+        return "DispatcherEntry{" +
+                fixtureNames +
+                ":" + expectedMethod + '\'' +
+                " " + expectedPath + '\'' +
+                " " + expectedHeaders +
+                "}";
+    }
 }

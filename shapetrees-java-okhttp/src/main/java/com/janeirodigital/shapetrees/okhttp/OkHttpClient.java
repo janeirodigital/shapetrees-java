@@ -151,9 +151,16 @@ public class OkHttpClient implements HttpClient {
 
             }
 
-            return this.httpClient.newCall(requestBuilder.build()).execute();
+            return OkHttpClient.check(this.httpClient.newCall(requestBuilder.build()).execute());
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
+    }
+
+    protected static okhttp3.Response check(okhttp3.Response resp) {
+        if (resp.code() > 599) {
+            throw new Error("invalid HTTP response: " + resp + (resp.body() == null ? "" : "\n" + resp.body()));
+        }
+        return resp;
     }
 }
