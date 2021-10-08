@@ -30,10 +30,11 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-ttl"), "GET", "/static/shapetrees/medical-record/shapetree", null),
-                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-invalid-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid", null),
-                new DispatcherEntry(List.of("shapetrees/medical-record-shapetree-invalid-2-ttl"), "GET", "/static/shapetrees/medical-record/shapetree-invalid2", null),
-                new DispatcherEntry(List.of("http/404"), "GET", "/static/shapetrees/medical-record/shapetree-missing", null)
+                new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null),
+                new DispatcherEntry(List.of("shapetrees/project-shapetree-virtual-ttl"), "GET", "/static/shapetrees/project/shapetree-virtual", null),
+                new DispatcherEntry(List.of("shapetrees/project-shapetree-invalid-ttl"), "GET", "/static/shapetrees/project/shapetree-invalid", null),
+                new DispatcherEntry(List.of("shapetrees/project-shapetree-invalid-2-ttl"), "GET", "/static/shapetrees/project/shapetree-invalid2", null),
+                new DispatcherEntry(List.of("http/404"), "GET", "/static/shapetrees/project/shapetree-missing", null)
         ));
     }
 
@@ -43,11 +44,11 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
     void parseShapeTreeReuse() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ShapeTree medicalRecordsShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
-        Assertions.assertNotNull(medicalRecordsShapeTree1);
-        ShapeTree medicalRecordsShapeTree2 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
-        Assertions.assertNotNull(medicalRecordsShapeTree1);
-        assertEquals(medicalRecordsShapeTree1.hashCode(), medicalRecordsShapeTree2.hashCode());
+        ShapeTree projectShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree#ProjectTree"));
+        Assertions.assertNotNull(projectShapeTree1);
+        ShapeTree projectShapeTree2 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree#ProjectTree"));
+        Assertions.assertNotNull(projectShapeTree1);
+        assertEquals(projectShapeTree1.hashCode(), projectShapeTree2.hashCode());
     }
 
     @SneakyThrows
@@ -57,7 +58,7 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
-                ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree-invalid2#medicalRecords"))
+                ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-invalid#DataRepositoryTree"))
         );
     }
 
@@ -68,7 +69,7 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
-                ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree-missing#missing"))
+                ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-missing#missing"))
         );
     }
 
@@ -78,19 +79,19 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
     void ensureCacheWithRecursion() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        // Retrieve the conditions shapetree (which is referred to by the medicalRecords shapetree)
-        ShapeTree conditionsShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"));
-        Assertions.assertNotNull(conditionsShapeTree1);
+        // Retrieve the MilestoneTree shapetree (which is referred to by the ProjectTree shapetree)
+        ShapeTree milestoneShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-virtual#MilestoneTree"));
+        Assertions.assertNotNull(milestoneShapeTree1);
 
-        // Retrieve the medical records shapetree which will recursively cache the conditions shapetree
-        ShapeTree medicalRecordsShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
-        Assertions.assertNotNull(medicalRecordsShapeTree1);
+        // Retrieve the ProjectTree shapetree which will recursively cache the MilestoneTree shapetree
+        ShapeTree projectShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-virtual#ProjectTree"));
+        Assertions.assertNotNull(projectShapeTree1);
 
-        // Retrieve the conditions shapetree again, ensuring the same instance is used
-        ShapeTree conditionsShapeTree2 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#conditions"));
-        Assertions.assertNotNull(conditionsShapeTree2);
+        // Retrieve the MilestoneTree shapetree again, ensuring the same instance is used
+        ShapeTree milestoneShapeTree2 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-virtual#MilestoneTree"));
+        Assertions.assertNotNull(milestoneShapeTree2);
 
-        assertEquals(conditionsShapeTree1.hashCode(), conditionsShapeTree2.hashCode());
+        assertEquals(milestoneShapeTree1.hashCode(), milestoneShapeTree2.hashCode());
     }
 
 
@@ -100,9 +101,9 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
     void parseShapeTreeReferences() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ShapeTree medicalRecordsShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
-        Assertions.assertNotNull(medicalRecordsShapeTree);
-        assertFalse(medicalRecordsShapeTree.getReferences().isEmpty());
+        ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-virtual#ProjectTree"));
+        Assertions.assertNotNull(projectShapeTree);
+        assertFalse(projectShapeTree.getReferences().isEmpty());
     }
 
     @SneakyThrows
@@ -111,9 +112,9 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
     void parseShapeTreeContains() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ShapeTree medicalRecordsShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecords"));
-        Assertions.assertNotNull(medicalRecordsShapeTree);
-        assertTrue(medicalRecordsShapeTree.getContains().contains(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecord")));
+        ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree#ProjectTree"));
+        Assertions.assertNotNull(projectShapeTree);
+        assertTrue(projectShapeTree.getContains().contains(getURI(server,"/static/shapetrees/project/shapetree#MilestoneTree")));
     }
 
     @SneakyThrows
@@ -123,7 +124,7 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
-            ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree-invalid#medicalRecords"))
+            ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project-record/shapetree-invalid#DataRepositoryTree"))
         );
     }
 
@@ -133,9 +134,9 @@ class ShapeTreeParsingTests extends BaseShapeTreeTest {
     void testTraverseReferences() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ShapeTree medicalRecordShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/medical-record/shapetree#medicalRecord"));
-        medicalRecordShapeTree.getReferencedShapeTrees();
-        Assertions.assertTrue(medicalRecordShapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST).hasNext());
-        Assertions.assertTrue(medicalRecordShapeTree.getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST).hasNext());
+        ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-virtual#ProjectTree"));
+        projectShapeTree.getReferencedShapeTrees();
+        Assertions.assertTrue(projectShapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST).hasNext());
+        Assertions.assertTrue(projectShapeTree.getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST).hasNext());
     }
 }
