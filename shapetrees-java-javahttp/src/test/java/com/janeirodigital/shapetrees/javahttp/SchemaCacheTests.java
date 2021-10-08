@@ -36,7 +36,7 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
     @BeforeAll
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("schemas/fhir-shex"), "GET", "/static/shex/fhir/r4/shex", null)
+                new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project", null)
         ));
     }
 
@@ -54,9 +54,9 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
     void testPreloadCache() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/fhir/r4/shex").toString()));
+        Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/project").toString()));
         SchemaCache.initializeCache(schemas);
-        assertTrue(SchemaCache.containsSchema(getURI(server, "/static/shex/fhir/r4/shex")));
+        assertTrue(SchemaCache.containsSchema(getURI(server, "/static/shex/project")));
     }
 
     @Test
@@ -65,12 +65,12 @@ public class SchemaCacheTests extends BaseShapeTreeTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
-        Assertions.assertNull(SchemaCache.getSchema(getURI(server, "/static/shex/fhir/r4/shex")));
-        Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/fhir/r4/shex").toString()));
+        Assertions.assertNull(SchemaCache.getSchema(getURI(server, "/static/shex/project")));
+        Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/project").toString()));
         Map.Entry<URI, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
         if (firstEntry == null) return;
         SchemaCache.putSchema(firstEntry.getKey(), firstEntry.getValue());
-        Assertions.assertNotNull(SchemaCache.getSchema(getURI(server, "/static/shex/fhir/r4/shex")));
+        Assertions.assertNotNull(SchemaCache.getSchema(getURI(server, "/static/shex/project")));
 
     }
 
