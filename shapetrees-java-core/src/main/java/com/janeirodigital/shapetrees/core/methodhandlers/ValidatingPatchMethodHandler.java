@@ -1,9 +1,6 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
-import com.janeirodigital.shapetrees.core.ResourceAccessor;
-import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +25,13 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
 
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
+            ResourceConstellation rc = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
 
-            if (targetResource.isMetadata()) {
+            if (rc.isMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
-                return Optional.of(manageShapeTree(shapeTreeContext, shapeTreeRequest, targetResource));
+                return Optional.of(manageShapeTree(rc, shapeTreeRequest, rc.getMetadataResource()));
             } else {
+                ShapeTreeResource targetResource = rc.getUserResource();
                 if (targetResource.isExists()) {
                     // The target resource already exists
                     if (targetResource.isManaged()) {

@@ -18,12 +18,12 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
-
-            if (targetResource.isMetadata()) {
+            ResourceConstellation rc = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            if (rc.isMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
-                return Optional.of(manageShapeTree(shapeTreeContext, shapeTreeRequest, targetResource));
+                return Optional.of(manageShapeTree(rc, shapeTreeRequest, rc.getMetadataResource()));
             } else {
+                ShapeTreeResource targetResource = rc.getUserResource();
                 if (targetResource.isExists()) {
                     // The target resource already exists
                     if (targetResource.isManaged()) {
