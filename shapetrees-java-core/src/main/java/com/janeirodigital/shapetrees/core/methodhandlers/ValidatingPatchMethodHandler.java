@@ -36,7 +36,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                     // The target resource already exists
                     if (targetResource.isManaged()) {
                         // If it is managed by a shape tree the update must be validated
-                        return updateShapeTreeInstance(shapeTreeContext, shapeTreeRequest);
+                        return updateShapeTreeInstance(rc, shapeTreeContext, shapeTreeRequest);
                     }
                 } else {
                     // The target resource doesn't exist

@@ -162,14 +162,14 @@ public abstract class AbstractValidatingMethodHandler {
         return Optional.of(successfulValidation());
     }
 
-    protected Optional<DocumentResponse> updateShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
+    protected Optional<DocumentResponse> updateShapeTreeInstance(ResourceConstellation targetResource, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
 
 
-        ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
-        ensureShapeTreeResourceExists(targetResource,"Target resource to update not found");
-        ensureRequestResourceIsNotMetadata(targetResource,"Cannot update a metadata resource as a shape tree instance");
+        ShapeTreeResource targetSTResource = targetResource.getUserOwnedResource();
+        ensureShapeTreeResourceExists(targetSTResource,"Target resource to update not found");
+        ensureRequestResourceIsNotMetadata(targetSTResource,"Cannot update a metadata resource as a shape tree instance");
 
-        ShapeTreeResource metadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, targetResource);
+        ShapeTreeResource metadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, targetSTResource);
         ensureShapeTreeResourceExists(metadataResource, "Should not be updating an unmanaged resource as a shape tree instance");
 
         ShapeTreeLocator locator = getShapeTreeLocatorFromResource(metadataResource);
@@ -180,7 +180,7 @@ public abstract class AbstractValidatingMethodHandler {
             // Evaluate the update against each ShapeTreeLocation managing the resource.
             // All must pass for the update to validate
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(URI.create(location.getShapeTree()));
-            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), getIncomingBodyGraph(shapeTreeRequest, targetResource.getUri(), targetResource), getIncomingResolvedFocusNode(shapeTreeRequest, targetResource.getUri()));
+            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), getIncomingBodyGraph(shapeTreeRequest, targetSTResource.getUri(), targetSTResource), getIncomingResolvedFocusNode(shapeTreeRequest, targetSTResource.getUri()));
             if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
 
         }
