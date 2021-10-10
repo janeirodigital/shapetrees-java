@@ -46,15 +46,6 @@ public class ShapeTreeResource {
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
-    public ShapeTreeResource(URI fetchURI, DocumentResponse response, String name, Optional<URI> associatedUri, boolean managed, boolean metadata) {
-        this(fetchURI, response);
-
-        this.name = name;
-        this.metadata = metadata;
-        this.associatedUri = associatedUri;
-        this.managed = managed;
-    }
-
     public ShapeTreeResource(URI fetchURI, DocumentResponse response) {
         Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
         this.uri = location.isPresent() ? URI.create(location.get()) : fetchURI;
