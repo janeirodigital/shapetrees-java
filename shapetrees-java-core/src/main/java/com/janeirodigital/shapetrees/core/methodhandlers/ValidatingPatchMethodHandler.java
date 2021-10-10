@@ -5,7 +5,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
@@ -31,7 +30,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest, rc.getMetadataResource()));
             } else {
-                ShapeTreeResource targetResource = rc.getUserResource();
+                ShapeTreeResource targetResource = rc.getUserOwnedResource();
                 if (targetResource.isExists()) {
                     // The target resource already exists
                     if (targetResource.isManaged()) {
