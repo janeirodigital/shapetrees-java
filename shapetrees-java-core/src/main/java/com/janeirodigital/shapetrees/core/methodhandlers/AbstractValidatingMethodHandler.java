@@ -107,12 +107,9 @@ public abstract class AbstractValidatingMethodHandler {
         return Optional.empty();
     }
 
-    protected Optional<DocumentResponse> createShapeTreeInstance(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest, String proposedName) throws URISyntaxException, ShapeTreeException {
-
-        shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, null));
-
+    protected Optional<DocumentResponse> createShapeTreeInstance(ResourceConstellation targetResource, ResourceConstellation containerResource, ShapeTreeRequest shapeTreeRequest, String proposedName) throws URISyntaxException, ShapeTreeException {
         // Lookup the target container where the resource will be created
-        ShapeTreeResource targetContainer = getRequestTargetContainer(shapeTreeContext, shapeTreeRequest);
+        ShapeTreeResource targetContainer = containerResource.getUserOwnedResource(); // getRequestTargetContainer(targetResource.getShapeTreeContext(), shapeTreeRequest);
 
         ensureShapeTreeResourceExists(targetContainer,"Target container for resource creation not found");
         ensureRequestResourceIsNotMetadata(targetContainer,"Cannot create a shape tree instance in a metadata resource");
@@ -120,9 +117,9 @@ public abstract class AbstractValidatingMethodHandler {
 
         // Prepare the target resource for validation and creation
         URI targetResourceURI = normalizeSolidResourceUri(targetContainer.getUri(), proposedName, shapeTreeRequest.getResourceType());
-        ensureTargetResourceDoesNotExist(shapeTreeContext, targetResourceURI,"Cannot create a shape tree instance in a non-container resource " + targetResourceURI);
+        ensureTargetResourceDoesNotExist(targetResource.getShapeTreeContext(), targetResourceURI,"Cannot create a shape tree instance in a non-container resource " + targetResourceURI);
 
-        ShapeTreeResource containerMetadataResource = getShapeTreeMetadataResourceForResource(shapeTreeContext, targetContainer);
+        ShapeTreeResource containerMetadataResource = getShapeTreeMetadataResourceForResource(targetResource.getShapeTreeContext(), targetContainer);
         ensureShapeTreeResourceExists(containerMetadataResource, "Should not be creating a shape tree instance on an unmanaged target container");
 
         ShapeTreeLocator containerLocator = getShapeTreeLocatorFromResource(containerMetadataResource);
@@ -151,15 +148,15 @@ public abstract class AbstractValidatingMethodHandler {
 
         log.debug("Creating shape tree instance at {}", targetResourceURI);
 
-        ShapeTreeResource createdResource = this.resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), targetResourceURI, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
+        ShapeTreeResource createdResource = this.resourceAccessor.createResource(targetResource.getShapeTreeContext(), shapeTreeRequest.getMethod(), targetResourceURI, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
 
-        ShapeTreeLocation rootShapeTreeLocation = getRootShapeTreeLocation(shapeTreeContext, containingLocation);
+        ShapeTreeLocation rootShapeTreeLocation = getRootShapeTreeLocation(targetResource.getShapeTreeContext(), containingLocation);
         ensureShapeTreeLocationExists(rootShapeTreeLocation, "Unable to find root shape tree location at " + containingLocation.getRootShapeTreeLocation());
 
         log.debug("Assigning shape tree to created resource: {}", createdResource.getUri());
         // Note: By providing the positive advance validationResult, we let the assignment operation know that validation
         // has already been performed with a positive result, and avoid having it perform the validation a second time
-        Optional<DocumentResponse> assignResult = assignShapeTreeToResource(shapeTreeContext, null, rootShapeTreeLocation, containingLocation, createdResource, validationResult);
+        Optional<DocumentResponse> assignResult = assignShapeTreeToResource(targetResource.getShapeTreeContext(), null, rootShapeTreeLocation, containingLocation, createdResource, validationResult);
         if (assignResult.isPresent()) { return assignResult; }
 
         return Optional.of(successfulValidation());
@@ -169,9 +166,6 @@ public abstract class AbstractValidatingMethodHandler {
 
 
         ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
-
-        shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, targetResource));
-
         ensureShapeTreeResourceExists(targetResource,"Target resource to update not found");
         ensureRequestResourceIsNotMetadata(targetResource,"Cannot update a metadata resource as a shape tree instance");
 
@@ -383,7 +377,7 @@ public abstract class AbstractValidatingMethodHandler {
         }
         if ((shapeTreeRequest.getMethod().equals(PUT) || shapeTreeRequest.getMethod().equals(PATCH)) && resourceAlreadyExists) {
             isContainer = existingResource.isContainer();
-        } else if (shapeTreeRequest.getLinkHeaders() != null) {
+        } else if (shapeTreeRequest.getLinkHeaders() != null) { // TODO: getLinkHeaders guesses from trailing '/' if no link headers
             isContainer = getIsContainerFromRequest(shapeTreeRequest);
         }
 
@@ -761,29 +755,12 @@ public abstract class AbstractValidatingMethodHandler {
 
     }
 
-    private ShapeTreeResource getRequestTargetContainer(ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
-
-        ShapeTreeResource targetContainer = null;
-        // if the request is a POST, just return the request resource
-        switch (shapeTreeRequest.getMethod()) {
-
-            case POST:
-                targetContainer = getRequestResource(shapeTreeContext, shapeTreeRequest);
-                break;
-            case PATCH:
-            case PUT:
-                URI targetContainerUri = shapeTreeRequest.getURI().resolve(".");
-                if (shapeTreeRequest.getResourceType() != null && shapeTreeRequest.getResourceType().equals(ShapeTreeResourceType.CONTAINER)) {
-                    targetContainerUri = shapeTreeRequest.getURI().resolve("..");
-                }
-                targetContainer = this.resourceAccessor.getResource(shapeTreeContext, targetContainerUri);
-                break;
-
-            default:
-                return null;
-
+    public static URI getContainerUri (ShapeTreeRequest shapeTreeRequest) {
+        URI targetContainerUri = shapeTreeRequest.getURI().resolve(".");
+        if (shapeTreeRequest.getResourceType() != null && shapeTreeRequest.getResourceType().equals(ShapeTreeResourceType.CONTAINER)) {
+            targetContainerUri = shapeTreeRequest.getURI().resolve("..");
         }
-        return targetContainer;
+        return targetContainerUri;
     }
 
     private void ensureValidationResultIsUsableForAssignment(ValidationResult validationResult, String message) throws ShapeTreeException {

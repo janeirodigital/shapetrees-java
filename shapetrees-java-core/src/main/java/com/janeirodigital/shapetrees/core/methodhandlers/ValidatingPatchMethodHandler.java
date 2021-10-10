@@ -31,6 +31,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest, rc.getMetadataResource()));
             } else {
                 ShapeTreeResource targetResource = rc.getUserOwnedResource();
+                shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc.getUserOwnedResource()));
                 if (targetResource.isExists()) {
                     // The target resource already exists
                     if (targetResource.isManaged()) {
@@ -41,8 +42,9 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                     // The target resource doesn't exist
                     ShapeTreeResource parentResource = this.resourceAccessor.getResource(shapeTreeContext, getParentContainerURI(targetResource));
                     if (parentResource.isManaged()) {
+                        ResourceConstellation containerResource = new ResourceConstellation(getContainerUri(shapeTreeRequest), this.resourceAccessor, shapeTreeContext);
                         // If the parent container is managed by a shape tree, the resource to create must be validated
-                        return createShapeTreeInstance(shapeTreeContext, shapeTreeRequest, getRequestResourceName(targetResource));
+                        return createShapeTreeInstance(rc, containerResource, shapeTreeRequest, getRequestResourceName(targetResource));
                     }
                 }
             }

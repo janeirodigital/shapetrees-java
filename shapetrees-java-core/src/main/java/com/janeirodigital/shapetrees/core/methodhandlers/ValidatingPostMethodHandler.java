@@ -6,7 +6,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,15 +22,16 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource
-            ResourceConstellation rc = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            ResourceConstellation targetContainer = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
 
             // Get resource name from the slug or default to UUID
             String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeaders.SLUG.getValue()).orElse(UUID.randomUUID().toString());
 
             // If the parent container is managed by a shape tree, the proposed resource being posted must be
             // validated against the parent tree.
-            if (rc.isManaged()) {
-                return createShapeTreeInstance(shapeTreeContext, shapeTreeRequest, proposedName);
+            if (targetContainer.isManaged()) {
+                shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, targetContainer.getUserOwnedResource()));
+                return createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }
 
             // Reaching this point means validation was not necessary
