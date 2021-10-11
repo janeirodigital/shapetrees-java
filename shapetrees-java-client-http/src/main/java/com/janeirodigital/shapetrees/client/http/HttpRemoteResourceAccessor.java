@@ -1,12 +1,7 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ResourceAccessor;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
-import com.janeirodigital.shapetrees.core.enums.LinkRelations;
-import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
@@ -37,7 +32,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public List<ShapeTreeResource> getContainedResources(ShapeTreeContext context, URI containerResourceURI) throws ShapeTreeException {
+    public List<ResourceConstellation> getContainedResources(ShapeTreeContext context, URI containerResourceURI) throws ShapeTreeException {
         try {
             HttpRemoteResource containerResource = new HttpRemoteResource(containerResourceURI, context.getAuthorizationHeaderValue());
 
@@ -55,10 +50,10 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
             if (containerTriples.isEmpty()) { return Collections.emptyList(); }
 
-            ArrayList<ShapeTreeResource> containedResources = new ArrayList<>();
+            ArrayList<ResourceConstellation> containedResources = new ArrayList<>();
 
             for (Triple containerTriple : containerTriples) {
-                ShapeTreeResource containedResource = getResource(context,URI.create(containerTriple.getObject().getURI()));
+                ResourceConstellation containedResource = new ResourceConstellation(URI.create(containerTriple.getObject().getURI()), this, context); // getResource(context,URI.create(containerTriple.getObject().getURI()));
                 containedResources.add(containedResource);
             }
 
