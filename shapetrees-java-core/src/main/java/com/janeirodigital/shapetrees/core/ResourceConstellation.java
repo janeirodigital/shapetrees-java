@@ -22,10 +22,20 @@ public class ResourceConstellation {
     protected boolean _isMetadata;
 
     public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
-        this.userOwnedResource.uri = uri;
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
         ShapeTreeResource res = resourceAccessor.getResource(shapeTreeContext, uri);
+        _init(uri, res);
+    }
+
+    public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+        this._resourceAccessor = resourceAccessor;
+        this._shapeTreeContext = shapeTreeContext;
+        ShapeTreeResource res = resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
+        _init(uri, res);
+    }
+
+    protected void _init(URI uri, ShapeTreeResource res) {
         if (res.isMetadata()) {
             this._isMetadata = true;
             this.userOwnedResource.shapeTreeResource = Optional.empty();
@@ -41,6 +51,7 @@ public class ResourceConstellation {
             _setUserOwnedResource(uri, res);
         }
     }
+
     protected void _setUserOwnedResource(URI uri, ShapeTreeResource res) {
         this.userOwnedResource.shapeTreeResource = Optional.of(res);
         this.userOwnedResource.uri = uri;
@@ -53,6 +64,7 @@ public class ResourceConstellation {
     public boolean isManaged() { return this.userOwnedResource._isManaged; }
     public boolean isMetadata() { return this._isMetadata; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
+    public ResourceAccessor getResourceAccessor999() { return this._resourceAccessor; } // TODO: remove or de-999-ify
 
     public ShapeTreeResource getUserOwnedResource() throws ShapeTreeException {
         if (this.userOwnedResource.shapeTreeResource.isEmpty()) {
