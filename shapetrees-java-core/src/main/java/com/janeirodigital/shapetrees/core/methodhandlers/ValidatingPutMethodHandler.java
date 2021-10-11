@@ -22,7 +22,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));
             } else {
-                ShapeTreeResource targetResource = rc.getUserOwnedResource();
+                ResourceConstellation.UserOwnedResource targetResource = rc.getUserOwnedResourceFork();
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
                 if (targetResource.isExists()) {
                     // The target resource already exists
@@ -32,11 +32,11 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
                     }
                 } else {
                     // The target resource doesn't exist
-                    ShapeTreeResource parentResource = this.resourceAccessor.getResource(shapeTreeContext, getParentContainerURI(targetResource));
+                    ShapeTreeResource parentResource = this.resourceAccessor.getResource(shapeTreeContext, getParentContainerURI(targetResource.getSTResource().get()));
                     if (parentResource.isManaged()) {
                         ResourceConstellation containerResource = new ResourceConstellation(getContainerUri(shapeTreeRequest), this.resourceAccessor, shapeTreeContext); // TODO: re-use parentResource
                         // If the parent container is managed by a shape tree, the resource to create must be validated
-                        return createShapeTreeInstance(rc, containerResource, shapeTreeRequest, getRequestResourceName(targetResource));
+                        return createShapeTreeInstance(rc, containerResource, shapeTreeRequest, getRequestResourceName(targetResource.getSTResource().get()));
                     }
                 }
             }
