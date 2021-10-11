@@ -4,12 +4,17 @@ import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 public class ResourceConstellation {
+    public static final String TEXT_TURTLE = "text/turtle";
+
     // access parameters
     protected ResourceAccessor _resourceAccessor;
     protected ShapeTreeContext _shapeTreeContext;
@@ -64,7 +69,6 @@ public class ResourceConstellation {
     public boolean isManaged() { return this.userOwnedResource._isManaged; }
     public boolean isMetadata() { return this._isMetadata; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
-    public ResourceAccessor getResourceAccessor999() { return this._resourceAccessor; } // TODO: remove or de-999-ify
 
     public ShapeTreeResource getUserOwnedResource() throws ShapeTreeException {
         if (this.userOwnedResource.shapeTreeResource.isEmpty()) {
@@ -85,35 +89,53 @@ public class ResourceConstellation {
             if (this.userOwnedResource.linkHeaders.isEmpty()) {
                 throw new ShapeTreeException(500, "No link headers in user-owned resource <" + this.userOwnedResource.uri + ">");
             }
-
-            ResourceAttributes linkHeaders = this.userOwnedResource.linkHeaders.get();
-            // moved from AbstractValidatingMethodHandler.getShapeTreeMetadataURIForResource999()
-            if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
-                // TODO: log.error("The resource {} does not contain a link header of {}", this.userOwnedResource.uri, LinkRelations.SHAPETREE_LOCATOR.getValue());
-                throw new ShapeTreeException(500, "The resource <" + this.userOwnedResource.uri + "> has no Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
-            }
-            String metaDataURIString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElse(null);
-            if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
-                // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
-                URI shapeTreeContainerURI = this.userOwnedResource.uri;
-                String portFragment;
-                if (shapeTreeContainerURI.getPort() > 0) {
-                    portFragment = ":" + shapeTreeContainerURI.getPort();
-                } else {
-                    portFragment = "";
-                }
-                metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + portFragment + metaDataURIString;
-            }
-
-            if (metaDataURIString == null) {
-                throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
-            }
-
-            this.metadataResource.uri = URI.create(metaDataURIString);
-
+            this.metadataResource.uri = this.getShapeTreeMetadataURIForResource();
             this.metadataResource.shapeTreeResource = Optional.of(this._resourceAccessor.getResource(this._shapeTreeContext, this.metadataResource.uri));
         }
         return this.metadataResource.shapeTreeResource.get();
+    }
+
+    protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
+        ResourceAttributes linkHeaders = this.userOwnedResource.linkHeaders.get();
+
+        if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
+            // TODO: log.error("The resource {} does not contain a link header of {}", this.userOwnedResource.uri, LinkRelations.SHAPETREE_LOCATOR.getValue());
+            throw new ShapeTreeException(500, "The resource <" + this.userOwnedResource.uri + "> has no Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
+        }
+        String metaDataURIString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElse(null);
+        if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
+            // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
+            URI shapeTreeContainerURI = this.userOwnedResource.uri;
+            String portFragment;
+            if (shapeTreeContainerURI.getPort() > 0) {
+                portFragment = ":" + shapeTreeContainerURI.getPort();
+            } else {
+                portFragment = "";
+            }
+            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + portFragment + metaDataURIString;
+        }
+
+        if (metaDataURIString == null) {
+            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
+        }
+
+        return URI.create(metaDataURIString);
+    }
+
+    public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
+        ShapeTreeResource primaryMetadataResource = this.getMetadataResource();
+        ShapeTreeResource res;
+        if (!primaryMetadataResource.isExists()) {
+            // create primary metadata resource if it doesn't exist
+            ResourceAttributes headers = new ResourceAttributes();
+            headers.setAll(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
+            res = this._resourceAccessor.createResource(this._shapeTreeContext,"POST", this.metadataResource.uri, headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
+        } else {
+            // Update the existing metadata resource for the primary resource
+            primaryMetadataResource.setBody(primaryResourceLocator.getGraph().toString());
+            res = this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", primaryMetadataResource);
+        }
+        this._init(this.metadataResource.uri, res);
     }
 
     public class UserOwnedResource {
