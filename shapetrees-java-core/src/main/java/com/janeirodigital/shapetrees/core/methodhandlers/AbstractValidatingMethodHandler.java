@@ -39,12 +39,11 @@ public abstract class AbstractValidatingMethodHandler {
         this.resourceAccessor = resourceAccessor;
     }
 
-    protected DocumentResponse manageShapeTree(ResourceConstellation rc, ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws ShapeTreeException, URISyntaxException {
+    protected DocumentResponse manageShapeTree(ResourceConstellation primaryResource, ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws ShapeTreeException, URISyntaxException {
 
         Optional<DocumentResponse> validationResponse = null;
         ShapeTreeLocator updatedRootLocator = getShapeTreeLocatorFromRequest(shapeTreeRequest, metadataResource);
         ShapeTreeLocator existingRootLocator = getShapeTreeLocatorFromResource(metadataResource);
-        ShapeTreeResource primaryResource = rc.getUserOwnedResource(); // getResourceForShapeTreeMetadataResource999(rc.getShapeTreeContext(), metadataResource);
 
         // Determine ShapeTreeLocations that have been removed, added, and/or updated
         ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingRootLocator, updatedRootLocator);
@@ -55,13 +54,13 @@ public abstract class AbstractValidatingMethodHandler {
 
         if (delta.wasReduced()) {
             // An existing location has been removed from the locator for the primary resource.
-            validationResponse = unplantShapeTree(rc.getShapeTreeContext(), delta, primaryResource);
+            validationResponse = unplantShapeTree(primaryResource.getShapeTreeContext(), delta, primaryResource.getUserOwnedResource());
             if (validationResponse.isPresent()) { return validationResponse.get(); }
         }
 
         if (delta.isUpdated()) {
             // An existing location has been updated, or new locations have been added
-            validationResponse = plantShapeTree(rc.getShapeTreeContext(), updatedRootLocator, delta, primaryResource);
+            validationResponse = plantShapeTree(primaryResource, primaryResource.getShapeTreeContext(), updatedRootLocator, delta);
             if (validationResponse.isPresent()) { return validationResponse.get(); }
         }
 
@@ -72,22 +71,22 @@ public abstract class AbstractValidatingMethodHandler {
 
     /**
      * Plants a shape tree on an existing resource
+     * @param primaryResource
      * @param shapeTreeContext
      * @param updatedRootLocator
      * @param delta
-     * @param primaryResource
      * @return DocumentResponse
      * @throws IOException
      * @throws URISyntaxException
      */
-    protected Optional<DocumentResponse> plantShapeTree(ShapeTreeContext shapeTreeContext, ShapeTreeLocator updatedRootLocator, ShapeTreeLocatorDelta delta, ShapeTreeResource primaryResource) throws ShapeTreeException, URISyntaxException {
+    protected Optional<DocumentResponse> plantShapeTree(ResourceConstellation primaryResource, ShapeTreeContext shapeTreeContext, ShapeTreeLocator updatedRootLocator, ShapeTreeLocatorDelta delta) throws ShapeTreeException, URISyntaxException {
 
         // Cannot directly update locations that are not root locations
         ensureUpdatedLocationsAreRootLocations(delta);
 
         // Run recursive assignment for each updated location in the root locator
         for (ShapeTreeLocation rootLocation : delta.getUpdatedLocations()) {
-            Optional<DocumentResponse> validationResponse = assignShapeTreeToResource(shapeTreeContext, updatedRootLocator, rootLocation, rootLocation, primaryResource, null);
+            Optional<DocumentResponse> validationResponse = assignShapeTreeToResource(primaryResource.getUserOwnedResource(), shapeTreeContext, updatedRootLocator, rootLocation, rootLocation, null);
             if (validationResponse.isPresent()) { return validationResponse; }
         }
 
@@ -148,15 +147,15 @@ public abstract class AbstractValidatingMethodHandler {
 
         log.debug("Creating shape tree instance at {}", targetResourceURI);
 
-        ShapeTreeResource createdResource = this.resourceAccessor.createResource(targetResource.getShapeTreeContext(), shapeTreeRequest.getMethod(), targetResourceURI, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
+        ResourceConstellation createdResource = new ResourceConstellation(targetResourceURI, targetResource.getResourceAccessor999(), targetResource.getShapeTreeContext(), shapeTreeRequest);
 
         ShapeTreeLocation rootShapeTreeLocation = getRootShapeTreeLocation(targetResource.getShapeTreeContext(), containingLocation);
         ensureShapeTreeLocationExists(rootShapeTreeLocation, "Unable to find root shape tree location at " + containingLocation.getRootShapeTreeLocation());
 
-        log.debug("Assigning shape tree to created resource: {}", createdResource.getUri());
+        log.debug("Assigning shape tree to created resource: {}", createdResource.getUserOwnedResource().getUri());
         // Note: By providing the positive advance validationResult, we let the assignment operation know that validation
         // has already been performed with a positive result, and avoid having it perform the validation a second time
-        Optional<DocumentResponse> assignResult = assignShapeTreeToResource(targetResource.getShapeTreeContext(), null, rootShapeTreeLocation, containingLocation, createdResource, validationResult);
+        Optional<DocumentResponse> assignResult = assignShapeTreeToResource(createdResource.getUserOwnedResource(), targetResource.getShapeTreeContext(), null, rootShapeTreeLocation, containingLocation, validationResult);
         if (assignResult.isPresent()) { return assignResult; }
 
         return Optional.of(successfulValidation());
@@ -195,11 +194,11 @@ public abstract class AbstractValidatingMethodHandler {
         return Optional.empty();
     }
 
-    protected Optional<DocumentResponse> assignShapeTreeToResource(ShapeTreeContext shapeTreeContext,
+    protected Optional<DocumentResponse> assignShapeTreeToResource(ShapeTreeResource primaryResource,
+                                                                   ShapeTreeContext shapeTreeContext,
                                                                    ShapeTreeLocator rootLocator,
                                                                    ShapeTreeLocation rootLocation,
                                                                    ShapeTreeLocation parentLocation,
-                                                                   ShapeTreeResource primaryResource,
                                                                    ValidationResult advanceValidationResult)
             throws ShapeTreeException, URISyntaxException {
 
@@ -254,7 +253,7 @@ public abstract class AbstractValidatingMethodHandler {
             if (!containedResources.isEmpty()) {
                 Collections.sort(containedResources, new SortByShapeTreeResourceType());  // Evaluate containers, then resources
                 for (ShapeTreeResource containedResource : containedResources) {
-                    validationResponse = assignShapeTreeToResource(shapeTreeContext, null, rootLocation, primaryResourceLocation, containedResource, null);
+                    validationResponse = assignShapeTreeToResource(containedResource, shapeTreeContext, null, rootLocation, primaryResourceLocation, null);
                     if (validationResponse.isPresent()) { return validationResponse; }
                 }
             }
@@ -830,7 +829,7 @@ public abstract class AbstractValidatingMethodHandler {
     private void ensureShapeTreeResourceHasLinkHeaders(ShapeTreeResource primaryResource) throws ShapeTreeException {
         if (primaryResource.getAttributes() == null ||
             primaryResource.getAttributes().firstValue(HttpHeaders.LINK.getValue()).isEmpty()) {
-            throw new ShapeTreeException(500, "No available headers for shape tree metadata discovery on " + primaryResource.getUri());
+            throw new ShapeTreeException(500, "No link headers for shape tree metadata discovery on " + primaryResource.getUri());
         }
     }
 
