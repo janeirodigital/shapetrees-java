@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class ResourceConstellation {
     public static final String TEXT_TURTLE = "text/turtle";
@@ -43,36 +44,36 @@ public class ResourceConstellation {
     protected void _init(URI uri, ShapeTreeResource res) {
         if (res.isMetadata()) {
             this._isMetadata = true;
-            this.userOwnedResource.shapeTreeResource = Optional.empty();
+            this.userOwnedResource.sTResource = Optional.empty();
             this.userOwnedResource.uri = null;
-            this.userOwnedResource._isManaged = true;
+            this.userOwnedResource.isManaged = true;
             this.userOwnedResource.linkHeaders = Optional.empty();
-            this.metadataResource.shapeTreeResource = Optional.of(res);
+            this.metadataResource.sTResource = Optional.of(res);
             this.metadataResource.uri = uri;
         } else {
             this._isMetadata = false;
-            this.metadataResource.shapeTreeResource = Optional.empty();
+            this.metadataResource.sTResource = Optional.empty();
             this.metadataResource.uri = null;
             _setUserOwnedResource(uri, res);
         }
     }
 
     protected void _setUserOwnedResource(URI uri, ShapeTreeResource res) {
-        this.userOwnedResource.shapeTreeResource = Optional.of(res);
+        this.userOwnedResource.sTResource = Optional.of(res);
         this.userOwnedResource.uri = uri;
-        this.userOwnedResource._isManaged = res.isManaged(); // TODO test !isManaged.
+        this.userOwnedResource.isManaged = res.isManaged(); // TODO test !isManaged.
         final List<String> linkHeaderValues = res.getAttributes().allValues(HttpHeaders.LINK.getValue());
         this.userOwnedResource.linkHeaders = linkHeaderValues.size() > 0
                 ? Optional.of(ResourceAttributes.parseLinkHeaders(linkHeaderValues))
                 : Optional.empty();
     }
-    public boolean isManaged() { return this.userOwnedResource._isManaged; }
+    public boolean isManaged() { return this.userOwnedResource.isManaged; }
     public boolean isMetadata() { return this._isMetadata; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
-    public ShapeTreeResource getUserOwnedResource() throws ShapeTreeException {
-        if (this.userOwnedResource.shapeTreeResource.isEmpty()) {
-            final ShapeTreeResource str = this.metadataResource.shapeTreeResource.orElseThrow(
+    public UserOwnedResource getUserOwnedResourceFork() throws ShapeTreeException {
+        if (this.userOwnedResource.sTResource.isEmpty()) {
+            final ShapeTreeResource str = this.metadataResource.sTResource.orElseThrow(
                     () -> new Error("ResourceConstellation for <" + metadataResource.uri + ">")
             );
             URI uri = str.getAssociatedUri().orElseThrow(
@@ -80,19 +81,28 @@ public class ResourceConstellation {
             );
             ShapeTreeResource userRes = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
             _setUserOwnedResource(uri, userRes);
-            this.userOwnedResource.shapeTreeResource = Optional.of(userRes);
+            this.userOwnedResource.sTResource = Optional.of(userRes);
         }
-        return this.userOwnedResource.shapeTreeResource.get();
+        return this.userOwnedResource;
     }
-    public ShapeTreeResource getMetadataResource() throws ShapeTreeException {
-        if (this.metadataResource.shapeTreeResource.isEmpty()) {
+
+    public ShapeTreeResource getUserOwnedSTResource() throws ShapeTreeException {
+        return getUserOwnedResourceFork().sTResource.get();
+    }
+
+    public MetadataResource getMetadataResourceFork() throws ShapeTreeException {
+        if (this.metadataResource.sTResource.isEmpty()) {
             if (this.userOwnedResource.linkHeaders.isEmpty()) {
                 throw new ShapeTreeException(500, "No link headers in user-owned resource <" + this.userOwnedResource.uri + ">");
             }
             this.metadataResource.uri = this.getShapeTreeMetadataURIForResource();
-            this.metadataResource.shapeTreeResource = Optional.of(this._resourceAccessor.getResource(this._shapeTreeContext, this.metadataResource.uri));
+            this.metadataResource.sTResource = Optional.of(this._resourceAccessor.getResource(this._shapeTreeContext, this.metadataResource.uri));
         }
-        return this.metadataResource.shapeTreeResource.get();
+        return this.metadataResource;
+    }
+
+    public ShapeTreeResource getMetadataSTResource() throws ShapeTreeException {
+        return getMetadataResourceFork().sTResource.get();
     }
 
     protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
@@ -123,7 +133,7 @@ public class ResourceConstellation {
     }
 
     public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
-        ShapeTreeResource primaryMetadataResource = this.getMetadataResource();
+        ShapeTreeResource primaryMetadataResource = this.getMetadataSTResource();
         ShapeTreeResource res;
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
@@ -138,15 +148,36 @@ public class ResourceConstellation {
         this._init(this.metadataResource.uri, res);
     }
 
-    public class UserOwnedResource {
-        private URI uri;
-        protected Optional<ShapeTreeResource> shapeTreeResource;
-        protected Optional<ResourceAttributes> linkHeaders;
-        protected boolean _isManaged;
+    static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized ResourceFork");
+    public class ResourceFork {
+        protected URI uri;
+        protected Optional<ShapeTreeResource> sTResource;
+
+        public URI getUri() {
+            return this.uri;
+        }
+
+        public Optional<ShapeTreeResource> getSTResource() {
+            return this.sTResource;
+        }
+
+        public boolean isExists () {
+            return this.sTResource.orElseThrow(unintialized_resourceFork).isExists(); }
     }
 
-    public class MetadataResource {
-        private URI uri;
-        protected Optional<ShapeTreeResource> shapeTreeResource;
+    public class UserOwnedResource extends ResourceFork {
+        protected Optional<ResourceAttributes> linkHeaders;
+        protected boolean isManaged;
+
+        public Optional<ResourceAttributes> getLinkHeaders() {
+            return this.linkHeaders;
+        }
+
+        public boolean isManaged() {
+            return this.isManaged;
+        }
+    }
+
+    public class MetadataResource extends ResourceFork {
     }
 }
