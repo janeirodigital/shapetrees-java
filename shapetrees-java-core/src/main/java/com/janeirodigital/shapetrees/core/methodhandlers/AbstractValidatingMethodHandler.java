@@ -114,7 +114,7 @@ public abstract class AbstractValidatingMethodHandler {
         ensureRequestResourceIsContainer(containerResource.getUserOwnedResourceFork(),"Cannot create a shape tree instance in a non-container resource");
 
         // Prepare the target resource for validation and creation
-        URI targetResourceURI = normalizeSolidResourceUri(containerResource.getUserOwnedSTResource().getUri(), proposedName, shapeTreeRequest.getResourceType());
+        URI targetResourceURI = normalizeSolidResourceUri(containerResource.getUserOwnedResourceFork().getUri(), proposedName, shapeTreeRequest.getResourceType());
         ensureTargetUserResourceDoesNotExist(targetResource.getShapeTreeContext(), targetResourceURI,"Cannot create a shape tree instance in a non-container resource " + targetResourceURI);
 
         ensureShapeTreeResourceExists(containerResource.getMetadataResourceFork(), "Should not be creating a shape tree instance on an unmanaged target container");
@@ -150,7 +150,7 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTreeLocation rootShapeTreeLocation = getRootShapeTreeLocation(targetResource.getShapeTreeContext(), containingLocation);
         ensureShapeTreeLocationExists(rootShapeTreeLocation, "Unable to find root shape tree location at " + containingLocation.getRootShapeTreeLocation());
 
-        log.debug("Assigning shape tree to created resource: {}", createdResource.getUserOwnedSTResource().getUri());
+        log.debug("Assigning shape tree to created resource: {}", createdResource.getMetadataResourceFork().getUri());
         // Note: By providing the positive advance validationResult, we let the assignment operation know that validation
         // has already been performed with a positive result, and avoid having it perform the validation a second time
         Optional<DocumentResponse> assignResult = assignShapeTreeToResource(createdResource, targetResource.getShapeTreeContext(), null, rootShapeTreeLocation, containingLocation, validationResult);
@@ -173,7 +173,7 @@ public abstract class AbstractValidatingMethodHandler {
             // Evaluate the update against each ShapeTreeLocation managing the resource.
             // All must pass for the update to validate
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(URI.create(location.getShapeTree()));
-            URI userOwnedUri = targetResource.getUserOwnedSTResource().getUri();
+            URI userOwnedUri = targetResource.getUserOwnedResourceFork().getUri();
             ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), getIncomingBodyGraph(shapeTreeRequest, userOwnedUri, targetResource.getUserOwnedResourceFork()), getIncomingResolvedFocusNode(shapeTreeRequest, userOwnedUri));
             if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
 
@@ -214,7 +214,7 @@ public abstract class AbstractValidatingMethodHandler {
             // the shape tree that is being planted at the root to ensure it conforms.
             primaryResourceShapeTree = ShapeTreeFactory.getShapeTree(URI.create(rootLocation.getShapeTree()));
             if (advanceValidationResult == null) {    // If this validation wasn't performed in advance
-                ValidationResult validationResult = primaryResourceShapeTree.validateResource(primaryResource.getUserOwnedSTResource());
+                ValidationResult validationResult = primaryResourceShapeTree.validateResource(primaryResource.getUserOwnedResourceFork());
                 if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
                 primaryResourceMatchingNode = validationResult.getMatchingFocusNode();
             }
@@ -225,7 +225,7 @@ public abstract class AbstractValidatingMethodHandler {
             // managing the parent container, then extract the matching shape tree and focus node on success
             if (advanceValidationResult == null) {    // If this validation wasn't performed in advance
                 ShapeTree parentShapeTree = ShapeTreeFactory.getShapeTree(URI.create(parentLocation.getShapeTree()));
-                ValidationResult validationResult = parentShapeTree.validateContainedResource(primaryResource.getUserOwnedSTResource());
+                ValidationResult validationResult = parentShapeTree.validateContainedResource(primaryResource.getUserOwnedResourceFork());
                 if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
                 primaryResourceShapeTree = validationResult.getMatchingShapeTree();
                 primaryResourceMatchingNode = validationResult.getMatchingFocusNode();
@@ -238,12 +238,12 @@ public abstract class AbstractValidatingMethodHandler {
 
         // If the primary resource is a container, and its shape tree specifies its contents with st:contains
         // Recursively traverse the hierarchy and perform shape tree assignment
-        if (primaryResource.getUserOwnedSTResource().isContainer() && primaryResourceShapeTree.getContains() != null && !primaryResourceShapeTree.getContains().isEmpty()) {
+        if (primaryResource.getUserOwnedResourceFork().isContainer() && primaryResourceShapeTree.getContains() != null && !primaryResourceShapeTree.getContains().isEmpty()) {
 
             // If the container is not empty, perform a recursive, depth first validation and assignment for each
             // contained resource by recursively calling this method (assignShapeTreeToResource)
             // TODO - Provide a configurable maximum limit on contained resources for a recursive plant, generate ShapeTreeException
-            List<ResourceConstellation> containedResources = this.resourceAccessor.getContainedResources(shapeTreeContext, primaryResource.getUserOwnedSTResource().getUri());
+            List<ResourceConstellation> containedResources = this.resourceAccessor.getContainedResources(shapeTreeContext, primaryResource.getUserOwnedResourceFork().getUri());
             if (!containedResources.isEmpty()) {
                 Collections.sort(containedResources, new SortByShapeTreeResourceType());  // Evaluate containers, then resources
                 for (ResourceConstellation containedResource : containedResources) {
@@ -273,10 +273,10 @@ public abstract class AbstractValidatingMethodHandler {
 
         // If the primary resource is a container, and its shape tree specifies its contents with st:contains
         // Recursively traverse the hierarchy and perform shape tree unassignment
-        if (primaryResource.getUserOwnedSTResource().isContainer() && primaryResourceShapeTree.getContains() != null && !primaryResourceShapeTree.getContains().isEmpty()) {
+        if (primaryResource.getUserOwnedResourceFork().isContainer() && primaryResourceShapeTree.getContains() != null && !primaryResourceShapeTree.getContains().isEmpty()) {
 
             // TODO - Should there also be a configurable maximum limit on unplanting?
-            List<ResourceConstellation> containedResources = this.resourceAccessor.getContainedResources(shapeTreeContext, primaryResource.getUserOwnedSTResource().getUri());
+            List<ResourceConstellation> containedResources = this.resourceAccessor.getContainedResources(shapeTreeContext, primaryResource.getUserOwnedResourceFork().getUri());
             // If the container is not empty
             if (!containedResources.isEmpty()) {
                 // Sort contained resources so that containers are evaluated first, then resources
@@ -350,9 +350,9 @@ public abstract class AbstractValidatingMethodHandler {
         }
 
         boolean isContainer = false;
-        boolean resourceAlreadyExists = existingResource.getUserOwnedSTResource().isExists();
+        boolean resourceAlreadyExists = existingResource.getUserOwnedResourceFork().isExists();
         if ((shapeTreeRequest.getMethod().equals(PUT) || shapeTreeRequest.getMethod().equals(PATCH)) && resourceAlreadyExists) {
-            isContainer = existingResource.getUserOwnedSTResource().isContainer();
+            isContainer = existingResource.getUserOwnedResourceFork().isContainer();
         } else if (shapeTreeRequest.getLinkHeaders() != null) { // TODO: getLinkHeaders guesses from trailing '/' if no link headers
             isContainer = getIsContainerFromRequest(shapeTreeRequest);
         }
@@ -565,7 +565,7 @@ public abstract class AbstractValidatingMethodHandler {
         } else {
             // Update the existing metadata resource for the primary resource
             primaryMetadataResource.setBody(primaryResourceLocator.getGraph().toString());
-            this.resourceAccessor.updateResource(shapeTreeContext, "PUT", primaryMetadataResource.getSTResource());
+            this.resourceAccessor.updateResource(shapeTreeContext, "PUT", primaryMetadataResource);
         }
 
     }
@@ -579,9 +579,9 @@ public abstract class AbstractValidatingMethodHandler {
         // When at the top of the plant hierarchy, use the root locator from the initial plant request body
         if (atRootOfPlantHierarchy(rootLocation, primaryResource.getUserOwnedResourceFork())) { return rootLocator; }
 
-        if (!primaryResource.getMetadataSTResource().isExists()) {
+        if (!primaryResource.getMetadataResourceFork().isExists()) {
             // If the existing metadata resource doesn't exist make a new shape tree locator
-            primaryResourceLocator = new ShapeTreeLocator(primaryResource.getMetadataSTResource().getUri());
+            primaryResourceLocator = new ShapeTreeLocator(primaryResource.getMetadataResourceFork().getUri());
         } else {
             // Get the existing shape tree locator from the metadata resource graph
             Graph primaryMetadataGraph = getGraphForResource(primaryResource.getUserOwnedResourceFork(), primaryResource.getMetadataResourceFork().getUri());
@@ -761,7 +761,7 @@ class SortByShapeTreeResourceType implements Comparator<ResourceConstellation>, 
 
     @SneakyThrows // @@ These are known to be user-owned
     public int compare (ResourceConstellation a, ResourceConstellation b) {
-        return a.getUserOwnedSTResource().getResourceType().compareTo(b.getUserOwnedSTResource().getResourceType());
+        return a.getUserOwnedResourceFork().getResourceType().compareTo(b.getUserOwnedResourceFork().getResourceType());
     }
 
 }

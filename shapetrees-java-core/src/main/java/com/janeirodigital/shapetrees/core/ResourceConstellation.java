@@ -56,8 +56,7 @@ public class ResourceConstellation {
             this._isContainer999 = false; // TODO @@ I guess it's not known to be a Container...
             MetadataResource mr = new MetadataResource();
             this.metadataResource = Optional.of(mr);
-            mr.sTResource = res;
-            _setResourceFork(mr, uri, res);
+            _setMetadataResource(uri, res);
         } else {
             this._isMetadata = false;
             final UserOwnedResource uor = new UserOwnedResource();
@@ -73,17 +72,25 @@ public class ResourceConstellation {
         fork.attributes = res.getAttributes();
         fork._isExists = res.isExists();
         fork._resourceType = res.getResourceType();
+        fork.name = res.getName();
     }
 
     protected void _setUserOwnedResource(URI uri, ShapeTreeResource res) {
         final UserOwnedResource uor = userOwnedResource.orElseThrow(unintialized_resourceFork);
         _setResourceFork(uor, uri, res);
+        uor.metadataResourceUri = res.getAssociatedUri();
         this._isManaged = uor._isManaged = res.isManaged(); // TODO test !isManaged.
         this._isContainer999 = uor._isContainer  = res.isContainer();
         final List<String> linkHeaderValues = res.getAttributes().allValues(HttpHeaders.LINK.getValue());
         uor.linkHeaders = linkHeaderValues.size() > 0
                 ? Optional.of(ResourceAttributes.parseLinkHeaders(linkHeaderValues))
                 : Optional.empty();
+    }
+
+    protected void _setMetadataResource(URI uri, ShapeTreeResource res) {
+        final MetadataResource mr = metadataResource.orElseThrow(unintialized_resourceFork);
+        _setResourceFork(mr, uri, res);
+        mr.userOwnedResourceUri = res.getAssociatedUri();
     }
 
     public boolean isManaged() { return this._isManaged; }
@@ -101,7 +108,7 @@ public class ResourceConstellation {
 //            }
             uor = new UserOwnedResource();
             this.userOwnedResource = Optional.of(uor);
-            URI uri = mr.getSTResource().getAssociatedUri().get();
+            URI uri = mr.getUserOwnedResourceUri().get();
             ShapeTreeResource userRes = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
             _setUserOwnedResource(uri, userRes);
         } else {
@@ -109,9 +116,6 @@ public class ResourceConstellation {
         }
         return uor;
     }
-
-    public ShapeTreeResource getUserOwnedSTResource() throws ShapeTreeException { return getUserOwnedResourceFork().sTResource; }
-    public ShapeTreeResource getMetadataSTResource() throws ShapeTreeException { return getMetadataResourceFork().sTResource; }
 
     public MetadataResource getMetadataResourceFork() throws ShapeTreeException {
         MetadataResource mr;
@@ -170,7 +174,7 @@ public class ResourceConstellation {
         } else {
             // Update the existing metadata resource for the primary resource
             mr.sTResource.setBody(primaryResourceLocator.getGraph().toString());
-            res = this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", mr.sTResource);
+            res = this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", mr);
         }
         this._init(mr.uri, res);
     }
@@ -179,10 +183,14 @@ public class ResourceConstellation {
     public class ResourceFork { // TODO: abstract with helpful toString() for error messages
         protected URI uri;
         protected ShapeTreeResource sTResource;
-
         protected String body;
-
         protected ResourceAttributes attributes;
+        protected String name;
+
+        public String getName() {
+            return this.name;
+        }
+
         public ShapeTreeResourceType getResourceType() {
             return this._resourceType;
         }
@@ -208,9 +216,6 @@ public class ResourceConstellation {
             return this.uri;
         }
 
-        public ShapeTreeResource getSTResource() {
-            return this.sTResource;
-        }
         public boolean isExists () {
             return this.sTResource.isExists(); }
     }
@@ -219,6 +224,7 @@ public class ResourceConstellation {
         protected Optional<ResourceAttributes> linkHeaders;
         protected boolean _isManaged;
         protected boolean _isContainer;
+        protected Optional<URI> metadataResourceUri;
 
         public boolean isManaged() {
             return this._isManaged;
@@ -234,5 +240,10 @@ public class ResourceConstellation {
     }
 
     public class MetadataResource extends ResourceFork {
+        protected Optional<URI> userOwnedResourceUri;
+
+        public Optional<URI> getUserOwnedResourceUri() {
+            return this.userOwnedResourceUri;
+        }
     }
 }
