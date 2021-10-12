@@ -255,7 +255,7 @@ class ShapeTreeValidationTests {
         Assertions.assertTrue(result.isValid());
 
     }
-
+/*
     @SneakyThrows
     @Test
     @Label("Validate contained resource at various input stages")
@@ -290,7 +290,7 @@ class ShapeTreeValidationTests {
         Assertions.assertTrue(result.isValid());
 
     }
-
+*/
     private Graph getFooBodyGraph(URI baseURI) throws ShapeTreeException {
         String body = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n" +
                       "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +

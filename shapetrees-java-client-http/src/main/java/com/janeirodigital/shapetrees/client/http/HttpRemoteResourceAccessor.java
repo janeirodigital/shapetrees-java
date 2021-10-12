@@ -78,7 +78,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public ShapeTreeResource updateResource(ShapeTreeContext context, String method, ShapeTreeResource updatedResource) throws ShapeTreeException {
+    public ShapeTreeResource updateResource(ShapeTreeContext context, String method, ResourceConstellation.ResourceFork updatedResource) throws ShapeTreeException { // TODO: @@ could be MetadataResource
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
         String contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
