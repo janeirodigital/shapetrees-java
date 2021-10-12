@@ -65,7 +65,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public ShapeTreeResource createResource(ShapeTreeContext context, String method, URI resourceURI, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
+    public DocumentResponse createResource(ShapeTreeContext context, String method, URI resourceURI, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
@@ -74,11 +74,11 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         if (!response.exists()) {
             throw new ShapeTreeException(500, "Unable to create pre-existing resource <" + resourceURI + ">");
         }
-        return new ShapeTreeResource(resourceURI, response);
+        return response;
     }
 
     @Override
-    public ShapeTreeResource updateResource(ShapeTreeContext context, String method, ResourceConstellation.ResourceFork updatedResource) throws ShapeTreeException { // TODO: @@ could be MetadataResource
+    public DocumentResponse updateResource(ShapeTreeContext context, String method, ResourceConstellation.ResourceFork updatedResource) throws ShapeTreeException { // TODO: @@ could be MetadataResource
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
         String contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
@@ -86,7 +86,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
-        return new ShapeTreeResource(updatedResource.getUri(), response);
+        return response;
     }
 
     @Override
