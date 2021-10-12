@@ -43,8 +43,8 @@ public abstract class AbstractValidatingMethodHandler {
     protected DocumentResponse manageShapeTree(ResourceConstellation primaryResource, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
 
         Optional<DocumentResponse> validationResponse = null;
-        ShapeTreeLocator updatedRootLocator = getShapeTreeLocatorFromRequest(shapeTreeRequest, primaryResource.getMetadataSTResource());
-        ShapeTreeLocator existingRootLocator = getShapeTreeLocatorFromResource(primaryResource.getMetadataSTResource());
+        ShapeTreeLocator updatedRootLocator = getShapeTreeLocatorFromRequest(shapeTreeRequest, primaryResource.getMetadataResourceFork());
+        ShapeTreeLocator existingRootLocator = getShapeTreeLocatorFromResource(primaryResource.getMetadataResourceFork());
 
         // Determine ShapeTreeLocations that have been removed, added, and/or updated
         ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingRootLocator, updatedRootLocator);
@@ -107,19 +107,19 @@ public abstract class AbstractValidatingMethodHandler {
         return Optional.empty();
     }
 
+    // TODO: this could be called with foo.ttl?ext=shapeTree @see https://github.com/xformativ/shapetrees-java/issues/87
     protected Optional<DocumentResponse> createShapeTreeInstance(ResourceConstellation targetResource, ResourceConstellation containerResource, ShapeTreeRequest shapeTreeRequest, String proposedName) throws URISyntaxException, ShapeTreeException {
         // Sanity check user-owned resource @@ delete 'cause type checks
-        ensureShapeTreeResourceExists(containerResource.getUserOwnedSTResource(),"Target container for resource creation not found");
-        ensureRequestResourceIsNotMetadata(containerResource.getUserOwnedSTResource(),"Cannot create a shape tree instance in a metadata resource");
-        ensureRequestResourceIsContainer(containerResource.getUserOwnedSTResource(),"Cannot create a shape tree instance in a non-container resource");
+        ensureShapeTreeResourceExists(containerResource.getUserOwnedResourceFork(),"Target container for resource creation not found");
+        ensureRequestResourceIsContainer(containerResource.getUserOwnedResourceFork(),"Cannot create a shape tree instance in a non-container resource");
 
         // Prepare the target resource for validation and creation
         URI targetResourceURI = normalizeSolidResourceUri(containerResource.getUserOwnedSTResource().getUri(), proposedName, shapeTreeRequest.getResourceType());
-        ensureTargetResourceDoesNotExist(targetResource.getShapeTreeContext(), targetResourceURI,"Cannot create a shape tree instance in a non-container resource " + targetResourceURI);
+        ensureTargetUserResourceDoesNotExist(targetResource.getShapeTreeContext(), targetResourceURI,"Cannot create a shape tree instance in a non-container resource " + targetResourceURI);
 
-        ensureShapeTreeResourceExists(containerResource.getMetadataSTResource(), "Should not be creating a shape tree instance on an unmanaged target container");
+        ensureShapeTreeResourceExists(containerResource.getMetadataResourceFork(), "Should not be creating a shape tree instance on an unmanaged target container");
 
-        ShapeTreeLocator containerLocator = getShapeTreeLocatorFromResource(containerResource.getMetadataSTResource());
+        ShapeTreeLocator containerLocator = getShapeTreeLocatorFromResource(containerResource.getMetadataResourceFork());
         ensureShapeTreeLocatorExists(containerLocator, "Cannot have a shape tree metadata resource without a shape tree locator with at least one shape tree location");
 
         // Get the shape tree associated that specifies what resources can be contained by the target container (st:contains)
@@ -162,11 +162,10 @@ public abstract class AbstractValidatingMethodHandler {
     protected Optional<DocumentResponse> updateShapeTreeInstance(ResourceConstellation targetResource, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
 
 
-        ensureShapeTreeResourceExists(targetResource.getUserOwnedSTResource(),"Target resource to update not found");
-        ensureRequestResourceIsNotMetadata(targetResource.getUserOwnedSTResource(),"Cannot update a metadata resource as a shape tree instance");
-        ensureShapeTreeResourceExists(targetResource.getMetadataSTResource(), "Should not be updating an unmanaged resource as a shape tree instance");
+        ensureShapeTreeResourceExists(targetResource.getUserOwnedResourceFork(),"Target resource to update not found");
+        ensureShapeTreeResourceExists(targetResource.getMetadataResourceFork(), "Should not be updating an unmanaged resource as a shape tree instance");
 
-        ShapeTreeLocator locator = getShapeTreeLocatorFromResource(targetResource.getMetadataSTResource());
+        ShapeTreeLocator locator = getShapeTreeLocatorFromResource(targetResource.getMetadataResourceFork());
         ensureShapeTreeLocatorExists(locator, "Cannot have a shape tree metadata resource without a shape tree locator with at least one shape tree location");
 
         for (ShapeTreeLocation location : locator.getLocations()) {
@@ -175,7 +174,7 @@ public abstract class AbstractValidatingMethodHandler {
             // All must pass for the update to validate
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(URI.create(location.getShapeTree()));
             URI userOwnedUri = targetResource.getUserOwnedSTResource().getUri();
-            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), getIncomingBodyGraph(shapeTreeRequest, userOwnedUri, targetResource.getUserOwnedSTResource()), getIncomingResolvedFocusNode(shapeTreeRequest, userOwnedUri));
+            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), getIncomingBodyGraph(shapeTreeRequest, userOwnedUri, targetResource.getUserOwnedResourceFork()), getIncomingResolvedFocusNode(shapeTreeRequest, userOwnedUri));
             if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
 
         }
@@ -208,7 +207,7 @@ public abstract class AbstractValidatingMethodHandler {
         if (advanceValidationResult != null) { primaryResourceShapeTree = advanceValidationResult.getMatchingShapeTree(); }
         if (advanceValidationResult != null) { primaryResourceMatchingNode = advanceValidationResult.getMatchingFocusNode(); }
 
-        if (atRootOfPlantHierarchy(rootLocation, primaryResource.getUserOwnedSTResource())) {
+        if (atRootOfPlantHierarchy(rootLocation, primaryResource.getUserOwnedResourceFork())) {
 
             // If we are at the root of the plant hierarchy we don't need to validate the primary resource against
             // a shape tree managing a parent container. We only need to validate the primary resource against
@@ -234,8 +233,8 @@ public abstract class AbstractValidatingMethodHandler {
 
         }
 
-        primaryResourceLocator = getPrimaryResourceLocatorForAssignment(primaryResource.getUserOwnedSTResource(), primaryResource.getMetadataSTResource(), rootLocator, rootLocation);
-        primaryResourceLocation = getPrimaryResourceLocationForAssignment(primaryResource.getUserOwnedSTResource(), primaryResourceLocator, rootLocation, primaryResourceShapeTree, primaryResourceMatchingNode);
+        primaryResourceLocator = getPrimaryResourceLocatorForAssignment(primaryResource, rootLocator, rootLocation);
+        primaryResourceLocation = getPrimaryResourceLocationForAssignment(primaryResource.getUserOwnedResourceFork(), primaryResourceLocator, rootLocation, primaryResourceShapeTree, primaryResourceMatchingNode);
 
         // If the primary resource is a container, and its shape tree specifies its contents with st:contains
         // Recursively traverse the hierarchy and perform shape tree assignment
@@ -263,10 +262,10 @@ public abstract class AbstractValidatingMethodHandler {
                                                                        ShapeTreeLocation rootLocation) throws ShapeTreeException, URISyntaxException {
 
 
-        ensureShapeTreeResourceExists(primaryResource.getUserOwnedSTResource(), "Cannot unassign location from non-existent primary resource");
-        ensureShapeTreeResourceExists(primaryResource.getMetadataSTResource(), "Cannot unassign location from non-existent metadata resource");
+        ensureShapeTreeResourceExists(primaryResource.getUserOwnedResourceFork(), "Cannot unassign location from non-existent primary resource");
+        ensureShapeTreeResourceExists(primaryResource.getMetadataResourceFork(), "Cannot unassign location from non-existent metadata resource");
 
-        ShapeTreeLocator primaryResourceLocator = getShapeTreeLocatorFromResource(primaryResource.getMetadataSTResource());
+        ShapeTreeLocator primaryResourceLocator = getShapeTreeLocatorFromResource(primaryResource.getMetadataResourceFork());
         ShapeTreeLocation removeLocation = getShapeTreeLocationForRoot(primaryResourceLocator, rootLocation);
         ShapeTree primaryResourceShapeTree = ShapeTreeFactory.getShapeTree(URI.create(removeLocation.getShapeTree()));
 
@@ -293,7 +292,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         primaryResourceLocator.removeShapeTreeLocation(removeLocation);
 
-        deleteOrUpdateMetadataResource(shapeTreeContext, primaryResource.getMetadataSTResource(), primaryResourceLocator);
+        deleteOrUpdateMetadataResource(shapeTreeContext, primaryResource.getMetadataResourceFork(), primaryResourceLocator);
 
         return Optional.empty();
 
@@ -384,10 +383,11 @@ public abstract class AbstractValidatingMethodHandler {
      * Loads body of request into graph
      * @param shapeTreeRequest Request
      * @param baseURI BaseURI to use for graph
+     * @param targetResource
      * @return Graph representation of request body
      * @throws ShapeTreeException ShapeTreeException
      */
-    protected Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URI baseURI, ShapeTreeResource targetResource) throws ShapeTreeException {
+    protected Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URI baseURI, ResourceConstellation.ResourceFork targetResource) throws ShapeTreeException {
         log.debug("Reading request body into graph with baseURI {}", baseURI);
 
         if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF
@@ -487,21 +487,21 @@ public abstract class AbstractValidatingMethodHandler {
 
     /**
      * Returns parent container URI for a given resource
-     * @param shapeTreeResource Resource
+     * @param userOwnedResource Resource
      * @return URI to the resource's parent container
      */
-    protected URI getParentContainerURI(ShapeTreeResource shapeTreeResource) {
-        return shapeTreeResource.getUri().resolve(shapeTreeResource.isContainer() ? ".." : ".");
+    protected URI getParentContainerURI(ResourceConstellation.UserOwnedResource userOwnedResource) {
+        return userOwnedResource.getUri().resolve(userOwnedResource.isContainer() ? ".." : ".");
     }
 
     /**
      * Returns resource name from a resource URI
-     * @param shapeTreeResource Resource
+     * @param userOwnedResource Resource
      * @return Resource name
      */
-    protected String getRequestResourceName(ShapeTreeResource shapeTreeResource) {
+    protected String getRequestResourceName(ResourceConstellation.UserOwnedResource userOwnedResource) {
 
-        String resourceName = shapeTreeResource.getUri().toString().replace(getParentContainerURI(shapeTreeResource).toString(), "");
+        String resourceName = userOwnedResource.getUri().toString().replace(getParentContainerURI(userOwnedResource).toString(), "");
 
         if (resourceName.equals("/")) { return "/"; }
 
@@ -520,20 +520,20 @@ public abstract class AbstractValidatingMethodHandler {
      * @return Graph representation of resource
      * @throws ShapeTreeException ShapeTreeException
      */
-    protected Graph getGraphForResource(ShapeTreeResource resource, URI baseURI) throws ShapeTreeException {
+    protected Graph getGraphForResource(ResourceConstellation.ResourceFork resource, URI baseURI) throws ShapeTreeException {
 
         if (!resource.isExists()) return null;
         return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
     }
 
-    protected ShapeTreeLocator getShapeTreeLocatorFromRequest(ShapeTreeRequest shapeTreeRequest, ShapeTreeResource metadataResource) throws URISyntaxException, ShapeTreeException {
+    protected ShapeTreeLocator getShapeTreeLocatorFromRequest(ShapeTreeRequest shapeTreeRequest, ResourceConstellation.MetadataResource metadataResource) throws URISyntaxException, ShapeTreeException {
 
         Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, normalizeSolidResourceUri(shapeTreeRequest.getURI(), null, ShapeTreeResourceType.RESOURCE), metadataResource);
         if (incomingBodyGraph == null) { return null; }
         return ShapeTreeLocator.getShapeTreeLocatorFromGraph(shapeTreeRequest.getURI(), incomingBodyGraph);
     }
 
-    protected ShapeTreeLocator getShapeTreeLocatorFromResource(ShapeTreeResource metadataResource) throws URISyntaxException, ShapeTreeException {
+    protected ShapeTreeLocator getShapeTreeLocatorFromResource(ResourceConstellation.MetadataResource metadataResource) throws URISyntaxException, ShapeTreeException {
 
         if (!metadataResource.isExists()) { return null; }
         Graph metadataResourceGraph = getGraphForResource(metadataResource, normalizeSolidResourceUri(metadataResource.getUri(), null, metadataResource.getResourceType()));
@@ -556,7 +556,7 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     private void deleteOrUpdateMetadataResource(ShapeTreeContext shapeTreeContext,
-                                                ShapeTreeResource primaryMetadataResource,
+                                                ResourceConstellation.MetadataResource primaryMetadataResource,
                                                 ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
 
         if (primaryResourceLocator.getLocations().isEmpty()) {
@@ -565,35 +565,34 @@ public abstract class AbstractValidatingMethodHandler {
         } else {
             // Update the existing metadata resource for the primary resource
             primaryMetadataResource.setBody(primaryResourceLocator.getGraph().toString());
-            this.resourceAccessor.updateResource(shapeTreeContext, "PUT", primaryMetadataResource);
+            this.resourceAccessor.updateResource(shapeTreeContext, "PUT", primaryMetadataResource.getSTResource());
         }
 
     }
 
-    private ShapeTreeLocator getPrimaryResourceLocatorForAssignment(ShapeTreeResource primaryResource,
-                                                                    ShapeTreeResource primaryMetadataResource,
+    private ShapeTreeLocator getPrimaryResourceLocatorForAssignment(ResourceConstellation primaryResource,
                                                                     ShapeTreeLocator rootLocator,
                                                                     ShapeTreeLocation rootLocation) throws ShapeTreeException {
 
         ShapeTreeLocator primaryResourceLocator = null;
 
         // When at the top of the plant hierarchy, use the root locator from the initial plant request body
-        if (atRootOfPlantHierarchy(rootLocation, primaryResource)) { return rootLocator; }
+        if (atRootOfPlantHierarchy(rootLocation, primaryResource.getUserOwnedResourceFork())) { return rootLocator; }
 
-        if (!primaryMetadataResource.isExists()) {
+        if (!primaryResource.getMetadataSTResource().isExists()) {
             // If the existing metadata resource doesn't exist make a new shape tree locator
-            primaryResourceLocator = new ShapeTreeLocator(primaryMetadataResource.getUri());
+            primaryResourceLocator = new ShapeTreeLocator(primaryResource.getMetadataSTResource().getUri());
         } else {
             // Get the existing shape tree locator from the metadata resource graph
-            Graph primaryMetadataGraph = getGraphForResource(primaryMetadataResource, primaryMetadataResource.getUri());
-            primaryResourceLocator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(primaryMetadataResource.getUri(), primaryMetadataGraph);
+            Graph primaryMetadataGraph = getGraphForResource(primaryResource.getUserOwnedResourceFork(), primaryResource.getMetadataResourceFork().getUri());
+            primaryResourceLocator = ShapeTreeLocator.getShapeTreeLocatorFromGraph(primaryResource.getMetadataResourceFork().getUri(), primaryMetadataGraph);
         }
 
         return primaryResourceLocator;
 
     }
 
-    private ShapeTreeLocation getPrimaryResourceLocationForAssignment(ShapeTreeResource primaryResource,
+    private ShapeTreeLocation getPrimaryResourceLocationForAssignment(ResourceConstellation.ResourceFork primaryResource,
                                                                       ShapeTreeLocator primaryResourceLocator,
                                                                       ShapeTreeLocation rootLocation,
                                                                       ShapeTree primaryResourceShapeTree,
@@ -624,7 +623,7 @@ public abstract class AbstractValidatingMethodHandler {
 
     }
 
-    private boolean atRootOfPlantHierarchy(ShapeTreeLocation rootLocation, ShapeTreeResource primaryResource) {
+    private boolean atRootOfPlantHierarchy(ShapeTreeLocation rootLocation, ResourceConstellation.ResourceFork primaryResource) {
         return rootLocation.getManagedResource().equals(primaryResource.getUri().toString());
     }
 
@@ -635,8 +634,8 @@ public abstract class AbstractValidatingMethodHandler {
 
         URI rootLocationBaseUri = new URI(rootLocationUri.getScheme(), rootLocationUri.getSchemeSpecificPart(), null);
 
-        ShapeTreeResource locatorResource = this.resourceAccessor.getResource(shapeTreeContext, rootLocationBaseUri);
-        ensureShapeTreeResourceExists(locatorResource, "Unable to find root shape tree locator");
+        ResourceConstellation.MetadataResource locatorResource = new ResourceConstellation(rootLocationUri, this.resourceAccessor, shapeTreeContext).getMetadataResourceFork(); // this.resourceAccessor.getResource(shapeTreeContext, rootLocationBaseUri);
+        // @@ ensureShapeTreeResourceExists(locatorResource, "Unable to find root shape tree locator");
 
         return getShapeTreeLocatorFromResource(locatorResource);
 
@@ -674,27 +673,22 @@ public abstract class AbstractValidatingMethodHandler {
         }
     }
 
-    private void ensureRequestResourceIsNotMetadata(ShapeTreeResource shapeTreeResource, String message) throws ShapeTreeException {
-        if (shapeTreeResource.isMetadata()) {
-            throw new ShapeTreeException(400, message);
-        }
-    }
-
-    private void ensureShapeTreeResourceExists(ShapeTreeResource shapeTreeResource, String message) throws ShapeTreeException {
+    private void ensureShapeTreeResourceExists(ResourceConstellation.ResourceFork shapeTreeResource, String message) throws ShapeTreeException {
         if (shapeTreeResource == null || !shapeTreeResource.isExists()) {
             throw new ShapeTreeException(404, message);
         }
     }
 
-    private void ensureRequestResourceIsContainer(ShapeTreeResource shapeTreeResource, String message) throws ShapeTreeException {
+    private void ensureRequestResourceIsContainer(ResourceConstellation.UserOwnedResource shapeTreeResource, String message) throws ShapeTreeException {
         if (!shapeTreeResource.isContainer()) {
             throw new ShapeTreeException(400, message);
         }
     }
 
-    private void ensureTargetResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URI targetResourceURI, String message) throws ShapeTreeException {
-        ShapeTreeResource targetResource = this.resourceAccessor.getResource(shapeTreeContext, targetResourceURI);
-        if (targetResource.isExists()) {
+    // TODO: this could be called with foo.ttl?ext=shapeTree @see https://github.com/xformativ/shapetrees-java/issues/87
+    private void ensureTargetUserResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URI targetResourceURI, String message) throws ShapeTreeException {
+        ResourceConstellation targetResource = new ResourceConstellation(targetResourceURI, this.resourceAccessor, shapeTreeContext);
+        if (targetResource.isMetadata() || targetResource.getUserOwnedResourceFork().isExists()) {
             throw new ShapeTreeException(409, message);
         }
     }

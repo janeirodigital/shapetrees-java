@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
+import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
@@ -32,6 +33,7 @@ public class ResourceConstellation {
     // discovered attributes
     protected boolean _isMetadata;
     protected boolean _isManaged;
+    protected boolean _isContainer999;
 
     public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this._resourceAccessor = resourceAccessor;
@@ -51,6 +53,7 @@ public class ResourceConstellation {
         if (res.isMetadata()) {
             this._isMetadata = true;
             this._isManaged = true;
+            this._isContainer999 = false; // TODO @@ I guess it's not known to be a Container...
             MetadataResource mr = new MetadataResource();
             this.metadataResource = Optional.of(mr);
             mr.sTResource = res;
@@ -66,12 +69,17 @@ public class ResourceConstellation {
     protected void _setResourceFork(ResourceFork fork, URI uri, ShapeTreeResource res) {
         fork.sTResource = res;
         fork.uri = uri;
+        fork.body = res.getBody();
+        fork.attributes = res.getAttributes();
+        fork._isExists = res.isExists();
+        fork._resourceType = res.getResourceType();
     }
 
     protected void _setUserOwnedResource(URI uri, ShapeTreeResource res) {
         final UserOwnedResource uor = userOwnedResource.orElseThrow(unintialized_resourceFork);
         _setResourceFork(uor, uri, res);
-        this._isManaged = uor.isManaged = res.isManaged(); // TODO test !isManaged.
+        this._isManaged = uor._isManaged = res.isManaged(); // TODO test !isManaged.
+        this._isContainer999 = uor._isContainer  = res.isContainer();
         final List<String> linkHeaderValues = res.getAttributes().allValues(HttpHeaders.LINK.getValue());
         uor.linkHeaders = linkHeaderValues.size() > 0
                 ? Optional.of(ResourceAttributes.parseLinkHeaders(linkHeaderValues))
@@ -80,6 +88,7 @@ public class ResourceConstellation {
 
     public boolean isManaged() { return this._isManaged; }
     public boolean isMetadata() { return this._isMetadata; }
+    public boolean isContainer999() { return this._isContainer999; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     public UserOwnedResource getUserOwnedResourceFork() throws ShapeTreeException {
@@ -95,16 +104,14 @@ public class ResourceConstellation {
             URI uri = mr.getSTResource().getAssociatedUri().get();
             ShapeTreeResource userRes = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
             _setUserOwnedResource(uri, userRes);
-            uor.sTResource = userRes;
         } else {
             uor = this.userOwnedResource.get();
         }
         return uor;
     }
 
-    public ShapeTreeResource getUserOwnedSTResource() throws ShapeTreeException {
-        return getUserOwnedResourceFork().sTResource;
-    }
+    public ShapeTreeResource getUserOwnedSTResource() throws ShapeTreeException { return getUserOwnedResourceFork().sTResource; }
+    public ShapeTreeResource getMetadataSTResource() throws ShapeTreeException { return getMetadataResourceFork().sTResource; }
 
     public MetadataResource getMetadataResourceFork() throws ShapeTreeException {
         MetadataResource mr;
@@ -115,16 +122,13 @@ public class ResourceConstellation {
             }
             mr = new MetadataResource();
             this.metadataResource = Optional.of(mr);
-            mr.uri = this.getShapeTreeMetadataURIForResource();
-            mr.sTResource = this._resourceAccessor.getResource(this._shapeTreeContext, mr.uri);
+            final URI mDUri = this.getShapeTreeMetadataURIForResource();
+            final ShapeTreeResource mdRes = this._resourceAccessor.getResource(this._shapeTreeContext, mDUri);
+            _setResourceFork(mr, mDUri, mdRes);
         } else {
             mr = this.metadataResource.get();
         }
         return mr;
-    }
-
-    public ShapeTreeResource getMetadataSTResource() throws ShapeTreeException {
-        return getMetadataResourceFork().sTResource;
     }
 
     protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
@@ -176,6 +180,29 @@ public class ResourceConstellation {
         protected URI uri;
         protected ShapeTreeResource sTResource;
 
+        protected String body;
+
+        protected ResourceAttributes attributes;
+        public ShapeTreeResourceType getResourceType() {
+            return this._resourceType;
+        }
+
+        protected ShapeTreeResourceType _resourceType;
+
+        protected boolean _isExists;
+
+        public String getBody() {
+            return this.body;
+        }
+
+        public void setBody(String body) {
+            this.body = body;
+            this.sTResource.setBody(body);
+        }
+
+        public ResourceAttributes getAttributes() {
+            return this.attributes;
+        }
 
         public URI getUri() {
             return this.uri;
@@ -190,14 +217,19 @@ public class ResourceConstellation {
     public class UserOwnedResource extends ResourceFork {
 
         protected Optional<ResourceAttributes> linkHeaders;
-        protected boolean isManaged;
+        protected boolean _isManaged;
+        protected boolean _isContainer;
 
         public boolean isManaged() {
-            return this.isManaged;
+            return this._isManaged;
         }
 
         public Optional<ResourceAttributes> getLinkHeaders() {
             return this.linkHeaders;
+        }
+
+        public boolean isContainer() {
+            return this._isContainer;
         }
     }
 

@@ -90,7 +90,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public DocumentResponse deleteResource(ShapeTreeContext context, ShapeTreeResource deletedResource) throws ShapeTreeException {
+    public DocumentResponse deleteResource(ShapeTreeContext context, ResourceConstellation.MetadataResource deletedResource) throws ShapeTreeException {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
