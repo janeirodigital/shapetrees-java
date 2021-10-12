@@ -45,8 +45,8 @@ public class ResourceConstellation {
     public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
-        ShapeTreeResource res = resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
-        _init(uri, res);
+        DocumentResponse res = resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
+        _init(uri, new ShapeTreeResource(uri, res));
     }
 
     protected void _init(URI uri, ShapeTreeResource res) {
@@ -165,7 +165,7 @@ public class ResourceConstellation {
 
     public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
         MetadataResource mr = this.getMetadataResourceFork();
-        ShapeTreeResource res;
+        DocumentResponse res;
         if (!mr.sTResource.isExists()) {
             // create primary metadata resource if it doesn't exist
             ResourceAttributes headers = new ResourceAttributes();
@@ -176,7 +176,7 @@ public class ResourceConstellation {
             mr.sTResource.setBody(primaryResourceLocator.getGraph().toString());
             res = this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", mr);
         }
-        this._init(mr.uri, res);
+        this._init(mr.uri, new ShapeTreeResource(mr.uri, res));
     }
 
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized ResourceFork");
