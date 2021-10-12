@@ -115,7 +115,7 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
 
             // Rebuild without the query string in case that was employed
             String associatedString = this.uri.getScheme() + "://" + this.uri.getAuthority() + basePath;
-
+            // @see https://github.com/xformativ/shapetrees-java/issues/86
             this.associatedUri = Optional.of(URI.create(associatedString));
 
         }
