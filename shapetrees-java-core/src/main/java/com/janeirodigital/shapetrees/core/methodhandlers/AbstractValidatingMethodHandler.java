@@ -734,13 +734,6 @@ public abstract class AbstractValidatingMethodHandler {
         }
     }
 
-    private void ensureShapeTreeResourceHasLinkHeaders(ShapeTreeResource primaryResource) throws ShapeTreeException {
-        if (primaryResource.getAttributes() == null ||
-            primaryResource.getAttributes().firstValue(HttpHeaders.LINK.getValue()).isEmpty()) {
-            throw new ShapeTreeException(500, "No link headers for shape tree metadata discovery on " + primaryResource.getUri());
-        }
-    }
-
     private DocumentResponse successfulValidation() {
         return new DocumentResponse(new ResourceAttributes(), "OK", 201);
     }
