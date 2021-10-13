@@ -6,6 +6,7 @@ import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
+import org.apache.jena.graph.Graph;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -91,6 +92,7 @@ public class ResourceConstellation {
         final MetadataResource mr = metadataResource.orElseThrow(unintialized_resourceFork);
         _setResourceFork(mr, uri, res);
         mr.userOwnedResourceUri = res.getAssociatedUri();
+        mr.graph = res.getGraph();
     }
 
     public boolean isManaged() { return this._isManaged; }
@@ -128,7 +130,7 @@ public class ResourceConstellation {
             this.metadataResource = Optional.of(mr);
             final URI mDUri = this.getShapeTreeMetadataURIForResource();
             final ShapeTreeResource mdRes = this._resourceAccessor.getResource(this._shapeTreeContext, mDUri);
-            _setResourceFork(mr, mDUri, mdRes);
+            _setMetadataResource(mDUri, mdRes);
         } else {
             mr = this.metadataResource.get();
         }
@@ -195,6 +197,7 @@ public class ResourceConstellation {
             return this._resourceType;
         }
 
+
         protected ShapeTreeResourceType _resourceType;
 
         protected boolean _isExists;
@@ -216,20 +219,25 @@ public class ResourceConstellation {
             return this.uri;
         }
 
-        public boolean isExists () {
-            return this.sTResource.isExists(); }
+        public boolean isExists() {
+            return this.sTResource.isExists();
+        }
     }
-    public class UserOwnedResource extends ResourceFork {
 
+    public class UserOwnedResource extends ResourceFork {
         protected Optional<ResourceAttributes> linkHeaders;
+
         protected boolean _isManaged;
         protected boolean _isContainer;
+        public Optional<URI> getMetadataResourceUri() {
+            return this.metadataResourceUri;
+        }
+
         protected Optional<URI> metadataResourceUri;
 
         public boolean isManaged() {
             return this._isManaged;
         }
-
         public Optional<ResourceAttributes> getLinkHeaders() {
             return this.linkHeaders;
         }
@@ -237,13 +245,20 @@ public class ResourceConstellation {
         public boolean isContainer() {
             return this._isContainer;
         }
+
+
     }
 
     public class MetadataResource extends ResourceFork {
         protected Optional<URI> userOwnedResourceUri;
 
+        protected Optional<Graph> graph;
         public Optional<URI> getUserOwnedResourceUri() {
             return this.userOwnedResourceUri;
+        }
+
+        public Optional<Graph> getGraph() {
+            return this.graph;
         }
     }
 }
