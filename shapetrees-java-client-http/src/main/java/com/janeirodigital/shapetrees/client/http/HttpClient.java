@@ -1,16 +1,7 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
-import com.janeirodigital.shapetrees.core.enums.LinkRelations;
-import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * abstract base class for ShapeTree library network drivers
