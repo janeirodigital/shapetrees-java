@@ -121,13 +121,6 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
         }
         this.body = response.getBody();
         this.name = calculateName(this.uri);
-        /*
-        return new ShapeTreeResource(this.uri, response,
-                                     HttpRemoteResourceAccessor.calculateName(this.uri),
-                                     associatedUri,
-                                     managed,
-                                     metadata);
-        */
     }
 
     private static Optional<URI> calculateMetadataURI(URI uri, ResourceAttributes parsedLinkHeaders) {
