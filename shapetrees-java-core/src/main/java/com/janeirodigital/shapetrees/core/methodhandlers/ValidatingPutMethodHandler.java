@@ -18,7 +18,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             ResourceConstellation rc = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
-            if (rc.isMetadata()) {
+            if (rc.createdFromMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));
             } else {

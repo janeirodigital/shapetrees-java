@@ -36,7 +36,7 @@ public class ResourceConstellation {
     private Optional<MetadataResource> metadataResource = Optional.empty();
 
     // discovered attributes
-    protected boolean _isMetadata;
+    protected boolean _createFromMetadata;
 
     public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this._resourceAccessor = resourceAccessor;
@@ -54,12 +54,12 @@ public class ResourceConstellation {
 
     protected void _init(URI uri, ShapeTreeResource res) {
         if (res.isMetadata()) {
-            this._isMetadata = true;
+            this._createFromMetadata = true;
             MetadataResource mr = new MetadataResource(uri);
             this.metadataResource = Optional.of(mr);
             _setMetadataResource(res);
         } else {
-            this._isMetadata = false;
+            this._createFromMetadata = false;
             final UserOwnedResource uor = new UserOwnedResource(uri);
             this.userOwnedResource = Optional.of(uor);
             _setUserOwnedResource(res);
@@ -92,7 +92,7 @@ public class ResourceConstellation {
         mr.graph = res.getGraph();
     }
 
-    public boolean isMetadata() { return this._isMetadata; }
+    public boolean createdFromMetadata() { return this._createFromMetadata; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     public UserOwnedResource getUserOwnedResourceFork() throws ShapeTreeException {

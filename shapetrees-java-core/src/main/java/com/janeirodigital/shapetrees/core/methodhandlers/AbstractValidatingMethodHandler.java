@@ -688,7 +688,7 @@ public abstract class AbstractValidatingMethodHandler {
     // TODO: this could be called with foo.ttl?ext=shapeTree @see https://github.com/xformativ/shapetrees-java/issues/87
     private void ensureTargetUserResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URI targetResourceURI, String message) throws ShapeTreeException {
         ResourceConstellation targetResource = new ResourceConstellation(targetResourceURI, this.resourceAccessor, shapeTreeContext);
-        if (targetResource.isMetadata() || targetResource.getUserOwnedResourceFork().isExists()) {
+        if (targetResource.createdFromMetadata() || targetResource.getUserOwnedResourceFork().isExists()) {
             throw new ShapeTreeException(409, message);
         }
     }
