@@ -41,25 +41,22 @@ public class ResourceConstellation {
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     // constructors
-    private ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeResource str) {
+    private ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ResourceFork str) {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
-        if (str.isMetadata()) {
+        if (str instanceof MetadataResource) {
             this._createFromMetadata = true;
-            MetadataResource mr = new MetadataResource(uri, str.getResourceType(), str.getAttributes(), str.getBody(), str.getName(), str.isExists(), str.getAssociatedUri(), str.getGraph());
-            this.metadataResource = Optional.of(mr);
+            this.metadataResource = Optional.of((MetadataResource) str);
         } else {
             this._createFromMetadata = false;
-            final List<String> linkHeaderValues = str.getAttributes().allValues(HttpHeaders.LINK.getValue());
-            final UserOwnedResource uor = new UserOwnedResource(uri, str.getResourceType(), str.getAttributes(), str.getBody(), str.getName(), str.isExists(), str.getAssociatedUri(), ResourceAttributes.parseLinkHeaders(linkHeaderValues), str.isManaged(), str.isContainer());
-            this.userOwnedResource = Optional.of(uor);
+            this.userOwnedResource = Optional.of((UserOwnedResource) str);
         }
     }
     public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, uri));
     }
     public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
-        this(uri, resourceAccessor, shapeTreeContext, new ShapeTreeResource(uri, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType())));
+        this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
     }
 
     // Get resource forks
@@ -87,10 +84,12 @@ ProjectRecursiveTests
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.uri + ">");
 //            }
             URI uri = mr.getUserOwnedResourceUri().get();
-            ShapeTreeResource str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
-            final List<String> linkHeaderValues = str.getAttributes().allValues(HttpHeaders.LINK.getValue());
-            uor = new UserOwnedResource(uri, str.getResourceType(), str.getAttributes(), str.getBody(), str.getName(), str.isExists(), str.getAssociatedUri(), ResourceAttributes.parseLinkHeaders(linkHeaderValues), str.isManaged(), str.isContainer());
-            this.userOwnedResource = Optional.of(uor);
+            ResourceFork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            if (str instanceof UserOwnedResource) {
+                this.userOwnedResource = Optional.of(uor = (UserOwnedResource) str);
+            } else {
+                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a UserOwnedResource");
+            }
         } else {
             uor = this.userOwnedResource.get();
         }
@@ -105,9 +104,12 @@ ProjectRecursiveTests
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
 //            }
             final URI uri = this.getShapeTreeMetadataURIForResource();
-            final ShapeTreeResource str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
-            mr = new MetadataResource(uri, str.getResourceType(), str.getAttributes(), str.getBody(), str.getName(), str.isExists(), str.getAssociatedUri(), str.getGraph());
-            this.metadataResource = Optional.of(mr);
+            ResourceFork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            if (str instanceof MetadataResource) {
+                this.metadataResource = Optional.of(mr = (MetadataResource) str);
+            } else {
+                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a UserOwnedResource");
+            }
         } else {
             mr = this.metadataResource.get();
         }
@@ -138,22 +140,21 @@ ProjectRecursiveTests
 
     public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
         MetadataResource primaryMetadataResource = this.getMetadataResourceFork();
-        DocumentResponse res;
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
             ResourceAttributes headers = new ResourceAttributes();
             headers.setAll(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
-            res = this._resourceAccessor.createResource(this._shapeTreeContext,"POST", primaryMetadataResource.uri, headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
+            this._resourceAccessor.createResource(this._shapeTreeContext,"POST", primaryMetadataResource.uri, headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
         } else {
             // Update the existing metadata resource for the primary resource
-            res = this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", primaryMetadataResource, primaryResourceLocator.getGraph().toString());
+            this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", primaryMetadataResource, primaryResourceLocator.getGraph().toString());
         }
         // If we decide to make this mutable, we could parse the DocumentResponse (or a subsequent GET in case of non-200 success)
         // this._init(primaryMetadataResource.uri, new ShapeTreeResource(primaryMetadataResource.uri, res));
     }
 
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized ResourceFork");
-    public class ResourceFork { // TODO: abstract with helpful toString() for error messages
+    static public class ResourceFork { // TODO: abstract with helpful toString() for error messages
         final protected URI uri;
         final protected ShapeTreeResourceType resourceType;
         final protected ResourceAttributes attributes;
@@ -195,13 +196,13 @@ ProjectRecursiveTests
         }
     }
 
-    public class UserOwnedResource extends ResourceFork {
+    static public class UserOwnedResource extends ResourceFork {
         final protected Optional<URI> metadataResourceUri;
         final protected ResourceAttributes linkHeaders;
         final protected boolean _isManaged;
         final protected boolean _container;
 
-        UserOwnedResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, ResourceAttributes linkHeaders, boolean isManaged, boolean isContainer) {
+        public UserOwnedResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, ResourceAttributes linkHeaders, boolean isManaged, boolean isContainer) {
             super(uri, resourceType, attributes, body, name, exists);
             this.metadataResourceUri = metadataResourceUri;
             this.linkHeaders = linkHeaders;
@@ -226,11 +227,11 @@ ProjectRecursiveTests
         }
     }
 
-    public class MetadataResource extends ResourceFork {
+    static public class MetadataResource extends ResourceFork {
         final protected Optional<URI> userOwnedResourceUri;
         final protected Optional<Graph> graph;
 
-        MetadataResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> userOwnedResourceUri, Optional<Graph> graph) {
+        public MetadataResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> userOwnedResourceUri, Optional<Graph> graph) {
             super(uri, resourceType, attributes, body, name, exists);
             this.userOwnedResourceUri = userOwnedResourceUri;
             this.graph = graph;
