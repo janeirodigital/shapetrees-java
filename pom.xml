@@ -80,6 +80,7 @@
         <module>shapetrees-java-okhttp</module>
         <module>shapetrees-java-javahttp</module>
         <module>shapetrees-java-coverage</module>
+        <module>shapetrees-java-tests</module>
     </modules>
 
     <build>
