@@ -564,8 +564,7 @@ public abstract class AbstractValidatingMethodHandler {
             ensureDeleteIsSuccessful(response);
         } else {
             // Update the existing metadata resource for the primary resource
-            primaryMetadataResource.setBody(primaryResourceLocator.getGraph().toString());
-            this.resourceAccessor.updateResource(shapeTreeContext, "PUT", primaryMetadataResource);
+            this.resourceAccessor.updateResource(shapeTreeContext, "PUT", primaryMetadataResource, primaryResourceLocator.getGraph().toString());
         }
 
     }

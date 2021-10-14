@@ -78,14 +78,14 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public DocumentResponse updateResource(ShapeTreeContext context, String method, ResourceConstellation.ResourceFork updatedResource) throws ShapeTreeException { // TODO: @@ could be MetadataResource
+    public DocumentResponse updateResource(ShapeTreeContext context, String method, ResourceConstellation.ResourceFork updatedResource, String body) throws ShapeTreeException { // TODO: @@ could be MetadataResource
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
         String contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, updatedResource.getUri(), allHeaders, updatedResource.getBody(), contentType));
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, updatedResource.getUri(), allHeaders, body, contentType));
         return response;
     }
 
