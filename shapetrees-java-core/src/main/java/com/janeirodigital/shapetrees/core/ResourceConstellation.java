@@ -6,10 +6,13 @@ import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +23,7 @@ import java.util.function.Supplier;
    1. make ResourceFork API emulate ShapeTreeResource
    2. atomic(delete ShapeTreeResource, s/ResourceFork/ShapeTreeResource/g)
  */
+@Slf4j
 public class ResourceConstellation {
     public static final String TEXT_TURTLE = "text/turtle";
 
@@ -83,9 +87,7 @@ public class ResourceConstellation {
         this._isManaged = uor._isManaged = res.isManaged(); // TODO test !isManaged.
         this._isContainer999 = uor._isContainer  = res.isContainer();
         final List<String> linkHeaderValues = res.getAttributes().allValues(HttpHeaders.LINK.getValue());
-        uor.linkHeaders = linkHeaderValues.size() > 0
-                ? Optional.of(ResourceAttributes.parseLinkHeaders(linkHeaderValues))
-                : Optional.empty();
+        uor.linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
     }
 
     protected void _setMetadataResource(URI uri, ShapeTreeResource res) {
@@ -104,8 +106,23 @@ public class ResourceConstellation {
         UserOwnedResource uor;
         if (this.userOwnedResource.isEmpty()) {
             MetadataResource mr = this.metadataResource.orElseThrow(unintialized_resourceFork);
-            // @see https://github.com/xformativ/shapetrees-java/issues/86
-//            if (mr.linkHeaders.isEmpty()) {
+            /* TODO: @see https://github.com/xformativ/shapetrees-java/issues/86
+MedicalRecordTests
+  plantConditionShapeTree()
+  plantMedicalRecord()
+ProjectTests
+  unplantData()
+  failPlantOnMissingShapeTree()
+  plantDataRepositoryWithPatch()
+  plantSecondShapeTreeOnProjects()
+  updateProjectsLocatorWithPatch()
+  unplantProjects()
+  plantDataRepository()
+ProjectRecursiveTests
+  plantDataRecursively()
+  plantProjectsRecursively()
+            */
+//            if (... no userOwnedResourceUri ...) {
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.uri + ">");
 //            }
             uor = new UserOwnedResource();
@@ -122,10 +139,10 @@ public class ResourceConstellation {
     public MetadataResource getMetadataResourceFork() throws ShapeTreeException {
         MetadataResource mr;
         if (this.metadataResource.isEmpty()) {
-            UserOwnedResource uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
-            if (uor.linkHeaders.isEmpty()) {
-                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
-            }
+//            UserOwnedResource uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
+//            if (... no shapeTreeMetadataURIForResource ...) {
+//                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
+//            }
             mr = new MetadataResource();
             this.metadataResource = Optional.of(mr);
             final URI mDUri = this.getShapeTreeMetadataURIForResource();
@@ -139,30 +156,24 @@ public class ResourceConstellation {
 
     protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
         UserOwnedResource uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
-        ResourceAttributes linkHeaders = uor.linkHeaders.get();
+        ResourceAttributes linkHeaders = uor.linkHeaders;
 
         if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
-            // TODO: log.error("The resource {} does not contain a link header of {}", this.userOwnedResource.uri, LinkRelations.SHAPETREE_LOCATOR.getValue());
+            log.error("The resource {} does not contain a link header of {}", uor.uri, LinkRelations.SHAPETREE_LOCATOR.getValue());
             throw new ShapeTreeException(500, "The resource <" + uor.uri + "> has no Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
-        String metaDataURIString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElse(null);
-        if (metaDataURIString != null && metaDataURIString.startsWith("/")) {
-            // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
-            URI shapeTreeContainerURI = uor.uri;
-            String portFragment;
-            if (shapeTreeContainerURI.getPort() > 0) {
-                portFragment = ":" + shapeTreeContainerURI.getPort();
-            } else {
-                portFragment = "";
-            }
-            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + portFragment + metaDataURIString;
+        String metaDataURIString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElseThrow(
+                () -> new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found")
+        );
+        try {
+            final URL base = new URL(uor.uri.toString());
+            final URL resolved = new URL(base, metaDataURIString);
+            return URI.create(resolved.toString());
+        } catch (MalformedURLException e) { // TODO: vet this
+            // throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
+            // If we can't do relative URL resolution, assume that the locator is a URI and we have some other means of resolving it.
+            return URI.create(metaDataURIString);
         }
-
-        if (metaDataURIString == null) {
-            throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
-        }
-
-        return URI.create(metaDataURIString);
     }
 
     public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
@@ -225,7 +236,7 @@ public class ResourceConstellation {
     }
 
     public class UserOwnedResource extends ResourceFork {
-        protected Optional<ResourceAttributes> linkHeaders;
+        protected ResourceAttributes linkHeaders;
 
         protected boolean _isManaged;
         protected boolean _isContainer;
@@ -238,7 +249,7 @@ public class ResourceConstellation {
         public boolean isManaged() {
             return this._isManaged;
         }
-        public Optional<ResourceAttributes> getLinkHeaders() {
+        public ResourceAttributes getLinkHeaders() {
             return this.linkHeaders;
         }
 
