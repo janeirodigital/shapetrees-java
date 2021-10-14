@@ -37,7 +37,6 @@ public class ResourceConstellation {
 
     // discovered attributes
     protected boolean _isMetadata;
-    protected boolean _isManaged;
 
     public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this._resourceAccessor = resourceAccessor;
@@ -56,7 +55,6 @@ public class ResourceConstellation {
     protected void _init(URI uri, ShapeTreeResource res) {
         if (res.isMetadata()) {
             this._isMetadata = true;
-            this._isManaged = true;
             MetadataResource mr = new MetadataResource(uri);
             this.metadataResource = Optional.of(mr);
             _setMetadataResource(res);
@@ -81,7 +79,7 @@ public class ResourceConstellation {
         final UserOwnedResource uor = userOwnedResource.orElseThrow(unintialized_resourceFork);
         _setResourceFork(uor, res);
         uor.metadataResourceUri = res.getAssociatedUri();
-        this._isManaged = uor._isManaged = res.isManaged(); // TODO test !isManaged.
+        uor._isManaged = res.isManaged(); // TODO test !isManaged.
         uor._isContainer  = res.isContainer();
         final List<String> linkHeaderValues = res.getAttributes().allValues(HttpHeaders.LINK.getValue());
         uor.linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
@@ -94,7 +92,6 @@ public class ResourceConstellation {
         mr.graph = res.getGraph();
     }
 
-    public boolean isManaged() { return this._isManaged; }
     public boolean isMetadata() { return this._isMetadata; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 

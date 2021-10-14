@@ -41,7 +41,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 } else {
                     // The target resource doesn't exist
                     ResourceConstellation parentResource = new ResourceConstellation(getParentContainerURI(targetResource), this.resourceAccessor, shapeTreeContext);
-                    if (parentResource.isManaged()) {
+                    if (targetResource.isManaged()) {
                         ResourceConstellation containerResource = new ResourceConstellation(getContainerUri(shapeTreeRequest), this.resourceAccessor, shapeTreeContext);
                         // If the parent container is managed by a shape tree, the resource to create must be validated
                         return createShapeTreeInstance(rc, containerResource, shapeTreeRequest, getRequestResourceName(targetResource));
