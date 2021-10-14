@@ -38,7 +38,6 @@ public class ResourceConstellation {
     // discovered attributes
     protected boolean _isMetadata;
     protected boolean _isManaged;
-    protected boolean _isContainer999;
 
     public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this._resourceAccessor = resourceAccessor;
@@ -58,21 +57,19 @@ public class ResourceConstellation {
         if (res.isMetadata()) {
             this._isMetadata = true;
             this._isManaged = true;
-            this._isContainer999 = false; // TODO @@ I guess it's not known to be a Container...
-            MetadataResource mr = new MetadataResource();
+            MetadataResource mr = new MetadataResource(uri);
             this.metadataResource = Optional.of(mr);
-            _setMetadataResource(uri, res);
+            _setMetadataResource(res);
         } else {
             this._isMetadata = false;
-            final UserOwnedResource uor = new UserOwnedResource();
+            final UserOwnedResource uor = new UserOwnedResource(uri);
             this.userOwnedResource = Optional.of(uor);
-            _setUserOwnedResource(uri, res);
+            _setUserOwnedResource(res);
         }
     }
 
-    protected void _setResourceFork(ResourceFork fork, URI uri, ShapeTreeResource res) {
+    protected void _setResourceFork(ResourceFork fork, ShapeTreeResource res) {
         fork.sTResource = res;
-        fork.uri = uri;
         fork.body = res.getBody();
         fork.attributes = res.getAttributes();
         fork._isExists = res.isExists();
@@ -80,26 +77,25 @@ public class ResourceConstellation {
         fork.name = res.getName();
     }
 
-    protected void _setUserOwnedResource(URI uri, ShapeTreeResource res) {
+    protected void _setUserOwnedResource(ShapeTreeResource res) {
         final UserOwnedResource uor = userOwnedResource.orElseThrow(unintialized_resourceFork);
-        _setResourceFork(uor, uri, res);
+        _setResourceFork(uor, res);
         uor.metadataResourceUri = res.getAssociatedUri();
         this._isManaged = uor._isManaged = res.isManaged(); // TODO test !isManaged.
-        this._isContainer999 = uor._isContainer  = res.isContainer();
+        uor._isContainer  = res.isContainer();
         final List<String> linkHeaderValues = res.getAttributes().allValues(HttpHeaders.LINK.getValue());
         uor.linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
     }
 
-    protected void _setMetadataResource(URI uri, ShapeTreeResource res) {
+    protected void _setMetadataResource(ShapeTreeResource res) {
         final MetadataResource mr = metadataResource.orElseThrow(unintialized_resourceFork);
-        _setResourceFork(mr, uri, res);
+        _setResourceFork(mr, res);
         mr.userOwnedResourceUri = res.getAssociatedUri();
         mr.graph = res.getGraph();
     }
 
     public boolean isManaged() { return this._isManaged; }
     public boolean isMetadata() { return this._isMetadata; }
-    public boolean isContainer999() { return this._isContainer999; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     public UserOwnedResource getUserOwnedResourceFork() throws ShapeTreeException {
@@ -125,11 +121,11 @@ ProjectRecursiveTests
 //            if (... no userOwnedResourceUri ...) {
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.uri + ">");
 //            }
-            uor = new UserOwnedResource();
-            this.userOwnedResource = Optional.of(uor);
             URI uri = mr.getUserOwnedResourceUri().get();
+            uor = new UserOwnedResource(uri);
+            this.userOwnedResource = Optional.of(uor);
             ShapeTreeResource userRes = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
-            _setUserOwnedResource(uri, userRes);
+            _setUserOwnedResource(userRes);
         } else {
             uor = this.userOwnedResource.get();
         }
@@ -143,11 +139,11 @@ ProjectRecursiveTests
 //            if (... no shapeTreeMetadataURIForResource ...) {
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
 //            }
-            mr = new MetadataResource();
+            final URI uri = this.getShapeTreeMetadataURIForResource();
+            mr = new MetadataResource(uri);
             this.metadataResource = Optional.of(mr);
-            final URI mDUri = this.getShapeTreeMetadataURIForResource();
-            final ShapeTreeResource mdRes = this._resourceAccessor.getResource(this._shapeTreeContext, mDUri);
-            _setMetadataResource(mDUri, mdRes);
+            final ShapeTreeResource mdRes = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            _setMetadataResource(mdRes);
         } else {
             mr = this.metadataResource.get();
         }
@@ -194,11 +190,15 @@ ProjectRecursiveTests
 
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized ResourceFork");
     public class ResourceFork { // TODO: abstract with helpful toString() for error messages
-        protected URI uri;
+        final protected URI uri;
         protected ShapeTreeResource sTResource;
         protected String body;
         protected ResourceAttributes attributes;
         protected String name;
+
+        ResourceFork(URI uri) {
+            this.uri = uri;
+        }
 
         public String getName() {
             return this.name;
@@ -237,14 +237,17 @@ ProjectRecursiveTests
 
     public class UserOwnedResource extends ResourceFork {
         protected ResourceAttributes linkHeaders;
-
         protected boolean _isManaged;
         protected boolean _isContainer;
+        protected Optional<URI> metadataResourceUri;
+
+        UserOwnedResource(URI uri) {
+            super(uri);
+        }
+
         public Optional<URI> getMetadataResourceUri() {
             return this.metadataResourceUri;
         }
-
-        protected Optional<URI> metadataResourceUri;
 
         public boolean isManaged() {
             return this._isManaged;
@@ -256,14 +259,16 @@ ProjectRecursiveTests
         public boolean isContainer() {
             return this._isContainer;
         }
-
-
     }
 
     public class MetadataResource extends ResourceFork {
         protected Optional<URI> userOwnedResourceUri;
-
         protected Optional<Graph> graph;
+
+        MetadataResource(URI uri) {
+            super(uri);
+        }
+
         public Optional<URI> getUserOwnedResourceUri() {
             return this.userOwnedResourceUri;
         }
