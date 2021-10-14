@@ -28,72 +28,41 @@ public class ResourceConstellation {
     public static final String TEXT_TURTLE = "text/turtle";
 
     // access parameters
-    protected ResourceAccessor _resourceAccessor;
-    protected ShapeTreeContext _shapeTreeContext;
+    final protected ResourceAccessor _resourceAccessor;
+    final protected ShapeTreeContext _shapeTreeContext;
+    protected boolean _createFromMetadata;
 
     // components
     private Optional<UserOwnedResource> userOwnedResource = Optional.empty();
     private Optional<MetadataResource> metadataResource = Optional.empty();
 
-    // discovered attributes
-    protected boolean _createFromMetadata;
-
-    public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
-        this._resourceAccessor = resourceAccessor;
-        this._shapeTreeContext = shapeTreeContext;
-        ShapeTreeResource res = resourceAccessor.getResource(shapeTreeContext, uri);
-        _init(uri, res);
-    }
-
-    public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
-        this._resourceAccessor = resourceAccessor;
-        this._shapeTreeContext = shapeTreeContext;
-        DocumentResponse res = resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
-        _init(uri, new ShapeTreeResource(uri, res));
-    }
-
-    protected void _init(URI uri, ShapeTreeResource res) {
-        if (res.isMetadata()) {
-            this._createFromMetadata = true;
-            MetadataResource mr = new MetadataResource(uri);
-            this.metadataResource = Optional.of(mr);
-            _setMetadataResource(res);
-        } else {
-            this._createFromMetadata = false;
-            final UserOwnedResource uor = new UserOwnedResource(uri);
-            this.userOwnedResource = Optional.of(uor);
-            _setUserOwnedResource(res);
-        }
-    }
-
-    protected void _setResourceFork(ResourceFork fork, ShapeTreeResource res) {
-        fork.body = res.getBody();
-        fork.attributes = res.getAttributes();
-        fork._isExists = res.isExists();
-        fork._resourceType = res.getResourceType();
-        fork.name = res.getName();
-    }
-
-    protected void _setUserOwnedResource(ShapeTreeResource res) {
-        final UserOwnedResource uor = userOwnedResource.orElseThrow(unintialized_resourceFork);
-        _setResourceFork(uor, res);
-        uor.metadataResourceUri = res.getAssociatedUri();
-        uor._isManaged = res.isManaged(); // TODO test !isManaged.
-        uor._isContainer  = res.isContainer();
-        final List<String> linkHeaderValues = res.getAttributes().allValues(HttpHeaders.LINK.getValue());
-        uor.linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
-    }
-
-    protected void _setMetadataResource(ShapeTreeResource res) {
-        final MetadataResource mr = metadataResource.orElseThrow(unintialized_resourceFork);
-        _setResourceFork(mr, res);
-        mr.userOwnedResourceUri = res.getAssociatedUri();
-        mr.graph = res.getGraph();
-    }
-
+    // simple getters
     public boolean createdFromMetadata() { return this._createFromMetadata; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
+    // constructors
+    private ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeResource str) {
+        this._resourceAccessor = resourceAccessor;
+        this._shapeTreeContext = shapeTreeContext;
+        if (str.isMetadata()) {
+            this._createFromMetadata = true;
+            MetadataResource mr = new MetadataResource(uri, str.getResourceType(), str.getAttributes(), str.getBody(), str.getName(), str.isExists(), str.getAssociatedUri(), str.getGraph());
+            this.metadataResource = Optional.of(mr);
+        } else {
+            this._createFromMetadata = false;
+            final List<String> linkHeaderValues = str.getAttributes().allValues(HttpHeaders.LINK.getValue());
+            final UserOwnedResource uor = new UserOwnedResource(uri, str.getResourceType(), str.getAttributes(), str.getBody(), str.getName(), str.isExists(), str.getAssociatedUri(), ResourceAttributes.parseLinkHeaders(linkHeaderValues), str.isManaged(), str.isContainer());
+            this.userOwnedResource = Optional.of(uor);
+        }
+    }
+    public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
+        this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, uri));
+    }
+    public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+        this(uri, resourceAccessor, shapeTreeContext, new ShapeTreeResource(uri, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType())));
+    }
+
+    // Get resource forks
     public UserOwnedResource getUserOwnedResourceFork() throws ShapeTreeException {
         UserOwnedResource uor;
         if (this.userOwnedResource.isEmpty()) {
@@ -118,10 +87,10 @@ ProjectRecursiveTests
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.uri + ">");
 //            }
             URI uri = mr.getUserOwnedResourceUri().get();
-            uor = new UserOwnedResource(uri);
+            ShapeTreeResource str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            final List<String> linkHeaderValues = str.getAttributes().allValues(HttpHeaders.LINK.getValue());
+            uor = new UserOwnedResource(uri, str.getResourceType(), str.getAttributes(), str.getBody(), str.getName(), str.isExists(), str.getAssociatedUri(), ResourceAttributes.parseLinkHeaders(linkHeaderValues), str.isManaged(), str.isContainer());
             this.userOwnedResource = Optional.of(uor);
-            ShapeTreeResource userRes = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
-            _setUserOwnedResource(userRes);
         } else {
             uor = this.userOwnedResource.get();
         }
@@ -136,10 +105,9 @@ ProjectRecursiveTests
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
 //            }
             final URI uri = this.getShapeTreeMetadataURIForResource();
-            mr = new MetadataResource(uri);
+            final ShapeTreeResource str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            mr = new MetadataResource(uri, str.getResourceType(), str.getAttributes(), str.getBody(), str.getName(), str.isExists(), str.getAssociatedUri(), str.getGraph());
             this.metadataResource = Optional.of(mr);
-            final ShapeTreeResource mdRes = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
-            _setMetadataResource(mdRes);
         } else {
             mr = this.metadataResource.get();
         }
@@ -180,79 +148,92 @@ ProjectRecursiveTests
             // Update the existing metadata resource for the primary resource
             res = this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", primaryMetadataResource, primaryResourceLocator.getGraph().toString());
         }
-        this._init(primaryMetadataResource.uri, new ShapeTreeResource(primaryMetadataResource.uri, res));
+        // If we decide to make this mutable, we could parse the DocumentResponse (or a subsequent GET in case of non-200 success)
+        // this._init(primaryMetadataResource.uri, new ShapeTreeResource(primaryMetadataResource.uri, res));
     }
 
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized ResourceFork");
     public class ResourceFork { // TODO: abstract with helpful toString() for error messages
         final protected URI uri;
-        protected String body;
-        protected ResourceAttributes attributes;
-        protected String name;
-        protected ShapeTreeResourceType _resourceType;
-        protected boolean _isExists;
+        final protected ShapeTreeResourceType resourceType;
+        final protected ResourceAttributes attributes;
+        final protected String body;
+        final protected String name;
+        final protected boolean exists;
 
-        ResourceFork(URI uri) {
+        ResourceFork(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
             this.uri = uri;
-        }
-
-        public String getName() {
-            return this.name;
-        }
-
-        public ShapeTreeResourceType getResourceType() {
-            return this._resourceType;
-        }
-
-        public String getBody() {
-            return this.body;
-        }
-
-        public ResourceAttributes getAttributes() {
-            return this.attributes;
+            this.resourceType = resourceType;
+            this.attributes = attributes;
+            this.body = body;
+            this.name = name;
+            this.exists = exists;
         }
 
         public URI getUri() {
             return this.uri;
         }
 
+        public ShapeTreeResourceType getResourceType() {
+            return this.resourceType;
+        }
+
+        public ResourceAttributes getAttributes() {
+            return this.attributes;
+        }
+
+        public String getBody() {
+            return this.body;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
         public boolean isExists() {
-            return this._isExists;
+            return this.exists;
         }
     }
 
     public class UserOwnedResource extends ResourceFork {
-        protected ResourceAttributes linkHeaders;
-        protected boolean _isManaged;
-        protected boolean _isContainer;
-        protected Optional<URI> metadataResourceUri;
+        final protected Optional<URI> metadataResourceUri;
+        final protected ResourceAttributes linkHeaders;
+        final protected boolean _isManaged;
+        final protected boolean _container;
 
-        UserOwnedResource(URI uri) {
-            super(uri);
+        UserOwnedResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, ResourceAttributes linkHeaders, boolean isManaged, boolean isContainer) {
+            super(uri, resourceType, attributes, body, name, exists);
+            this.metadataResourceUri = metadataResourceUri;
+            this.linkHeaders = linkHeaders;
+            this._isManaged = isManaged;
+            this._container = isContainer;
         }
 
         public Optional<URI> getMetadataResourceUri() {
             return this.metadataResourceUri;
         }
 
-        public boolean isManaged() {
-            return this._isManaged;
-        }
         public ResourceAttributes getLinkHeaders() {
             return this.linkHeaders;
         }
 
+        public boolean isManaged() { // TODO: test !isManaged.
+            return this._isManaged;
+        }
+
         public boolean isContainer() {
-            return this._isContainer;
+            return this._container;
         }
     }
 
     public class MetadataResource extends ResourceFork {
-        protected Optional<URI> userOwnedResourceUri;
-        protected Optional<Graph> graph;
+        final protected Optional<URI> userOwnedResourceUri;
+        final protected Optional<Graph> graph;
 
-        MetadataResource(URI uri) {
-            super(uri);
+        MetadataResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> userOwnedResourceUri, Optional<Graph> graph) {
+            super(uri, resourceType, attributes, body, name, exists);
+            this.userOwnedResourceUri = userOwnedResourceUri;
+            this.graph = graph;
         }
 
         public Optional<URI> getUserOwnedResourceUri() {
