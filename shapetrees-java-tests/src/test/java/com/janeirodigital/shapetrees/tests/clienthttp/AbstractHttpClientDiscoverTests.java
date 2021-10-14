@@ -13,6 +13,7 @@ import org.junit.jupiter.api.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
@@ -98,7 +99,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
 
         // If a locator resource has multiple shapetree locators it is considered invalid
         Assertions.assertThrows(IllegalStateException.class, () -> {
-            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
+            Optional<ShapeTreeLocator> locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
         });
 
     }
@@ -115,7 +116,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
 
         // If a locator resource exists, but has no locators it is considered invalid
         Assertions.assertThrows(IllegalStateException.class, () -> {
-            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
+            Optional<ShapeTreeLocator> locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
         });
 
     }
@@ -132,7 +133,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
 
         // If a locator resource exists, but has no locators it is considered invalid
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
+            Optional<ShapeTreeLocator> locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
         });
     }
 }

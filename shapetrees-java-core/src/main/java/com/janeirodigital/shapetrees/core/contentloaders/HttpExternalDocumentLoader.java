@@ -26,15 +26,21 @@ public class HttpExternalDocumentLoader implements ExternalDocumentLoader {
             HttpRequest request = HttpRequest.newBuilder().GET().uri(resourceURI).build();
             HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() != 200) { throw new IOException("Failed to load contents of document: " + resourceURI); }
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to load contents of document: " + resourceURI);
+            }
 
             ResourceAttributes attributes = new ResourceAttributes(response.headers().map());
 
             return new DocumentResponse(attributes, response.body(), response.statusCode());
 
-        } catch (IOException | InterruptedException ex) {
+        } catch (IOException ex) {
+            throw new ShapeTreeException(500, "Error retrieving resource " + ex.getMessage());
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
             throw new ShapeTreeException(500, "Error retrieving resource " + ex.getMessage());
         }
+
     }
 
 }
