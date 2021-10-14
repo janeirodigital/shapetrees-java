@@ -67,7 +67,6 @@ public class ResourceConstellation {
     }
 
     protected void _setResourceFork(ResourceFork fork, ShapeTreeResource res) {
-        fork.sTResource = res;
         fork.body = res.getBody();
         fork.attributes = res.getAttributes();
         fork._isExists = res.isExists();
@@ -170,28 +169,28 @@ ProjectRecursiveTests
     }
 
     public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
-        MetadataResource mr = this.getMetadataResourceFork();
+        MetadataResource primaryMetadataResource = this.getMetadataResourceFork();
         DocumentResponse res;
-        if (!mr.sTResource.isExists()) {
+        if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
             ResourceAttributes headers = new ResourceAttributes();
             headers.setAll(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
-            res = this._resourceAccessor.createResource(this._shapeTreeContext,"POST", mr.uri, headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
+            res = this._resourceAccessor.createResource(this._shapeTreeContext,"POST", primaryMetadataResource.uri, headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
         } else {
             // Update the existing metadata resource for the primary resource
-            mr.sTResource.setBody(primaryResourceLocator.getGraph().toString());
-            res = this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", mr);
+            res = this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", primaryMetadataResource, primaryResourceLocator.getGraph().toString());
         }
-        this._init(mr.uri, new ShapeTreeResource(mr.uri, res));
+        this._init(primaryMetadataResource.uri, new ShapeTreeResource(primaryMetadataResource.uri, res));
     }
 
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized ResourceFork");
     public class ResourceFork { // TODO: abstract with helpful toString() for error messages
         final protected URI uri;
-        protected ShapeTreeResource sTResource;
         protected String body;
         protected ResourceAttributes attributes;
         protected String name;
+        protected ShapeTreeResourceType _resourceType;
+        protected boolean _isExists;
 
         ResourceFork(URI uri) {
             this.uri = uri;
@@ -205,18 +204,8 @@ ProjectRecursiveTests
             return this._resourceType;
         }
 
-
-        protected ShapeTreeResourceType _resourceType;
-
-        protected boolean _isExists;
-
         public String getBody() {
             return this.body;
-        }
-
-        public void setBody(String body) {
-            this.body = body;
-            this.sTResource.setBody(body);
         }
 
         public ResourceAttributes getAttributes() {
@@ -228,7 +217,7 @@ ProjectRecursiveTests
         }
 
         public boolean isExists() {
-            return this.sTResource.isExists();
+            return this._isExists;
         }
     }
 

@@ -9,7 +9,7 @@ import java.util.List;
 public interface ResourceAccessor {
     ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException;
     DocumentResponse createResource(ShapeTreeContext context, String method, URI resourceURI, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException;
-    DocumentResponse updateResource(ShapeTreeContext context, String method, ResourceConstellation.ResourceFork updatedResource) throws ShapeTreeException;
+    DocumentResponse updateResource(ShapeTreeContext context, String method, ResourceConstellation.ResourceFork updatedResource, String body) throws ShapeTreeException;
     DocumentResponse deleteResource(ShapeTreeContext context, ResourceConstellation.MetadataResource updatedResource) throws ShapeTreeException;
     List<ResourceConstellation> getContainedResources(ShapeTreeContext context, URI containerResourceURI) throws ShapeTreeException;
 }
