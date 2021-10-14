@@ -2,7 +2,9 @@ package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.NoArgsConstructor;
@@ -27,8 +29,82 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     private static final String PATCH = "PATCH";
 
     @Override
-    public ShapeTreeResource getResource(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException {
-        return new HttpRemoteResource(resourceURI, context.getAuthorizationHeaderValue());
+    public ResourceConstellation.ResourceFork getResource(ShapeTreeContext context, URI uri) throws ShapeTreeException {
+        log.debug("HttpRemoteResourceAccessor#getResource({})", uri);
+        ResourceAttributes headers = new ResourceAttributes();
+        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        HttpRequest req = new HttpRequest("GET", uri, headers, null, null);
+
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(req);
+        return makeAFork(uri, response);
+    }
+
+    @Override
+    public ResourceConstellation.ResourceFork createResource(ShapeTreeContext context, String method, URI uri, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
+        log.debug("createResource via {}: URI [{}], headers [{}]", method, uri, headers.toString());
+
+        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, uri, allHeaders, body, contentType));
+        if (!response.exists()) {
+            throw new ShapeTreeException(500, "Unable to create pre-existing resource <" + uri + ">");
+        }
+        return makeAFork(uri, response);
+    }
+
+    protected ResourceConstellation.ResourceFork makeAFork(URI uri, DocumentResponse response) throws ShapeTreeException {
+        Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
+        if (location.isPresent()) { uri = URI.create(location.get()); }
+        // this.exists = response.exists(); !!
+        final boolean exists = response.getStatusCode()/100 == 2;
+        final boolean container = ShapeTreeResource.isContainerFromHeaders(response.getResourceAttributes(), uri);
+        final ResourceAttributes attributes = response.getResourceAttributes();
+        final ShapeTreeResourceType resourceType = ShapeTreeResource.getResourceTypeFromHeaders(response.getResourceAttributes());
+
+        final String name = HttpRemoteResource.calculateName(uri);
+        final String body = response.getBody();
+        if (response.getBody() == null) {
+            log.error("Exception retrieving body string");
+        }
+
+        final List<String> linkHeaders = attributes.allValues(HttpHeaders.LINK.getValue());
+        ResourceAttributes parsedLinkHeaders = linkHeaders.size() == 0 // !!
+                ? new ResourceAttributes()
+                : ResourceAttributes.parseLinkHeaders(linkHeaders);
+        final Optional<URI> metadataUri = HttpRemoteResource.calculateMetadataURI(uri, parsedLinkHeaders);
+        final boolean metadata = HttpRemoteResource.calculateIsMetadata(uri, exists, parsedLinkHeaders);;
+
+        if (Boolean.TRUE.equals(metadata)) {
+            // If this implementation uses a dot notation for meta, trim it from the path
+            final String basePath = uri.getPath().replaceAll("\\.shapetree$", "");
+
+            // Rebuild without the query string in case that was employed
+            final String associatedString = uri.getScheme() + "://" + uri.getAuthority() + basePath;
+            // @see https://github.com/xformativ/shapetrees-java/issues/86
+            final URI associatedUri = URI.create(associatedString);
+
+            final Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
+            Optional<Graph> graph;
+            if (exists && !contentType.isEmpty()) {
+                if (!HttpRemoteResource.isRdfResource(attributes)) {
+                    throw new IllegalStateException("<" + uri + "> is a metadata resource with a non-RDF Content-Type: " + contentType); }
+                try {
+                    graph = Optional.of(GraphHelper.readStringIntoGraph(uri, body, attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null)));
+                } catch (ShapeTreeException e) {
+                    throw new ShapeTreeException(500, "Unable to parse graph at " + uri.toString());
+                }
+            } else {
+                // throw new IllegalStateException("<" + uri + "> is a metadata resource but doesn't exist");
+                graph = Optional.empty();
+            }
+
+            return new ResourceConstellation.MetadataResource(uri, resourceType, attributes, body, name, exists, Optional.of(associatedUri), graph);
+        } else {
+            final boolean managed = exists && !metadataUri.isEmpty();
+            final List<String> linkHeaderValues = attributes.allValues(HttpHeaders.LINK.getValue());
+            return new ResourceConstellation.UserOwnedResource(uri, resourceType, attributes, body, name, exists, metadataUri, ResourceAttributes.parseLinkHeaders(linkHeaderValues), managed, container);
+        }
     }
 
     @Override
@@ -45,8 +121,8 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             if (containerGraph.isEmpty()) { return Collections.emptyList(); }
 
             List<Triple> containerTriples = containerGraph.get().find(NodeFactory.createURI(containerResourceURI.toString()),
-                                                                                      NodeFactory.createURI(LdpVocabulary.CONTAINS),
-                                                                                      Node.ANY).toList();
+                    NodeFactory.createURI(LdpVocabulary.CONTAINS),
+                    Node.ANY).toList();
 
             if (containerTriples.isEmpty()) { return Collections.emptyList(); }
 
@@ -58,23 +134,9 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             }
 
             return containedResources;
-
         } catch (Exception ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
-    }
-
-    @Override
-    public DocumentResponse createResource(ShapeTreeContext context, String method, URI resourceURI, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
-        log.debug("createResource via {}: URI [{}], headers [{}]", method, resourceURI, headers.toString());
-
-        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, resourceURI, allHeaders, body, contentType));
-        if (!response.exists()) {
-            throw new ShapeTreeException(500, "Unable to create pre-existing resource <" + resourceURI + ">");
-        }
-        return response;
     }
 
     @Override
@@ -101,6 +163,5 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             log.error("Error deleting resource {}, Status {}", deletedResource.getUri(), respCode);
         }
         return response;
-
     }
 }

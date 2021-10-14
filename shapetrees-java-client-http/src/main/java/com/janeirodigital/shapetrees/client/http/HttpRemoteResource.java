@@ -34,7 +34,7 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
         this.uri = uri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
-        if (this.isExists() && isRdfResource()) {
+        if (this.isExists() && isRdfResource(this.attributes)) {
             try {
                 this.graph = Optional.of(GraphHelper.readStringIntoGraph(uri, this.body, this.attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null)));
             } catch (ShapeTreeException e) {
@@ -45,10 +45,10 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
         }
     }
 
-    public Boolean isRdfResource() {
-        Optional<String> contentType = this.attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
+    public static Boolean isRdfResource(ResourceAttributes attributes) {
+        Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
         if (contentType.isPresent()) {
-            return this.supportedRDFContentTypes.contains(contentType.get());
+            return HttpRemoteResource.supportedRDFContentTypes.contains(contentType.get());
         } else {
             return false;
         }
@@ -123,7 +123,7 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
         this.name = calculateName(this.uri);
     }
 
-    private static Optional<URI> calculateMetadataURI(URI uri, ResourceAttributes parsedLinkHeaders) {
+    static Optional<URI> calculateMetadataURI(URI uri, ResourceAttributes parsedLinkHeaders) {
         final Optional<String> optLocatorString = parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue());
         if (optLocatorString.isEmpty()) {
             log.info("The resource {} does not contain a link header of {}", uri, LinkRelations.SHAPETREE_LOCATOR.getValue());
@@ -145,7 +145,7 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
         return Optional.of(URI.create(metaDataURIString));
     }
 
-    private static Boolean calculateIsMetadata(URI uri, boolean exists, ResourceAttributes parsedLinkHeaders) {
+    static Boolean calculateIsMetadata(URI uri, boolean exists, ResourceAttributes parsedLinkHeaders) {
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
         // with a metadata target, it is not a metadata resource (because it is pointing to one)
         if (Boolean.TRUE.equals(exists) && parsedLinkHeaders != null && parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isPresent()) {
@@ -156,7 +156,7 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
         return uri.getQuery() != null && uri.getQuery().matches(".*ext\\=shapetree$");
     }
 
-    private static String calculateName(URI uri) {
+    static String calculateName(URI uri) {
         String path = uri.getPath();
 
         if (path.equals("/")) return "/";

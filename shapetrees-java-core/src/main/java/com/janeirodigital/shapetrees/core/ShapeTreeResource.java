@@ -74,7 +74,7 @@ public class ShapeTreeResource {
      * @param headers to parse
      * @return
      */
-    protected static boolean isContainerFromHeaders(ResourceAttributes headers, URI uri) {
+    public static boolean isContainerFromHeaders(ResourceAttributes headers, URI uri) {
 
         List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
 
@@ -95,7 +95,7 @@ public class ShapeTreeResource {
      * @param headers to parse
      * @return
      */
-    protected static ShapeTreeResourceType getResourceTypeFromHeaders(ResourceAttributes headers) {
+    public static ShapeTreeResourceType getResourceTypeFromHeaders(ResourceAttributes headers) {
 
         List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
 
