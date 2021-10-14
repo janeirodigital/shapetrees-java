@@ -18,7 +18,7 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
             ResourceConstellation rc = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
 
-            if (rc.isMetadata() && rc.getMetadataResourceFork().isExists()) {
+            if (rc.createdFromMetadata() && rc.getMetadataResourceFork().isExists()) {
                 // If the DELETE request is for an existing shapetree metadata resource,
                 // it must be evaluated to determine if unplanting is necessary
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));
