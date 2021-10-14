@@ -110,17 +110,21 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     @Override
     public List<ResourceConstellation> getContainedResources(ShapeTreeContext context, URI containerResourceURI) throws ShapeTreeException {
         try {
-            HttpRemoteResource containerResource = new HttpRemoteResource(containerResourceURI, context.getAuthorizationHeaderValue());
+            ResourceConstellation.ResourceFork rf = this.getResource(context, containerResourceURI);
+            if (!(rf instanceof ResourceConstellation.UserOwnedResource)) {
+                throw new ShapeTreeException(500, "Cannot get contained resources for a metadata resource <" + containerResourceURI + ">");
+            }
+            ResourceConstellation.UserOwnedResource containerResource = (ResourceConstellation.UserOwnedResource) rf;
 
             if (Boolean.FALSE.equals(containerResource.isContainer())) {
-                throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container");
+                throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container <" + containerResourceURI + ">");
             }
 
-            Optional<Graph> containerGraph = containerResource.getGraph();
+            Graph containerGraph = GraphHelper.readStringIntoGraph(containerResourceURI, containerResource.getBody(), containerResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
 
             if (containerGraph.isEmpty()) { return Collections.emptyList(); }
 
-            List<Triple> containerTriples = containerGraph.get().find(NodeFactory.createURI(containerResourceURI.toString()),
+            List<Triple> containerTriples = containerGraph.find(NodeFactory.createURI(containerResourceURI.toString()),
                     NodeFactory.createURI(LdpVocabulary.CONTAINS),
                     Node.ANY).toList();
 

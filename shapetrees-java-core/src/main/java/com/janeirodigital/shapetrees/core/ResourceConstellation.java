@@ -230,6 +230,8 @@ ProjectRecursiveTests
     static public class MetadataResource extends ResourceFork {
         final protected Optional<URI> userOwnedResourceUri;
         final protected Optional<Graph> graph;
+        // TODO: move graph to ResourceFork for getContainedResources?
+        // Or keep here, make this one non-Optional, and fix test harness to have RDF Content-Type. (what about 404?)
 
         public MetadataResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> userOwnedResourceUri, Optional<Graph> graph) {
             super(uri, resourceType, attributes, body, name, exists);
