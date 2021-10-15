@@ -20,8 +20,8 @@ import java.util.function.Supplier;
 
 /* migration strategy:
    0. resolve https://github.com/xformativ/shapetrees-java/issues/86
-   1. make ResourceFork API emulate ShapeTreeResource
-   2. atomic(delete ShapeTreeResource, s/ResourceFork/ShapeTreeResource/g)
+   1. make ResourceFork API emulate ShapeTreeResource999
+   2. atomic(delete ShapeTreeResource999, s/ResourceFork/ShapeTreeResource999/g)
  */
 @Slf4j
 public class ResourceConstellation {
@@ -150,7 +150,7 @@ ProjectRecursiveTests
             this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", primaryMetadataResource, primaryResourceLocator.getGraph().toString());
         }
         // If we decide to make this mutable, we could parse the DocumentResponse (or a subsequent GET in case of non-200 success)
-        // this._init(primaryMetadataResource.uri, new ShapeTreeResource(primaryMetadataResource.uri, res));
+        // this._init(primaryMetadataResource.uri, new ShapeTreeResource999(primaryMetadataResource.uri, res));
     }
 
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized ResourceFork");

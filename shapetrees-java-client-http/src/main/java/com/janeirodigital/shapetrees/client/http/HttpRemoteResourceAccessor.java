@@ -58,11 +58,11 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         if (location.isPresent()) { uri = URI.create(location.get()); }
         // this.exists = response.exists(); !!
         final boolean exists = response.getStatusCode()/100 == 2;
-        final boolean container = ShapeTreeResource.isContainerFromHeaders(response.getResourceAttributes(), uri);
+        final boolean container = ShapeTreeResource999.isContainerFromHeaders(response.getResourceAttributes(), uri);
         final ResourceAttributes attributes = response.getResourceAttributes();
-        final ShapeTreeResourceType resourceType = ShapeTreeResource.getResourceTypeFromHeaders(response.getResourceAttributes());
+        final ShapeTreeResourceType resourceType = ShapeTreeResource999.getResourceTypeFromHeaders(response.getResourceAttributes());
 
-        final String name = HttpRemoteResource.calculateName(uri);
+        final String name = HttpRemoteResource999.calculateName(uri);
         final String body = response.getBody();
         if (response.getBody() == null) {
             log.error("Exception retrieving body string");
@@ -72,8 +72,8 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         ResourceAttributes parsedLinkHeaders = linkHeaders.size() == 0 // !!
                 ? new ResourceAttributes()
                 : ResourceAttributes.parseLinkHeaders(linkHeaders);
-        final Optional<URI> metadataUri = HttpRemoteResource.calculateMetadataURI(uri, parsedLinkHeaders);
-        final boolean metadata = HttpRemoteResource.calculateIsMetadata(uri, exists, parsedLinkHeaders);;
+        final Optional<URI> metadataUri = HttpRemoteResource999.calculateMetadataURI(uri, parsedLinkHeaders);
+        final boolean metadata = HttpRemoteResource999.calculateIsMetadata(uri, exists, parsedLinkHeaders);;
 
         if (Boolean.TRUE.equals(metadata)) {
             // If this implementation uses a dot notation for meta, trim it from the path
@@ -87,7 +87,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             final Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
             Optional<Graph> graph;
             if (exists && !contentType.isEmpty()) {
-                if (!HttpRemoteResource.isRdfResource(attributes)) {
+                if (!HttpRemoteResource999.isRdfResource(attributes)) {
                     throw new IllegalStateException("<" + uri + "> is a metadata resource with a non-RDF Content-Type: " + contentType); }
                 try {
                     graph = Optional.of(GraphHelper.readStringIntoGraph(uri, body, attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null)));

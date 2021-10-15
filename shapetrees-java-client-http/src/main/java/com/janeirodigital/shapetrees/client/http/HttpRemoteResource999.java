@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
+import com.janeirodigital.shapetrees.core.ShapeTreeResource999;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -21,7 +21,7 @@ import java.util.*;
  * web resources with convenient methods to access headers, link headers and the body as a graph
  */
 @Slf4j
-public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceAccessor*/ {
+public class HttpRemoteResource999 extends ShapeTreeResource999 /*implements ResourceAccessor*/ {
     protected static final String TEXT_TURTLE = "text/turtle";
     protected static final String APP_RDF_XML = "application/rdf+xml";
     protected static final String APP_N3 = "application/n-triples";
@@ -30,7 +30,7 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
 
     protected final String authorizationHeaderValue;
 
-    public HttpRemoteResource(URI uri, String authorizationHeaderValue) throws ShapeTreeException {
+    public HttpRemoteResource999(URI uri, String authorizationHeaderValue) throws ShapeTreeException {
         this.uri = uri;
         this.authorizationHeaderValue = authorizationHeaderValue;
         dereferenceURI();
@@ -48,7 +48,7 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
     public static Boolean isRdfResource(ResourceAttributes attributes) {
         Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
         if (contentType.isPresent()) {
-            return HttpRemoteResource.supportedRDFContentTypes.contains(contentType.get());
+            return HttpRemoteResource999.supportedRDFContentTypes.contains(contentType.get());
         } else {
             return false;
         }
@@ -56,7 +56,7 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
 
     // TODO: only referenced in HttpRemoteResourceTests; !remove
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws ShapeTreeException {
-        log.debug("HttpRemoteResource#updateGraph({})", this.uri);
+        log.debug("HttpRemoteResource999#updateGraph({})", this.uri);
 
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, updatedGraph, Lang.TURTLE);
@@ -68,12 +68,12 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
         if (Boolean.TRUE.equals(refreshResourceAfterUpdate)) {
             dereferenceURI();
         } else {
-            log.debug("HttpRemoteResource#updateGraph({}) - Invalidating Resource feature removed", this.uri);
+            log.debug("HttpRemoteResource999#updateGraph({}) - Invalidating Resource feature removed", this.uri);
         }
     }
 
     private void dereferenceURI() throws ShapeTreeException {
-        log.debug("HttpRemoteResource#dereferencingURI({})", this.uri);
+        log.debug("HttpRemoteResource999#dereferencingURI({})", this.uri);
 
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), this.authorizationHeaderValue);
@@ -98,8 +98,8 @@ public class HttpRemoteResource extends ShapeTreeResource /*implements ResourceA
         ResourceAttributes parsedLinkHeaders = linkHeaders.size() == 0 // !!
                 ? new ResourceAttributes()
                 : ResourceAttributes.parseLinkHeaders(linkHeaders);
-        Optional<URI> metadataUri = HttpRemoteResource.calculateMetadataURI(this.uri, parsedLinkHeaders);
-        this.metadata = HttpRemoteResource.calculateIsMetadata(this.uri, this.exists, parsedLinkHeaders);;
+        Optional<URI> metadataUri = HttpRemoteResource999.calculateMetadataURI(this.uri, parsedLinkHeaders);
+        this.metadata = HttpRemoteResource999.calculateIsMetadata(this.uri, this.exists, parsedLinkHeaders);;
         this.managed = true;
         if (this.metadata) { this.managed = false; }
         if (metadataUri.isEmpty()) { this.managed = false; }

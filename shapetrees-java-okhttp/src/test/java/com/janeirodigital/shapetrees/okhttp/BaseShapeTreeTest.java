@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
-import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
+import com.janeirodigital.shapetrees.client.http.HttpRemoteResource999;
 import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
 import com.janeirodigital.shapetrees.core.contentloaders.BlackWhiteList;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
 import org.opentest4j.AssertionFailedError;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -35,7 +34,7 @@ public abstract class BaseShapeTreeTest {
     }
     
     protected static void ensureExists(URI uri) throws ShapeTreeException {
-        HttpRemoteResource resource = new HttpRemoteResource(uri, null);
+        HttpRemoteResource999 resource = new HttpRemoteResource999(uri, null);
         if (!resource.isExists()) {
             throw new AssertionFailedError("Resource " + uri + " doesn't exist");
         }

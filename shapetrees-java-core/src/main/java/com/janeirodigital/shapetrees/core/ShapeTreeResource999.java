@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Getter @Slf4j
-public class ShapeTreeResource {
+public class ShapeTreeResource999 {
     protected URI uri;
     protected boolean exists;
     @Setter protected String body;
@@ -30,7 +30,7 @@ public class ShapeTreeResource {
 
     @Override
     public String toString() {
-        return "ShapeTreeResource{" +
+        return "ShapeTreeResource999{" +
                 "uri=" + this.uri +
                 ", associatedUri=" + this.associatedUri +
                 ", name='" + this.name + '\'' +
@@ -46,7 +46,7 @@ public class ShapeTreeResource {
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
-    public ShapeTreeResource(URI fetchURI, DocumentResponse response) {
+    public ShapeTreeResource999(URI fetchURI, DocumentResponse response) {
         Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
         this.uri = location.isPresent() ? URI.create(location.get()) : fetchURI;
         this.exists = response.getStatusCode()/100 == 2;
@@ -66,7 +66,7 @@ public class ShapeTreeResource {
         this.graph = Optional.empty();
     }
 
-    protected ShapeTreeResource() {
+    protected ShapeTreeResource999() {
     }
 
     /**
