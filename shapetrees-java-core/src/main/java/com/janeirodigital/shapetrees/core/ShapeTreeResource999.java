@@ -44,75 +44,7 @@ public class ShapeTreeResource999 {
                 '}';
     }
 
-    protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
-
-    public ShapeTreeResource999(URI fetchURI, DocumentResponse response) {
-        Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
-        this.uri = location.isPresent() ? URI.create(location.get()) : fetchURI;
-        this.exists = response.getStatusCode()/100 == 2;
-        this.container = isContainerFromHeaders(response.getResourceAttributes(), fetchURI);
-        this.attributes = new ResourceAttributes(response.getResourceAttributes().toMultimap());
-        this.resourceType = getResourceTypeFromHeaders(response.getResourceAttributes());
-
-        this.body = response.getBody();
-        if (response.getBody() == null) {
-            log.error("Exception retrieving body string");
-        }
-
-        this.name = null;
-        this.metadata = false;
-        this.associatedUri = Optional.empty();
-        this.managed = false;
-        this.graph = Optional.empty();
-    }
-
     protected ShapeTreeResource999() {
     }
 
-    /**
-     * Look for a Link rel=type of ldp:Container or ldp:BasicContainer
-     * @param headers to parse
-     * @return
-     */
-    public static boolean isContainerFromHeaders(ResourceAttributes headers, URI uri) {
-
-        List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
-
-        if (linkHeaders.size() == 0) { return uri.getPath().endsWith("/"); }
-
-        ResourceAttributes parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
-
-        List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
-        if (typeLinks.size() != 0) {
-            return typeLinks.contains(LdpVocabulary.CONTAINER) ||
-                    typeLinks.contains(LdpVocabulary.BASIC_CONTAINER);
-        }
-        return false;
-    }
-
-    /**
-     * Determine a resource type by parsing Link rel=type headers
-     * @param headers to parse
-     * @return
-     */
-    public static ShapeTreeResourceType getResourceTypeFromHeaders(ResourceAttributes headers) {
-
-        List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
-
-        if (linkHeaders == null) { return null; }
-
-        ResourceAttributes parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
-
-        List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
-        if (typeLinks != null &&
-                (typeLinks.contains(LdpVocabulary.CONTAINER) ||
-                        typeLinks.contains(LdpVocabulary.BASIC_CONTAINER))) {
-            return ShapeTreeResourceType.CONTAINER;
-        }
-
-        if (supportedRDFContentTypes.contains(headers.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(""))) { // orElse("") because contains(null) throw NPE
-            return ShapeTreeResourceType.RESOURCE;
-        }
-        return ShapeTreeResourceType.NON_RDF;
-    }
 }

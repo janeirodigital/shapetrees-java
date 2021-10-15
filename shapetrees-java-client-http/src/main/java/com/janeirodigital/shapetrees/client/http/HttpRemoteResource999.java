@@ -4,7 +4,7 @@ import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource999;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
-import com.janeirodigital.shapetrees.core.enums.LinkRelations;
+import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -85,9 +85,9 @@ public class HttpRemoteResource999 extends ShapeTreeResource999 /*implements Res
         if (location.isPresent()) { this.uri = URI.create(location.get()); }
         // this.exists = response.exists(); !!
         this.exists = response.getStatusCode()/100 == 2;
-        this.container = isContainerFromHeaders(response.getResourceAttributes(), this.uri);
+        this.container = HttpRemoteResourceAccessor.isContainerFromHeaders(response.getResourceAttributes(), this.uri);
         this.attributes = response.getResourceAttributes();
-        this.resourceType = getResourceTypeFromHeaders(response.getResourceAttributes());
+        this.resourceType = ShapeTreeResourceType.NON_RDF; // getResourceTypeFromHeaders(response.getResourceAttributes());
 
         this.body = response.getBody();
         if (response.getBody() == null) {
@@ -98,8 +98,8 @@ public class HttpRemoteResource999 extends ShapeTreeResource999 /*implements Res
         ResourceAttributes parsedLinkHeaders = linkHeaders.size() == 0 // !!
                 ? new ResourceAttributes()
                 : ResourceAttributes.parseLinkHeaders(linkHeaders);
-        Optional<URI> metadataUri = HttpRemoteResource999.calculateMetadataURI(this.uri, parsedLinkHeaders);
-        this.metadata = HttpRemoteResource999.calculateIsMetadata(this.uri, this.exists, parsedLinkHeaders);;
+        Optional<URI> metadataUri = HttpRemoteResourceAccessor.calculateMetadataURI(this.uri, parsedLinkHeaders);
+        this.metadata = HttpRemoteResourceAccessor.calculateIsMetadata(this.uri, this.exists, parsedLinkHeaders);;
         this.managed = true;
         if (this.metadata) { this.managed = false; }
         if (metadataUri.isEmpty()) { this.managed = false; }
@@ -120,59 +120,7 @@ public class HttpRemoteResource999 extends ShapeTreeResource999 /*implements Res
 
         }
         this.body = response.getBody();
-        this.name = calculateName(this.uri);
+        this.name = HttpRemoteResourceAccessor.calculateName(this.uri);
     }
 
-    static Optional<URI> calculateMetadataURI(URI uri, ResourceAttributes parsedLinkHeaders) {
-        final Optional<String> optLocatorString = parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue());
-        if (optLocatorString.isEmpty()) {
-            log.info("The resource {} does not contain a link header of {}", uri, LinkRelations.SHAPETREE_LOCATOR.getValue());
-            return Optional.empty();
-        }
-        String metaDataURIString = optLocatorString.get();
-        if (metaDataURIString.startsWith("/")) {
-            // If the header value doesn't include scheme/host, prefix it with the scheme & host from container
-            URI shapeTreeContainerURI = uri;
-            String portFragment;
-            if (shapeTreeContainerURI.getPort() > 0) {
-                portFragment = ":" + shapeTreeContainerURI.getPort();
-            } else {
-                portFragment = "";
-            }
-            metaDataURIString = shapeTreeContainerURI.getScheme() + "://" + shapeTreeContainerURI.getHost() + portFragment + metaDataURIString;
-        }
-
-        return Optional.of(URI.create(metaDataURIString));
-    }
-
-    static Boolean calculateIsMetadata(URI uri, boolean exists, ResourceAttributes parsedLinkHeaders) {
-        // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#ShapeTreeLocator
-        // with a metadata target, it is not a metadata resource (because it is pointing to one)
-        if (Boolean.TRUE.equals(exists) && parsedLinkHeaders != null && parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isPresent()) {
-            return false;
-        }
-        // If the resource doesn't exist, currently we need to do some inference based on the URI
-        if (uri.getPath() != null && uri.getPath().matches(".*\\.shapetree$")) { return true; }
-        return uri.getQuery() != null && uri.getQuery().matches(".*ext\\=shapetree$");
-    }
-
-    static String calculateName(URI uri) {
-        String path = uri.getPath();
-
-        if (path.equals("/")) return "/";
-
-        // if this is a container, trim the trailing slash
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-
-        int pathIndex = path.lastIndexOf('/');
-
-        // No slashes in the path
-        if (pathIndex == -1) {
-            return path;
-        }
-
-        return path.substring(path.lastIndexOf('/') + 1);
-    }
 }
