@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResource999;
+import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.javahttp.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.javahttp.fixtures.RequestMatchingFixtureDispatcher;
@@ -178,7 +179,7 @@ class HttpRemoteResourceTests extends BaseShapeTreeTest {
     void getLinkHeaders() throws URISyntaxException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        HttpRemoteResource999 resource = new HttpRemoteResource999(getURI(server, "/static/resource/resource-container-link-header"), null);
+        HttpRemoteResource999 resource = new ShapeTreeResource(getURI(server, "/static/resource/resource-container-link-header"), null);
         assertTrue(resource.isExists());
         Assertions.assertNotNull(resource.getLinkHeaders());
     }

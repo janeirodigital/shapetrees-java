@@ -26,11 +26,11 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
 
             ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
 
-            if (rc.createdFromMetadata()) {
+            if (rc.wasCreatedFromMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));
             } else {
-                ShapeTreeResource.UserOwned targetResource = rc.getUserOwnedResourceFork();
+                ShapeTreeResource.Primary targetResource = rc.getUserOwnedResourceFork();
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
                 if (targetResource.isExists()) {
                     // The target resource already exists

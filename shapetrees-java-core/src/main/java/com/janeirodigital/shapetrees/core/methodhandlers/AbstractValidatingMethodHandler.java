@@ -487,21 +487,21 @@ public abstract class AbstractValidatingMethodHandler {
 
     /**
      * Returns parent container URI for a given resource
-     * @param userOwnedResource Resource
+     * @param primaryResource Resource
      * @return URI to the resource's parent container
      */
-    protected URI getParentContainerURI(ShapeTreeResource.UserOwned userOwnedResource) {
-        return userOwnedResource.getUri().resolve(userOwnedResource.isContainer() ? ".." : ".");
+    protected URI getParentContainerURI(ShapeTreeResource.Primary primaryResource) {
+        return primaryResource.getUri().resolve(primaryResource.isContainer() ? ".." : ".");
     }
 
     /**
      * Returns resource name from a resource URI
-     * @param userOwnedResource Resource
+     * @param primaryResource Resource
      * @return Resource name
      */
-    protected String getRequestResourceName(ShapeTreeResource.UserOwned userOwnedResource) {
+    protected String getRequestResourceName(ShapeTreeResource.Primary primaryResource) {
 
-        String resourceName = userOwnedResource.getUri().toString().replace(getParentContainerURI(userOwnedResource).toString(), "");
+        String resourceName = primaryResource.getUri().toString().replace(getParentContainerURI(primaryResource).toString(), "");
 
         if (resourceName.equals("/")) { return "/"; }
 
@@ -670,7 +670,7 @@ public abstract class AbstractValidatingMethodHandler {
         }
     }
 
-    private void ensureRequestResourceIsContainer(ShapeTreeResource.UserOwned shapeTreeResource, String message) throws ShapeTreeException {
+    private void ensureRequestResourceIsContainer(ShapeTreeResource.Primary shapeTreeResource, String message) throws ShapeTreeException {
         if (!shapeTreeResource.isContainer()) {
             throw new ShapeTreeException(400, message);
         }
@@ -679,7 +679,7 @@ public abstract class AbstractValidatingMethodHandler {
     // TODO: #87: this could be called with foo.ttl?ext=shapeTree @see https://github.com/xformativ/shapetrees-java/issues/87
     private void ensureTargetUserResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URI targetResourceURI, String message) throws ShapeTreeException {
         ShapeTreeResource targetResource = new ShapeTreeResource(targetResourceURI, this.resourceAccessor, shapeTreeContext);
-        if (targetResource.createdFromMetadata() || targetResource.getUserOwnedResourceFork().isExists()) {
+        if (targetResource.wasCreatedFromMetadata() || targetResource.getUserOwnedResourceFork().isExists()) {
             throw new ShapeTreeException(409, message);
         }
     }

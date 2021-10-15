@@ -24,14 +24,14 @@ public class ShapeTreeResource {
     // access parameters
     final protected ResourceAccessor _resourceAccessor;
     final protected ShapeTreeContext _shapeTreeContext;
-    final protected boolean _createFromMetadata;
+    final protected boolean _wasCreateFromMetadata;
 
     // components
-    private Optional<UserOwned> userOwnedResource = Optional.empty();
+    private Optional<Primary> userOwnedResource = Optional.empty();
     private Optional<Metadata> metadataResource = Optional.empty();
 
     // simple getters
-    public boolean createdFromMetadata() { return this._createFromMetadata; }
+    public boolean wasCreatedFromMetadata() { return this._wasCreateFromMetadata; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     // constructors
@@ -39,11 +39,11 @@ public class ShapeTreeResource {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
         if (str instanceof Metadata) {
-            this._createFromMetadata = true;
+            this._wasCreateFromMetadata = true;
             this.metadataResource = Optional.of((Metadata) str);
         } else {
-            this._createFromMetadata = false;
-            this.userOwnedResource = Optional.of((UserOwned) str);
+            this._wasCreateFromMetadata = false;
+            this.userOwnedResource = Optional.of((Primary) str);
         }
     }
     public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
@@ -54,8 +54,8 @@ public class ShapeTreeResource {
     }
 
     // Get resource forks
-    public UserOwned getUserOwnedResourceFork() throws ShapeTreeException {
-        UserOwned uor;
+    public Primary getUserOwnedResourceFork() throws ShapeTreeException {
+        Primary uor;
         if (this.userOwnedResource.isEmpty()) {
             Metadata mr = this.metadataResource.orElseThrow(unintialized_resourceFork);
             /* TODO: #86 @see https://github.com/xformativ/shapetrees-java/issues/86
@@ -79,10 +79,10 @@ ProjectRecursiveTests
 //            }
             URI uri = mr.getUserOwnedResourceUri();
             Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
-            if (str instanceof UserOwned) {
-                this.userOwnedResource = Optional.of(uor = (UserOwned) str);
+            if (str instanceof Primary) {
+                this.userOwnedResource = Optional.of(uor = (Primary) str);
             } else {
-                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a UserOwned");
+                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a Primary");
             }
         } else {
             uor = this.userOwnedResource.get();
@@ -93,7 +93,7 @@ ProjectRecursiveTests
     public Metadata getMetadataResourceFork() throws ShapeTreeException {
         Metadata mr;
         if (this.metadataResource.isEmpty()) {
-//            UserOwned uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
+//            Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
 //            if (... no shapeTreeMetadataURIForResource ...) {
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
 //            }
@@ -102,7 +102,7 @@ ProjectRecursiveTests
             if (str instanceof Metadata) {
                 this.metadataResource = Optional.of(mr = (Metadata) str);
             } else {
-                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a UserOwned");
+                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a Primary");
             }
         } else {
             mr = this.metadataResource.get();
@@ -111,7 +111,7 @@ ProjectRecursiveTests
     }
 
     protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
-        UserOwned uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
+        Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
         final List<String> linkHeaderValues = uor.attributes.allValues(HttpHeaders.LINK.getValue());
         ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
 
@@ -187,11 +187,11 @@ ProjectRecursiveTests
         }
     }
 
-    static public class UserOwned extends Fork {
+    static public class Primary extends Fork {
         final protected Optional<URI> metadataResourceUri;
         final protected boolean _container;
 
-        public UserOwned(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, boolean isContainer) {
+        public Primary(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, boolean isContainer) {
             super(uri, resourceType, attributes, body, name, exists);
             this.metadataResourceUri = metadataResourceUri;
             this._container = isContainer;

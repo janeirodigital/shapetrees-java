@@ -86,7 +86,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             final Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
             return new ShapeTreeResource.Metadata(uri, resourceType, attributes, body, name, exists, userOwnedResourceUri);
         } else {
-            return new ShapeTreeResource.UserOwned(uri, resourceType, attributes, body, name, exists, metadataUri, container);
+            return new ShapeTreeResource.Primary(uri, resourceType, attributes, body, name, exists, metadataUri, container);
         }
     }
 
@@ -94,10 +94,10 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     public List<ShapeTreeResource> getContainedResources(ShapeTreeContext context, URI containerResourceURI) throws ShapeTreeException {
         try {
             ShapeTreeResource.Fork rf = this.getResource(context, containerResourceURI);
-            if (!(rf instanceof ShapeTreeResource.UserOwned)) {
+            if (!(rf instanceof ShapeTreeResource.Primary)) {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a metadata resource <" + containerResourceURI + ">");
             }
-            ShapeTreeResource.UserOwned containerResource = (ShapeTreeResource.UserOwned) rf;
+            ShapeTreeResource.Primary containerResource = (ShapeTreeResource.Primary) rf;
 
             if (Boolean.FALSE.equals(containerResource.isContainer())) {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container <" + containerResourceURI + ">");
