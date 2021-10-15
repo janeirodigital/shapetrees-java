@@ -3,7 +3,6 @@ package com.janeirodigital.shapetrees.okhttp;
 import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.contentloaders.BlackWhiteList;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
