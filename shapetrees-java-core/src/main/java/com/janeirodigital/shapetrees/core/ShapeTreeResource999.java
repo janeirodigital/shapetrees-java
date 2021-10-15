@@ -62,7 +62,7 @@ public class ShapeTreeResource999 {
         this.name = null;
         this.metadata = false;
         this.associatedUri = Optional.empty();
-        this.managed = false; // TODO: Wasn't set before. playing with values
+        this.managed = false;
         this.graph = Optional.empty();
     }
 

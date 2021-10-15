@@ -54,7 +54,7 @@ public class HttpRemoteResource999 extends ShapeTreeResource999 /*implements Res
         }
     }
 
-    // TODO: only referenced in HttpRemoteResourceTests; !remove
+    // TODO: Test: only referenced in HttpRemoteResourceTests; !remove
     public void updateGraph(Graph updatedGraph, Boolean refreshResourceAfterUpdate, String authorizationHeaderValue) throws ShapeTreeException {
         log.debug("HttpRemoteResource999#updateGraph({})", this.uri);
 

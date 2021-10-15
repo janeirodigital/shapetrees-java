@@ -58,7 +58,7 @@ public class ShapeTreeResource {
         UserOwned uor;
         if (this.userOwnedResource.isEmpty()) {
             Metadata mr = this.metadataResource.orElseThrow(unintialized_resourceFork);
-            /* TODO: @see https://github.com/xformativ/shapetrees-java/issues/86
+            /* TODO: #86 @see https://github.com/xformativ/shapetrees-java/issues/86
 MedicalRecordTests
   plantConditionShapeTree()
   plantMedicalRecord()
@@ -126,7 +126,7 @@ ProjectRecursiveTests
             final URL base = new URL(uor.uri.toString());
             final URL resolved = new URL(base, metaDataURIString);
             return URI.create(resolved.toString());
-        } catch (MalformedURLException e) { // TODO: vet this
+        } catch (MalformedURLException e) { // TODO: Spec/API: vet this
             // throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
             // If we can't do relative URL resolution, assume that the locator is a URI and we have some other means of resolving it.
             return URI.create(metaDataURIString);
@@ -150,7 +150,7 @@ ProjectRecursiveTests
 
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized Fork");
 
-    static public class Fork { // TODO: abstract with helpful toString() for error messages
+    static public class Fork {
         final protected URI uri;
         final protected ShapeTreeResourceType resourceType;
         final protected ResourceAttributes attributes;
@@ -207,8 +207,6 @@ ProjectRecursiveTests
 
     static public class Metadata extends Fork {
         final protected URI userOwnedResourceUri;
-        // TODO: move graph to Fork for getContainedResources?
-        // Or keep here, make this one non-Optional, and fix test harness to have RDF Content-Type. (what about 404?)
 
         public Metadata(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URI userOwnedResourceUri) {
             super(uri, resourceType, attributes, body, name, exists);

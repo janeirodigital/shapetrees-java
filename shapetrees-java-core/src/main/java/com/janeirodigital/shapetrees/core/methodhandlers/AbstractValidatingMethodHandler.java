@@ -65,7 +65,7 @@ public abstract class AbstractValidatingMethodHandler {
             if (validationResponse.isPresent()) { return validationResponse.get(); }
         }
 
-        // TODO: Need a test with reduce and updated delta to make sure we never return success from plant or unplant.
+        // TODO: Test: Need a test with reduce and updated delta to make sure we never return success from plant or unplant.
 
         return successfulValidation();
     }
@@ -107,7 +107,7 @@ public abstract class AbstractValidatingMethodHandler {
         return Optional.empty();
     }
 
-    // TODO: this could be called with foo.ttl?ext=shapeTree @see https://github.com/xformativ/shapetrees-java/issues/87
+    // TODO: #87: this could be called with foo.ttl?ext=shapeTree @see https://github.com/xformativ/shapetrees-java/issues/87
     protected Optional<DocumentResponse> createShapeTreeInstance(ShapeTreeResource targetResource, ShapeTreeResource containerResource, ShapeTreeRequest shapeTreeRequest, String proposedName) throws URISyntaxException, ShapeTreeException {
         // Sanity check user-owned resource @@ delete 'cause type checks
         ensureShapeTreeResourceExists(containerResource.getUserOwnedResourceFork(),"Target container for resource creation not found");
@@ -353,7 +353,7 @@ public abstract class AbstractValidatingMethodHandler {
         boolean resourceAlreadyExists = existingResource.getUserOwnedResourceFork().isExists();
         if ((shapeTreeRequest.getMethod().equals(PUT) || shapeTreeRequest.getMethod().equals(PATCH)) && resourceAlreadyExists) {
             isContainer = existingResource.getUserOwnedResourceFork().isContainer();
-        } else if (shapeTreeRequest.getLinkHeaders() != null) { // TODO: getLinkHeaders guesses from trailing '/' if no link headers
+        } else if (shapeTreeRequest.getLinkHeaders() != null) {
             isContainer = getIsContainerFromRequest(shapeTreeRequest);
         }
 
@@ -654,14 +654,6 @@ public abstract class AbstractValidatingMethodHandler {
 
     }
 
-    public static URI getContainerUri (ShapeTreeRequest shapeTreeRequest) {
-        URI targetContainerUri = shapeTreeRequest.getURI().resolve(".");
-        if (shapeTreeRequest.getResourceType() != null && shapeTreeRequest.getResourceType().equals(ShapeTreeResourceType.CONTAINER)) {
-            targetContainerUri = shapeTreeRequest.getURI().resolve("..");
-        }
-        return targetContainerUri;
-    }
-
     private void ensureValidationResultIsUsableForAssignment(ValidationResult validationResult, String message) throws ShapeTreeException {
         // Null is a usable state of the validation result in the context of assignment
         if (validationResult != null &&
@@ -684,7 +676,7 @@ public abstract class AbstractValidatingMethodHandler {
         }
     }
 
-    // TODO: this could be called with foo.ttl?ext=shapeTree @see https://github.com/xformativ/shapetrees-java/issues/87
+    // TODO: #87: this could be called with foo.ttl?ext=shapeTree @see https://github.com/xformativ/shapetrees-java/issues/87
     private void ensureTargetUserResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URI targetResourceURI, String message) throws ShapeTreeException {
         ShapeTreeResource targetResource = new ShapeTreeResource(targetResourceURI, this.resourceAccessor, shapeTreeContext);
         if (targetResource.createdFromMetadata() || targetResource.getUserOwnedResourceFork().isExists()) {

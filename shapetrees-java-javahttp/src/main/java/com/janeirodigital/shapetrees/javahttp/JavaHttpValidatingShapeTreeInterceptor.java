@@ -72,7 +72,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         }
     }
 
-    // TODO: Update to a simple JSON-LD body
+    // TODO: Spec/API: send error response as a structured JSON-LD body
     private java.net.http.HttpResponse createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest) {
         // java.net.http.ResourceAttributes headers = new java.net.http.ResourceAttributes();
         // headers.set("Content-type", "text/plain");

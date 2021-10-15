@@ -34,9 +34,8 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
                     // The target resource doesn't exist
                     ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerURI(targetResource), this.resourceAccessor, shapeTreeContext);
                     if (!parentResource.getUserOwnedResourceFork().getMetadataResourceUri().isEmpty()) {
-                        ShapeTreeResource containerResource = new ShapeTreeResource(getContainerUri(shapeTreeRequest), this.resourceAccessor, shapeTreeContext); // TODO: re-use parentResource
                         // If the parent container is managed by a shape tree, the resource to create must be validated
-                        return createShapeTreeInstance(rc, containerResource, shapeTreeRequest, getRequestResourceName(targetResource));
+                        return createShapeTreeInstance(rc, parentResource, shapeTreeRequest, getRequestResourceName(targetResource));
                     }
                 }
             }
