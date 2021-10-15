@@ -7,10 +7,12 @@ import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
@@ -80,12 +82,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             return Optional.empty();
         }
 
+        Graph locatorGraph = GraphHelper.readStringIntoGraph(metadataUri, locatorResource.getBody(), locatorResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+
         // Populate a ShapeTreeLocator from the graph in locatorResource and return it
-        return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(
-                metadataUri,
-                locatorResource.getGraph().orElseThrow(
-                        () -> new ShapeTreeException(500, "No RDF graph in metadata for <" + userOwnedResource.getUri() + ">")
-                ))
+        return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri, locatorGraph)
         );
     }
 

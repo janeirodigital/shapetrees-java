@@ -80,26 +80,12 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             final String basePath = uri.getPath().replaceAll("\\.shapetree$", "");
 
             // Rebuild without the query string in case that was employed
-            final String associatedString = uri.getScheme() + "://" + uri.getAuthority() + basePath;
+            final String userOwnedResourceUriString = uri.getScheme() + "://" + uri.getAuthority() + basePath;
             // @see https://github.com/xformativ/shapetrees-java/issues/86
-            final URI associatedUri = URI.create(associatedString);
+            final URI userOwnedResourceUri = URI.create(userOwnedResourceUriString);
 
             final Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
-            Optional<Graph> graph;
-            if (exists && !contentType.isEmpty()) {
-                if (!HttpRemoteResource999.isRdfResource(attributes)) {
-                    throw new IllegalStateException("<" + uri + "> is a metadata resource with a non-RDF Content-Type: " + contentType); }
-                try {
-                    graph = Optional.of(GraphHelper.readStringIntoGraph(uri, body, attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null)));
-                } catch (ShapeTreeException e) {
-                    throw new ShapeTreeException(500, "Unable to parse graph at " + uri.toString());
-                }
-            } else {
-                // throw new IllegalStateException("<" + uri + "> is a metadata resource but doesn't exist");
-                graph = Optional.empty();
-            }
-
-            return new ShapeTreeResource.Metadata(uri, resourceType, attributes, body, name, exists, Optional.of(associatedUri), graph);
+            return new ShapeTreeResource.Metadata(uri, resourceType, attributes, body, name, exists, userOwnedResourceUri);
         } else {
             final boolean managed = exists && !metadataUri.isEmpty();
             return new ShapeTreeResource.UserOwned(uri, resourceType, attributes, body, name, exists, metadataUri, managed, container);

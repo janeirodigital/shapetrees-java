@@ -7,7 +7,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.jena.graph.Graph;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -78,7 +77,7 @@ ProjectRecursiveTests
 //            if (... no userOwnedResourceUri ...) {
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.uri + ">");
 //            }
-            URI uri = mr.getUserOwnedResourceUri().get();
+            URI uri = mr.getUserOwnedResourceUri();
             Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
             if (str instanceof UserOwned) {
                 this.userOwnedResource = Optional.of(uor = (UserOwned) str);
@@ -212,22 +211,17 @@ ProjectRecursiveTests
     }
 
     static public class Metadata extends Fork {
-        final protected Optional<URI> userOwnedResourceUri;
-        final protected Optional<Graph> graph;
+        final protected URI userOwnedResourceUri;
         // TODO: move graph to Fork for getContainedResources?
         // Or keep here, make this one non-Optional, and fix test harness to have RDF Content-Type. (what about 404?)
 
-        public Metadata(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> userOwnedResourceUri, Optional<Graph> graph) {
+        public Metadata(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URI userOwnedResourceUri) {
             super(uri, resourceType, attributes, body, name, exists);
             this.userOwnedResourceUri = userOwnedResourceUri;
-            this.graph = graph;
         }
 
-        public Optional<URI> getUserOwnedResourceUri() {
+        public URI getUserOwnedResourceUri() {
             return this.userOwnedResourceUri;
-        }
-        public Optional<Graph> getGraph() {
-            return this.graph;
         }
     }
 }
