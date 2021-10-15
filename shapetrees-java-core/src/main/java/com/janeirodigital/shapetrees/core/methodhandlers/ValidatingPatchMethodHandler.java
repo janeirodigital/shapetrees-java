@@ -34,14 +34,14 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
                 if (targetResource.isExists()) {
                     // The target resource already exists
-                    if (targetResource.isManaged()) {
+                    if (!targetResource.getMetadataResourceUri().isEmpty()) {
                         // If it is managed by a shape tree the update must be validated
                         return updateShapeTreeInstance(rc, shapeTreeContext, shapeTreeRequest);
                     }
                 } else {
                     // The target resource doesn't exist
                     ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerURI(targetResource), this.resourceAccessor, shapeTreeContext);
-                    if (targetResource.isManaged()) {
+                    if (!targetResource.getMetadataResourceUri().isEmpty()) {
                         ShapeTreeResource containerResource = new ShapeTreeResource(getContainerUri(shapeTreeRequest), this.resourceAccessor, shapeTreeContext);
                         // If the parent container is managed by a shape tree, the resource to create must be validated
                         return createShapeTreeInstance(rc, containerResource, shapeTreeRequest, getRequestResourceName(targetResource));

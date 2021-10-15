@@ -189,21 +189,16 @@ ProjectRecursiveTests
 
     static public class UserOwned extends Fork {
         final protected Optional<URI> metadataResourceUri;
-        final protected boolean _isManaged;
         final protected boolean _container;
 
-        public UserOwned(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, boolean isManaged, boolean isContainer) {
+        public UserOwned(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, boolean isContainer) {
             super(uri, resourceType, attributes, body, name, exists);
             this.metadataResourceUri = metadataResourceUri;
-            this._isManaged = isManaged;
             this._container = isContainer;
         }
 
         public Optional<URI> getMetadataResourceUri() {
             return this.metadataResourceUri;
-        }
-        public boolean isManaged() { // TODO: test !isManaged.
-            return this._isManaged;
         }
         public boolean isContainer() {
             return this._container;
