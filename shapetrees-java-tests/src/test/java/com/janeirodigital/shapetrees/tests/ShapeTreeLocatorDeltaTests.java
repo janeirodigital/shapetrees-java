@@ -249,6 +249,52 @@ class ShapeTreeLocatorDeltaTests {
         
     }
 
+    @Test
+    @Label("Compare two null locators")
+    void compareTwoNullLocators() {
+        Assertions.assertThrows(ShapeTreeException.class, () -> ShapeTreeLocatorDelta.evaluate(null, null));
+    }
+
+    @SneakyThrows
+    @Test
+    @Label("Check null values on updated locator")
+    void checkNullsOnUpdatedLocator() {
+
+        existingLocator.addShapeTreeLocation(locationOne);
+        existingLocator.addShapeTreeLocation(locationTwo);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, null);
+        Assertions.assertTrue(delta.allRemoved());
+
+        updatedLocator.getLocations().clear();
+        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        Assertions.assertTrue(delta.allRemoved());
+
+        updatedLocator.setLocations(null);
+        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        Assertions.assertTrue(delta.allRemoved());
+
+    }
+
+    @SneakyThrows
+    @Test
+    @Label("Check null values on existing locator")
+    void checkNullsOnExistingLocator() {
+
+        updatedLocator.addShapeTreeLocation(locationOne);
+        updatedLocator.addShapeTreeLocation(locationTwo);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(null, updatedLocator);
+        Assertions.assertTrue(delta.isUpdated());
+
+        existingLocator.getLocations().clear();
+        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        Assertions.assertTrue(delta.isUpdated());
+
+        existingLocator.setLocations(null);
+        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        Assertions.assertTrue(delta.isUpdated());
+
+    }
+
     private ShapeTreeLocation duplicateLocation(ShapeTreeLocation location) {
 
         ShapeTreeLocation duplicateLocation = new ShapeTreeLocation();
