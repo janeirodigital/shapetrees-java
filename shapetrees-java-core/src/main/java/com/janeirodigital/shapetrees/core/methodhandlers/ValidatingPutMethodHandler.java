@@ -22,7 +22,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));
             } else {
-                ShapeTreeResource.UserOwnedResource targetResource = rc.getUserOwnedResourceFork();
+                ShapeTreeResource.UserOwned targetResource = rc.getUserOwnedResourceFork();
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
                 if (targetResource.isExists()) {
                     // The target resource already exists

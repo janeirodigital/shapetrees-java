@@ -17,11 +17,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-/* migration strategy:
-   0. resolve https://github.com/xformativ/shapetrees-java/issues/86
-   1. make ResourceFork API emulate ShapeTreeResource999
-   2. atomic(delete ShapeTreeResource999, s/ResourceFork/ShapeTreeResource999/g)
- */
 @Slf4j
 public class ShapeTreeResource {
     public static final String TEXT_TURTLE = "text/turtle";
@@ -29,26 +24,26 @@ public class ShapeTreeResource {
     // access parameters
     final protected ResourceAccessor _resourceAccessor;
     final protected ShapeTreeContext _shapeTreeContext;
-    protected boolean _createFromMetadata;
+    final protected boolean _createFromMetadata;
 
     // components
-    private Optional<UserOwnedResource> userOwnedResource = Optional.empty();
-    private Optional<MetadataResource> metadataResource = Optional.empty();
+    private Optional<UserOwned> userOwnedResource = Optional.empty();
+    private Optional<Metadata> metadataResource = Optional.empty();
 
     // simple getters
     public boolean createdFromMetadata() { return this._createFromMetadata; }
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     // constructors
-    private ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ResourceFork str) {
+    private ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Fork str) {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
-        if (str instanceof MetadataResource) {
+        if (str instanceof Metadata) {
             this._createFromMetadata = true;
-            this.metadataResource = Optional.of((MetadataResource) str);
+            this.metadataResource = Optional.of((Metadata) str);
         } else {
             this._createFromMetadata = false;
-            this.userOwnedResource = Optional.of((UserOwnedResource) str);
+            this.userOwnedResource = Optional.of((UserOwned) str);
         }
     }
     public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
@@ -59,10 +54,10 @@ public class ShapeTreeResource {
     }
 
     // Get resource forks
-    public UserOwnedResource getUserOwnedResourceFork() throws ShapeTreeException {
-        UserOwnedResource uor;
+    public UserOwned getUserOwnedResourceFork() throws ShapeTreeException {
+        UserOwned uor;
         if (this.userOwnedResource.isEmpty()) {
-            MetadataResource mr = this.metadataResource.orElseThrow(unintialized_resourceFork);
+            Metadata mr = this.metadataResource.orElseThrow(unintialized_resourceFork);
             /* TODO: @see https://github.com/xformativ/shapetrees-java/issues/86
 MedicalRecordTests
   plantConditionShapeTree()
@@ -83,11 +78,11 @@ ProjectRecursiveTests
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.uri + ">");
 //            }
             URI uri = mr.getUserOwnedResourceUri().get();
-            ResourceFork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
-            if (str instanceof UserOwnedResource) {
-                this.userOwnedResource = Optional.of(uor = (UserOwnedResource) str);
+            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            if (str instanceof UserOwned) {
+                this.userOwnedResource = Optional.of(uor = (UserOwned) str);
             } else {
-                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a UserOwnedResource");
+                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a UserOwned");
             }
         } else {
             uor = this.userOwnedResource.get();
@@ -95,19 +90,19 @@ ProjectRecursiveTests
         return uor;
     }
 
-    public MetadataResource getMetadataResourceFork() throws ShapeTreeException {
-        MetadataResource mr;
+    public Metadata getMetadataResourceFork() throws ShapeTreeException {
+        Metadata mr;
         if (this.metadataResource.isEmpty()) {
-//            UserOwnedResource uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
+//            UserOwned uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
 //            if (... no shapeTreeMetadataURIForResource ...) {
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
 //            }
             final URI uri = this.getShapeTreeMetadataURIForResource();
-            ResourceFork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
-            if (str instanceof MetadataResource) {
-                this.metadataResource = Optional.of(mr = (MetadataResource) str);
+            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            if (str instanceof Metadata) {
+                this.metadataResource = Optional.of(mr = (Metadata) str);
             } else {
-                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a UserOwnedResource");
+                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a UserOwned");
             }
         } else {
             mr = this.metadataResource.get();
@@ -116,7 +111,7 @@ ProjectRecursiveTests
     }
 
     protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
-        UserOwnedResource uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
+        UserOwned uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
         ResourceAttributes linkHeaders = uor.linkHeaders;
 
         if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
@@ -138,7 +133,7 @@ ProjectRecursiveTests
     }
 
     public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
-        MetadataResource primaryMetadataResource = this.getMetadataResourceFork();
+        Metadata primaryMetadataResource = this.getMetadataResourceFork();
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
             ResourceAttributes headers = new ResourceAttributes();
@@ -152,8 +147,9 @@ ProjectRecursiveTests
         // this._init(primaryMetadataResource.uri, new ShapeTreeResource999(primaryMetadataResource.uri, res));
     }
 
-    static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized ResourceFork");
-    static public class ResourceFork { // TODO: abstract with helpful toString() for error messages
+    static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized Fork");
+
+    static public class Fork { // TODO: abstract with helpful toString() for error messages
         final protected URI uri;
         final protected ShapeTreeResourceType resourceType;
         final protected ResourceAttributes attributes;
@@ -161,7 +157,7 @@ ProjectRecursiveTests
         final protected String name;
         final protected boolean exists;
 
-        ResourceFork(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
+        Fork(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
             this.uri = uri;
             this.resourceType = resourceType;
             this.attributes = attributes;
@@ -173,35 +169,30 @@ ProjectRecursiveTests
         public URI getUri() {
             return this.uri;
         }
-
         public ShapeTreeResourceType getResourceType() {
             return this.resourceType;
         }
-
         public ResourceAttributes getAttributes() {
             return this.attributes;
         }
-
         public String getBody() {
             return this.body;
         }
-
         public String getName() {
             return this.name;
         }
-
         public boolean isExists() {
             return this.exists;
         }
     }
 
-    static public class UserOwnedResource extends ResourceFork {
+    static public class UserOwned extends Fork {
         final protected Optional<URI> metadataResourceUri;
         final protected ResourceAttributes linkHeaders;
         final protected boolean _isManaged;
         final protected boolean _container;
 
-        public UserOwnedResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, ResourceAttributes linkHeaders, boolean isManaged, boolean isContainer) {
+        public UserOwned(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, ResourceAttributes linkHeaders, boolean isManaged, boolean isContainer) {
             super(uri, resourceType, attributes, body, name, exists);
             this.metadataResourceUri = metadataResourceUri;
             this.linkHeaders = linkHeaders;
@@ -212,27 +203,22 @@ ProjectRecursiveTests
         public Optional<URI> getMetadataResourceUri() {
             return this.metadataResourceUri;
         }
-
-        public ResourceAttributes getLinkHeaders() {
-            return this.linkHeaders;
-        }
-
+        public ResourceAttributes getLinkHeaders() { return this.linkHeaders; }
         public boolean isManaged() { // TODO: test !isManaged.
             return this._isManaged;
         }
-
         public boolean isContainer() {
             return this._container;
         }
     }
 
-    static public class MetadataResource extends ResourceFork {
+    static public class Metadata extends Fork {
         final protected Optional<URI> userOwnedResourceUri;
         final protected Optional<Graph> graph;
-        // TODO: move graph to ResourceFork for getContainedResources?
+        // TODO: move graph to Fork for getContainedResources?
         // Or keep here, make this one non-Optional, and fix test harness to have RDF Content-Type. (what about 404?)
 
-        public MetadataResource(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> userOwnedResourceUri, Optional<Graph> graph) {
+        public Metadata(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> userOwnedResourceUri, Optional<Graph> graph) {
             super(uri, resourceType, attributes, body, name, exists);
             this.userOwnedResourceUri = userOwnedResourceUri;
             this.graph = graph;
@@ -241,7 +227,6 @@ ProjectRecursiveTests
         public Optional<URI> getUserOwnedResourceUri() {
             return this.userOwnedResourceUri;
         }
-
         public Optional<Graph> getGraph() {
             return this.graph;
         }
