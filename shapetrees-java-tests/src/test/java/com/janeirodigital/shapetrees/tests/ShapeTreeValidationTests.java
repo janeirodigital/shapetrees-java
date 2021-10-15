@@ -177,8 +177,10 @@ class ShapeTreeValidationTests {
 
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/validation/shapetree#MissingShapeSchemaTree"));
 
+        Graph fooBodyGraph = getFooBodyGraph(getURI(server, "/validation/valid-resource"));
+
         // Catch exception thrown when a shape in a shape tree cannot be found
-        Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(getURI(server, "/validation/valid-resource")), getURI(server, "/validation/valid-resource#foo")));
+        Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, fooBodyGraph, getURI(server, "/validation/valid-resource#foo")));
 
     }
 
@@ -192,8 +194,10 @@ class ShapeTreeValidationTests {
 
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/validation/shapetree#InvalidShapeSchemaTree"));
 
+        Graph fooBodyGraph = getFooBodyGraph(getURI(server, "/validation/valid-resource"));
+
         // Catch exception thrown when a shape in a shape tree is invalid
-        Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(getURI(server, "/validation/valid-resource")), getURI(server, "/validation/valid-resource#foo")));
+        Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, fooBodyGraph, getURI(server, "/validation/valid-resource#foo")));
 
     }
 
