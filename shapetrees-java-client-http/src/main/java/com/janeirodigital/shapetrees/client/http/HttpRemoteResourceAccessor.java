@@ -102,8 +102,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             return new ShapeTreeResource.Metadata(uri, resourceType, attributes, body, name, exists, Optional.of(associatedUri), graph);
         } else {
             final boolean managed = exists && !metadataUri.isEmpty();
-            final List<String> linkHeaderValues = attributes.allValues(HttpHeaders.LINK.getValue());
-            return new ShapeTreeResource.UserOwned(uri, resourceType, attributes, body, name, exists, metadataUri, ResourceAttributes.parseLinkHeaders(linkHeaderValues), managed, container);
+            return new ShapeTreeResource.UserOwned(uri, resourceType, attributes, body, name, exists, metadataUri, managed, container);
         }
     }
 

@@ -14,6 +14,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -112,7 +113,8 @@ ProjectRecursiveTests
 
     protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
         UserOwned uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
-        ResourceAttributes linkHeaders = uor.linkHeaders;
+        final List<String> linkHeaderValues = uor.attributes.allValues(HttpHeaders.LINK.getValue());
+        ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
 
         if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", uor.uri, LinkRelations.SHAPETREE_LOCATOR.getValue());
@@ -188,14 +190,12 @@ ProjectRecursiveTests
 
     static public class UserOwned extends Fork {
         final protected Optional<URI> metadataResourceUri;
-        final protected ResourceAttributes linkHeaders;
         final protected boolean _isManaged;
         final protected boolean _container;
 
-        public UserOwned(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, ResourceAttributes linkHeaders, boolean isManaged, boolean isContainer) {
+        public UserOwned(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, boolean isManaged, boolean isContainer) {
             super(uri, resourceType, attributes, body, name, exists);
             this.metadataResourceUri = metadataResourceUri;
-            this.linkHeaders = linkHeaders;
             this._isManaged = isManaged;
             this._container = isContainer;
         }
@@ -203,7 +203,6 @@ ProjectRecursiveTests
         public Optional<URI> getMetadataResourceUri() {
             return this.metadataResourceUri;
         }
-        public ResourceAttributes getLinkHeaders() { return this.linkHeaders; }
         public boolean isManaged() { // TODO: test !isManaged.
             return this._isManaged;
         }
