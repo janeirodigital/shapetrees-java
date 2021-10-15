@@ -22,7 +22,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource
-            ResourceConstellation targetContainer = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource targetContainer = new ShapeTreeResource(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
 
             // Get resource name from the slug or default to UUID
             String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeaders.SLUG.getValue()).orElse(UUID.randomUUID().toString());

@@ -14,7 +14,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -24,7 +23,7 @@ import java.util.function.Supplier;
    2. atomic(delete ShapeTreeResource999, s/ResourceFork/ShapeTreeResource999/g)
  */
 @Slf4j
-public class ResourceConstellation {
+public class ShapeTreeResource {
     public static final String TEXT_TURTLE = "text/turtle";
 
     // access parameters
@@ -41,7 +40,7 @@ public class ResourceConstellation {
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     // constructors
-    private ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ResourceFork str) {
+    private ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ResourceFork str) {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
         if (str instanceof MetadataResource) {
@@ -52,10 +51,10 @@ public class ResourceConstellation {
             this.userOwnedResource = Optional.of((UserOwnedResource) str);
         }
     }
-    public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
+    public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, uri));
     }
-    public ResourceConstellation(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+    public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
         this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
     }
 

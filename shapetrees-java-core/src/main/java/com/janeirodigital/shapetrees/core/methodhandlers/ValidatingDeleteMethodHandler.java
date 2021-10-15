@@ -16,7 +16,7 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
     @Override
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
-            ResourceConstellation rc = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
 
             if (rc.createdFromMetadata() && rc.getMetadataResourceFork().isExists()) {
                 // If the DELETE request is for an existing shapetree metadata resource,
