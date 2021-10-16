@@ -40,3 +40,5 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
