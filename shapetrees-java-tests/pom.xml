@@ -74,7 +74,6 @@
                 <executions>
                     <execution>
                         <id>Jar Tests Package</id>
-                        <phase>package</phase>
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
