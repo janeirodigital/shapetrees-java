@@ -119,18 +119,6 @@ public class JavaHttpClient implements HttpClient {
                 if (headerList.length > 0) {
                     requestBuilder.headers(headerList);
                 }
-                /* TODO: decide between above and below. Above requires prescient knowledge of illegal client
-                   headers (which tend to be there 'cause we re-use the server headers as client headers.
-                for (Map.Entry<String, List<String>> entry : request.headers.toMultimap().entrySet()){
-                    for (String value : entry.getValue()) {
-                        try {
-                            requestBuilder.header(entry.getKey(), value);
-                        } catch (IllegalArgumentException ex) {
-                            // current illegal client headers: connection, content-length, date, expect, from, host, upgrade, via, warning
-                        }
-                    }
-                }
-                 */
             }
 
             switch (request.method) {

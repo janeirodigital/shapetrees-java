@@ -126,7 +126,7 @@ ProjectRecursiveTests
             final URL base = new URL(uor.uri.toString());
             final URL resolved = new URL(base, metaDataURIString);
             return URI.create(resolved.toString());
-        } catch (MalformedURLException e) { // TODO: Spec/API: vet this
+        } catch (MalformedURLException e) { // TODO: ACTION: ericP to migrate everything to URLs
             // throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
             // If we can't do relative URL resolution, assume that the locator is a URI and we have some other means of resolving it.
             return URI.create(metaDataURIString);
