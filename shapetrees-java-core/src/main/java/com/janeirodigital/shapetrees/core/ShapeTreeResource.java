@@ -144,8 +144,6 @@ ProjectRecursiveTests
             // Update the existing metadata resource for the primary resource
             this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", primaryMetadataResource, primaryResourceLocator.getGraph().toString());
         }
-        // If we decide to make this mutable, we could parse the DocumentResponse (or a subsequent GET in case of non-200 success)
-        // this._init(primaryMetadataResource.uri, new ShapeTreeResource999(primaryMetadataResource.uri, res));
     }
 
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized Fork");

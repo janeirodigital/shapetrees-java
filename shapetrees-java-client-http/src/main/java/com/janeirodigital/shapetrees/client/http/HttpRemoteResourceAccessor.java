@@ -46,7 +46,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, uri, allHeaders, body, contentType));
-        if (!response.exists()) {
+        if (!response.isExists()) {
             throw new ShapeTreeException(500, "Unable to create pre-existing resource <" + uri + ">");
         }
         return makeAFork(uri, response);
