@@ -11,6 +11,7 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
@@ -77,9 +78,14 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             return Optional.empty();
         }
 
+        Optional<Graph> locatorGraph = locatorResource.getGraph();
+
+        if (locatorGraph.isEmpty()) {
+            throw new ShapeTreeException(500, "Cannot retrieve graph from existing locator resource");
+        }
+
         // Populate a ShapeTreeLocator from the graph in locatorResource and return it
-        return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri,
-                                                             locatorResource.getGraph().get()));
+        return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri, locatorGraph.get()));
 
     }
 

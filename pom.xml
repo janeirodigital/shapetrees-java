@@ -13,11 +13,11 @@
     <properties>
         <jena.version>3.17.0</jena.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <lombok.version>1.18.20</lombok.version>
+        <lombok.version>1.18.22</lombok.version>
         <slf4j.version>1.7.32</slf4j.version>
-        <okhttp.version>4.9.1</okhttp.version>
+        <okhttp.version>4.9.2</okhttp.version>
         <shexjava.version>1.3beta</shexjava.version>
-        <junit.version>5.7.2</junit.version>
+        <junit.version>5.8.0</junit.version>
         <jersey-core.version>1.19.4</jersey-core.version>
         <commons-rdf.version>0.5.0</commons-rdf.version>
         <commons-codec.version>1.15</commons-codec.version>
@@ -80,6 +80,7 @@
         <module>shapetrees-java-okhttp</module>
         <module>shapetrees-java-javahttp</module>
         <module>shapetrees-java-coverage</module>
+        <module>shapetrees-java-tests</module>
     </modules>
 
     <build>
@@ -132,6 +133,5 @@
             <url>https://repo.janeirodigital.com/repository/xformativ-maven/</url>
         </repository>
     </distributionManagement>
-
 
 </project>
