@@ -8,6 +8,10 @@ public abstract class AbstractHttpClientFactory {
     @Setter(onMethod_={@Synchronized})
     private static HttpClientFactory factory;
 
+    private AbstractHttpClientFactory() {
+        throw new IllegalStateException("Utility class");
+    }
+
     @Synchronized
     public static HttpClientFactory getFactory() throws ShapeTreeException {
         if (factory == null) { throw new ShapeTreeException(500, "Must provide a valid HTTP client factory"); }
