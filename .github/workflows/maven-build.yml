@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - coverage-and-documentation
 
 jobs:
   build:
