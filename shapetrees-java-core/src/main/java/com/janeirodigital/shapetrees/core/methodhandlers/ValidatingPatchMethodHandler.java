@@ -24,27 +24,26 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
 
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ResourceConstellation rc = new ResourceConstellation(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
 
-            if (rc.createdFromMetadata()) {
+            if (rc.wasCreatedFromMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));
             } else {
-                ResourceConstellation.UserOwnedResource targetResource = rc.getUserOwnedResourceFork();
+                ShapeTreeResource.Primary targetResource = rc.getUserOwnedResourceFork();
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
                 if (targetResource.isExists()) {
                     // The target resource already exists
-                    if (targetResource.isManaged()) {
+                    if (!targetResource.getMetadataResourceUri().isEmpty()) {
                         // If it is managed by a shape tree the update must be validated
                         return updateShapeTreeInstance(rc, shapeTreeContext, shapeTreeRequest);
                     }
                 } else {
                     // The target resource doesn't exist
-                    ResourceConstellation parentResource = new ResourceConstellation(getParentContainerURI(targetResource), this.resourceAccessor, shapeTreeContext);
-                    if (targetResource.isManaged()) {
-                        ResourceConstellation containerResource = new ResourceConstellation(getContainerUri(shapeTreeRequest), this.resourceAccessor, shapeTreeContext);
+                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerURI(targetResource), this.resourceAccessor, shapeTreeContext);
+                    if (!targetResource.getMetadataResourceUri().isEmpty()) {
                         // If the parent container is managed by a shape tree, the resource to create must be validated
-                        return createShapeTreeInstance(rc, containerResource, shapeTreeRequest, getRequestResourceName(targetResource));
+                        return createShapeTreeInstance(rc, parentResource, shapeTreeRequest, getRequestResourceName(targetResource));
                     }
                 }
             }

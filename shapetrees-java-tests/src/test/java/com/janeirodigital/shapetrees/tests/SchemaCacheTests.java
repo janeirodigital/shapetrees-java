@@ -88,7 +88,7 @@ public class SchemaCacheTests {
         for (String schemaUrl : schemasToCache) {
             log.debug("Caching schema {}", schemaUrl);
             DocumentResponse shexShapeSchema = DocumentLoaderManager.getLoader().loadExternalDocument(new URI(schemaUrl));
-            if (Boolean.FALSE.equals(shexShapeSchema.exists()) || shexShapeSchema.getBody() == null) {
+            if (Boolean.FALSE.equals(shexShapeSchema.isExists()) || shexShapeSchema.getBody() == null) {
                 log.warn("Schema at {} doesn't exist or is empty", schemaUrl);
                 continue;
             }

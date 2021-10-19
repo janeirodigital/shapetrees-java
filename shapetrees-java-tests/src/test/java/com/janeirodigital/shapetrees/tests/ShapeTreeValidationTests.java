@@ -3,7 +3,6 @@ package com.janeirodigital.shapetrees.tests;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -264,8 +263,8 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        DocumentResponse response = DocumentLoaderManager.getLoader().loadExternalDocument(getURI(server, "/validation/valid-resource"));
-        ShapeTreeResource primaryResource = new ShapeTreeResource(getURI(server, "/validation/valid-resource"), response);
+        ShapeTreeContext context = new ShapeTreeContext("null");
+        ShapeTreeResource999 primaryResource = resourceAccessor.getResource(context, getURI(server, "/validation/valid-resource"));
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/validation/shapetree#FooContainingTree"));
 
         result = shapeTree.validateContainedResource(primaryResource);

@@ -85,7 +85,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
     }
 
-    // TODO: Update to a simple JSON-LD body
+    // TODO: Spec/API: send error response as a structured JSON-LD body
     private Response createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, Request nativeRequest) {
         return new Response.Builder()
                 .code(exception.getStatusCode())

@@ -3,10 +3,11 @@ package com.janeirodigital.shapetrees.client.http;
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ResourceConstellation;
+import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
@@ -59,19 +60,19 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource for pointer to associated shape tree locator
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ResourceConstellation resource = new ResourceConstellation(targetResource, resourceAccessor, context);
-        ResourceConstellation.UserOwnedResource userOwnedResource = resource.getUserOwnedResourceFork();
-        URI metadataUri = userOwnedResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
-                () -> new ShapeTreeException(500, "No metadata resource for <" + userOwnedResource.getUri() + ">")
+        ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
+        ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
+        URI metadataUri = primaryResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
+                () -> new ShapeTreeException(500, "No metadata resource for <" + primaryResource.getUri() + ">")
         );
 
-        if  (Boolean.FALSE.equals(userOwnedResource.isExists())) {
+        if  (Boolean.FALSE.equals(primaryResource.isExists())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
             return Optional.empty();
         }
 
-        // Lookup the associated shape tree locator resource based on the pointer  TODO: decide on API for failure
-        ResourceConstellation.MetadataResource locatorResource = resource.getMetadataResourceFork();
+        // Lookup the associated shape tree locator resource based on the pointer
+        ShapeTreeResource.Metadata locatorResource = resource.getMetadataResourceFork();
 
         // Ensure the metadata resource exists
         // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
@@ -81,18 +82,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             return Optional.empty();
         }
 
-        Optional<Graph> locatorGraph = locatorResource.getGraph();
-
-        if (locatorGraph.isEmpty()) {
-            throw new ShapeTreeException(500, "Cannot retrieve graph from existing locator resource");
-        }
+        Graph locatorGraph = GraphHelper.readStringIntoGraph(metadataUri, locatorResource.getBody(), locatorResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
 
         // Populate a ShapeTreeLocator from the graph in locatorResource and return it
-        return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(
-                metadataUri,
-                locatorResource.getGraph().orElseThrow(
-                        () -> new ShapeTreeException(500, "No RDF graph in metadata for <" + userOwnedResource.getUri() + ">")
-                ))
+        return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri, locatorGraph)
         );
     }
 
@@ -129,13 +122,13 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ResourceConstellation resource = new ResourceConstellation(targetResource, resourceAccessor, context);
-        ResourceConstellation.UserOwnedResource userOwnedResource = resource.getUserOwnedResourceFork();
-        if (Boolean.FALSE.equals(userOwnedResource.isExists())) {
+        ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
+        ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
+        if (Boolean.FALSE.equals(primaryResource.isExists())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
-        URI metadataUri = userOwnedResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
-                () -> new IllegalStateException("No metadata resource for <" + userOwnedResource.getUri() + ">") // TODO: @@ should this return a 404 or something like that? nearby: ProjectTests.failPlantOnMissingDataContainer()
+        URI metadataUri = primaryResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
+                () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUri() + ">") // TODO: Spec/API: should this return a 404 or something like that? nearby: ProjectTests.failPlantOnMissingDataContainer()
         );
 
         // Determine whether the target resource is already a managed resource
@@ -259,13 +252,13 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ResourceConstellation resource = new ResourceConstellation(targetResource, resourceAccessor, context);
-        ResourceConstellation.UserOwnedResource userOwnedResource = resource.getUserOwnedResourceFork();
-        URI metadataUri = userOwnedResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
-                () -> new IllegalStateException("No metadata resource for <" + userOwnedResource.getUri() + ">")
+        ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
+        ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
+        URI metadataUri = primaryResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
+                () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUri() + ">")
         );
 
-        if (Boolean.FALSE.equals(userOwnedResource.isExists())) {
+        if (Boolean.FALSE.equals(primaryResource.isExists())) {
             return new DocumentResponse(null, "Cannot find target resource to unplant: " + targetResource, 404);
         }
 
