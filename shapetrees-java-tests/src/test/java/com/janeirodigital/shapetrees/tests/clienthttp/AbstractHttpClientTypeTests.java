@@ -137,7 +137,7 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
 
         // Add fixture to handle successful POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-non-rdf-resource-create-response"), "POST", "/non-rdf-resources/valid-non-rdf-resource", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/non-rdf-resources/valid-non-rdf-resource.shapetree", null)); // TODO: should this fail? should it have already failed?
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/non-rdf-resources/valid-non-rdf-resource.shapetree", null)); // TODO: Test: should this fail? should it have already failed?
         DocumentResponse response;
 
         response = shapeTreeClient.postShapeTreeInstance(context, getURI(server, "/non-rdf-resources/"), null, getURI(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree"), "valid-non-rdf-resource", false, null, "application/octet-stream");

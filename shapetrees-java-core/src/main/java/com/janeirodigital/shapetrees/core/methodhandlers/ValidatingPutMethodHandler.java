@@ -4,7 +4,6 @@ import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
@@ -18,24 +17,25 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ShapeTreeResource targetResource = getRequestResource(shapeTreeContext, shapeTreeRequest);
-
-            if (targetResource.isMetadata()) {
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            if (rc.wasCreatedFromMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
-                return Optional.of(manageShapeTree(shapeTreeContext, shapeTreeRequest, targetResource));
+                return Optional.of(manageShapeTree(rc, shapeTreeRequest));
             } else {
+                ShapeTreeResource.Primary targetResource = rc.getUserOwnedResourceFork();
+                shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
                 if (targetResource.isExists()) {
                     // The target resource already exists
-                    if (targetResource.isManaged()) {
+                    if (!targetResource.getMetadataResourceUri().isEmpty()) {
                         // If it is managed by a shape tree the update must be validated
-                        return updateShapeTreeInstance(shapeTreeContext, shapeTreeRequest);
+                        return updateShapeTreeInstance(rc, shapeTreeContext, shapeTreeRequest);
                     }
                 } else {
                     // The target resource doesn't exist
-                    ShapeTreeResource parentResource = this.resourceAccessor.getResource(shapeTreeContext, getParentContainerURI(targetResource));
-                    if (parentResource.isManaged()) {
+                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerURI(targetResource), this.resourceAccessor, shapeTreeContext);
+                    if (!parentResource.getUserOwnedResourceFork().getMetadataResourceUri().isEmpty()) {
                         // If the parent container is managed by a shape tree, the resource to create must be validated
-                        return createShapeTreeInstance(shapeTreeContext, shapeTreeRequest, getRequestResourceName(targetResource));
+                        return createShapeTreeInstance(rc, parentResource, shapeTreeRequest, getRequestResourceName(targetResource));
                     }
                 }
             }

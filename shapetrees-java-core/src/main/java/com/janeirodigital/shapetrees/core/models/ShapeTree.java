@@ -51,12 +51,11 @@ public class ShapeTree {
         return new URI(this.id);
     }
 
-    public ValidationResult validateResource(ShapeTreeResource targetResource) throws ShapeTreeException, URISyntaxException {
+    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource) throws ShapeTreeException, URISyntaxException {
         return validateResource(targetResource, null);
     }
 
-    public ValidationResult validateResource(ShapeTreeResource targetResource, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
-
+    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
         Graph bodyGraph = null;
 
         if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
@@ -166,7 +165,7 @@ public class ShapeTree {
         }
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource containedResource) throws ShapeTreeException, URISyntaxException {
+    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource) throws ShapeTreeException, URISyntaxException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
@@ -177,7 +176,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource containedResource, URI targetShapeTreeURI, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
+    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource, URI targetShapeTreeURI, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
         Graph containedResourceGraph = null;
 // !! containedResource.getGraph().get();

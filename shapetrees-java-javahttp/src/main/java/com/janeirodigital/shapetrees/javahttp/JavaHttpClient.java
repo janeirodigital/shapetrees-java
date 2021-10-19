@@ -4,22 +4,16 @@ import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.client.http.HttpRemoteResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.*;
 import java.io.IOException;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * java.net.http implementation of HttpClient
@@ -125,18 +119,6 @@ public class JavaHttpClient implements HttpClient {
                 if (headerList.length > 0) {
                     requestBuilder.headers(headerList);
                 }
-                /* TODO: decide between above and below. Above requires precient knowledge of illegal client
-                   headers (which tend to be there 'cause we re-use the server headers as client headers.
-                for (Map.Entry<String, List<String>> entry : request.headers.toMultimap().entrySet()){
-                    for (String value : entry.getValue()) {
-                        try {
-                            requestBuilder.header(entry.getKey(), value);
-                        } catch (IllegalArgumentException ex) {
-                            // current illegal client headers: connection, content-length, date, expect, from, host, upgrade, via, warning
-                        }
-                    }
-                }
-                 */
             }
 
             switch (request.method) {
