@@ -31,7 +31,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     public ShapeTreeResource.Fork getResource(ShapeTreeContext context, URI uri) throws ShapeTreeException {
         log.debug("HttpRemoteResourceAccessor#getResource({})", uri);
         ResourceAttributes headers = new ResourceAttributes();
-        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         HttpRequest req = new HttpRequest("GET", uri, headers, null, null);
 
@@ -44,7 +44,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, uri, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, uri, allHeaders, body, contentType));
         if (!response.isExists()) {
             throw new ShapeTreeException(500, "Unable to create pre-existing resource <" + uri + ">");
@@ -132,7 +132,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
         String contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
-        ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, updatedResource.getUri(), allHeaders, body, contentType));
         return response;
@@ -143,7 +143,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         log.debug("deleteResource: URI [{}]", deletedResource.getUri());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        ResourceAttributes allHeaders = deletedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        ResourceAttributes allHeaders = deletedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", deletedResource.getUri(), allHeaders, null, null));
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {

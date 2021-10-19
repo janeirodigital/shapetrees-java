@@ -1,19 +1,24 @@
 package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Optional;
 
 public interface ShapeTreeRequest {
     String getMethod();
     URI getURI();
     ResourceAttributes getHeaders();
+    @NotNull
     ResourceAttributes getLinkHeaders();
-    List<String> getHeaderValues(String header);
-    String getHeaderValue(String header);
+    @NotNull
+    Optional<String> getHeaderValue(String header);
     String getBody();
-    String getContentType();
+    @NotNull
+    String expectContentType() throws ShapeTreeException;
+    @NotNull
     ShapeTreeResourceType getResourceType();
-    void setResourceType(ShapeTreeResourceType resourceType);
+    void setResourceType(@NotNull ShapeTreeResourceType resourceType);
 }

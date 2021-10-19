@@ -119,24 +119,22 @@ public class JavaHttpValidatingShapeTreeInterceptor {
             return this.headers;
         }
 
+        @NotNull
         @Override
         public ResourceAttributes getLinkHeaders() {
-            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
+            return ResourceAttributes.parseLinkHeaders(this.request.headers().allValues(HttpHeaders.LINK.getValue()));
         }
 
         @Override
-        public List<String> getHeaderValues(String header) {
-            return this.request.headers().allValues(header);
+        public Optional<String> getHeaderValue(String header) {
+            return this.request.headers().firstValue(header);
         }
 
         @Override
-        public String getHeaderValue(String header) {
-            return this.request.headers().firstValue(header).orElse(null);
-        }
-
-        @Override
-        public String getContentType() {
-            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
+        public @NotNull String expectContentType() throws ShapeTreeException {
+            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElseThrow(
+                    () -> new ShapeTreeException(400, "Content-Type is required")
+            );
         }
 
         @Override

@@ -7,6 +7,7 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -50,7 +51,7 @@ public class ShapeTreeResource {
         this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, uri));
     }
     public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
-        this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
+        this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.expectContentType()));
     }
 
     // Get resource forks
@@ -189,7 +190,7 @@ ProjectRecursiveTests
         final protected Optional<URI> metadataResourceUri;
         final protected boolean _container;
 
-        public Primary(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, boolean isContainer) {
+        public Primary(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, @NotNull Optional<URI> metadataResourceUri, boolean isContainer) {
             super(uri, resourceType, attributes, body, name, exists);
             this.metadataResourceUri = metadataResourceUri;
             this._container = isContainer;

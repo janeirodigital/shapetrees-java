@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -114,16 +115,16 @@ public class ShapeTreeLocator {
         return locationUri;
     }
 
-    public ShapeTreeLocation getContainingShapeTreeLocation() throws URISyntaxException, ShapeTreeException {
+    public Optional<ShapeTreeLocation> getContainingShapeTreeLocation() throws URISyntaxException, ShapeTreeException {
 
         for (ShapeTreeLocation location : this.locations) {
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(URI.create(location.getShapeTree()));
             if (shapeTree.getContains() != null && !shapeTree.getContains().isEmpty()) {
-                return location;
+                return Optional.of(location);
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public static ShapeTreeLocator getShapeTreeLocatorFromGraph(URI id, Graph shapeTreeMetadataGraph) {

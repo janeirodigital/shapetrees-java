@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -134,24 +133,23 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             return new ResourceAttributes(this.request.headers().toMultimap());
         }
 
+        @NotNull
         @Override
         public ResourceAttributes getLinkHeaders() {
-            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
+            return ResourceAttributes.parseLinkHeaders(this.request.headers(HttpHeaders.LINK.getValue()));
         }
 
         @Override
-        public List<String> getHeaderValues(String header) {
-            return this.request.headers(header);
+        public Optional<String> getHeaderValue(String header) {
+            String ret = this.request.header(header);
+            return ret == null ? Optional.empty() : Optional.of(ret);
         }
 
         @Override
-        public String getHeaderValue(String header) {
-            return this.request.header(header);
-        }
-
-        @Override
-        public String getContentType() {
-            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
+        public String expectContentType() throws ShapeTreeException {
+            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElseThrow(
+                    () -> new ShapeTreeException(400, "Content-Type is required")
+            );
         }
 
         @Override
