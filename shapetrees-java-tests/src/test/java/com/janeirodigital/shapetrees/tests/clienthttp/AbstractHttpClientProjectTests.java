@@ -126,7 +126,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
         // Add fixture for /projects/ to handle the POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "POST", "/data/projects/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-create-response"), "POST", "/data/projects/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
 
         URI parentContainer = getURI(server, "/data/");
@@ -180,7 +180,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/ to handle the POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "POST", "/data/projects/project-1/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-create-response"), "POST", "/data/projects/project-1/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/.shapetree", null));
 
         URI parentContainer = getURI(server, "/data/projects/");
@@ -397,7 +397,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
 
         URI targetContainer = getURI(server, "/data/projects/project-1/milestone-3/");
@@ -429,7 +429,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
 
         URI targetContainer = getURI(server, "/data/projects/project-1/milestone-3/");
@@ -460,7 +460,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
 
         URI targetContainer = getURI(server, "/data/projects/project-1/milestone-3/");

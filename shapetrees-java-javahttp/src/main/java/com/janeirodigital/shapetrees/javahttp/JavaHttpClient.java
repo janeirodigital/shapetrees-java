@@ -158,12 +158,19 @@ public class JavaHttpClient implements HttpClient {
 
             java.net.http.HttpRequest nativeRequest = requestBuilder.build();
             if (this.validatingWrapper == null) {
-                return this.httpClient.send(nativeRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
+                return JavaHttpClient.check(this.httpClient.send(nativeRequest, java.net.http.HttpResponse.BodyHandlers.ofString()));
             } else {
                 return this.validatingWrapper.validatingWrap(nativeRequest, this.httpClient, request.body, request.contentType);
             }
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }
+    }
+
+    protected static java.net.http.HttpResponse check(java.net.http.HttpResponse resp) {
+        if (resp.statusCode() > 599) {
+            throw new Error("invalid HTTP response: " + resp + (resp.body() == null ? "" : "\n" + resp.body()));
+        }
+        return resp;
     }
 }

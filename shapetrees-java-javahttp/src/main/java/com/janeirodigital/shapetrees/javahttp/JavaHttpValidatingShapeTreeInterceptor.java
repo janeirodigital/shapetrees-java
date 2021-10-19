@@ -40,7 +40,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
             try {
                 Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (!shapeTreeResponse.isPresent()) {
-                    return httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
+                    return JavaHttpClient.check(httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString()));
                 } else {
                     return createResponse(shapeTreeRequest, clientRequest, shapeTreeResponse.get());
                 }
@@ -53,7 +53,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
-            return httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
+            return JavaHttpClient.check(httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString()));
         }
     }
 

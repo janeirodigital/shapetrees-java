@@ -8,6 +8,7 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,16 +23,33 @@ public class RequestMatchingFixtureDispatcher extends Dispatcher {
         this.configuredFixtures = configuredFixtures;
     }
 
-    @SneakyThrows
     @NotNull
     @Override
     public MockResponse dispatch(@NotNull RecordedRequest recordedRequest) {
         for (DispatcherEntry entry : configuredFixtures) {
             if (matchesRequest(recordedRequest, entry)) {
                 String fixtureName = getFixtureName(entry);
-                return Fixture.parseFrom(fixtureName, recordedRequest).toMockResponse();
+                try {
+                    MockResponse resp = Fixture.parseFrom(fixtureName, recordedRequest).toMockResponse();
+                    // status isn't a number, it's e.g. "HTTP/1.1 200 OK"
+                    if (resp.getStatus().contains("200") && recordedRequest.getMethod().equals("POST")) {
+                        final String msg = "Mock: response to POST " + recordedRequest + " with " + entry + " returns " + resp.getStatus();
+                        log.error(msg);
+                        resp.setStatus("HTTP/1.1 999 " + msg); // This will show up in a stack trace,
+                        resp.setBody(msg);                     // but we can add it as a body as well.
+                    }
+                    return resp;
+                } catch (Exception ex) {
+                    String msg = ex.getMessage();
+                    MockResponse resp = new MockResponse();
+//                    log.error(msg);
+                    ex.printStackTrace();
+                    resp.setStatus("HTTP/1.1 999 " + msg); // This will show up in a stack trace,
+                    resp.setBody(msg);                     // but we can add it as a body as well.
+                }
             }
         }
+        log.error("Mock: no response found for {} {}", recordedRequest.getMethod(), recordedRequest.getPath());
         return new MockResponse().setResponseCode(404);
     }
 
