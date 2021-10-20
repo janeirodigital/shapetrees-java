@@ -247,7 +247,7 @@ class ShapeTreeLocatorDeltaTests {
         Assertions.assertEquals(0, delta.getRemovedLocations().size());
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationOneUpdated));
         Assertions.assertTrue(delta.getUpdatedLocations().contains(locationTwoUpdated));
-        
+
     }
 
     @Test
@@ -269,11 +269,6 @@ class ShapeTreeLocatorDeltaTests {
         updatedLocator.getLocations().clear();
         delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
         Assertions.assertTrue(delta.allRemoved());
-
-        updatedLocator.setLocations(null);
-        delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
-        Assertions.assertTrue(delta.allRemoved());
-
     }
 
     @SneakyThrows
@@ -290,10 +285,7 @@ class ShapeTreeLocatorDeltaTests {
         delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
         Assertions.assertTrue(delta.isUpdated());
 
-        existingLocator.setLocations(null);
-        delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
-        Assertions.assertTrue(delta.isUpdated());
-
+        Assertions.assertThrows(NullPointerException.class, () -> existingLocator.setLocations(null));
     }
 
     private ShapeTreeLocation duplicateLocation(ShapeTreeLocation location) {

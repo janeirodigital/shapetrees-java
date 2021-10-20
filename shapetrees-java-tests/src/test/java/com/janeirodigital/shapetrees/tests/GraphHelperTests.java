@@ -25,8 +25,12 @@ class GraphHelperTests {
     @DisplayName("Handle null or empty content types with defaults")
     @SneakyThrows
     void handleNullOrEmptyContentTypes(String type) {
-        Lang lang = GraphHelper.getLangForContentType(Optional.of(type));
-        Assertions.assertEquals(lang, Lang.TURTLE);
+        if (type == null) {
+            Assertions.assertThrows(NullPointerException.class, () -> GraphHelper.getLangForContentType(Optional.of(type)));
+        } else {
+            Lang lang = GraphHelper.getLangForContentType(Optional.of(type));
+            Assertions.assertEquals(lang, Lang.TURTLE);
+        }
     }
 
     @ParameterizedTest

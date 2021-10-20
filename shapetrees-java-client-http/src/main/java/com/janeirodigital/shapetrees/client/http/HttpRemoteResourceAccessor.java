@@ -34,19 +34,19 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        HttpRequest req = new HttpRequest("GET", uri, headers, null, null);
+        HttpRequest req = new HttpRequest("GET", uri, headers, Optional.empty(), Optional.empty());
 
         DocumentResponse response = fetcher.fetchShapeTreeResponse(req);
         return makeAFork(uri, response);
     }
 
     @Override
-    public ShapeTreeResource.Fork createResource(ShapeTreeContext context, String method, URI uri, ResourceAttributes headers, @NotNull String body, String contentType) throws ShapeTreeException {
+    public ShapeTreeResource.Fork createResource(ShapeTreeContext context, String method, URI uri, ResourceAttributes headers, @NotNull String body, @NotNull String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, uri, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
-        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, uri, allHeaders, body, contentType));
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, uri, allHeaders, Optional.of(body), Optional.of(contentType)));
         if (!response.isExists()) {
             throw new ShapeTreeException(500, "Unable to create pre-existing resource <" + uri + ">");
         }
@@ -128,14 +128,14 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public DocumentResponse updateResource(ShapeTreeContext context, String method, ShapeTreeResource.Fork updatedResource, String body) throws ShapeTreeException {
+    public DocumentResponse updateResource(ShapeTreeContext context, String method, ShapeTreeResource.Fork updatedResource, @NotNull String body) throws ShapeTreeException {
         log.debug("updateResource: URI [{}]", updatedResource.getUri());
 
-        String contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
+        @NotNull Optional<String> contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue());
         // [careful] updatedResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         ResourceAttributes allHeaders = updatedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
-        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, updatedResource.getUri(), allHeaders, body, contentType));
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, updatedResource.getUri(), allHeaders, Optional.of(body), contentType));
         return response;
     }
 
@@ -145,7 +145,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
         ResourceAttributes allHeaders = deletedResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
-        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", deletedResource.getUri(), allHeaders, null, null));
+        DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", deletedResource.getUri(), allHeaders, Optional.empty(), Optional.empty()));
         int respCode = response.getStatusCode();
         if (respCode < 200 || respCode >= 400) {
             log.error("Error deleting resource {}, Status {}", deletedResource.getUri(), respCode);

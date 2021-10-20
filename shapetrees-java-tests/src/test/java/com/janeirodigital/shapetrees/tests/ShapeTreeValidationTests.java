@@ -67,13 +67,13 @@ class ShapeTreeValidationTests {
         ValidationResult result;
 
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/validation/shapetree#ExpectsContainerTree"));
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.CONTAINER, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.CONTAINER, Optional.empty(), null);
         Assertions.assertTrue(result.isValid());
 
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, Optional.empty(), null);
         Assertions.assertFalse(result.isValid());
 
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.NON_RDF, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.NON_RDF, Optional.empty(), null);
         Assertions.assertFalse(result.isValid());
     }
 
@@ -86,13 +86,13 @@ class ShapeTreeValidationTests {
         ValidationResult result;
 
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/validation/shapetree#ExpectsResourceTree"));
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, Optional.empty(), null);
         Assertions.assertTrue(result.isValid());
 
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.CONTAINER, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.CONTAINER, Optional.empty(), null);
         Assertions.assertFalse(result.isValid());
 
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.NON_RDF, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.NON_RDF, Optional.empty(), null);
         Assertions.assertFalse(result.isValid());
     }
 
@@ -105,13 +105,13 @@ class ShapeTreeValidationTests {
         ValidationResult result;
 
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/validation/shapetree#ExpectsNonRDFResourceTree"));
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.NON_RDF, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.NON_RDF, Optional.empty(), null);
         Assertions.assertTrue(result.isValid());
 
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, Optional.empty(), null);
         Assertions.assertFalse(result.isValid());
 
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.CONTAINER, null, null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.CONTAINER, Optional.empty(), null);
         Assertions.assertFalse(result.isValid());
     }
 
@@ -124,10 +124,10 @@ class ShapeTreeValidationTests {
         ValidationResult result;
 
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(getURI(server, "/static/shapetrees/validation/shapetree#LabelTree"));
-        result = shapeTree.validateResource("resource-name", ShapeTreeResourceType.RESOURCE, null, null);
+        result = shapeTree.validateResource("resource-name", ShapeTreeResourceType.RESOURCE, Optional.empty(), null);
         Assertions.assertTrue(result.isValid());
 
-        result = shapeTree.validateResource("invalid-name", ShapeTreeResourceType.RESOURCE, null, null);
+        result = shapeTree.validateResource("invalid-name", ShapeTreeResourceType.RESOURCE, Optional.empty(), null);
         Assertions.assertFalse(result.isValid());
     }
 

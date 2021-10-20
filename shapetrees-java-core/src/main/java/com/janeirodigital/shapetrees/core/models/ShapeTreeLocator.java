@@ -15,6 +15,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.vocabulary.RDF;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,7 +36,7 @@ import java.util.Optional;
 public class ShapeTreeLocator {
 
     private URI id;
-    private List<ShapeTreeLocation> locations = new ArrayList<>();   // Each ShapeTreeLocator has one or more ShapeTreeLocations
+    @NotNull private List<ShapeTreeLocation> locations = new ArrayList<>();   // Each ShapeTreeLocator has one or more ShapeTreeLocations
 
     public ShapeTreeLocator(URI id) {
         this.id = id;

@@ -502,7 +502,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URI targetResource = getURI(server, "/data/projects/project-1/milestone-3/task-48/attachment-48");
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#AttachmentTree");
 
-        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, "\u457fLF", "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -537,7 +537,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URI targetResource = getURI(server, "/data/projects/project-1/milestone-3/task-48/random.png");
         URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#AttachmentTree");
 
-        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, "\u457fLF", "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
     }

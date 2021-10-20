@@ -116,9 +116,6 @@ public class OkHttpClient implements HttpClient {
      * @throws ShapeTreeException
      */
     private okhttp3.Response fetch(HttpRequest request) throws ShapeTreeException {
-        if (request.body == null)
-            request.body = "";
-
         try {
             okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder();
             requestBuilder.url(request.resourceURI.toURL());
@@ -142,8 +139,14 @@ public class OkHttpClient implements HttpClient {
                 case HttpClient.PUT:
                 case HttpClient.POST:
                 case HttpClient.PATCH:
-                    requestBuilder.method(request.method, okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
-                    requestBuilder.addHeader("Content-Type", request.contentType);
+                    requestBuilder.method(request.method, okhttp3.RequestBody.create(request.body.orElseThrow(
+                            () -> new ShapeTreeException(500, "Need body for " + request.method + " <" + request.resourceURI + ">")
+                    ), okhttp3.MediaType.get(request.contentType.orElseThrow(
+                            () -> new ShapeTreeException(500, "Need content type for " + request.method + " <" + request.resourceURI + ">")
+                    ))));
+                    requestBuilder.addHeader("Content-Type", request.contentType.orElseThrow(
+                            () -> new ShapeTreeException(500, "Need content type for " + request.method + " <" + request.resourceURI + ">")
+                    ));
                     break;
 
                 default:

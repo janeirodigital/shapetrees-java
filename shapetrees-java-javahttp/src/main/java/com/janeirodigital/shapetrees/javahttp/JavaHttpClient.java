@@ -108,9 +108,6 @@ public class JavaHttpClient implements HttpClient {
      * @throws ShapeTreeException
      */
     private java.net.http.HttpResponse fetch(HttpRequest request) throws ShapeTreeException {
-        if (request.body == null)
-            request.body = "";
-
         try {
             java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder();
             requestBuilder.uri(request.resourceURI);
@@ -131,8 +128,12 @@ public class JavaHttpClient implements HttpClient {
                 case HttpClient.PUT:
                 case HttpClient.POST:
                 case HttpClient.PATCH:
-                    requestBuilder.method(request.method, java.net.http.HttpRequest.BodyPublishers.ofString(request.body));
-                    requestBuilder.header("Content-Type", request.contentType);
+                    requestBuilder.method(request.method, java.net.http.HttpRequest.BodyPublishers.ofString(request.body.orElseThrow(
+                            () -> new ShapeTreeException(500, "Need body for " + request.method + " <" + request.resourceURI + ">")
+                    )));
+                    requestBuilder.header("Content-Type", request.contentType.orElseThrow(
+                            () -> new ShapeTreeException(500, "Need content type for " + request.method + " <" + request.resourceURI + ">")
+                    ));
                     break;
 
                 default:
@@ -143,7 +144,7 @@ public class JavaHttpClient implements HttpClient {
             if (this.validatingWrapper == null) {
                 return JavaHttpClient.check(this.httpClient.send(nativeRequest, java.net.http.HttpResponse.BodyHandlers.ofString()));
             } else {
-                return this.validatingWrapper.validatingWrap(nativeRequest, this.httpClient, Optional.of(request.body), request.contentType == null ? Optional.empty() : Optional.of(request.contentType));
+                return this.validatingWrapper.validatingWrap(nativeRequest, this.httpClient, request.body, request.contentType);
             }
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, ex.getMessage());

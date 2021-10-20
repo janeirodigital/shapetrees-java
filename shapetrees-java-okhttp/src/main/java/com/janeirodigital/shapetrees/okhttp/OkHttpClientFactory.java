@@ -7,6 +7,7 @@ import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
 import java.net.URI;
+import java.util.Optional;
 
 /**
  * The ShapeTree library uses a generic interface (`HttpClient`) to execute HTTP queries on the POD and for external documents.
@@ -89,7 +90,7 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
         if (this.blackWhiteList != null) {
             this.blackWhiteList.check(resourceURI); }
 
-        DocumentResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURI, null, null, null));
+        DocumentResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURI, null, Optional.empty(), Optional.empty()));
         if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceURI); }
         return response;
     }

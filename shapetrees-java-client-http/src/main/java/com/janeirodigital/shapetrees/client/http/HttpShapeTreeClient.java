@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.StringWriter;
 import java.net.URI;
@@ -156,11 +157,11 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue().orElse(null));
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", metadataUri, headers, sw.toString(), "text/turtle"));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", metadataUri, headers, Optional.of(sw.toString()), Optional.of("text/turtle")));
     }
 
     @Override
-    public DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, @NotNull String bodyString, String contentType) throws ShapeTreeException {
 
         if (context == null || parentContainer == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and parent container to post shape tree instance");
@@ -173,12 +174,12 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer, proposedResourceName, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("POST", parentContainer, headers, bodyString, contentType));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("POST", parentContainer, headers, Optional.of(bodyString), Optional.of(contentType)));
     }
 
     // Create via HTTP PUT
     @Override
-    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, @NotNull String bodyString, @NotNull String contentType) throws ShapeTreeException {
 
         if (context == null || resourceURI == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to create shape tree instance via PUT");
@@ -190,12 +191,12 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer,null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURI, headers, bodyString, contentType));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURI, headers, Optional.of(bodyString), Optional.of(contentType)));
     }
 
     // Update via HTTP PUT
     @Override
-    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, @NotNull String bodyString, @NotNull String contentType) throws ShapeTreeException {
 
         if (context == null || resourceURI == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to update shape tree instance via PUT");
@@ -206,11 +207,11 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNode, null, null, null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURI, headers, bodyString, contentType));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURI, headers, Optional.of(bodyString), Optional.of(contentType)));
     }
 
     @Override
-    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, String patchString) throws ShapeTreeException {
+    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, @NotNull String patchString) throws ShapeTreeException {
 
         if (context == null || resourceURI == null || patchString == null) {
             throw new ShapeTreeException(500, "Must provide a valid context, target resource, and PATCH expression to PATCH shape tree instance");
@@ -224,7 +225,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNode, null, null, null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PATCH", resourceURI, headers, patchString, contentType));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PATCH", resourceURI, headers, Optional.of(patchString), Optional.of(contentType)));
     }
 
     @Override
@@ -273,12 +274,12 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         locator.removeShapeTreeLocationForShapeTree(targetShapeTree);
 
         String method;
-        String body;
-        String contentType;
+        @NotNull Optional<String> body;
+        @NotNull Optional<String> contentType;
         if (locator.getLocations().isEmpty()) {
             method = "DELETE";
-            body = null;
-            contentType = null;
+            body = Optional.empty();
+            contentType = Optional.empty();
         } else {
             // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
             method = "PUT";
@@ -286,8 +287,8 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             // Get a RDF version of the locator stored in a turtle string
             StringWriter sw = new StringWriter();
             RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
-            body = sw.toString();
-            contentType = "text/turtle";
+            body = Optional.of(sw.toString());
+            contentType = Optional.of("text/turtle");
         }
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
