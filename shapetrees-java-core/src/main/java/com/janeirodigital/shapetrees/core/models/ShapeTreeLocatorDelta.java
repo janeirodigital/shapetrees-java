@@ -2,15 +2,17 @@ package com.janeirodigital.shapetrees.core.models;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class ShapeTreeLocatorDelta {
 
-    ShapeTreeLocator existingLocator;
-    ShapeTreeLocator updatedLocator;
+    @NotNull Optional<ShapeTreeLocator> existingLocator;
+    @NotNull Optional<ShapeTreeLocator> updatedLocator;
     List<ShapeTreeLocation> updatedLocations;
     List<ShapeTreeLocation> removedLocations;
 
@@ -21,9 +23,9 @@ public class ShapeTreeLocatorDelta {
      * @param updatedLocator
      * @return ShapeTreeLocatorDelta
      */
-    public static ShapeTreeLocatorDelta evaluate(ShapeTreeLocator existingLocator, ShapeTreeLocator updatedLocator) throws ShapeTreeException {
+    public static ShapeTreeLocatorDelta evaluate(@NotNull Optional<ShapeTreeLocator> existingLocator, @NotNull Optional<ShapeTreeLocator> updatedLocator) throws ShapeTreeException {
 
-        if (existingLocator == null && updatedLocator == null) {
+        if (existingLocator.isEmpty() && updatedLocator.isEmpty()) {
             throw new ShapeTreeException(422, "Cannot compare two null locators");
         }
 
@@ -35,27 +37,27 @@ public class ShapeTreeLocatorDelta {
         delta.removedLocations = new ArrayList<>();
 
 
-        if (updatedLocator == null || updatedLocator.getLocations() == null || updatedLocator.getLocations().isEmpty()) {
+        if (updatedLocator.isEmpty() || updatedLocator.get().getLocations().isEmpty()) {
             // All locations have been removed in the updated locator, so any existing locations should
             // similarly be removed. No need for further comparison.
-            delta.removedLocations = existingLocator.getLocations();
+            delta.removedLocations = existingLocator.get().getLocations();
             return delta;
         }
 
-        if (existingLocator == null || existingLocator.getLocations() == null || existingLocator.getLocations().isEmpty()) {
+        if (existingLocator.isEmpty() || existingLocator.get().getLocations().isEmpty()) {
             // This existing locator doesn't have any locations (which means it shouldn't exist)
             // Anything in the updated locator is being added as new. No need for further comparison.
-            delta.updatedLocations = updatedLocator.getLocations();
+            delta.updatedLocations = updatedLocator.get().getLocations();
             return delta;
         }
 
-        for (ShapeTreeLocation existingLocation : existingLocator.getLocations()) {
+        for (ShapeTreeLocation existingLocation : existingLocator.get().getLocations()) {
 
             // Locations match, and are unchanged, so continue
-            if (updatedLocator.getLocations().contains(existingLocation)) { continue; }
+            if (updatedLocator.get().getLocations().contains(existingLocation)) { continue; }
 
             // Locations have the same URI but are different, so update
-            ShapeTreeLocation updatedLocation = containsSameUri(existingLocation, updatedLocator.getLocations());
+            ShapeTreeLocation updatedLocation = containsSameUri(existingLocation, updatedLocator.get().getLocations());
 
             if (updatedLocation != null) {
                 delta.updatedLocations.add(updatedLocation);
@@ -67,10 +69,10 @@ public class ShapeTreeLocatorDelta {
 
         }
 
-        for (ShapeTreeLocation updatedLocation : updatedLocator.getLocations()) {
+        for (ShapeTreeLocation updatedLocation : updatedLocator.get().getLocations()) {
 
             // Locations match, and are unchanged, so continue
-            if (existingLocator.getLocations().contains(updatedLocation)) { continue; }
+            if (existingLocator.get().getLocations().contains(updatedLocation)) { continue; }
 
             // If this was already processed and marked as updated continue
             if (delta.updatedLocations.contains(updatedLocation)) { continue; }
@@ -91,7 +93,7 @@ public class ShapeTreeLocatorDelta {
     }
 
     public boolean allRemoved() {
-        return (!this.isUpdated() && this.removedLocations.size() == this.existingLocator.getLocations().size());
+        return (!this.isUpdated() && this.removedLocations.size() == this.existingLocator.get().getLocations().size()); // TODO: don't check allRemoved unless existingLocator isn't empty?
     }
 
     public boolean isUpdated() {

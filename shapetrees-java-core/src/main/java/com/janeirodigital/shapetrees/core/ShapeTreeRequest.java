@@ -15,7 +15,8 @@ public interface ShapeTreeRequest {
     ResourceAttributes getLinkHeaders();
     @NotNull
     Optional<String> getHeaderValue(String header);
-    String getBody();
+    @NotNull
+    Optional<String> getBody();
     @NotNull
     String expectContentType() throws ShapeTreeException;
     @NotNull

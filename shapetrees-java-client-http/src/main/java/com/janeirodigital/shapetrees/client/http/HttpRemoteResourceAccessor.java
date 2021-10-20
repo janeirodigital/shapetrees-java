@@ -14,6 +14,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.*;
@@ -40,7 +41,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public ShapeTreeResource.Fork createResource(ShapeTreeContext context, String method, URI uri, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
+    public ShapeTreeResource.Fork createResource(ShapeTreeContext context, String method, URI uri, ResourceAttributes headers, @NotNull String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URI [{}], headers [{}]", method, uri, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);

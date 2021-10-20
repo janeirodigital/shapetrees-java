@@ -10,6 +10,7 @@ import org.junit.jupiter.api.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ShapeTreeLocatorDeltaTests {
@@ -84,7 +85,7 @@ class ShapeTreeLocatorDeltaTests {
         existingLocator.addShapeTreeLocation(locationOne);
         existingLocator.addShapeTreeLocation(locationTwo);
 
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
 
         Assertions.assertTrue(delta.getUpdatedLocations().isEmpty());
         Assertions.assertEquals(2, delta.getRemovedLocations().size());
@@ -103,7 +104,7 @@ class ShapeTreeLocatorDeltaTests {
         existingLocator.addShapeTreeLocation(locationTwo);
         updatedLocator.addShapeTreeLocation(locationThree);
 
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
 
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertTrue(delta.wasReduced());
@@ -137,7 +138,7 @@ class ShapeTreeLocatorDeltaTests {
         updatedLocator.addShapeTreeLocation(locationThreeUpdated);
         updatedLocator.addShapeTreeLocation(locationFour);
 
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
 
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertTrue(delta.wasReduced());
@@ -163,7 +164,7 @@ class ShapeTreeLocatorDeltaTests {
         updatedLocator.addShapeTreeLocation(locationThreeUpdated);
         updatedLocator.addShapeTreeLocation(locationFour);
 
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
 
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertFalse(delta.wasReduced());
@@ -188,7 +189,7 @@ class ShapeTreeLocatorDeltaTests {
 
         updatedLocator.addShapeTreeLocation(locationThreeUpdated);
 
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
 
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertTrue(delta.wasReduced());
@@ -208,7 +209,7 @@ class ShapeTreeLocatorDeltaTests {
         updatedLocator.addShapeTreeLocation(locationOne);
         updatedLocator.addShapeTreeLocation(locationTwo);
 
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
 
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertFalse(delta.wasReduced());
@@ -237,7 +238,7 @@ class ShapeTreeLocatorDeltaTests {
         updatedLocator.addShapeTreeLocation(locationOneUpdated);
         updatedLocator.addShapeTreeLocation(locationTwoUpdated);
 
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
 
         Assertions.assertTrue(delta.isUpdated());
         Assertions.assertFalse(delta.wasReduced());
@@ -252,7 +253,7 @@ class ShapeTreeLocatorDeltaTests {
     @Test
     @Label("Compare two null locators")
     void compareTwoNullLocators() {
-        Assertions.assertThrows(ShapeTreeException.class, () -> ShapeTreeLocatorDelta.evaluate(null, null));
+        Assertions.assertThrows(ShapeTreeException.class, () -> ShapeTreeLocatorDelta.evaluate(Optional.empty(), Optional.empty()));
     }
 
     @SneakyThrows
@@ -262,15 +263,15 @@ class ShapeTreeLocatorDeltaTests {
 
         existingLocator.addShapeTreeLocation(locationOne);
         existingLocator.addShapeTreeLocation(locationTwo);
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(existingLocator, null);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.empty());
         Assertions.assertTrue(delta.allRemoved());
 
         updatedLocator.getLocations().clear();
-        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
         Assertions.assertTrue(delta.allRemoved());
 
         updatedLocator.setLocations(null);
-        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
         Assertions.assertTrue(delta.allRemoved());
 
     }
@@ -282,15 +283,15 @@ class ShapeTreeLocatorDeltaTests {
 
         updatedLocator.addShapeTreeLocation(locationOne);
         updatedLocator.addShapeTreeLocation(locationTwo);
-        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(null, updatedLocator);
+        ShapeTreeLocatorDelta delta = ShapeTreeLocatorDelta.evaluate(Optional.empty(), Optional.of(updatedLocator));
         Assertions.assertTrue(delta.isUpdated());
 
         existingLocator.getLocations().clear();
-        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
         Assertions.assertTrue(delta.isUpdated());
 
         existingLocator.setLocations(null);
-        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
+        delta = ShapeTreeLocatorDelta.evaluate(Optional.of(existingLocator), Optional.of(updatedLocator));
         Assertions.assertTrue(delta.isUpdated());
 
     }

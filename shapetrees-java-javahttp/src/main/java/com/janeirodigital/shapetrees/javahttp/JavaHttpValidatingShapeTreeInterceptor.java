@@ -29,7 +29,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     private static final String DELETE = "DELETE";
 
     @NotNull
-    public java.net.http.HttpResponse validatingWrap(java.net.http.HttpRequest clientRequest, java.net.http.HttpClient httpClient, String body, String contentType) throws IOException, InterruptedException {
+    public java.net.http.HttpResponse validatingWrap(java.net.http.HttpRequest clientRequest, java.net.http.HttpClient httpClient, @NotNull Optional<String> body, String contentType) throws IOException, InterruptedException {
 
         ShapeTreeRequest shapeTreeRequest = new JavaHttpShapeTreeRequest(clientRequest, body, contentType);
         ResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
@@ -88,11 +88,11 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     private class JavaHttpShapeTreeRequest implements ShapeTreeRequest {
         private final java.net.http.HttpRequest request;
         private ShapeTreeResourceType resourceType;
-        private final String body;
+        @NotNull private final Optional<String> body;
         private final String contentType;
         private final ResourceAttributes headers;
 
-        public JavaHttpShapeTreeRequest(java.net.http.HttpRequest request, String body, String contentType) {
+        public JavaHttpShapeTreeRequest(java.net.http.HttpRequest request, @NotNull Optional<String> body, String contentType) {
             this.request = request;
             this.body = body;
             this.contentType = contentType;
@@ -147,8 +147,9 @@ public class JavaHttpValidatingShapeTreeInterceptor {
             this.resourceType = resourceType;
         }
 
+        @NotNull
         @Override
-        public String getBody() {
+        public Optional<String> getBody() {
             return this.body;
         }
     }

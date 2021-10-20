@@ -162,16 +162,17 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             this.resourceType = resourceType;
         }
 
+        @NotNull
         @Override
-        public String getBody() {
+        public Optional<String> getBody() {
             try (Buffer buffer = new Buffer()) {
                 if (this.request.body() != null) {
                     Objects.requireNonNull(this.request.body()).writeTo(buffer);
                 }
-                return buffer.readUtf8();
+                return Optional.of(buffer.readUtf8());
             } catch (IOException | NullPointerException ex) {
                 log.error("Error writing body to string");
-                return null;
+                return Optional.emtpy();
             }
         }
     }

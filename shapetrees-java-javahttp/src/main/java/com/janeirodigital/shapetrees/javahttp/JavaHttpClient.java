@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * java.net.http implementation of HttpClient
@@ -142,7 +143,7 @@ public class JavaHttpClient implements HttpClient {
             if (this.validatingWrapper == null) {
                 return JavaHttpClient.check(this.httpClient.send(nativeRequest, java.net.http.HttpResponse.BodyHandlers.ofString()));
             } else {
-                return this.validatingWrapper.validatingWrap(nativeRequest, this.httpClient, request.body, request.contentType);
+                return this.validatingWrapper.validatingWrap(nativeRequest, this.httpClient, Optional.of(request.body), request.contentType);
             }
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
