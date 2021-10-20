@@ -136,7 +136,7 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTree containerShapeTree = ShapeTreeFactory.getShapeTree(containerShapeTreeURI);
 
         URI targetShapeTree = getIncomingTargetShapeTreeHint(shapeTreeRequest);
-        URI incomingFocusNode = getIncomingResolvedFocusNode(shapeTreeRequest, targetResourceURI);
+        @NotNull Optional<URI> incomingFocusNode = getIncomingResolvedFocusNode(shapeTreeRequest, targetResourceURI);
         @NotNull Optional<Graph> incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, targetResourceURI, null);
 
         ValidationResult validationResult = containerShapeTree.validateContainedResource(proposedName, shapeTreeRequest.getResourceType(), targetShapeTree, incomingBodyGraph, incomingFocusNode);
@@ -270,8 +270,6 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTreeLocation removeLocation = getShapeTreeLocationForRoot(primaryResourceLocator, rootLocation);
         ShapeTree primaryResourceShapeTree = ShapeTreeFactory.getShapeTree(URI.create(removeLocation.getShapeTree()));
 
-        Optional<DocumentResponse> validationResponse = null;
-
         // If the primary resource is a container, and its shape tree specifies its contents with st:contains
         // Recursively traverse the hierarchy and perform shape tree unassignment
         if (primaryResource.getUserOwnedResourceFork().isContainer() && !primaryResourceShapeTree.getContains().isEmpty()) {
@@ -285,7 +283,7 @@ public abstract class AbstractValidatingMethodHandler {
                 // Perform a depth first unassignment for each contained resource
                 for (ShapeTreeResource containedResource : containedResources) {
                     // Recursively call this function on the contained resource
-                    validationResponse = unassignShapeTreeFromResource(containedResource, shapeTreeContext, rootLocation);
+                    Optional<DocumentResponse> validationResponse = unassignShapeTreeFromResource(containedResource, shapeTreeContext, rootLocation);
                     if (validationResponse.isPresent()) { return validationResponse; }
                 }
             }
@@ -430,12 +428,12 @@ public abstract class AbstractValidatingMethodHandler {
      * @return URI of focus node
      * @throws IOException IOException
      */
-    protected URI getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URI baseURI) {
-        final String focusNode = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.FOCUS_NODE.getValue()).orElse(null);
-        if (focusNode != null) {
-            return baseURI.resolve(focusNode);
+    protected @NotNull Optional<URI> getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URI baseURI) {
+        final Optional<String> focusNode = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.FOCUS_NODE.getValue());
+        if (!focusNode.isEmpty()) {
+            return Optional.of(baseURI.resolve(focusNode.get()));
         }
-        return null;
+        return Optional.empty();
     }
 
     /**

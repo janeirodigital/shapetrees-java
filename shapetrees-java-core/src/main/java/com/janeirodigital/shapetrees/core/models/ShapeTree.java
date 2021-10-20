@@ -73,10 +73,10 @@ public class ShapeTree {
     }
 
     public ValidationResult validateResource(ShapeTreeResource.Primary targetResource) throws ShapeTreeException, URISyntaxException {
-        return validateResource(targetResource, null);
+        return validateResource(targetResource, Optional.empty());
     }
 
-    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
+    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource, @NotNull Optional<URI> focusNodeURI) throws ShapeTreeException, URISyntaxException {
         @NotNull Optional<Graph> bodyGraph = Optional.empty();
 
         if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
@@ -88,7 +88,7 @@ public class ShapeTree {
         return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeURI);
     }
 
-    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, @NotNull Optional<Graph> bodyGraph, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
+    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, @NotNull Optional<Graph> bodyGraph, @NotNull Optional<URI> focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
         // Check whether the proposed resource is the same type as what is expected by the shape tree
         if (!this.expectedResourceType.equals(resourceType.getValue())) {
@@ -110,7 +110,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateGraph(@NotNull Optional<Graph> graph, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
+    public ValidationResult validateGraph(@NotNull Optional<Graph> graph, @NotNull Optional<URI> focusNodeURI) throws ShapeTreeException, URISyntaxException {
         // if (true) return new ValidationResult(true, this, this, focusNodeURI); // [debug] ShExC parser brings debugger to its knees
         if (this.shape == null) {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
@@ -154,14 +154,14 @@ public class ShapeTree {
         ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph.orElseThrow(() -> new ShapeTreeException(500, "Can't validate a missing graph"))));
         Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.shape));
 
-        if (focusNodeURI != null) {
+        if (!focusNodeURI.isEmpty()) {
 
-            IRI focusNode = GlobalFactory.RDFFactory.createIRI(focusNodeURI.toString());
+            IRI focusNode = GlobalFactory.RDFFactory.createIRI(focusNodeURI.get().toString());
             log.debug("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
             validation.validate(focusNode, shapeLabel);
             boolean valid = validation.getTyping().isConformant(focusNode, shapeLabel);
             if (valid) {
-                return new ValidationResult(valid, this, this, focusNodeURI);
+                return new ValidationResult(valid, this, this, focusNodeURI.get());
             } else {
                 return new ValidationResult(valid, this, "Failed to validate: " + shapeLabel.toPrettyString());
             }
@@ -193,11 +193,11 @@ public class ShapeTree {
             return new ValidationResult(true, this, this, null);
         }
 
-        return validateContainedResource(containedResource, null, null);
+        return validateContainedResource(containedResource, null, Optional.empty());
 
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource, URI targetShapeTreeURI, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
+    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource, URI targetShapeTreeURI, @NotNull Optional<URI> focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
         @NotNull Optional<Graph> containedResourceGraph = Optional.empty();
 // !! containedResource.getGraph().get();
@@ -211,7 +211,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URI targetShapeTreeURI, @NotNull Optional<Graph> bodyGraph, URI focusNodeURI) throws ShapeTreeException, URISyntaxException {
+    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URI targetShapeTreeURI, @NotNull Optional<Graph> bodyGraph, @NotNull Optional<URI> focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains

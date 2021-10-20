@@ -161,7 +161,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, @NotNull String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, Optional<URI> focusNode, URI targetShapeTree, String proposedResourceName, Boolean isContainer, @NotNull String bodyString, String contentType) throws ShapeTreeException {
 
         if (context == null || parentContainer == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and parent container to post shape tree instance");
@@ -179,7 +179,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     // Create via HTTP PUT
     @Override
-    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, URI targetShapeTree, Boolean isContainer, @NotNull String bodyString, @NotNull String contentType) throws ShapeTreeException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, @NotNull Optional<URI> focusNode, URI targetShapeTree, Boolean isContainer, @NotNull String bodyString, @NotNull String contentType) throws ShapeTreeException {
 
         if (context == null || resourceURI == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to create shape tree instance via PUT");
@@ -196,7 +196,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     // Update via HTTP PUT
     @Override
-    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, @NotNull String bodyString, @NotNull String contentType) throws ShapeTreeException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI resourceURI, @NotNull Optional<URI> focusNode, @NotNull String bodyString, @NotNull String contentType) throws ShapeTreeException {
 
         if (context == null || resourceURI == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to update shape tree instance via PUT");
@@ -211,7 +211,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, URI focusNode, @NotNull String patchString) throws ShapeTreeException {
+    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI resourceURI, @NotNull Optional<URI> focusNode, @NotNull String patchString) throws ShapeTreeException {
 
         if (context == null || resourceURI == null || patchString == null) {
             throw new ShapeTreeException(500, "Must provide a valid context, target resource, and PATCH expression to PATCH shape tree instance");
@@ -219,7 +219,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         log.debug("PATCH-ing shape tree instance at {}", resourceURI);
         log.debug("PATCH String: {}", patchString);
-        log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
+        log.debug("Focus Node: {}", focusNode.isEmpty() ? "None provided" : focusNode);
 
         String contentType = "application/sparql-update";
 
@@ -297,7 +297,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
                                               body, contentType));
     }
 
-    private ResourceAttributes getCommonHeaders(ShapeTreeContext context, URI focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
+    private ResourceAttributes getCommonHeaders(ShapeTreeContext context, @NotNull Optional<URI> focusNode, URI targetShapeTree, Boolean isContainer, String proposedResourceName, String contentType) {
         ResourceAttributes ret = new ResourceAttributes();
 
         if (context.getAuthorizationHeaderValue() != null) {
@@ -309,8 +309,8 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
         }
 
-        if (focusNode != null) {
-            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
+        if (!focusNode.isEmpty()) {
+            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + focusNode.get() + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
         }
 
         if (targetShapeTree != null) {
