@@ -44,7 +44,7 @@ public class ShapeTreeLocator {
         return this.id;
     }
 
-    public Graph getGraph() throws URISyntaxException {
+    public Graph getGraph() throws URISyntaxException, ShapeTreeException {
 
         Graph locatorGraph = GraphHelper.getEmptyGraph();
         String locatorSubject = this.getURI().toString();
