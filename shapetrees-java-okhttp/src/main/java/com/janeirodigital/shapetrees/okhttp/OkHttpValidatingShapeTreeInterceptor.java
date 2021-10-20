@@ -167,12 +167,18 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         @NotNull
         @Override
         public Optional<String> getBody() {
-            try (Buffer buffer = new Buffer()) {
-                if (this.request.body() != null) {
-                    Objects.requireNonNull(this.request.body()).writeTo(buffer);
+            RequestBody body = this.request.body();
+            try {
+                if (body == null ||
+                        // heurstics to get around okhttp delete behavior
+                        this.getMethod().equals("DELETE") && body.contentLength() == 0 && body.contentType() == null
+                ) {
+                    return Optional.empty();
                 }
+                Buffer buffer = new Buffer();
+                Objects.requireNonNull(this.request.body()).writeTo(buffer);
                 return Optional.of(buffer.readUtf8());
-            } catch (IOException | NullPointerException ex) {
+            } catch (IOException e) {
                 log.error("Error writing body to string");
                 return Optional.empty();
             }

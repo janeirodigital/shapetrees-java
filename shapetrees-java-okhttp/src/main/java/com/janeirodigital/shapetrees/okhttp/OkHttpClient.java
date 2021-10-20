@@ -127,13 +127,13 @@ public class OkHttpClient implements HttpClient {
             switch (request.method) {
 
                 case HttpClient.GET:
-                    requestBuilder.method(request.method, null);
-//                    requestBuilder.get();
+                    requestBuilder.get();
                     break;
 
                 case HttpClient.DELETE:
-                    requestBuilder.method(request.method, okhttp3.RequestBody.create(null, new byte[0])); // apparently needed 'cause delete CAN have a body
-//                    requestBuilder.delete();
+//                    requestBuilder.method(request.method, null); // in principle, this invocation would work for GET and DELETE, but since DELETE *can* have a body, we need to:
+//                    requestBuilder.method(request.method, okhttp3.RequestBody.create(null, new byte[0])); // *but* this breaks `request.getBody() == null` so give up and use specific function
+                    requestBuilder.delete();
                     break;
 
                 case HttpClient.PUT:
