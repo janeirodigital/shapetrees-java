@@ -42,7 +42,7 @@ public class ShapeTreeFactory {
     private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
         try {
             DocumentResponse contents = DocumentLoaderManager.getLoader().loadExternalDocument(shapeTreeURI);
-            Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType().orElse("text/turtle"));
+            Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType());
             Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);
         } catch (RiotNotFoundException rnfe) {

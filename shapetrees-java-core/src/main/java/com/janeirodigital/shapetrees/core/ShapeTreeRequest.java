@@ -18,7 +18,7 @@ public interface ShapeTreeRequest {
     @NotNull
     Optional<String> getBody();
     @NotNull
-    String expectContentType() throws ShapeTreeException;
+    Optional<String> getContentType();
     @NotNull
     ShapeTreeResourceType getResourceType();
     void setResourceType(@NotNull ShapeTreeResourceType resourceType);

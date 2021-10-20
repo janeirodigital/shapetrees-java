@@ -9,11 +9,13 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RiotException;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 /**
  * Assorted helper methods related to RDF Graphs
@@ -29,11 +31,11 @@ public class GraphHelper {
      * @param contentType Content type string
      * @return Serialization language
      */
-    public static Lang getLangForContentType(String contentType) { // !! Optional<String>
-        if (contentType == null) {
+    public static Lang getLangForContentType(@NotNull Optional<String> contentType) { // !! Optional<String>
+        if (contentType.isEmpty()) {
             return Lang.TURTLE;
         }
-        switch (contentType) {
+        switch (contentType.get()) {
             case "application/ld+json":
                 return Lang.JSONLD;
             case "application/rdf+xml":
@@ -68,7 +70,7 @@ public class GraphHelper {
      * @return Deserialized model
      * @throws ShapeTreeException ShapeTreeException
      */
-    public static Model readStringIntoModel(URI baseURI, String rawContent, String contentType) throws ShapeTreeException {
+    public static Model readStringIntoModel(URI baseURI, String rawContent, @NotNull Optional<String> contentType) throws ShapeTreeException {
         try {
             Model model = ModelFactory.createDefaultModel();
             StringReader reader = new StringReader(rawContent);
@@ -88,7 +90,7 @@ public class GraphHelper {
      * @return Deserialized graph
      * @throws ShapeTreeException ShapeTreeException
      */
-    public static Graph readStringIntoGraph(URI baseURI, String rawContent, String contentType) throws ShapeTreeException {
+    public static Graph readStringIntoGraph(URI baseURI, String rawContent, @NotNull Optional<String> contentType) throws ShapeTreeException {
         return readStringIntoModel(baseURI, rawContent, contentType).getGraph();
     }
 

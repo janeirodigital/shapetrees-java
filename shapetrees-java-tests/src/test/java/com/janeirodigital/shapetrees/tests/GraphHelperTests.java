@@ -16,6 +16,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.URI;
+import java.util.Optional;
 
 class GraphHelperTests {
 
@@ -24,7 +25,7 @@ class GraphHelperTests {
     @DisplayName("Handle null or empty content types with defaults")
     @SneakyThrows
     void handleNullOrEmptyContentTypes(String type) {
-        Lang lang = GraphHelper.getLangForContentType(type);
+        Lang lang = GraphHelper.getLangForContentType(Optional.of(type));
         Assertions.assertEquals(lang, Lang.TURTLE);
     }
 
@@ -33,7 +34,7 @@ class GraphHelperTests {
     @DisplayName("Handle turtle content type when specified or as default")
     @SneakyThrows
     void handleTurtleContentType(String type) {
-        Lang lang = GraphHelper.getLangForContentType(type);
+        Lang lang = GraphHelper.getLangForContentType(Optional.of(type));
         Assertions.assertEquals(lang, Lang.TURTLE);
     }
 
@@ -41,7 +42,7 @@ class GraphHelperTests {
     @DisplayName("JSON LD content type")
     @SneakyThrows
     void handleJsonLD() {
-        Lang lang = GraphHelper.getLangForContentType("application/ld+json");
+        Lang lang = GraphHelper.getLangForContentType(Optional.of("application/ld+json"));
         Assertions.assertEquals(lang, Lang.JSONLD);
     }
 
@@ -49,7 +50,7 @@ class GraphHelperTests {
     @DisplayName("N-Triples content type")
     @SneakyThrows
     void hanldeNTriples() {
-        Lang lang = GraphHelper.getLangForContentType("application/n-triples");
+        Lang lang = GraphHelper.getLangForContentType(Optional.of("application/n-triples"));
         Assertions.assertEquals(lang, Lang.NTRIPLES);
     }
 
@@ -57,7 +58,7 @@ class GraphHelperTests {
     @DisplayName("rdf+xml content type")
     @SneakyThrows
     void hanldeRDFXMLTriples() {
-        Lang lang = GraphHelper.getLangForContentType("application/rdf+xml");
+        Lang lang = GraphHelper.getLangForContentType(Optional.of("application/rdf+xml"));
         Assertions.assertEquals(lang, Lang.RDFXML);
     }
 
@@ -66,7 +67,7 @@ class GraphHelperTests {
     @SneakyThrows
     void parseInvalidTTL() {
         String invalidTtl = "<#a> b c";
-        Assertions.assertThrows(ShapeTreeException.class, () -> GraphHelper.readStringIntoGraph(URI.create("https://example.com/a"), invalidTtl, "text/turtle"));
+        Assertions.assertThrows(ShapeTreeException.class, () -> GraphHelper.readStringIntoGraph(URI.create("https://example.com/a"), invalidTtl, Optional.of("text/turtle")));
     }
 
     @Test
@@ -74,7 +75,7 @@ class GraphHelperTests {
     @SneakyThrows
     void parseValidTTL() {
         String invalidTtl = "<#a> <#b> <#c> .";
-        Assertions.assertNotNull(GraphHelper.readStringIntoGraph(URI.create("https://example.com/a"), invalidTtl, "text/turtle"));
+        Assertions.assertNotNull(GraphHelper.readStringIntoGraph(URI.create("https://example.com/a"), invalidTtl, Optional.of("text/turtle")));
     }
 
 

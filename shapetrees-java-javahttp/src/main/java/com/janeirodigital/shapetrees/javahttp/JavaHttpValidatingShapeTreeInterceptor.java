@@ -29,7 +29,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     private static final String DELETE = "DELETE";
 
     @NotNull
-    public java.net.http.HttpResponse validatingWrap(java.net.http.HttpRequest clientRequest, java.net.http.HttpClient httpClient, @NotNull Optional<String> body, String contentType) throws IOException, InterruptedException {
+    public java.net.http.HttpResponse validatingWrap(java.net.http.HttpRequest clientRequest, java.net.http.HttpClient httpClient, @NotNull Optional<String> body, @NotNull Optional<String> contentType) throws IOException, InterruptedException {
 
         ShapeTreeRequest shapeTreeRequest = new JavaHttpShapeTreeRequest(clientRequest, body, contentType);
         ResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
@@ -89,10 +89,10 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         private final java.net.http.HttpRequest request;
         private ShapeTreeResourceType resourceType;
         @NotNull private final Optional<String> body;
-        private final String contentType;
+        @NotNull private final Optional<String> contentType;
         private final ResourceAttributes headers;
 
-        public JavaHttpShapeTreeRequest(java.net.http.HttpRequest request, @NotNull Optional<String> body, String contentType) {
+        public JavaHttpShapeTreeRequest(java.net.http.HttpRequest request, @NotNull Optional<String> body, @NotNull Optional<String> contentType) {
             this.request = request;
             this.body = body;
             this.contentType = contentType;
@@ -130,11 +130,13 @@ public class JavaHttpValidatingShapeTreeInterceptor {
             return this.request.headers().firstValue(header);
         }
 
+        @NotNull
         @Override
-        public @NotNull String expectContentType() throws ShapeTreeException {
-            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElseThrow(
-                    () -> new ShapeTreeException(400, "Content-Type is required")
-            );
+        public Optional<String> getContentType() {
+            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue());
+//                    .orElseThrow(
+//                    () -> new ShapeTreeException(400, "Content-Type is required")
+//            );
         }
 
         @Override

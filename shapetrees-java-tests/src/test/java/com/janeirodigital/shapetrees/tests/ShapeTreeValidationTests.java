@@ -302,7 +302,7 @@ class ShapeTreeValidationTests {
                       "    ex:name \"Footastic\" ; \n" +
                       "    ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime . \n";
 
-        return GraphHelper.readStringIntoGraph(baseURI, body, "text/turtle");
+        return GraphHelper.readStringIntoGraph(baseURI, body, Optional.of("text/turtle"));
     }
 
     private Graph getInvalidFooBodyGraph(URI baseURI) throws ShapeTreeException {
@@ -315,7 +315,7 @@ class ShapeTreeValidationTests {
                 "    ex:id 56789 ; \n" +
                 "    ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime . \n";
 
-        return GraphHelper.readStringIntoGraph(baseURI, body, "text/turtle");
+        return GraphHelper.readStringIntoGraph(baseURI, body, Optional.of("text/turtle"));
     }
 
 }

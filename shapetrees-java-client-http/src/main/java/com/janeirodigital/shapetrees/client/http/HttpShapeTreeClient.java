@@ -82,7 +82,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             return Optional.empty();
         }
 
-        Graph locatorGraph = GraphHelper.readStringIntoGraph(metadataUri, locatorResource.getBody(), locatorResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+        Graph locatorGraph = GraphHelper.readStringIntoGraph(metadataUri, locatorResource.getBody(), locatorResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()));
 
         // Populate a ShapeTreeLocator from the graph in locatorResource and return it
         return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri, locatorGraph)

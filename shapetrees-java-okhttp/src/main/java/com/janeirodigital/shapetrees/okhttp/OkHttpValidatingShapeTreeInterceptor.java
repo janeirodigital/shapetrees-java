@@ -145,11 +145,13 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             return ret == null ? Optional.empty() : Optional.of(ret);
         }
 
+        @NotNull
         @Override
-        public String expectContentType() throws ShapeTreeException {
-            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElseThrow(
-                    () -> new ShapeTreeException(400, "Content-Type is required")
-            );
+        public Optional<String> getContentType() {
+            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue());
+//                    .orElseThrow(
+//                    () -> new ShapeTreeException(400, "Content-Type is required")
+//            );
         }
 
         @Override
@@ -172,7 +174,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
                 return Optional.of(buffer.readUtf8());
             } catch (IOException | NullPointerException ex) {
                 log.error("Error writing body to string");
-                return Optional.emtpy();
+                return Optional.empty();
             }
         }
     }

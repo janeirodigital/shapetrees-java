@@ -82,7 +82,7 @@ public class ShapeTree {
         if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
             bodyGraph = Optional.of(GraphHelper.readStringIntoGraph(targetResource.getUri(),
                     targetResource.getBody(),
-                    targetResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null)));
+                    targetResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue())));
         }
         
         return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeURI);
@@ -204,7 +204,7 @@ public class ShapeTree {
         if (containedResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
             containedResourceGraph = Optional.of(GraphHelper.readStringIntoGraph(containedResource.getUri(),
                     containedResource.getBody(),
-                    containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null)));
+                    containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue())));
         }
 
         return validateContainedResource(containedResource.getName(), containedResource.getResourceType(), targetShapeTreeURI, containedResourceGraph, focusNodeURI);

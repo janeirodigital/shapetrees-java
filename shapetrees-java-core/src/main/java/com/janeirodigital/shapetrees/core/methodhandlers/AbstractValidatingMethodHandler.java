@@ -332,15 +332,15 @@ public abstract class AbstractValidatingMethodHandler {
      * @throws ShapeTreeException ShapeTreeException throw, specifically if Content-Type is not included on request
      */
     protected ShapeTreeResourceType determineResourceType(ShapeTreeRequest shapeTreeRequest, ShapeTreeResource existingResource) throws ShapeTreeException {
-        boolean isNonRdf;
+        boolean isRdfMediaType;
         if (!shapeTreeRequest.getMethod().equals(DELETE)) {
-            String incomingRequestContentType = shapeTreeRequest.expectContentType();
-            isNonRdf = determineIsNonRdfSource(incomingRequestContentType);
+            @NotNull Optional<String> incomingRequestContentType = shapeTreeRequest.getContentType();
+            isRdfMediaType = determineIsRdfMediaType(incomingRequestContentType);
         } else {
-            isNonRdf = false;
+            isRdfMediaType = true;
         }
 
-        if (isNonRdf) {
+        if (!isRdfMediaType) {
             return ShapeTreeResourceType.NON_RDF;
         }
 
@@ -386,7 +386,7 @@ public abstract class AbstractValidatingMethodHandler {
         log.debug("Reading request body into graph with baseURI {}", baseURI);
 
         if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF
-                && !shapeTreeRequest.expectContentType().equalsIgnoreCase("application/sparql-update"))
+                && !shapeTreeRequest.getContentType().orElse(null).equalsIgnoreCase("application/sparql-update"))
                 || shapeTreeRequest.getBody().isEmpty()) {
             return Optional.empty();
         }
@@ -417,7 +417,7 @@ public abstract class AbstractValidatingMethodHandler {
             }
 
         } else {
-            targetResourceGraph = GraphHelper.readStringIntoGraph(baseURI, body, shapeTreeRequest.expectContentType());
+            targetResourceGraph = GraphHelper.readStringIntoGraph(baseURI, body, shapeTreeRequest.getContentType());
         }
 
         return Optional.of(targetResourceGraph);
@@ -470,12 +470,13 @@ public abstract class AbstractValidatingMethodHandler {
 
     /**
      * Determines whether a content type is a supported RDF type
-     * @param incomingRequestContentType Content type to test
+     * @param contentType Content type to test
      * @return Boolean indicating whether it is RDF or not
      */
-    protected boolean determineIsNonRdfSource(String incomingRequestContentType) {
-        return (!this.supportedRDFContentTypes.contains(incomingRequestContentType.toLowerCase()) &&
-                !this.supportedSPARQLContentTypes.contains(incomingRequestContentType.toLowerCase()));
+    protected boolean determineIsRdfMediaType(@NotNull Optional<String> contentType) {
+        return (!contentType.isEmpty() &&
+                (this.supportedRDFContentTypes.contains(contentType.get().toLowerCase()) ||
+                 this.supportedSPARQLContentTypes.contains(contentType.get().toLowerCase())));
     }
 
     /**
@@ -516,7 +517,7 @@ public abstract class AbstractValidatingMethodHandler {
     protected Graph getGraphForResource(ShapeTreeResource.Fork resource, URI baseURI) throws ShapeTreeException {
 
         if (!resource.isExists()) return null;
-        return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+        return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()));
     }
 
     @NotNull

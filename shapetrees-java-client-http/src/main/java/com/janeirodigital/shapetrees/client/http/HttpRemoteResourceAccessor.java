@@ -104,7 +104,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container <" + containerResourceURI + ">");
             }
 
-            Graph containerGraph = GraphHelper.readStringIntoGraph(containerResourceURI, containerResource.getBody(), containerResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+            Graph containerGraph = GraphHelper.readStringIntoGraph(containerResourceURI, containerResource.getBody(), containerResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()));
 
             if (containerGraph.isEmpty()) { return Collections.emptyList(); }
 
