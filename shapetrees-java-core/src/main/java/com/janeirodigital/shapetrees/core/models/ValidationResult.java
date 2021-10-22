@@ -3,12 +3,11 @@ package com.janeirodigital.shapetrees.core.models;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.net.URI;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@AllArgsConstructor
 public class ValidationResult {
     private Boolean valid;
     private ShapeTree validatingShapeTree;
