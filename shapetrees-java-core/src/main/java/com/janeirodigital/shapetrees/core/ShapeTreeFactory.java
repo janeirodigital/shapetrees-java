@@ -46,7 +46,7 @@ public class ShapeTreeFactory {
             Resource resource = model.getResource(shapeTreeURI.toString());
             recursivelyParseShapeTree(model, resource);
         } catch (RiotNotFoundException rnfe) {
-            log.error("Unable to load graph at URI {}", shapeTreeURI);
+            throw new ShapeTreeException(500, "Unable to load graph at URI: " + shapeTreeURI + " - " + rnfe.getMessage());
         }
     }
 
@@ -54,11 +54,6 @@ public class ShapeTreeFactory {
         String shapeTreeURIString = resource.getURI();
         log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
         URI shapeTreeURI = new URI(shapeTreeURIString);
-
-        if (localShapeTreeCache.containsKey(shapeTreeURI)) {
-            log.debug("[{}] previously cached -- returning", shapeTreeURIString);
-            return;
-        }
 
         ShapeTree shapeTree = new ShapeTree(DocumentLoaderManager.getLoader());
         // Set the URI as the ID (string representation)

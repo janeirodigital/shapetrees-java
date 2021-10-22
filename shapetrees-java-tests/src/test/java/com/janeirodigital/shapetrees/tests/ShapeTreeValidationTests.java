@@ -1,6 +1,5 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
@@ -53,6 +52,7 @@ class ShapeTreeValidationTests {
                 new DispatcherEntry(List.of("validation/validation-container"), "GET", "/validation/", null),
                 new DispatcherEntry(List.of("validation/valid-resource"), "GET", "/validation/valid-resource", null),
                 new DispatcherEntry(List.of("http/404"), "GET", "/static/shex/missing", null),
+                new DispatcherEntry(List.of("http/404"), "GET", "/static/shapetrees/missing", null),
                 new DispatcherEntry(List.of("schemas/validation-shex"), "GET", "/static/shex/validation", null),
                 new DispatcherEntry(List.of("schemas/invalid-shex"), "GET", "/static/shex/invalid", null)));
     }

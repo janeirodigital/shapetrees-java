@@ -1,0 +1,22 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX pm: <${SERVER_BASE}/static/shex/project/shex#>
+  PREFIX pmtree: <${SERVER_BASE}/static/shapetrees/project/shapetree#>
+  PREFIX biz: <${SERVER_BASE}/static/shex/business/shex#>
+
+  <#BusinessTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape biz:BusinessShape ;
+    st:contains pmtree:MilestoneTree ,
+                <#InitiativeTree> .
+
+  <#InitiativeTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape biz:InitiativeShape ;
+    st:contains pmtree:TaskTree .

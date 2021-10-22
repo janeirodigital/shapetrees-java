@@ -41,9 +41,11 @@ class ShapeTreeParsingTests {
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
                 new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null),
+                new DispatcherEntry(List.of("shapetrees/business-shapetree-ttl"), "GET", "/static/shapetrees/business/shapetree", null),
                 new DispatcherEntry(List.of("shapetrees/project-shapetree-virtual-ttl"), "GET", "/static/shapetrees/project/shapetree-virtual", null),
                 new DispatcherEntry(List.of("shapetrees/project-shapetree-invalid-ttl"), "GET", "/static/shapetrees/project/shapetree-invalid", null),
                 new DispatcherEntry(List.of("shapetrees/project-shapetree-invalid-2-ttl"), "GET", "/static/shapetrees/project/shapetree-invalid2", null),
+                new DispatcherEntry(List.of("shapetrees/content-type-invalid-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree-bad-content-type", null),
                 new DispatcherEntry(List.of("http/404"), "GET", "/static/shapetrees/project/shapetree-missing", null)
         ));
     }
@@ -57,8 +59,11 @@ class ShapeTreeParsingTests {
         ShapeTree projectShapeTree1 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree#ProjectTree"));
         Assertions.assertNotNull(projectShapeTree1);
         ShapeTree projectShapeTree2 = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree#ProjectTree"));
-        Assertions.assertNotNull(projectShapeTree1);
+        Assertions.assertNotNull(projectShapeTree2);
         assertEquals(projectShapeTree1.hashCode(), projectShapeTree2.hashCode());
+        // The "business" shape tree won't be in the cache, but it cross-contains pm:MilestoneTree, which should be.
+        ShapeTree businessShapeTree = ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/business/shapetree#BusinessTree"));
+        Assertions.assertNotNull(businessShapeTree);
     }
 
     @SneakyThrows
@@ -80,6 +85,16 @@ class ShapeTreeParsingTests {
         server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-missing#missing"))
+        );
+    }
+
+    @Test
+    @DisplayName("Fail to parse shape tree with invalid content type")
+    void failToParseShapeTreeWithInvalidContentType() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        Assertions.assertThrows(ShapeTreeException.class, () ->
+                ShapeTreeFactory.getShapeTree(getURI(server,"/static/shapetrees/project/shapetree-bad-content-type#bad"))
         );
     }
 
@@ -126,6 +141,8 @@ class ShapeTreeParsingTests {
         Assertions.assertNotNull(projectShapeTree);
         assertTrue(projectShapeTree.getContains().contains(getURI(server,"/static/shapetrees/project/shapetree#MilestoneTree")));
     }
+
+    // Parse tree with no contains
 
     @SneakyThrows
     @Test
