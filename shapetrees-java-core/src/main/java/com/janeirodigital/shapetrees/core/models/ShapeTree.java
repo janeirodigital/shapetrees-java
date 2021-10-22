@@ -1,6 +1,9 @@
 package com.janeirodigital.shapetrees.core.models;
 
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.SchemaCache;
+import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
@@ -14,7 +17,6 @@ import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
 import fr.inria.lille.shexjava.validation.RecursiveValidation;
 import fr.inria.lille.shexjava.validation.ValidationAlgorithm;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.rdf.api.IRI;
@@ -22,6 +24,7 @@ import org.apache.commons.rdf.jena.JenaRDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -31,20 +34,38 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-@Getter @Setter
+@Getter
 @Slf4j
 public class ShapeTree {
     private ExternalDocumentLoader externalDocumentLoader;
-    private String id;
-    private String expectedResourceType;
-    private String shape;
-    private String label;
-    private String supports;
-    private List<URI> contains = new ArrayList<>();
-    private List<ReferencedShapeTree> references;
+    @NotNull
+    final private String id;
+    @NotNull
+    final private String expectedResourceType;
+    final private String shape;
+    final private String label;
+    final private String supports;
+    @NotNull
+    final private List<URI> contains;
+    @NotNull
+    final private List<ReferencedShapeTree> references;
 
-    public ShapeTree(ExternalDocumentLoader externalDocumentLoader) {
+    public ShapeTree(ExternalDocumentLoader externalDocumentLoader,
+                     @NotNull String id,
+                     @NotNull String expectedResourceType,
+                     String label,
+                     String shape,
+                     String supports,
+                     @NotNull List<ReferencedShapeTree> references,
+                     @NotNull List<URI> contains) {
         this.externalDocumentLoader = externalDocumentLoader;
+        this.id = id;
+        this.expectedResourceType = expectedResourceType;
+        this.label = label;
+        this.shape = shape;
+        this.supports = supports;
+        this.references = references;
+        this.contains = contains;
     }
 
     public URI getURI() throws URISyntaxException {
@@ -290,6 +311,9 @@ public class ShapeTree {
         return referencedShapeTrees;
     }
 
+    public void setExternalDocumentLoader(ExternalDocumentLoader externalDocumentLoader) {
+        this.externalDocumentLoader = externalDocumentLoader;
+    }
 }
 
 class SortByShapeTreeContainsPriority implements Comparator<URI>, Serializable

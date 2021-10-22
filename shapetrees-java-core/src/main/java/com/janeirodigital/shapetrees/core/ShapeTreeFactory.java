@@ -51,6 +51,7 @@ public class ShapeTreeFactory {
     }
 
     private static void recursivelyParseShapeTree(Model model, Resource resource) throws URISyntaxException, ShapeTreeException {
+        // Set the URI as the ID (string representation)
         String shapeTreeURIString = resource.getURI();
         log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
         URI shapeTreeURI = new URI(shapeTreeURIString);
@@ -59,22 +60,29 @@ public class ShapeTreeFactory {
             log.debug("[{}] previously cached -- returning", shapeTreeURIString);
             return;
         }
-
-        ShapeTree shapeTree = new ShapeTree(DocumentLoaderManager.getLoader());
-        // Set the URI as the ID (string representation)
-        shapeTree.setId(shapeTreeURIString);
         // Set the expected resource type
         String expectsType = getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE);
         if (expectsType == null) throw new ShapeTreeException(500, "Shape Tree :expectsType not found");
-        shapeTree.setExpectedResourceType(expectsType);
+
         // Set Shape URI
-        shapeTree.setShape(getStringValue(model, resource, ShapeTreeVocabulary.SHAPE));
+        final String shape = getStringValue(model, resource, ShapeTreeVocabulary.SHAPE);
         // Set Label
-        shapeTree.setLabel(getStringValue(model, resource, RDFS_LABEL));
+        final String label = getStringValue(model, resource, RDFS_LABEL);
         // Set Supports
-        shapeTree.setSupports(getStringValue(model, resource, ShapeTreeVocabulary.SUPPORTS));
+        final String supports = getStringValue(model, resource, ShapeTreeVocabulary.SUPPORTS);
         // Set Reference collection
-        shapeTree.setReferences(new ArrayList<>());
+        final ArrayList<ReferencedShapeTree> references = new ArrayList<>();
+        List<URI> contains = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
+
+        ShapeTree shapeTree = new ShapeTree(
+                DocumentLoaderManager.getLoader(),
+                shapeTreeURIString,
+                expectsType,
+                label,
+                shape,
+                supports,
+                references,
+                contains);
 
         // Add the shapeTree to the cache before any of the recursive processing
         localShapeTreeCache.put(shapeTreeURI, shapeTree);
@@ -94,18 +102,16 @@ public class ShapeTreeFactory {
 
                 // Create the object that defines there relation between a ShapeTree and its children
                 ReferencedShapeTree referencedShapeTree = new ReferencedShapeTree(referenceShapeTreeUri, shapePath);
-                shapeTree.getReferences().add(referencedShapeTree);
+                references.add(referencedShapeTree);
             }
         }
 
         // Containers are expected to have contents
-        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.CONTAINER)) {
+        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !expectsType.equals(ShapeTreeVocabulary.CONTAINER)) {
             throw new ShapeTreeException(400, "Contents predicate not expected outside of st:Container Types");
         }
-        if (shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.CONTAINER)) {
-            List<URI> uris = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
-            shapeTree.setContains(uris);
-            for (URI uri : uris) {
+        if (expectsType.equals(ShapeTreeVocabulary.CONTAINER)) {
+            for (URI uri : contains) {
                 if (!localShapeTreeCache.containsKey(uri)) {
                     recursivelyParseShapeTree(model, model.getResource(uri.toString()));
                 }
