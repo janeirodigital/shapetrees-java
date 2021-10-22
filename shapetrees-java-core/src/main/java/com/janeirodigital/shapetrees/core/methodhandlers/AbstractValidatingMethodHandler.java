@@ -16,7 +16,6 @@ import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;

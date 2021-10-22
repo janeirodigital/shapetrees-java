@@ -14,10 +14,7 @@ import org.apache.jena.riot.RiotNotFoundException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class ShapeTreeFactory {
@@ -79,7 +76,7 @@ public class ShapeTreeFactory {
                 shapeTreeURIString,
                 expectsType,
                 label,
-                shape,
+                shape == null ? Optional.empty() : Optional.of(shape),
                 supports,
                 references,
                 contains);

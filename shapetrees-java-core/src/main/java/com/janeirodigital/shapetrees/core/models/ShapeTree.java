@@ -10,6 +10,7 @@ import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
+
 import fr.inria.lille.shexjava.GlobalFactory;
 import fr.inria.lille.shexjava.schema.Label;
 import fr.inria.lille.shexjava.schema.ShexSchema;
@@ -42,8 +43,9 @@ public class ShapeTree {
     final private String id;
     @NotNull
     final private String expectedResourceType;
-    final private String shape;
     final private String label;
+    @NotNull
+    final private Optional<String> shape;
     final private String supports;
     @NotNull
     final private List<URI> contains;
@@ -54,7 +56,7 @@ public class ShapeTree {
                      @NotNull String id,
                      @NotNull String expectedResourceType,
                      String label,
-                     String shape,
+                     @NotNull Optional<String> shape,
                      String supports,
                      @NotNull List<ReferencedShapeTree> references,
                      @NotNull List<URI> contains) {
@@ -101,7 +103,7 @@ public class ShapeTree {
         }
 
         // If the shape tree specifies a shape to validate, perform shape validation
-        if (this.shape != null) {
+        if (!this.shape.isEmpty()) {
             return this.validateGraph(bodyGraph, focusNodeURI);
         }
 
@@ -112,11 +114,11 @@ public class ShapeTree {
 
     public ValidationResult validateGraph(@NotNull Optional<Graph> graph, @NotNull Optional<URI> focusNodeURI) throws ShapeTreeException, URISyntaxException {
         // if (true) return new ValidationResult(true, this, this, focusNodeURI); // [debug] ShExC parser brings debugger to its knees
-        if (this.shape == null) {
-            throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
-        }
+        String shape = this.shape.orElseThrow(
+                () -> new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree <" + this.id + "> but it doesn't specify one")
+        );
 
-        URI resolvedShapeURI = URI.create(this.id).resolve(this.shape);
+        URI resolvedShapeURI = URI.create(this.id).resolve(shape);
 
         URI shapeResourceURI = resolvedShapeURI;
         if (shapeResourceURI.getFragment() != null) {
@@ -152,7 +154,7 @@ public class ShapeTree {
         GlobalFactory.RDFFactory = jenaRDF;
 
         ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph.orElseThrow(() -> new ShapeTreeException(500, "Can't validate a missing graph"))));
-        Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.shape));
+        Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(shape));
 
         if (!focusNodeURI.isEmpty()) {
 
@@ -188,7 +190,7 @@ public class ShapeTree {
 
     public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource) throws ShapeTreeException, URISyntaxException {
 
-        if (this.contains == null || this.contains.isEmpty()) {
+        if (this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
             return new ValidationResult(true, this, this, null);
         }
@@ -213,7 +215,7 @@ public class ShapeTree {
 
     public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URI targetShapeTreeURI, @NotNull Optional<Graph> bodyGraph, @NotNull Optional<URI> focusNodeURI) throws ShapeTreeException, URISyntaxException {
 
-        if (this.contains == null || this.contains.isEmpty()) {
+        if (this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
             return new ValidationResult(true, this, this, null);
         }
@@ -329,11 +331,11 @@ class SortByShapeTreeContainsPriority implements Comparator<URI>, Serializable
         Integer st1Priority = 0;
         Integer st2Priority = 0;
 
-        if (st1.getShape() != null) { st1Priority += 2; }
+        if (!st1.getShape().isEmpty()) { st1Priority += 2; }
         if (st1.getLabel() != null) { st1Priority++; }
         if (st1.getExpectedResourceType() != null) { st1Priority++; }
 
-        if (st2.getShape() != null) { st2Priority += 2; }
+        if (!st2.getShape().isEmpty()) { st2Priority += 2; }
         if (st2.getLabel() != null) { st2Priority++; }
         if (st2.getExpectedResourceType() != null) { st2Priority++; }
 

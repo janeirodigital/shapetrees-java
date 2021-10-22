@@ -143,7 +143,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
                                                            targetResource.toString(),
                                                            locationUri,
                                                            focusNode == null ? null : focusNode.toString(),
-                                                           null,
+                                                           Optional.empty(),
                                                            locationUri);
 
         // Add the location to the locator

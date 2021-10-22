@@ -83,7 +83,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         Assertions.assertEquals(targetResource.toString(), location.getManagedResource());
         Assertions.assertEquals(location.getUri(), location.getRootShapeTreeLocation());
         Assertions.assertEquals(getURI(server, "/managed").toString() + "#set", location.getFocusNode());
-        Assertions.assertEquals("http://www.example.com/ns/ex#DataSetShape", location.getShape());
+        Assertions.assertEquals(Optional.of("http://www.example.com/ns/ex#DataSetShape"), location.getShape());
 
     }
 

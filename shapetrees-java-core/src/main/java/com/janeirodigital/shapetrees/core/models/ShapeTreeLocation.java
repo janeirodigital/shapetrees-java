@@ -6,10 +6,12 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * ShapeTreeLocation
@@ -20,14 +22,15 @@ import java.util.List;
  * https://shapetrees.org/TR/specification/#locator
 */
 @Getter @Setter
-@AllArgsConstructor @NoArgsConstructor @EqualsAndHashCode
+@AllArgsConstructor @EqualsAndHashCode
 public class ShapeTreeLocation {
 
     private String shapeTree;               // Identifies the shape tree to be associated with the managed resource
     private String managedResource;         // Identifies the resource that the shape tree location is managing
     private URI rootShapeTreeLocation;      // Identifies the root shape tree location
     private String focusNode;               // Identifies the focus node for shape validation in the managed resource
-    private String shape;                   // Identifies the shape to which focusNode must conform
+    @NotNull
+    private Optional<String> shape;                   // Identifies the shape to which focusNode must conform
     private URI uri;
 
     public URI getBaseUri () throws URISyntaxException {
@@ -40,11 +43,17 @@ public class ShapeTreeLocation {
 
     }
 
+    public void setUri(final URI uri) {
+        this.uri = uri;
+    }
+
     public static ShapeTreeLocation getShapeTreeLocationFromGraph(URI uri, Graph shapeTreeMetadataGraph) {
 
-        ShapeTreeLocation location = new ShapeTreeLocation();
-
-        location.setUri(uri);
+        String shapeTree = null;
+        String managedResource = null;
+        URI rootShapeTreeLocation = null;
+        String focusNode = null;
+        Optional<String> shape = Optional.empty();
 
         // Look up the ShapeTreeLocation in the Metadata Graph via its URI
         List<Triple> locationTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(uri.toString()), Node.ANY, Node.ANY).toList();
@@ -59,25 +68,25 @@ public class ShapeTreeLocation {
 
             switch (locationTriple.getPredicate().getURI()) {
                 case ShapeTreeVocabulary.HAS_SHAPE_TREE:
-                    location.shapeTree = locationTriple.getObject().getURI();
+                    shapeTree = locationTriple.getObject().getURI();
                     break;
                 case ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_LOCATION:
-                    location.rootShapeTreeLocation = URI.create(locationTriple.getObject().getURI());
+                    rootShapeTreeLocation = URI.create(locationTriple.getObject().getURI());
                     break;
                 case ShapeTreeVocabulary.HAS_MANAGED_RESOURCE:
-                    location.managedResource = locationTriple.getObject().getURI();
+                    managedResource = locationTriple.getObject().getURI();
                     break;
                 case ShapeTreeVocabulary.SHAPE:
-                    location.shape = locationTriple.getObject().getURI();
+                    shape = Optional.of(locationTriple.getObject().getURI());
                     break;
                 case ShapeTreeVocabulary.FOCUS_NODE:
-                    location.focusNode = locationTriple.getObject().getURI();
+                    focusNode = locationTriple.getObject().getURI();
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + locationTriple.getPredicate().getURI());
             }
         }
-        return location;
+        return new ShapeTreeLocation(shapeTree, managedResource, rootShapeTreeLocation, focusNode,shape, uri);
     }
 
     public boolean isRootLocation() {

@@ -64,8 +64,8 @@ public class ShapeTreeLocator {
             locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_MANAGED_RESOURCE), URI.create(location.getManagedResource())));
             locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_LOCATION), location.getRootShapeTreeLocation()));
 
-            if (location.getShape() != null) {
-                locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.SHAPE), URI.create(location.getShape())));
+            if (!location.getShape().isEmpty()) {
+                locatorGraph.add(GraphHelper.newTriple(location.getUri(), URI.create(ShapeTreeVocabulary.SHAPE), URI.create(location.getShape().get())));
             }
 
             if (location.getFocusNode() != null) {
@@ -120,7 +120,7 @@ public class ShapeTreeLocator {
 
         for (ShapeTreeLocation location : this.locations) {
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(URI.create(location.getShapeTree()));
-            if (shapeTree.getContains() != null && !shapeTree.getContains().isEmpty()) {
+            if (!shapeTree.getContains().isEmpty()) {
                 return Optional.of(location);
             }
         }
