@@ -7,9 +7,6 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.junit.jupiter.api.*;
 
 import java.net.URI;
@@ -19,10 +16,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTests {
+// TODO - Rename this to AbstractHttpClientResourceAccessorTests
 
-    public AbstractHttpClientRemoteResourceTests() {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientTests {
+
+    public AbstractHttpClientResourceAccessorTests() {
         super();
     }
 

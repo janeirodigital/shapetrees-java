@@ -114,9 +114,4 @@ class ResourceAttributesTests {
 
     }
 
-    // setAll
-    // toList
-    // firstValue
-    // allValues
-
 }
