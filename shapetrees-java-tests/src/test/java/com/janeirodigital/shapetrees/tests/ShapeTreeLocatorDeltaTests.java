@@ -25,12 +25,9 @@ class ShapeTreeLocatorDeltaTests {
     @BeforeEach
     void beforeEach() throws ShapeTreeException, URISyntaxException {
 
-        existingLocator = new ShapeTreeLocator();
-        updatedLocator = new ShapeTreeLocator();
+        existingLocator = new ShapeTreeLocator(URI.create("https://locator.example/#existing"));
+        updatedLocator = new ShapeTreeLocator(URI.create("https://locator.example/#updated"));
         
-        existingLocator.setId(URI.create("https://locator.example/#existing"));
-        updatedLocator.setId(URI.create("https://locator.example/#updated"));
-
         locationOne = new ShapeTreeLocation(
                 "http://shapetrees.example/#firstTree", // ShapeTree
                 "http://data.example/resourceOne", // ManagedResource
@@ -268,10 +265,6 @@ class ShapeTreeLocatorDeltaTests {
         delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
         Assertions.assertTrue(delta.allRemoved());
 
-        updatedLocator.setLocations(null);
-        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
-        Assertions.assertTrue(delta.allRemoved());
-
     }
 
     @SneakyThrows
@@ -285,10 +278,6 @@ class ShapeTreeLocatorDeltaTests {
         Assertions.assertTrue(delta.isUpdated());
 
         existingLocator.getLocations().clear();
-        delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
-        Assertions.assertTrue(delta.isUpdated());
-
-        existingLocator.setLocations(null);
         delta = ShapeTreeLocatorDelta.evaluate(existingLocator, updatedLocator);
         Assertions.assertTrue(delta.isUpdated());
 

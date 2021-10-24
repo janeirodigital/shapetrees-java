@@ -30,7 +30,7 @@ import java.util.List;
  * one or more shape tree locations via st:location.
  * https://shapetrees.org/TR/specification/#locator
 */
-@Getter @Setter @AllArgsConstructor @NoArgsConstructor
+@Getter
 public class ShapeTreeLocator {
 
     private URI id;
@@ -128,10 +128,7 @@ public class ShapeTreeLocator {
 
     public static ShapeTreeLocator getShapeTreeLocatorFromGraph(URI id, Graph shapeTreeMetadataGraph) {
 
-         ShapeTreeLocator locator = new ShapeTreeLocator();
-
-        // Assign the ID of the locator
-        locator.setId(id);
+         ShapeTreeLocator locator = new ShapeTreeLocator(id);
 
         // Look up the ShapeTreeLocator in the Metadata Graph via (any subject node, rdf:type, st:ShapeTreeLocator)
         List<Triple> shapeTreeLocatorTriples = shapeTreeMetadataGraph.find(Node.ANY,
