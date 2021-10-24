@@ -8,8 +8,8 @@ import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ShapeTreeLocatorDeltaTests {
@@ -23,54 +23,54 @@ class ShapeTreeLocatorDeltaTests {
     private static ShapeTreeLocation locationFive = null;
 
     @BeforeEach
-    void beforeEach() throws ShapeTreeException, URISyntaxException {
+    void beforeEach() throws ShapeTreeException, MalformedURLException {
 
-        existingLocator = new ShapeTreeLocator(URI.create("https://locator.example/#existing"));
-        updatedLocator = new ShapeTreeLocator(URI.create("https://locator.example/#updated"));
+        existingLocator = new ShapeTreeLocator(new URL("https://locator.example/#existing"));
+        updatedLocator = new ShapeTreeLocator(new URL("https://locator.example/#updated"));
         
         locationOne = new ShapeTreeLocation(
-                "http://shapetrees.example/#firstTree", // ShapeTree
+                new URL("http://shapetrees.example/#firstTree"), // ShapeTree
                 "http://data.example/resourceOne", // ManagedResource
-                URI.create("http://data.example/resourceOne.shapetree#locationOne"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceOne.shapetree#locationOne"), // RootShapeTreeLocation
                 "http://data.example/resourceOne#focus", // FocusNode
                 "http://shapes.example/#firstShape", // Shape
-                URI.create("http://data.example/resourceOne.shapetree#locationOne") // Uri
+                new URL("http://data.example/resourceOne.shapetree#locationOne") // Uri
         );
 
         locationTwo = new ShapeTreeLocation(
-                "http://shapetrees.example/#secondTree", // ShapeTree
+                new URL("http://shapetrees.example/#secondTree"), // ShapeTree
                 "http://data.example/resourceTwo", // ManagedResource
-                URI.create("http://data.example/resourceTwo.shapetree#locationTwo"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceTwo.shapetree#locationTwo"), // RootShapeTreeLocation
                 "http://data.example/resourceTwo#focus", // FocusNode
                 "http://shapes.example/#secondShape", // Shape
-                URI.create("http://data.example/resourceTwo.shapetree#locationTwo") // Uri
+                new URL("http://data.example/resourceTwo.shapetree#locationTwo") // Uri
         );
 
         locationThree = new ShapeTreeLocation(
-                "http://shapetrees.example/#thirdTree", // ShapeTree
+                new URL("http://shapetrees.example/#thirdTree"), // ShapeTree
                 "http://data.example/resourceThree", // ManagedResource
-                URI.create("http://data.example/resourceThree.shapetree#locationThree"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceThree.shapetree#locationThree"), // RootShapeTreeLocation
                 "http://data.example/resourceThree#focus", // FocusNode
                 "http://shapes.example/#thirdShape", // Shape
-                URI.create("http://data.example/resourceThree.shapetree#locationThree") // Uri
+                new URL("http://data.example/resourceThree.shapetree#locationThree") // Uri
         );
 
         locationFour = new ShapeTreeLocation(
-                "http://shapetrees.example/#fourthTree", // ShapeTree
+                new URL("http://shapetrees.example/#fourthTree"), // ShapeTree
                 "http://data.example/resourceFour", // ManagedResource
-                URI.create("http://data.example/resourceFour.shapetree#locationFour"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceFour.shapetree#locationFour"), // RootShapeTreeLocation
                 "http://data.example/resourceFour#focus", // FocusNode
                 "http://shapes.example/#fourthShape", // Shape
-                URI.create("http://data.example/resourceFour.shapetree#locationFour") // Uri
+                new URL("http://data.example/resourceFour.shapetree#locationFour") // Uri
         );
 
         locationFive = new ShapeTreeLocation(
-                "http://shapetrees.example/#fifthTree", // ShapeTree
+                new URL("http://shapetrees.example/#fifthTree"), // ShapeTree
                 "http://data.example/resourceFive", // ManagedResource
-                URI.create("http://data.example/resourceFive.shapetree#locationFive"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceFive.shapetree#locationFive"), // RootShapeTreeLocation
                 "http://data.example/resourceFive#focus", // FocusNode
                 "http://shapes.example/#fifthShape", // Shape
-                URI.create("http://data.example/resourceFive.shapetree#locationFive") // Uri
+                new URL("http://data.example/resourceFive.shapetree#locationFive") // Uri
         );
     }
 
@@ -283,15 +283,15 @@ class ShapeTreeLocatorDeltaTests {
 
     }
 
-    private ShapeTreeLocation duplicateLocation(ShapeTreeLocation location, final String shapeTree, final String focusNode) {
+    private ShapeTreeLocation duplicateLocation(ShapeTreeLocation location, final String shapeTree, final String focusNode) throws MalformedURLException {
 
         ShapeTreeLocation duplicateLocation = new ShapeTreeLocation(
-                shapeTree != null ? shapeTree : location.getShapeTree(),
+                shapeTree != null ? new URL(shapeTree) : location.getShapeTree(),
                 location.getManagedResource(),
                 location.getRootShapeTreeLocation(),
                 focusNode != null ? focusNode : location.getFocusNode(),
                 location.getShape(),
-                location.getUri()
+                location.getUrl()
         );
         return duplicateLocation;
 

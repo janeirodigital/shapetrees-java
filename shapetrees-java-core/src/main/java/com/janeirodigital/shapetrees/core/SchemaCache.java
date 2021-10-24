@@ -4,7 +4,7 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import fr.inria.lille.shexjava.schema.ShexSchema;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.URI;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,13 +17,13 @@ public class SchemaCache {
     }
 
     public static final String CACHE_IS_NOT_INITIALIZED = "Cache is not initialized";
-    private static Map<URI, ShexSchema> cache = null;
+    private static Map<URL, ShexSchema> cache = null;
 
     public static void initializeCache() {
         cache = new HashMap<>();
     }
 
-    public static void initializeCache(Map<URI, ShexSchema> existingCache) {
+    public static void initializeCache(Map<URL, ShexSchema> existingCache) {
         cache = existingCache;
     }
 
@@ -33,7 +33,7 @@ public class SchemaCache {
         return initialized;
     }
 
-    public static boolean containsSchema(URI schemaURI) throws ShapeTreeException {
+    public static boolean containsSchema(URL schemaURI) throws ShapeTreeException {
         log.debug("Determining if cache contains schema {}", schemaURI);
         if (cache == null) {
             throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
@@ -41,7 +41,7 @@ public class SchemaCache {
         return cache.containsKey(schemaURI);
     }
 
-    public static ShexSchema getSchema(URI schemaURI) throws ShapeTreeException {
+    public static ShexSchema getSchema(URL schemaURI) throws ShapeTreeException {
         log.debug("Getting schema {}", schemaURI);
         if (cache == null) {
             throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
@@ -49,7 +49,7 @@ public class SchemaCache {
         return cache.get(schemaURI);
     }
 
-    public static void putSchema(URI schemaURI, ShexSchema schema) throws ShapeTreeException {
+    public static void putSchema(URL schemaURI, ShexSchema schema) throws ShapeTreeException {
         log.debug("Caching schema {}", schemaURI.toString());
         if (cache == null) {
             throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);

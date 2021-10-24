@@ -16,8 +16,8 @@ import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +37,8 @@ public class SchemaCacheTests {
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
     }
 
-    protected URI getURI(MockWebServer server, String path) throws URISyntaxException {
-        return new URI(server.url(path).toString());
+    protected URL getURL(MockWebServer server, String path) throws MalformedURLException {
+        return new URL(server.url(path).toString());
     }
 
     @BeforeAll
@@ -51,43 +51,43 @@ public class SchemaCacheTests {
 
     @Test
     @Order(1)
-    void testInitializeCache() throws URISyntaxException, ShapeTreeException {
+    void testInitializeCache() throws MalformedURLException, ShapeTreeException {
         SchemaCache.initializeCache();
         assertTrue(SchemaCache.isInitialized());
-        assertFalse(SchemaCache.containsSchema(new URI("http://schema.example")));
+        assertFalse(SchemaCache.containsSchema(new URL("http://schema.example")));
     }
 
     @Test
     @Order(2)
-    void testPreloadCache() throws URISyntaxException, ShapeTreeException {
+    void testPreloadCache() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/project").toString()));
+        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(getURL(server, "/static/shex/project").toString()));
         SchemaCache.initializeCache(schemas);
-        assertTrue(SchemaCache.containsSchema(getURI(server, "/static/shex/project")));
+        assertTrue(SchemaCache.containsSchema(getURL(server, "/static/shex/project")));
     }
 
     @Test
     @Order(3)
-    void testClearPutGet() throws URISyntaxException, ShapeTreeException {
+    void testClearPutGet() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
-        Assertions.assertNull(SchemaCache.getSchema(getURI(server, "/static/shex/project")));
-        Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/project").toString()));
-        Map.Entry<URI, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
+        Assertions.assertNull(SchemaCache.getSchema(getURL(server, "/static/shex/project")));
+        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(getURL(server, "/static/shex/project").toString()));
+        Map.Entry<URL, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
         if (firstEntry == null) return;
         SchemaCache.putSchema(firstEntry.getKey(), firstEntry.getValue());
-        Assertions.assertNotNull(SchemaCache.getSchema(getURI(server, "/static/shex/project")));
+        Assertions.assertNotNull(SchemaCache.getSchema(getURL(server, "/static/shex/project")));
 
     }
 
-    public static Map<URI, ShexSchema> buildSchemaCache(List<String> schemasToCache) throws URISyntaxException, ShapeTreeException {
-        Map<URI, ShexSchema> schemaCache = new HashMap<>();
+    public static Map<URL, ShexSchema> buildSchemaCache(List<String> schemasToCache) throws MalformedURLException, ShapeTreeException {
+        Map<URL, ShexSchema> schemaCache = new HashMap<>();
         log.info("Building schema cache");
         for (String schemaUrl : schemasToCache) {
             log.debug("Caching schema {}", schemaUrl);
-            DocumentResponse shexShapeSchema = DocumentLoaderManager.getLoader().loadExternalDocument(new URI(schemaUrl));
+            DocumentResponse shexShapeSchema = DocumentLoaderManager.getLoader().loadExternalDocument(new URL(schemaUrl));
             if (Boolean.FALSE.equals(shexShapeSchema.isExists()) || shexShapeSchema.getBody() == null) {
                 log.warn("Schema at {} doesn't exist or is empty", schemaUrl);
                 continue;
@@ -97,7 +97,7 @@ public class SchemaCacheTests {
             try (InputStream stream = new ByteArrayInputStream(shapeBody.getBytes())) {
                 ShExCParser shexCParser = new ShExCParser();
                 ShexSchema schema = new ShexSchema(GlobalFactory.RDFFactory, shexCParser.getRules(stream), shexCParser.getStart());
-                schemaCache.put(new URI(schemaUrl), schema);
+                schemaCache.put(new URL(schemaUrl), schema);
             } catch (Exception ex) {
                 log.error("Error parsing schema {}", schemaUrl);
                 log.error("Exception:", ex);

@@ -8,7 +8,7 @@ import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
-import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,9 +54,9 @@ public class AbstractHttpClientProjectRecursiveTests extends AbstractHttpClientT
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
 
-        URI targetResource = getURI(server, "/data/");
-        URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
-        URI focusNode = getURI(server, "/data/#repository");
+        URL targetResource = getURL(server, "/data/");
+        URL targetShapeTree = getURL(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
+        URL focusNode = getURL(server, "/data/#repository");
 
         // Plant the data collection recursively on already existing hierarchy
         DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
@@ -84,8 +84,8 @@ public class AbstractHttpClientProjectRecursiveTests extends AbstractHttpClientT
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/.shapetree", null));
 
-        URI targetResource = getURI(server, "/data/projects/");
-        URI targetShapeTree = getURI(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
+        URL targetResource = getURL(server, "/data/projects/");
+        URL targetShapeTree = getURL(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
 
         // Plant the projects collection recursively on already existing hierarchy
         DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);

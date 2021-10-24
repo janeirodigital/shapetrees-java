@@ -4,7 +4,7 @@ import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.util.Optional;
 
 public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
@@ -14,10 +14,10 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURL(), this.resourceAccessor, shapeTreeContext);
             if (rc.wasCreatedFromMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));
