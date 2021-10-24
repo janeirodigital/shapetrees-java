@@ -21,7 +21,7 @@ public abstract class AbstractHttpClientTests {
     protected static String TEXT_TURTLE = "text/turtle";
 
     public AbstractHttpClientTests() {
-        this.context = new ShapeTreeContext();
+        this.context = new ShapeTreeContext(null);
     }
 
     public URI getURI(MockWebServer server, String path) throws URISyntaxException {

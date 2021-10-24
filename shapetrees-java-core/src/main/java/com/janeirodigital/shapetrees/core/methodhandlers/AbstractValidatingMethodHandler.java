@@ -306,9 +306,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @return ShapeTreeContext object populated with authentication details, if present
      */
     protected ShapeTreeContext buildContextFromRequest(ShapeTreeRequest shapeTreeRequest) {
-        ShapeTreeContext context = new ShapeTreeContext();
-        context.setAuthorizationHeaderValue(shapeTreeRequest.getHeaderValue(HttpHeaders.AUTHORIZATION.getValue()));
-        return context;
+        return new ShapeTreeContext(shapeTreeRequest.getHeaderValue(HttpHeaders.AUTHORIZATION.getValue()));
     }
 
     /**

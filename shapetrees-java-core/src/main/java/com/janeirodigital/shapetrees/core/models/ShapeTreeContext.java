@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter @AllArgsConstructor
 public class ShapeTreeContext {
     private String authorizationHeaderValue;
 }
