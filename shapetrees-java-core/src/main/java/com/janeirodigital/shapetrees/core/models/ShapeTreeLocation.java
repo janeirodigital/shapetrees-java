@@ -19,8 +19,8 @@ import java.util.List;
  * which that managed resource resides.
  * https://shapetrees.org/TR/specification/#locator
 */
-@Getter @Setter
-@AllArgsConstructor @NoArgsConstructor @EqualsAndHashCode
+@Getter
+@AllArgsConstructor @EqualsAndHashCode
 public class ShapeTreeLocation {
 
     private String shapeTree;               // Identifies the shape tree to be associated with the managed resource
@@ -40,11 +40,17 @@ public class ShapeTreeLocation {
 
     }
 
+    public void setUri(final URI uri) {
+        this.uri = uri;
+    }
+
     public static ShapeTreeLocation getShapeTreeLocationFromGraph(URI uri, Graph shapeTreeMetadataGraph) {
 
-        ShapeTreeLocation location = new ShapeTreeLocation();
-
-        location.setUri(uri);
+        String shapeTree = null;
+        String managedResource = null;
+        URI rootShapeTreeLocation = null;
+        String focusNode = null;
+        String shape = null;
 
         // Look up the ShapeTreeLocation in the Metadata Graph via its URI
         List<Triple> locationTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(uri.toString()), Node.ANY, Node.ANY).toList();
@@ -59,25 +65,25 @@ public class ShapeTreeLocation {
 
             switch (locationTriple.getPredicate().getURI()) {
                 case ShapeTreeVocabulary.HAS_SHAPE_TREE:
-                    location.shapeTree = locationTriple.getObject().getURI();
+                    shapeTree = locationTriple.getObject().getURI();
                     break;
                 case ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_LOCATION:
-                    location.rootShapeTreeLocation = URI.create(locationTriple.getObject().getURI());
+                    rootShapeTreeLocation = URI.create(locationTriple.getObject().getURI());
                     break;
                 case ShapeTreeVocabulary.HAS_MANAGED_RESOURCE:
-                    location.managedResource = locationTriple.getObject().getURI();
+                    managedResource = locationTriple.getObject().getURI();
                     break;
                 case ShapeTreeVocabulary.SHAPE:
-                    location.shape = locationTriple.getObject().getURI();
+                    shape = locationTriple.getObject().getURI();
                     break;
                 case ShapeTreeVocabulary.FOCUS_NODE:
-                    location.focusNode = locationTriple.getObject().getURI();
+                    focusNode = locationTriple.getObject().getURI();
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + locationTriple.getPredicate().getURI());
             }
         }
-        return location;
+        return new ShapeTreeLocation(shapeTree,managedResource,rootShapeTreeLocation,focusNode,shape, uri);
     }
 
     public boolean isRootLocation() {
