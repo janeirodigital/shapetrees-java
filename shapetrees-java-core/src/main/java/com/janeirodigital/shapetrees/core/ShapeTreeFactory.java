@@ -55,6 +55,9 @@ public class ShapeTreeFactory {
         log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
         URI shapeTreeURI = new URI(shapeTreeURIString);
 
+        // TODO - In cases where a shape tree document references or contains shape trees that are not in
+        // the same document - they will not be parsed. Need to determine whether that is a feature or a bug.
+
         ShapeTree shapeTree = new ShapeTree(DocumentLoaderManager.getLoader());
         // Set the URI as the ID (string representation)
         shapeTree.setId(shapeTreeURIString);
@@ -108,7 +111,7 @@ public class ShapeTreeFactory {
         }
     }
 
-    private static String getStringValue(Model model, Resource resource, String predicate) {
+    private static String getStringValue(Model model, Resource resource, String predicate) throws ShapeTreeException {
         Property property = model.createProperty(predicate);
         if (resource.hasProperty(property)) {
             Statement statement = resource.getProperty(property);
@@ -117,14 +120,14 @@ public class ShapeTreeFactory {
             } else if (statement.getObject().isURIResource()) {
                 return statement.getObject().asResource().getURI();
             } else {
-                log.error("In getStringValue for predicate [{}] unable to value of Node", predicate);
+                throw new ShapeTreeException(500, "Cannot determine object type when converting from string for: " + predicate);
             }
 
         }
         return null;
     }
 
-    private static List<URI> getURLListValue(Model model, Resource resource, String predicate) throws URISyntaxException {
+    private static List<URI> getURLListValue(Model model, Resource resource, String predicate) throws URISyntaxException, ShapeTreeException {
         List<URI> uris = new ArrayList<>();
         Property property = model.createProperty(predicate);
         if (resource.hasProperty(property)) {
@@ -134,6 +137,8 @@ public class ShapeTreeFactory {
                 if (propertyNode instanceof Node_URI) {
                     URI contentURI = new URI(propertyNode.getURI());
                     uris.add(contentURI);
+                } else {
+                    throw new ShapeTreeException(500, "Must provide a valid URI in URI listing");
                 }
             }
         }

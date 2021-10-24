@@ -48,6 +48,35 @@ public class SchemaCacheTests {
         ));
     }
 
+    @Test
+    @Order(0)
+    void testFailToOperateOnUninitializedCache() throws URISyntaxException, ShapeTreeException {
+
+        assertFalse(SchemaCache.isInitialized());
+
+        // containsSchema
+        Throwable containsException = Assertions.assertThrows(ShapeTreeException.class, () ->
+                SchemaCache.containsSchema(new URI("http://schema.example"))
+        );
+        Assertions.assertEquals(containsException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+
+        // getSchema
+        Throwable getException = Assertions.assertThrows(ShapeTreeException.class, () ->
+                SchemaCache.getSchema(new URI("http://schema.example"))
+        );
+        Assertions.assertEquals(getException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+
+        // putSchema
+        Throwable putException = Assertions.assertThrows(ShapeTreeException.class, () ->
+                SchemaCache.putSchema(new URI("http://schema.example"), null)
+        );
+        Assertions.assertEquals(putException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+
+        // clearSchema
+        Throwable clearException = Assertions.assertThrows(ShapeTreeException.class, () -> SchemaCache.clearCache());
+        Assertions.assertEquals(clearException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+
+    }
 
     @Test
     @Order(1)
@@ -73,6 +102,22 @@ public class SchemaCacheTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
+        Assertions.assertNull(SchemaCache.getSchema(getURI(server, "/static/shex/project")));
+        Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/project").toString()));
+        Map.Entry<URI, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
+        if (firstEntry == null) return;
+        SchemaCache.putSchema(firstEntry.getKey(), firstEntry.getValue());
+        Assertions.assertNotNull(SchemaCache.getSchema(getURI(server, "/static/shex/project")));
+
+    }
+
+    @Test
+    @Order(4)
+    void testNullOnCacheContains() throws URISyntaxException, ShapeTreeException {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        SchemaCache.clearCache();
+
         Assertions.assertNull(SchemaCache.getSchema(getURI(server, "/static/shex/project")));
         Map<URI, ShexSchema> schemas = buildSchemaCache(List.of(getURI(server, "/static/shex/project").toString()));
         Map.Entry<URI, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
