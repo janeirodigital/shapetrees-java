@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.SSLSession;
 import java.io.IOException;
-import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpResponse;
 import java.util.*;
 
@@ -110,7 +110,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         }
 
         @Override
-        public URI getURI() {
+        public URL getURL() {
             return this.request.uri();
         }
 
@@ -157,7 +157,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
     @AllArgsConstructor
     private class MyHttpResponse implements java.net.http.HttpResponse {
-        // private URI _uri;
+        // private URL _uri;
         private int _statusCode;
         private java.net.http.HttpRequest _request;
         private java.net.http.HttpHeaders _headers;
@@ -194,7 +194,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         }
 
         @Override
-        public URI uri() {
+        public URL uri() {
             return null;
         }
 

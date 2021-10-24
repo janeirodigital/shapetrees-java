@@ -54,7 +54,7 @@ public class ShapeTreeLocatorDelta {
             // Locations match, and are unchanged, so continue
             if (updatedLocator.getLocations().contains(existingLocation)) { continue; }
 
-            // Locations have the same URI but are different, so update
+            // Locations have the same URL but are different, so update
             ShapeTreeLocation updatedLocation = containsSameUri(existingLocation, updatedLocator.getLocations());
 
             if (updatedLocation != null) {
@@ -85,7 +85,7 @@ public class ShapeTreeLocatorDelta {
 
     public static ShapeTreeLocation containsSameUri(ShapeTreeLocation location, List<ShapeTreeLocation> targetLocations) {
         for (ShapeTreeLocation targetLocation : targetLocations) {
-            if (location.getUri().equals(targetLocation.getUri())) { return targetLocation; }
+            if (location.getUrl().equals(targetLocation.getUrl())) { return targetLocation; }
         }
         return null;
     }

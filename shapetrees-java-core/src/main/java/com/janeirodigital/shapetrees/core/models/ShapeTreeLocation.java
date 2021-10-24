@@ -7,8 +7,8 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.List;
 
 /**
@@ -25,37 +25,37 @@ public class ShapeTreeLocation {
 
     private String shapeTree;               // Identifies the shape tree to be associated with the managed resource
     private String managedResource;         // Identifies the resource that the shape tree location is managing
-    private URI rootShapeTreeLocation;      // Identifies the root shape tree location
+    private URL rootShapeTreeLocation;      // Identifies the root shape tree location
     private String focusNode;               // Identifies the focus node for shape validation in the managed resource
     private String shape;                   // Identifies the shape to which focusNode must conform
-    private URI uri;
+    private URL url;
+/*
+    public URL getBaseUri () throws MalformedURLException {
 
-    public URI getBaseUri () throws URISyntaxException {
-
-        if (this.uri == null || this.uri.getScheme() == null || this.uri.getSchemeSpecificPart() == null) {
+        if (this.url == null || this.url.getScheme() == null || this.url.getSchemeSpecificPart() == null) {
             return null;
         }
-        // Get the base URI of the resource
-        return new URI(this.uri.getScheme(), this.uri.getSchemeSpecificPart(), null);
+        // Get the base URL of the resource
+        return new URL(this.url.getScheme(), this.url.getSchemeSpecificPart(), null);
 
     }
-
-    public void setUri(final URI uri) {
-        this.uri = uri;
+*/
+    public void setUrl(final URL url) {
+        this.url = url;
     }
 
-    public static ShapeTreeLocation getShapeTreeLocationFromGraph(URI uri, Graph shapeTreeMetadataGraph) {
+    public static ShapeTreeLocation getShapeTreeLocationFromGraph(URL uri, Graph shapeTreeMetadataGraph) throws MalformedURLException {
 
         String shapeTree = null;
         String managedResource = null;
-        URI rootShapeTreeLocation = null;
+        URL rootShapeTreeLocation = null;
         String focusNode = null;
         String shape = null;
 
-        // Look up the ShapeTreeLocation in the Metadata Graph via its URI
+        // Look up the ShapeTreeLocation in the Metadata Graph via its URL
         List<Triple> locationTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(uri.toString()), Node.ANY, Node.ANY).toList();
 
-        // A valid location must have at least a shape tree, managed resource, and root location uri
+        // A valid location must have at least a shape tree, managed resource, and root location url
         if (locationTriples.size() < 3) {
             throw new IllegalStateException("Incomplete shape tree location, Only " + locationTriples.size() + " attributes found");
         }
@@ -68,7 +68,7 @@ public class ShapeTreeLocation {
                     shapeTree = locationTriple.getObject().getURI();
                     break;
                 case ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_LOCATION:
-                    rootShapeTreeLocation = URI.create(locationTriple.getObject().getURI());
+                    rootShapeTreeLocation = new URL(locationTriple.getObject().getURI());
                     break;
                 case ShapeTreeVocabulary.HAS_MANAGED_RESOURCE:
                     managedResource = locationTriple.getObject().getURI();
@@ -87,7 +87,7 @@ public class ShapeTreeLocation {
     }
 
     public boolean isRootLocation() {
-        return this.getUri().equals(this.getRootShapeTreeLocation());
+        return this.getUrl().equals(this.getRootShapeTreeLocation());
     }
 
 }

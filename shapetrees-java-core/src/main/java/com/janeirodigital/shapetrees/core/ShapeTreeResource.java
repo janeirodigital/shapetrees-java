@@ -9,8 +9,8 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +35,7 @@ public class ShapeTreeResource {
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     // constructors
-    private ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Fork str) {
+    private ShapeTreeResource(URL uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Fork str) {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
         if (str instanceof Metadata) {
@@ -46,10 +46,10 @@ public class ShapeTreeResource {
             this.userOwnedResource = Optional.of((Primary) str);
         }
     }
-    public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
+    public ShapeTreeResource(URL uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, uri));
     }
-    public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+    public ShapeTreeResource(URL uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
         this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
     }
 
@@ -77,7 +77,7 @@ ProjectRecursiveTests
 //            if (... no userOwnedResourceUri ...) {
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.uri + ">");
 //            }
-            URI uri = mr.getUserOwnedResourceUri();
+            URL uri = mr.getUserOwnedResourceUri();
             Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
             if (str instanceof Primary) {
                 this.userOwnedResource = Optional.of(uor = (Primary) str);
@@ -97,7 +97,7 @@ ProjectRecursiveTests
 //            if (... no shapeTreeMetadataURIForResource ...) {
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
 //            }
-            final URI uri = this.getShapeTreeMetadataURIForResource();
+            final URL uri = this.getShapeTreeMetadataURIForResource();
             Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
             if (str instanceof Metadata) {
                 this.metadataResource = Optional.of(mr = (Metadata) str);
@@ -110,7 +110,7 @@ ProjectRecursiveTests
         return mr;
     }
 
-    protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
+    protected URL getShapeTreeMetadataURIForResource() throws ShapeTreeException {
         Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
         final List<String> linkHeaderValues = uor.attributes.allValues(HttpHeaders.LINK.getValue());
         ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
@@ -125,15 +125,15 @@ ProjectRecursiveTests
         try {
             final URL base = new URL(uor.uri.toString());
             final URL resolved = new URL(base, metaDataURIString);
-            return URI.create(resolved.toString());
+            return URL.create(resolved.toString());
         } catch (MalformedURLException e) { // TODO: ACTION: ericP to migrate everything to URLs
             // throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
-            // If we can't do relative URL resolution, assume that the locator is a URI and we have some other means of resolving it.
-            return URI.create(metaDataURIString);
+            // If we can't do relative URL resolution, assume that the locator is a URL and we have some other means of resolving it.
+            return URL.create(metaDataURIString);
         }
     }
 
-    public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
+    public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, MalformedURLException {
         Metadata primaryMetadataResource = this.getMetadataResourceFork();
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
@@ -149,14 +149,14 @@ ProjectRecursiveTests
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized Fork");
 
     static public class Fork {
-        final protected URI uri;
+        final protected URL uri;
         final protected ShapeTreeResourceType resourceType;
         final protected ResourceAttributes attributes;
         final protected String body;
         final protected String name;
         final protected boolean exists;
 
-        Fork(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
+        Fork(URL uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
             this.uri = uri;
             this.resourceType = resourceType;
             this.attributes = attributes;
@@ -165,7 +165,7 @@ ProjectRecursiveTests
             this.exists = exists;
         }
 
-        public URI getUri() {
+        public URL getUrl() {
             return this.uri;
         }
         public ShapeTreeResourceType getResourceType() {
@@ -186,16 +186,16 @@ ProjectRecursiveTests
     }
 
     static public class Primary extends Fork {
-        final protected Optional<URI> metadataResourceUri;
+        final protected Optional<URL> metadataResourceUri;
         final protected boolean _container;
 
-        public Primary(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, boolean isContainer) {
+        public Primary(URL uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URL> metadataResourceUri, boolean isContainer) {
             super(uri, resourceType, attributes, body, name, exists);
             this.metadataResourceUri = metadataResourceUri;
             this._container = isContainer;
         }
 
-        public Optional<URI> getMetadataResourceUri() {
+        public Optional<URL> getMetadataResourceUri() {
             return this.metadataResourceUri;
         }
         public boolean isContainer() {
@@ -204,14 +204,14 @@ ProjectRecursiveTests
     }
 
     static public class Metadata extends Fork {
-        final protected URI userOwnedResourceUri;
+        final protected URL userOwnedResourceUri;
 
-        public Metadata(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URI userOwnedResourceUri) {
+        public Metadata(URL uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URL userOwnedResourceUri) {
             super(uri, resourceType, attributes, body, name, exists);
             this.userOwnedResourceUri = userOwnedResourceUri;
         }
 
-        public URI getUserOwnedResourceUri() {
+        public URL getUserOwnedResourceUri() {
             return this.userOwnedResourceUri;
         }
     }

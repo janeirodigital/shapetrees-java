@@ -4,7 +4,7 @@ import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.util.Optional;
 
 public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
@@ -14,9 +14,9 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURL(), this.resourceAccessor, shapeTreeContext);
 
             if (rc.wasCreatedFromMetadata() && rc.getMetadataResourceFork().isExists()) {
                 // If the DELETE request is for an existing shapetree metadata resource,

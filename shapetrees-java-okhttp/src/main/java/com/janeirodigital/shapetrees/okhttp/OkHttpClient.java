@@ -121,7 +121,7 @@ public class OkHttpClient implements HttpClient {
 
         try {
             okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder();
-            requestBuilder.url(request.resourceURI.toURL());
+            requestBuilder.url(request.resourceURL.toURL());
 
             if (request.headers != null) {
                 requestBuilder.headers(toNativeHeaders(request.headers));

@@ -112,7 +112,7 @@ public class JavaHttpClient implements HttpClient {
 
         try {
             java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder();
-            requestBuilder.uri(request.resourceURI);
+            requestBuilder.uri(request.resourceURL);
 
             if (request.headers != null) {
                 String[] headerList = request.headers.toList("connection", "content-length", "date", "expect", "from", "host", "upgrade", "via", "warning");

@@ -2,13 +2,13 @@ package com.janeirodigital.shapetrees.tests.fixtures;
 
 import okhttp3.mockwebserver.MockWebServer;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 public class MockWebServerHelper {
 
-    public URI getURI(MockWebServer server, String path) throws URISyntaxException {
-        return new URI(server.url(path).toString());
+    public URL getURL(MockWebServer server, String path) throws MalformedURLException {
+        return new URL(server.url(path).toString());
     }
 
 }
