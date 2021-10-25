@@ -8,8 +8,8 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 @Slf4j
 public abstract class AbstractHttpClientTests {
@@ -24,8 +24,8 @@ public abstract class AbstractHttpClientTests {
         this.context = new ShapeTreeContext(null);
     }
 
-    public URI getURI(MockWebServer server, String path) throws URISyntaxException {
-        return new URI(server.url(path).toString());
+    public URL getURL(MockWebServer server, String path) throws MalformedURLException {
+        return new URL(server.url(path).toString());
     }
 
     protected void skipShapeTreeValidation(boolean b) {
