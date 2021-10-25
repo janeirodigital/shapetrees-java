@@ -26,7 +26,7 @@ public interface ShapeTreeClient {
      * @return A ShapeTreeLocator associated with targetResource
      * @throws ShapeTreeException ShapeTreeException
      */
-    Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException;
+    Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException, MalformedURLException;
 
     /**
      * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,

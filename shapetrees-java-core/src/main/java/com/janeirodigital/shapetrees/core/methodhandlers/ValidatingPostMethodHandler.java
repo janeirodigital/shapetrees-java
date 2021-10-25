@@ -7,6 +7,7 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws MalformedURLException, ShapeTreeException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws MalformedURLException, ShapeTreeException, URISyntaxException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource

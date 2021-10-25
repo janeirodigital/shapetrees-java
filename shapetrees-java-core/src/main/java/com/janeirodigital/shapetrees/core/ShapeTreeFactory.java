@@ -52,7 +52,7 @@ public class ShapeTreeFactory {
 
     private static void recursivelyParseShapeTree(Model model, Resource resource) throws MalformedURLException, ShapeTreeException {
         // Set the URL as the ID (string representation)
-        String shapeTreeURLString = resource.getURL();
+        String shapeTreeURLString = resource.getURI();
         log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURLString);
         URL shapeTreeURL = new URL(shapeTreeURLString);
 
@@ -125,8 +125,8 @@ public class ShapeTreeFactory {
             Statement statement = resource.getProperty(property);
             if (statement.getObject().isLiteral()) {
                 return statement.getObject().asLiteral().getString();
-            } else if (statement.getObject().isURLResource()) {
-                return statement.getObject().asResource().getURL();
+            } else if (statement.getObject().isURIResource()) {
+                return statement.getObject().asResource().getURI();
             } else {
                 log.error("In getStringValue for predicate [{}] unable to value of Node", predicate);
             }
@@ -143,7 +143,7 @@ public class ShapeTreeFactory {
             for (Statement propertyStatement : propertyStatements) {
                 Node propertyNode = propertyStatement.getObject().asNode();
                 if (propertyNode instanceof Node_URI) {
-                    URL contentURL = new URL(propertyNode.getURL());
+                    URL contentURL = new URL(propertyNode.getURI());
                     urls.add(contentURL);
                 }
             }

@@ -6,6 +6,7 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 @Slf4j
@@ -16,7 +17,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException, URISyntaxException {
             if (shapeTreeRequest.getContentType() == null || !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update")) {
                 log.error("Received a patch without a content type of application/sparql-update");
                 throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");

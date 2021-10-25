@@ -15,6 +15,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
@@ -28,7 +29,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     private static final String PATCH = "PATCH";
 
     @Override
-    public ShapeTreeResource.Fork getResource(ShapeTreeContext context, URL uri) throws ShapeTreeException {
+    public ShapeTreeResource.Fork getResource(ShapeTreeContext context, URL uri) throws ShapeTreeException, MalformedURLException {
         log.debug("HttpRemoteResourceAccessor#getResource({})", uri);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
@@ -40,7 +41,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public ShapeTreeResource.Fork createResource(ShapeTreeContext context, String method, URL uri, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
+    public ShapeTreeResource.Fork createResource(ShapeTreeContext context, String method, URL uri, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException, MalformedURLException {
         log.debug("createResource via {}: URL [{}], headers [{}]", method, uri, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
@@ -52,9 +53,9 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         return makeAFork(uri, response);
     }
 
-    protected ShapeTreeResource.Fork makeAFork(URL uri, DocumentResponse response) throws ShapeTreeException {
+    protected ShapeTreeResource.Fork makeAFork(URL uri, DocumentResponse response) throws ShapeTreeException, MalformedURLException {
         Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
-        if (location.isPresent()) { uri = URL.create(location.get()); }
+        if (location.isPresent()) { uri = new URL(location.get()); }
         // this.exists = response.exists(); !!
         final boolean exists = response.getStatusCode()/100 == 2;
         final boolean container = isContainerFromHeaders(response.getResourceAttributes(), uri);

@@ -15,7 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.net.URI;
+import java.net.URL;
 
 class GraphHelperTests {
 
@@ -66,7 +66,7 @@ class GraphHelperTests {
     @SneakyThrows
     void parseInvalidTTL() {
         String invalidTtl = "<#a> b c";
-        Assertions.assertThrows(ShapeTreeException.class, () -> GraphHelper.readStringIntoGraph(URI.create("https://example.com/a"), invalidTtl, "text/turtle"));
+        Assertions.assertThrows(ShapeTreeException.class, () -> GraphHelper.readStringIntoGraph(new URL("https://example.com/a"), invalidTtl, "text/turtle"));
     }
 
     @Test
@@ -74,7 +74,7 @@ class GraphHelperTests {
     @SneakyThrows
     void parseValidTTL() {
         String invalidTtl = "<#a> <#b> <#c> .";
-        Assertions.assertNotNull(GraphHelper.readStringIntoGraph(URI.create("https://example.com/a"), invalidTtl, "text/turtle"));
+        Assertions.assertNotNull(GraphHelper.readStringIntoGraph(new URL("https://example.com/a"), invalidTtl, "text/turtle"));
     }
 
 

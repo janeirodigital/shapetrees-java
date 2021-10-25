@@ -6,8 +6,9 @@ import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 public interface ValidatingMethodHandler {
-    Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws MalformedURLException, ShapeTreeException;
+    Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws MalformedURLException, ShapeTreeException, URISyntaxException;
 }

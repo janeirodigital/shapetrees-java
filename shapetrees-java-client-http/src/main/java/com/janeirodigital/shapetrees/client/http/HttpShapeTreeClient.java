@@ -50,7 +50,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @throws ShapeTreeException
      */
     @Override
-    public Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException {
+    public Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException, MalformedURLException {
 
         if (targetResource == null) {
             throw new ShapeTreeException(500, "Must provide a value target resource for discovery");

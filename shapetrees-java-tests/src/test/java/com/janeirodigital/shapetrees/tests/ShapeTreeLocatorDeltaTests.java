@@ -25,52 +25,52 @@ class ShapeTreeLocatorDeltaTests {
     @BeforeEach
     void beforeEach() throws ShapeTreeException, MalformedURLException {
 
-        existingLocator = new ShapeTreeLocator(URL.create("https://locator.example/#existing"));
-        updatedLocator = new ShapeTreeLocator(URL.create("https://locator.example/#updated"));
+        existingLocator = new ShapeTreeLocator(new URL("https://locator.example/#existing"));
+        updatedLocator = new ShapeTreeLocator(new URL("https://locator.example/#updated"));
         
         locationOne = new ShapeTreeLocation(
                 "http://shapetrees.example/#firstTree", // ShapeTree
                 "http://data.example/resourceOne", // ManagedResource
-                URL.create("http://data.example/resourceOne.shapetree#locationOne"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceOne.shapetree#locationOne"), // RootShapeTreeLocation
                 "http://data.example/resourceOne#focus", // FocusNode
                 "http://shapes.example/#firstShape", // Shape
-                URL.create("http://data.example/resourceOne.shapetree#locationOne") // Uri
+                new URL("http://data.example/resourceOne.shapetree#locationOne") // Uri
         );
 
         locationTwo = new ShapeTreeLocation(
                 "http://shapetrees.example/#secondTree", // ShapeTree
                 "http://data.example/resourceTwo", // ManagedResource
-                URL.create("http://data.example/resourceTwo.shapetree#locationTwo"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceTwo.shapetree#locationTwo"), // RootShapeTreeLocation
                 "http://data.example/resourceTwo#focus", // FocusNode
                 "http://shapes.example/#secondShape", // Shape
-                URL.create("http://data.example/resourceTwo.shapetree#locationTwo") // Uri
+                new URL("http://data.example/resourceTwo.shapetree#locationTwo") // Uri
         );
 
         locationThree = new ShapeTreeLocation(
                 "http://shapetrees.example/#thirdTree", // ShapeTree
                 "http://data.example/resourceThree", // ManagedResource
-                URL.create("http://data.example/resourceThree.shapetree#locationThree"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceThree.shapetree#locationThree"), // RootShapeTreeLocation
                 "http://data.example/resourceThree#focus", // FocusNode
                 "http://shapes.example/#thirdShape", // Shape
-                URL.create("http://data.example/resourceThree.shapetree#locationThree") // Uri
+                new URL("http://data.example/resourceThree.shapetree#locationThree") // Uri
         );
 
         locationFour = new ShapeTreeLocation(
                 "http://shapetrees.example/#fourthTree", // ShapeTree
                 "http://data.example/resourceFour", // ManagedResource
-                URL.create("http://data.example/resourceFour.shapetree#locationFour"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceFour.shapetree#locationFour"), // RootShapeTreeLocation
                 "http://data.example/resourceFour#focus", // FocusNode
                 "http://shapes.example/#fourthShape", // Shape
-                URL.create("http://data.example/resourceFour.shapetree#locationFour") // Uri
+                new URL("http://data.example/resourceFour.shapetree#locationFour") // Uri
         );
 
         locationFive = new ShapeTreeLocation(
                 "http://shapetrees.example/#fifthTree", // ShapeTree
                 "http://data.example/resourceFive", // ManagedResource
-                URL.create("http://data.example/resourceFive.shapetree#locationFive"), // RootShapeTreeLocation
+                new URL("http://data.example/resourceFive.shapetree#locationFive"), // RootShapeTreeLocation
                 "http://data.example/resourceFive#focus", // FocusNode
                 "http://shapes.example/#fifthShape", // Shape
-                URL.create("http://data.example/resourceFive.shapetree#locationFive") // Uri
+                new URL("http://data.example/resourceFive.shapetree#locationFive") // Uri
         );
     }
 

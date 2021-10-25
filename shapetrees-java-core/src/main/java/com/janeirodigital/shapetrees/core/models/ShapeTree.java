@@ -29,8 +29,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -72,11 +74,11 @@ public class ShapeTree {
         return new URL(this.id);
     }
 
-    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource) throws ShapeTreeException, MalformedURLException, URISyntaxException {
         return validateResource(targetResource, null);
     }
 
-    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource, URL focusNodeURL) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource, URL focusNodeURL) throws ShapeTreeException, MalformedURLException, URISyntaxException {
         Graph bodyGraph = null;
 
         if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
@@ -88,7 +90,7 @@ public class ShapeTree {
         return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeURL);
     }
 
-    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URL focusNodeURL) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URL focusNodeURL) throws ShapeTreeException, MalformedURLException, URISyntaxException {
 
         // Check whether the proposed resource is the same type as what is expected by the shape tree
         if (!this.expectedResourceType.equals(resourceType.getValue())) {
@@ -110,19 +112,20 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateGraph(Graph graph, URL focusNodeURL) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateGraph(Graph graph, URL focusNodeURL) throws ShapeTreeException, MalformedURLException, URISyntaxException {
         // if (true) return new ValidationResult(true, this, this, focusNodeURL); // [debug] ShExC parser brings debugger to its knees
         if (this.shape == null) {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
         }
 
-        URL resolvedShapeURL = URL.create(this.id).resolve(this.shape);
+        URI resolvedShapeURI = URI.create(this.id).resolve(this.shape);
 
-        URL shapeResourceURL = resolvedShapeURL;
-        if (shapeResourceURL.getFragment() != null) {
-            shapeResourceURL = new URL(shapeResourceURL.getScheme(), shapeResourceURL.getSchemeSpecificPart(), null);
+        URI shapeResourceURI = resolvedShapeURI;
+        if (shapeResourceURI.getFragment() != null) {
+            shapeResourceURI = new URI(shapeResourceURI.getScheme(), shapeResourceURI.getSchemeSpecificPart(), null);
         }
 
+        URL shapeResourceURL = shapeResourceURI.toURL();
         ShexSchema schema;
         if (SchemaCache.isInitialized() && SchemaCache.containsSchema(shapeResourceURL)) {
             log.debug("Found cached schema {}", shapeResourceURL);
@@ -131,7 +134,7 @@ public class ShapeTree {
             log.debug("Did not find schema in cache {} will retrieve and parse", shapeResourceURL);
             DocumentResponse shexShapeContents = this.externalDocumentLoader.loadExternalDocument(shapeResourceURL);
             if (shexShapeContents == null || shexShapeContents.getBody() == null || shexShapeContents.getBody().isEmpty()) {
-                throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + this.id + ") - Shape at (" + resolvedShapeURL + ") is not found or is empty");
+                throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + this.id + ") - Shape at (" + shapeResourceURL + ") is not found or is empty");
             }
 
             String shapeBody = shexShapeContents.getBody();
@@ -173,11 +176,11 @@ public class ShapeTree {
 
             for (Node evaluateNode : evaluateNodes) {
 
-                IRI node = GlobalFactory.RDFFactory.createIRI(evaluateNode.getURL());
+                IRI node = GlobalFactory.RDFFactory.createIRI(evaluateNode.getURI());
                 validation.validate(node, shapeLabel);
                 boolean valid = validation.getTyping().isConformant(node, shapeLabel);
 
-                if (valid) { return new ValidationResult(valid, this, this, URL.create(evaluateNode.getURL())); }
+                if (valid) { return new ValidationResult(valid, this, this, new URL(evaluateNode.getURI())); }
 
             }
 
@@ -186,7 +189,7 @@ public class ShapeTree {
         }
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource) throws ShapeTreeException, MalformedURLException, URISyntaxException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
@@ -197,7 +200,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource, URL targetShapeTreeURL, URL focusNodeURL) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource, URL targetShapeTreeURL, URL focusNodeURL) throws ShapeTreeException, MalformedURLException, URISyntaxException {
 
         Graph containedResourceGraph = null;
 // !! containedResource.getGraph().get();
@@ -211,7 +214,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URL targetShapeTreeURL, Graph bodyGraph, URL focusNodeURL) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URL targetShapeTreeURL, Graph bodyGraph, URL focusNodeURL) throws ShapeTreeException, MalformedURLException, URISyntaxException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains

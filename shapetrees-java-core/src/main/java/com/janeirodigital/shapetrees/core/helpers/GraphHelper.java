@@ -13,6 +13,7 @@ import org.apache.jena.riot.RiotException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URL;
 import java.time.OffsetDateTime;
 
 /**
@@ -62,17 +63,17 @@ public class GraphHelper {
 
     /**
      * Deserializes a string into a Model
-     * @param baseURI Base URI to use for statements
+     * @param baseURL Base URL to use for statements
      * @param rawContent String of RDF
      * @param contentType Content type of content
      * @return Deserialized model
      * @throws ShapeTreeException ShapeTreeException
      */
-    public static Model readStringIntoModel(URI baseURI, String rawContent, String contentType) throws ShapeTreeException {
+    public static Model readStringIntoModel(URL baseURL, String rawContent, String contentType) throws ShapeTreeException {
         try {
             Model model = ModelFactory.createDefaultModel();
             StringReader reader = new StringReader(rawContent);
-            RDFDataMgr.read(model.getGraph(), reader, baseURI.toString(), GraphHelper.getLangForContentType(contentType));
+            RDFDataMgr.read(model.getGraph(), reader, baseURL.toString(), GraphHelper.getLangForContentType(contentType));
             return model;
         } catch (RiotException rex) {
             throw new ShapeTreeException(422, "Error processing input - " + rex.getMessage());
@@ -82,14 +83,14 @@ public class GraphHelper {
 
     /**
      * Deserializes a string into a Graph
-     * @param baseURI Base URI to use for statements
+     * @param baseURL Base URL to use for statements
      * @param rawContent String of RDF
      * @param contentType Content type of content
      * @return Deserialized graph
      * @throws ShapeTreeException ShapeTreeException
      */
-    public static Graph readStringIntoGraph(URI baseURI, String rawContent, String contentType) throws ShapeTreeException {
-        return readStringIntoModel(baseURI, rawContent, contentType).getGraph();
+    public static Graph readStringIntoGraph(URL baseURL, String rawContent, String contentType) throws ShapeTreeException {
+        return readStringIntoModel(baseURL, rawContent, contentType).getGraph();
     }
 
     /**
@@ -117,6 +118,17 @@ public class GraphHelper {
     }
 
     /**
+     * Create a new triple statement with URLs
+     * @param subject Subject to include
+     * @param predicate Predicate to include
+     * @param object Object to include
+     * @return
+     */
+    public static Triple newTriple(URL subject, URL predicate, Object object) {
+        return newTriple(subject.toString(), predicate.toString(), object);
+    }
+
+    /**
      * Create a new triple statement with strings
      * @param subject Subject to include
      * @param predicate Predicate to include
@@ -126,6 +138,8 @@ public class GraphHelper {
     public static Triple newTriple(String subject, String predicate, Object object) {
         Node objectNode = null;
         if (object.getClass().equals(URI.class)) {
+            objectNode = NodeFactory.createURI(object.toString());
+        } else if (object.getClass().equals(URL.class)) {
             objectNode = NodeFactory.createURI(object.toString());
         }
         else if (object.getClass().equals(String.class)) {

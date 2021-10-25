@@ -5,6 +5,7 @@ import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -23,7 +24,7 @@ public class HttpExternalDocumentLoader implements ExternalDocumentLoader {
 
         try {
 
-            HttpRequest request = HttpRequest.newBuilder().GET().uri(resourceURL).build();
+            HttpRequest request = HttpRequest.newBuilder().GET().uri(resourceURL.toURI()).build();
             HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
@@ -34,7 +35,7 @@ public class HttpExternalDocumentLoader implements ExternalDocumentLoader {
 
             return new DocumentResponse(attributes, response.body(), response.statusCode());
 
-        } catch (IOException ex) {
+        } catch (IOException | URISyntaxException ex) {
             throw new ShapeTreeException(500, "Error retrieving resource " + ex.getMessage());
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();

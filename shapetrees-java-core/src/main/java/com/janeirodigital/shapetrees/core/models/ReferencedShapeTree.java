@@ -7,6 +7,6 @@ import java.net.URL;
 
 @Getter @AllArgsConstructor
 public class ReferencedShapeTree {
-    URL referencedShapeTreeURI;
+    URL referencedShapeTreeURL;
     String traverseViaShapePath;
 }

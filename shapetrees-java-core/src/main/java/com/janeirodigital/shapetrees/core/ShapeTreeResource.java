@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -46,15 +44,15 @@ public class ShapeTreeResource {
             this.userOwnedResource = Optional.of((Primary) str);
         }
     }
-    public ShapeTreeResource(URL uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
+    public ShapeTreeResource(URL uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException, MalformedURLException {
         this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, uri));
     }
-    public ShapeTreeResource(URL uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+    public ShapeTreeResource(URL uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException {
         this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
     }
 
     // Get resource forks
-    public Primary getUserOwnedResourceFork() throws ShapeTreeException {
+    public Primary getUserOwnedResourceFork() throws ShapeTreeException, MalformedURLException {
         Primary uor;
         if (this.userOwnedResource.isEmpty()) {
             Metadata mr = this.metadataResource.orElseThrow(unintialized_resourceFork);
@@ -90,19 +88,26 @@ ProjectRecursiveTests
         return uor;
     }
 
-    public Metadata getMetadataResourceFork() throws ShapeTreeException {
+    public Metadata getMetadataResourceFork() throws ShapeTreeException, MalformedURLException {
         Metadata mr;
         if (this.metadataResource.isEmpty()) {
 //            Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
 //            if (... no shapeTreeMetadataURIForResource ...) {
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
 //            }
-            final URL uri = this.getShapeTreeMetadataURIForResource();
-            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+
+            final URL url;
+            try {
+                url = this.getShapeTreeMetadataURIForResource();
+            } catch (MalformedURLException exception) {
+                throw new ShapeTreeException(500, "Failed to get shape tree Metadata URI for resource: " + exception.getMessage());
+            }
+
+            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
             if (str instanceof Metadata) {
                 this.metadataResource = Optional.of(mr = (Metadata) str);
             } else {
-                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a Primary");
+                throw new IllegalStateException("Dereferencing <" + url + "> did not yield a Primary");
             }
         } else {
             mr = this.metadataResource.get();
@@ -110,7 +115,7 @@ ProjectRecursiveTests
         return mr;
     }
 
-    protected URL getShapeTreeMetadataURIForResource() throws ShapeTreeException {
+    protected URL getShapeTreeMetadataURIForResource() throws ShapeTreeException, MalformedURLException {
         Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
         final List<String> linkHeaderValues = uor.attributes.allValues(HttpHeaders.LINK.getValue());
         ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
@@ -125,11 +130,11 @@ ProjectRecursiveTests
         try {
             final URL base = new URL(uor.uri.toString());
             final URL resolved = new URL(base, metaDataURIString);
-            return URL.create(resolved.toString());
+            return new URL(resolved.toString());
         } catch (MalformedURLException e) { // TODO: ACTION: ericP to migrate everything to URLs
             // throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
             // If we can't do relative URL resolution, assume that the locator is a URL and we have some other means of resolving it.
-            return URL.create(metaDataURIString);
+            return new URL(metaDataURIString);
         }
     }
 
