@@ -12,7 +12,7 @@ import okio.Buffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -125,8 +125,8 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
 
         @Override
-        public URI getURI() {
-            return this.request.url().uri();
+        public URL getURL() {
+            return this.request.url().url();
         }
 
         @Override

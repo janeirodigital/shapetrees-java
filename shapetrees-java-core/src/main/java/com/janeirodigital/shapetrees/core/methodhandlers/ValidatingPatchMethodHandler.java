@@ -5,7 +5,7 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.util.Optional;
 
 @Slf4j
@@ -16,7 +16,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, URISyntaxException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException {
             if (shapeTreeRequest.getContentType() == null || !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update")) {
                 log.error("Received a patch without a content type of application/sparql-update");
                 throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");
@@ -24,7 +24,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
 
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURI(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURL(), this.resourceAccessor, shapeTreeContext);
 
             if (rc.wasCreatedFromMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
@@ -34,14 +34,14 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
                 if (targetResource.isExists()) {
                     // The target resource already exists
-                    if (!targetResource.getMetadataResourceUri().isEmpty()) {
+                    if (!targetResource.getMetadataResourceUrl().isEmpty()) {
                         // If it is managed by a shape tree the update must be validated
                         return updateShapeTreeInstance(rc, shapeTreeContext, shapeTreeRequest);
                     }
                 } else {
                     // The target resource doesn't exist
-                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerURI(targetResource), this.resourceAccessor, shapeTreeContext);
-                    if (!targetResource.getMetadataResourceUri().isEmpty()) {
+                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerURL(targetResource), this.resourceAccessor, shapeTreeContext);
+                    if (!targetResource.getMetadataResourceUrl().isEmpty()) {
                         // If the parent container is managed by a shape tree, the resource to create must be validated
                         return createShapeTreeInstance(rc, parentResource, shapeTreeRequest, getRequestResourceName(targetResource));
                     }

@@ -10,7 +10,7 @@ import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
-import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +51,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        URI targetResource = getURI(server, "/unmanaged");
+        URL targetResource = getURL(server, "/unmanaged");
 
         // Use the discover operation to see if the root container is managed
         ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
@@ -68,7 +68,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        URI targetResource = getURI(server, "/managed");
+        URL targetResource = getURL(server, "/managed");
 
         // Perform a discover on a resource that has a shape tree locator already planted
         ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
@@ -79,10 +79,10 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
 
         ShapeTreeLocation location = locator.getLocations().get(0);
 
-        Assertions.assertEquals("http://www.example.com/ns/ex#DataTree", location.getShapeTree());
+        Assertions.assertEquals(new URL("http://www.example.com/ns/ex#DataTree"), location.getShapeTree());
         Assertions.assertEquals(targetResource.toString(), location.getManagedResource());
-        Assertions.assertEquals(location.getUri(), location.getRootShapeTreeLocation());
-        Assertions.assertEquals(getURI(server, "/managed").toString() + "#set", location.getFocusNode());
+        Assertions.assertEquals(location.getUrl(), location.getRootShapeTreeLocation());
+        Assertions.assertEquals(getURL(server, "/managed").toString() + "#set", location.getFocusNode());
         Assertions.assertEquals("http://www.example.com/ns/ex#DataSetShape", location.getShape());
 
     }
@@ -95,7 +95,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        URI targetResource = getURI(server, "/managed-invalid-1");
+        URL targetResource = getURL(server, "/managed-invalid-1");
 
         // If a locator resource has multiple shapetree locators it is considered invalid
         Assertions.assertThrows(IllegalStateException.class, () -> {
@@ -112,7 +112,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        URI targetResource = getURI(server, "/managed-invalid-2");
+        URL targetResource = getURL(server, "/managed-invalid-2");
 
         // If a locator resource exists, but has no locators it is considered invalid
         Assertions.assertThrows(IllegalStateException.class, () -> {
@@ -129,7 +129,7 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        URI targetResource = getURI(server, "/no-locator");
+        URL targetResource = getURL(server, "/no-locator");
 
         // If a locator resource exists, but has no locators it is considered invalid
         Assertions.assertThrows(ShapeTreeException.class, () -> {

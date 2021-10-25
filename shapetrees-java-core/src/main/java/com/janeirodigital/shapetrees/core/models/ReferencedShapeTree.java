@@ -3,10 +3,10 @@ package com.janeirodigital.shapetrees.core.models;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.net.URI;
+import java.net.URL;
 
 @Getter @AllArgsConstructor
 public class ReferencedShapeTree {
-    URI referencedShapeTreeURI;
+    URL referencedShapeTreeUrl;
     String traverseViaShapePath;
 }

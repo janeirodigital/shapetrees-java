@@ -9,8 +9,6 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +33,7 @@ public class ShapeTreeResource {
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     // constructors
-    private ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Fork str) {
+    private ShapeTreeResource(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Fork str) {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
         if (str instanceof Metadata) {
@@ -46,11 +44,11 @@ public class ShapeTreeResource {
             this.userOwnedResource = Optional.of((Primary) str);
         }
     }
-    public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
-        this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, uri));
+    public ShapeTreeResource(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
+        this(url, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, url));
     }
-    public ShapeTreeResource(URI uri, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
-        this(uri, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), uri, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
+    public ShapeTreeResource(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+        this(url, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), url, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
     }
 
     // Get resource forks
@@ -75,14 +73,14 @@ ProjectRecursiveTests
   plantProjectsRecursively()
             */
 //            if (... no userOwnedResourceUri ...) {
-//                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.uri + ">");
+//                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.url + ">");
 //            }
-            URI uri = mr.getUserOwnedResourceUri();
-            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            URL url = mr.getUserOwnedResourceUrl();
+            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
             if (str instanceof Primary) {
                 this.userOwnedResource = Optional.of(uor = (Primary) str);
             } else {
-                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a Primary");
+                throw new IllegalStateException("Dereferencing <" + url + "> did not yield a Primary");
             }
         } else {
             uor = this.userOwnedResource.get();
@@ -95,14 +93,14 @@ ProjectRecursiveTests
         if (this.metadataResource.isEmpty()) {
 //            Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
 //            if (... no shapeTreeMetadataURIForResource ...) {
-//                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.uri + ">");
+//                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.url + ">");
 //            }
-            final URI uri = this.getShapeTreeMetadataURIForResource();
-            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, uri);
+            final URL url = this.getShapeTreeMetadataURLForResource();
+            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
             if (str instanceof Metadata) {
                 this.metadataResource = Optional.of(mr = (Metadata) str);
             } else {
-                throw new IllegalStateException("Dereferencing <" + uri + "> did not yield a Primary");
+                throw new IllegalStateException("Dereferencing <" + url + "> did not yield a Primary");
             }
         } else {
             mr = this.metadataResource.get();
@@ -110,36 +108,39 @@ ProjectRecursiveTests
         return mr;
     }
 
-    protected URI getShapeTreeMetadataURIForResource() throws ShapeTreeException {
+    protected URL getShapeTreeMetadataURLForResource() throws ShapeTreeException {
         Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
         final List<String> linkHeaderValues = uor.attributes.allValues(HttpHeaders.LINK.getValue());
         ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
 
+        final URL base = uor.url;
         if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
-            log.error("The resource {} does not contain a link header of {}", uor.uri, LinkRelations.SHAPETREE_LOCATOR.getValue());
-            throw new ShapeTreeException(500, "The resource <" + uor.uri + "> has no Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
+            log.error("The resource {} does not contain a link header of {}", base, LinkRelations.SHAPETREE_LOCATOR.getValue());
+            throw new ShapeTreeException(500, "The resource <" + base + "> has no Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
-        String metaDataURIString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElseThrow(
+        String metaDataURLString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElseThrow(
                 () -> new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found")
         );
         try {
-            final URL base = new URL(uor.uri.toString());
-            final URL resolved = new URL(base, metaDataURIString);
-            return URI.create(resolved.toString());
+            return new URL(base, metaDataURLString);
         } catch (MalformedURLException e) { // TODO: ACTION: ericP to migrate everything to URLs
             // throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
-            // If we can't do relative URL resolution, assume that the locator is a URI and we have some other means of resolving it.
-            return URI.create(metaDataURIString);
+            // If we can't do relative URL resolution, assume that the locator is a URL and we have some other means of resolving it.
+            try {
+                return new URL(metaDataURLString);
+            } catch (MalformedURLException ex) {
+                throw new IllegalStateException("Malformed relative URL <" + metaDataURLString + "> (resolved from <" + base + ">)");
+            }
         }
     }
 
-    public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, URISyntaxException {
+    public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, MalformedURLException {
         Metadata primaryMetadataResource = this.getMetadataResourceFork();
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
             ResourceAttributes headers = new ResourceAttributes();
             headers.setAll(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
-            this._resourceAccessor.createResource(this._shapeTreeContext,"POST", primaryMetadataResource.uri, headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
+            this._resourceAccessor.createResource(this._shapeTreeContext,"POST", primaryMetadataResource.url, headers, primaryResourceLocator.getGraph().toString(), TEXT_TURTLE);
         } else {
             // Update the existing metadata resource for the primary resource
             this._resourceAccessor.updateResource(this._shapeTreeContext, "PUT", primaryMetadataResource, primaryResourceLocator.getGraph().toString());
@@ -149,15 +150,15 @@ ProjectRecursiveTests
     static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized Fork");
 
     static public class Fork {
-        final protected URI uri;
+        final protected URL url;
         final protected ShapeTreeResourceType resourceType;
         final protected ResourceAttributes attributes;
         final protected String body;
         final protected String name;
         final protected boolean exists;
 
-        Fork(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
-            this.uri = uri;
+        Fork(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
+            this.url = url;
             this.resourceType = resourceType;
             this.attributes = attributes;
             this.body = body;
@@ -165,8 +166,8 @@ ProjectRecursiveTests
             this.exists = exists;
         }
 
-        public URI getUri() {
-            return this.uri;
+        public URL getUrl() {
+            return this.url;
         }
         public ShapeTreeResourceType getResourceType() {
             return this.resourceType;
@@ -186,17 +187,17 @@ ProjectRecursiveTests
     }
 
     static public class Primary extends Fork {
-        final protected Optional<URI> metadataResourceUri;
+        final protected Optional<URL> metadataResourceUrl;
         final protected boolean _container;
 
-        public Primary(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URI> metadataResourceUri, boolean isContainer) {
-            super(uri, resourceType, attributes, body, name, exists);
-            this.metadataResourceUri = metadataResourceUri;
+        public Primary(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URL> metadataResourceUrl, boolean isContainer) {
+            super(url, resourceType, attributes, body, name, exists);
+            this.metadataResourceUrl = metadataResourceUrl;
             this._container = isContainer;
         }
 
-        public Optional<URI> getMetadataResourceUri() {
-            return this.metadataResourceUri;
+        public Optional<URL> getMetadataResourceUrl() {
+            return this.metadataResourceUrl;
         }
         public boolean isContainer() {
             return this._container;
@@ -204,15 +205,15 @@ ProjectRecursiveTests
     }
 
     static public class Metadata extends Fork {
-        final protected URI userOwnedResourceUri;
+        final protected URL userOwnedResourceUrl;
 
-        public Metadata(URI uri, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URI userOwnedResourceUri) {
-            super(uri, resourceType, attributes, body, name, exists);
-            this.userOwnedResourceUri = userOwnedResourceUri;
+        public Metadata(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URL userOwnedResourceUrl) {
+            super(url, resourceType, attributes, body, name, exists);
+            this.userOwnedResourceUrl = userOwnedResourceUrl;
         }
 
-        public URI getUserOwnedResourceUri() {
-            return this.userOwnedResourceUri;
+        public URL getUserOwnedResourceUrl() {
+            return this.userOwnedResourceUrl;
         }
     }
 }
