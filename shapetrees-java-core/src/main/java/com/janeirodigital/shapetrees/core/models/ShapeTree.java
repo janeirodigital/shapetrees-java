@@ -323,10 +323,10 @@ class SortByShapeTreeContainsPriority implements Comparator<URL>, Serializable
     // Used for sorting shape trees in st:contains by most to least strict
     @SneakyThrows
     @Override
-    public int compare(URL stUri1, URL stUri2) {
+    public int compare(URL stUrl1, URL stUrl2) {
 
-        ShapeTree st1 = ShapeTreeFactory.getShapeTree(stUri1);
-        ShapeTree st2 = ShapeTreeFactory.getShapeTree(stUri2);
+        ShapeTree st1 = ShapeTreeFactory.getShapeTree(stUrl1);
+        ShapeTree st2 = ShapeTreeFactory.getShapeTree(stUrl2);
 
         Integer st1Priority = 0;
         Integer st2Priority = 0;

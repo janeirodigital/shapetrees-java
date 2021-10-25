@@ -44,7 +44,7 @@ public class ShapeTreeLocation {
         this.url = url;
     }
 
-    public static ShapeTreeLocation getShapeTreeLocationFromGraph(URL uri, Graph shapeTreeMetadataGraph) throws MalformedURLException {
+    public static ShapeTreeLocation getShapeTreeLocationFromGraph(URL url, Graph shapeTreeMetadataGraph) throws MalformedURLException {
 
         URL shapeTree = null;
         String managedResource = null;
@@ -53,7 +53,7 @@ public class ShapeTreeLocation {
         String shape = null;
 
         // Look up the ShapeTreeLocation in the Metadata Graph via its URL
-        List<Triple> locationTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(uri.toString()), Node.ANY, Node.ANY).toList();
+        List<Triple> locationTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(url.toString()), Node.ANY, Node.ANY).toList();
 
         // A valid location must have at least a shape tree, managed resource, and root location url
         if (locationTriples.size() < 3) {
@@ -83,7 +83,7 @@ public class ShapeTreeLocation {
                     throw new IllegalStateException("Unexpected value: " + locationTriple.getPredicate().getURI());
             }
         }
-        return new ShapeTreeLocation(shapeTree,managedResource,rootShapeTreeLocation,focusNode,shape, uri);
+        return new ShapeTreeLocation(shapeTree,managedResource,rootShapeTreeLocation,focusNode,shape, url);
     }
 
     public boolean isRootLocation() {

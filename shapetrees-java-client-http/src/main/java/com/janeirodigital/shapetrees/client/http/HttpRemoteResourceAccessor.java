@@ -1,11 +1,13 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ResourceAccessor;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.NoArgsConstructor;
@@ -19,7 +21,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
-import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.*;
+import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.readStringIntoGraph;
+import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
 @NoArgsConstructor
 @Slf4j
@@ -80,24 +83,24 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         ResourceAttributes parsedLinkHeaders = linkHeaders.size() == 0 // !!
                 ? new ResourceAttributes()
                 : ResourceAttributes.parseLinkHeaders(linkHeaders);
-        final Optional<URL> metadataUri = calculateMetadataURI(url, parsedLinkHeaders);
+        final Optional<URL> metadataUrl = calculateMetadataURL(url, parsedLinkHeaders);
         final boolean metadata = calculateIsMetadata(url, exists, parsedLinkHeaders);;
 
         if (Boolean.TRUE.equals(metadata)) {
             // If this implementation uses a dot notation for meta, trim it from the path
             // Rebuild without the query string in case that was employed
             // @see https://github.com/xformativ/shapetrees-java/issues/86
-            final URL userOwnedResourceUri;
+            final URL userOwnedResourceUrl;
             try {
-                userOwnedResourceUri = new URL(url, url.getPath().replaceAll("\\.shapetree$", ""));
+                userOwnedResourceUrl = new URL(url, url.getPath().replaceAll("\\.shapetree$", ""));
             } catch (MalformedURLException e) {
                 throw new ShapeTreeException(500, "can't calculate primary resource for metadata <" + url + ">");
             }
 
             final Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
-            return new ShapeTreeResource.Metadata(url, resourceType, attributes, body, name, exists, userOwnedResourceUri);
+            return new ShapeTreeResource.Metadata(url, resourceType, attributes, body, name, exists, userOwnedResourceUrl);
         } else {
-            return new ShapeTreeResource.Primary(url, resourceType, attributes, body, name, exists, metadataUri, container);
+            return new ShapeTreeResource.Primary(url, resourceType, attributes, body, name, exists, metadataUrl, container);
         }
     }
 
@@ -210,17 +213,17 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         return ShapeTreeResourceType.NON_RDF;
     }
 
-    static Optional<URL> calculateMetadataURI(URL url, ResourceAttributes parsedLinkHeaders) throws ShapeTreeException {
+    static Optional<URL> calculateMetadataURL(URL url, ResourceAttributes parsedLinkHeaders) throws ShapeTreeException {
         final Optional<String> optLocatorString = parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue());
         if (optLocatorString.isEmpty()) {
             log.info("The resource {} does not contain a link header of {}", url, LinkRelations.SHAPETREE_LOCATOR.getValue());
             return Optional.empty();
         }
-        String metaDataURIString = optLocatorString.get();
+        String metaDataURLString = optLocatorString.get();
         try {
-            return Optional.of(new URL(url, metaDataURIString));
+            return Optional.of(new URL(url, metaDataURLString));
         } catch (MalformedURLException e) {
-            throw new ShapeTreeException(500, "Malformed relative URL <" + metaDataURIString + "> (resolved from <" + url + ">)");
+            throw new ShapeTreeException(500, "Malformed relative URL <" + metaDataURLString + "> (resolved from <" + url + ">)");
         }
     }
 

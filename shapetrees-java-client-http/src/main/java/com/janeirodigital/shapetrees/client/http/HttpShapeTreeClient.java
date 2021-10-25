@@ -64,7 +64,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
         ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
         ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
-        URL metadataUri = primaryResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
+        URL metadataUri = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
                 () -> new ShapeTreeException(500, "No metadata resource for <" + primaryResource.getUrl() + ">")
         );
 
@@ -129,23 +129,23 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         if (Boolean.FALSE.equals(primaryResource.isExists())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
-        URL metadataUri = primaryResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
+        URL metadataUrl = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
                 () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUrl() + ">") // TODO: Spec/API: should this return a 404 or something like that? nearby: ProjectTests.failPlantOnMissingDataContainer()
         );
 
         // Determine whether the target resource is already a managed resource
         ShapeTreeLocator locator = discoverShapeTree(context, targetResource)
             // If the target resource is not managed, initialize a new locator
-            .orElse(new ShapeTreeLocator(metadataUri));
+            .orElse(new ShapeTreeLocator(metadataUrl));
 
         // Initialize a shape tree location based on the supplied parameters
-        URL locationUri = locator.mintLocation();
+        URL locationUrl = locator.mintLocation();
         ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree,
                                                            targetResource.toString(),
-                                                           locationUri,
+                                                           locationUrl,
                                                            focusNode == null ? null : focusNode.toString(),
                                                            null,
-                                                           locationUri);
+                                                           locationUrl);
 
         // Add the location to the locator
         locator.addShapeTreeLocation(location);
@@ -158,7 +158,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", metadataUri, headers, sw.toString(), "text/turtle"));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", metadataUrl, headers, sw.toString(), "text/turtle"));
     }
 
     @Override
@@ -256,7 +256,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
         ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
         ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
-        URL metadataUri = primaryResource.getMetadataResourceUri().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
+        URL metadataUrl = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
                 () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUrl() + ">")
         );
 
@@ -293,7 +293,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, metadataUri,
+        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, metadataUrl,
                                               null, // why no getCommonHeaders(context, null, null, null, null, null)
                                               body, contentType));
     }
@@ -306,8 +306,8 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         if (isContainer != null) {
-            String resourceTypeUri = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + resourceTypeUri + ">; rel=\"type\"");
+            String resourceTypeUrl = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
+            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + resourceTypeUrl + ">; rel=\"type\"");
         }
 
         if (focusNode != null) {

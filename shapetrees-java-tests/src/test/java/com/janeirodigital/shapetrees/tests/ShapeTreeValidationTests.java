@@ -1,6 +1,5 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.SchemaCache;
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
@@ -26,8 +25,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -290,7 +289,7 @@ class ShapeTreeValidationTests {
 
     }
 */
-    private Graph getFooBodyGraph(URL baseURI) throws ShapeTreeException {
+    private Graph getFooBodyGraph(URL baseURL) throws ShapeTreeException {
         String body = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n" +
                       "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
                       "PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
@@ -301,10 +300,10 @@ class ShapeTreeValidationTests {
                       "    ex:name \"Footastic\" ; \n" +
                       "    ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime . \n";
 
-        return GraphHelper.readStringIntoGraph(GraphHelper.urlToUri(baseURI), body, "text/turtle");
+        return GraphHelper.readStringIntoGraph(GraphHelper.urlToUri(baseURL), body, "text/turtle");
     }
 
-    private Graph getInvalidFooBodyGraph(URL baseURI) throws ShapeTreeException {
+    private Graph getInvalidFooBodyGraph(URL baseURL) throws ShapeTreeException {
         String body = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n" +
                 "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
                 "PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
@@ -314,7 +313,7 @@ class ShapeTreeValidationTests {
                 "    ex:id 56789 ; \n" +
                 "    ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime . \n";
 
-        return GraphHelper.readStringIntoGraph(GraphHelper.urlToUri(baseURI), body, "text/turtle");
+        return GraphHelper.readStringIntoGraph(GraphHelper.urlToUri(baseURL), body, "text/turtle");
     }
 
 }

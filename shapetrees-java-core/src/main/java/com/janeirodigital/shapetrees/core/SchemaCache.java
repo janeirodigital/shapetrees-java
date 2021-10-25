@@ -33,28 +33,28 @@ public class SchemaCache {
         return initialized;
     }
 
-    public static boolean containsSchema(URL schemaURI) throws ShapeTreeException {
-        log.debug("Determining if cache contains schema {}", schemaURI);
+    public static boolean containsSchema(URL schemaURL) throws ShapeTreeException {
+        log.debug("Determining if cache contains schema {}", schemaURL);
         if (cache == null) {
             throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
         }
-        return cache.containsKey(schemaURI);
+        return cache.containsKey(schemaURL);
     }
 
-    public static ShexSchema getSchema(URL schemaURI) throws ShapeTreeException {
-        log.debug("Getting schema {}", schemaURI);
+    public static ShexSchema getSchema(URL schemaURL) throws ShapeTreeException {
+        log.debug("Getting schema {}", schemaURL);
         if (cache == null) {
             throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
         }
-        return cache.get(schemaURI);
+        return cache.get(schemaURL);
     }
 
-    public static void putSchema(URL schemaURI, ShexSchema schema) throws ShapeTreeException {
-        log.debug("Caching schema {}", schemaURI.toString());
+    public static void putSchema(URL schemaURL, ShexSchema schema) throws ShapeTreeException {
+        log.debug("Caching schema {}", schemaURL.toString());
         if (cache == null) {
             throw new ShapeTreeException(500, CACHE_IS_NOT_INITIALIZED);
         }
-        cache.put(schemaURI, schema);
+        cache.put(schemaURL, schema);
     }
 
     public static void clearCache() throws ShapeTreeException {

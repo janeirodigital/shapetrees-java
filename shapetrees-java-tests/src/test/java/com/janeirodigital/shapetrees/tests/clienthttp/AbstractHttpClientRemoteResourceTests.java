@@ -7,13 +7,10 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.junit.jupiter.api.*;
 
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,7 +42,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-no-link-headers"));
         assertTrue(resource.isExists());
-        Assertions.assertTrue(((ShapeTreeResource.Primary) resource).getMetadataResourceUri().isEmpty());
+        Assertions.assertTrue(((ShapeTreeResource.Primary) resource).getMetadataResourceUrl().isEmpty());
     }
 
     @Test
@@ -54,11 +51,11 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-empty-link-header"));;
         assertTrue(resource.isExists());
-        Assertions.assertTrue(((ShapeTreeResource.Primary) resource).getMetadataResourceUri().isEmpty());
+        Assertions.assertTrue(((ShapeTreeResource.Primary) resource).getMetadataResourceUrl().isEmpty());
     }
 
     @Test
-    void testRetrieveInvalidURIString() throws MalformedURLException, ShapeTreeException { // TODO: Test: may as well deleted as it's only testing URL.create()
+    void testRetrieveInvalidURLString() throws MalformedURLException, ShapeTreeException { // TODO: Test: may as well deleted as it's only testing URL.create()
         Assertions.assertThrows(MalformedURLException.class, () -> new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), new URL(":invalid")));
     }
 
