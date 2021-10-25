@@ -5,8 +5,8 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.Optional;
 
 /**
@@ -17,16 +17,16 @@ public interface ShapeTreeClient {
 
     /**
      * Shape Trees, §4.1: This operation is used by a client-side agent to discover any shape trees associated
-     * with a given resource. If URI is a managed resource, the associated Shape Tree Locator will be returned.
+     * with a given resource. If URL is a managed resource, the associated Shape Tree Locator will be returned.
      *
      * https://shapetrees.org/TR/specification/#discover
      *
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param targetResource The URI of the target resource for shape tree discovery
+     * @param targetResource The URL of the target resource for shape tree discovery
      * @return A ShapeTreeLocator associated with targetResource
      * @throws ShapeTreeException ShapeTreeException
      */
-    Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URI targetResource) throws ShapeTreeException;
+    Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException;
 
     /**
      * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,
@@ -43,14 +43,14 @@ public interface ShapeTreeClient {
      *
      * Plants one or more shape trees at a given container
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param targetResource The URI of the resource to plant on
-     * @param targetShapeTree A URI representing the shape tree to plant for targetResource
-     * @param focusNode An optional URI representing the target subject within targetResource used for shape validation
+     * @param targetResource The URL of the resource to plant on
+     * @param targetShapeTree A URL representing the shape tree to plant for targetResource
+     * @param focusNode An optional URL representing the target subject within targetResource used for shape validation
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
-     * @throws URISyntaxException URISyntaxException
+     * @throws MalformedURLException MalformedURLException
      */
-    DocumentResponse plantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree, URI focusNode) throws ShapeTreeException, URISyntaxException;
+    DocumentResponse plantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree, URL focusNode) throws ShapeTreeException, MalformedURLException;
 
     /**
      * Shape Trees, §4.3: This operation unassigns a planted root shape tree from a root shape tree instance. If
@@ -60,10 +60,10 @@ public interface ShapeTreeClient {
      * https://shapetrees.org/TR/specification/#unplant-shapetree
      *
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param targetResource URI of target resource to unplant shape tree from
-     * @param targetShapeTree URI of shape tree being unplanted
+     * @param targetResource URL of target resource to unplant shape tree from
+     * @param targetShapeTree URL of shape tree being unplanted
      */
-    DocumentResponse unplantShapeTree(ShapeTreeContext context, URI targetResource, URI targetShapeTree) throws URISyntaxException, ShapeTreeException;
+    DocumentResponse unplantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree) throws MalformedURLException, ShapeTreeException;
 
     /**
      * Creates a resource via HTTP POST that has been validated against the provided shape tree
@@ -77,9 +77,9 @@ public interface ShapeTreeClient {
      * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
-     * @throws URISyntaxException URISyntaxException
+     * @throws MalformedURLException MalformedURLException
      */
-    DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URI parentContainer, URI focusNode, URI targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws URISyntaxException, ShapeTreeException;
+    DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URL parentContainer, URL focusNode, URL targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws MalformedURLException, ShapeTreeException;
 
     /**
      * Creates a resource via HTTP PUT that has been validated against the provided target shape tree
@@ -92,9 +92,9 @@ public interface ShapeTreeClient {
      * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
-     * @throws URISyntaxException
+     * @throws MalformedURLException
      */
-    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, URI targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws URISyntaxException, ShapeTreeException;
+    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, URL targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws MalformedURLException, ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PUT that has been validated against an associated shape tree
@@ -105,9 +105,9 @@ public interface ShapeTreeClient {
      * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
-     * @throws URISyntaxException
+     * @throws MalformedURLException
      */
-    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, String bodyString, String contentType) throws URISyntaxException, ShapeTreeException;
+    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String bodyString, String contentType) throws MalformedURLException, ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PATCH that has been validated against an associated shape tree
@@ -117,18 +117,18 @@ public interface ShapeTreeClient {
      * @param patchString SPARQL Update statement to use in patching the resource
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
-     * @throws URISyntaxException
+     * @throws MalformedURLException
      */
-    DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URI targetResource, URI focusNode, String patchString) throws URISyntaxException, ShapeTreeException;
+    DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String patchString) throws MalformedURLException, ShapeTreeException;
 
     /**
      * Deletes an existing resource.  Provided as a convenience - no validation is performed
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param resourceURI The URI of the resource being deleted
+     * @param resourceURL The URL of the resource being deleted
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
      */
-    DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URI resourceURI) throws ShapeTreeException;
+    DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URL resourceURL) throws ShapeTreeException;
 
     /**
      * Indicates whether validation is currently being applied on the client

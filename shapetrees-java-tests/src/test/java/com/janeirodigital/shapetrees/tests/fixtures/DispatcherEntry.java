@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.util.List;
 import java.util.Map;
 
-@Getter @Setter @AllArgsConstructor
+@Getter @AllArgsConstructor
 public class DispatcherEntry {
     private List<String> fixtureNames;
     private String expectedMethod;

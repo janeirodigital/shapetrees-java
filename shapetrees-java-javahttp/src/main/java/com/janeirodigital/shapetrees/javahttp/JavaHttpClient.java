@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.*;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -112,7 +113,7 @@ public class JavaHttpClient implements HttpClient {
 
         try {
             java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder();
-            requestBuilder.uri(request.resourceURI);
+            requestBuilder.uri(request.resourceURL.toURI());
 
             if (request.headers != null) {
                 String[] headerList = request.headers.toList("connection", "content-length", "date", "expect", "from", "host", "upgrade", "via", "warning");
@@ -146,6 +147,8 @@ public class JavaHttpClient implements HttpClient {
             }
         } catch (IOException | InterruptedException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
+        } catch (URISyntaxException ex) {
+            throw new ShapeTreeException(500, "Malformed URL <" + request.resourceURL + ">: " + ex.getMessage());
         }
     }
 

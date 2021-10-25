@@ -10,8 +10,8 @@ import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 class HttpDocumentLoaderTests {
@@ -24,8 +24,8 @@ class HttpDocumentLoaderTests {
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
     }
 
-    protected URI getURI(MockWebServer server, String path) throws URISyntaxException {
-        return new URI(server.url(path).toString());
+    protected URL getURL(MockWebServer server, String path) throws MalformedURLException {
+        return new URL(server.url(path).toString());
     }
 
     @BeforeAll
@@ -48,7 +48,7 @@ class HttpDocumentLoaderTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            httpExternalDocumentLoader.loadExternalDocument(getURI(server, "/static/shex/missing"));
+            httpExternalDocumentLoader.loadExternalDocument(getURL(server, "/static/shex/missing"));
         });
     }
 
@@ -58,7 +58,7 @@ class HttpDocumentLoaderTests {
     void loadHttpDocument() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        DocumentResponse shapeTreeDocument = httpExternalDocumentLoader.loadExternalDocument(getURI(server, "/static/shapetrees/validation/shapetree"));
+        DocumentResponse shapeTreeDocument = httpExternalDocumentLoader.loadExternalDocument(getURL(server, "/static/shapetrees/validation/shapetree"));
         Assertions.assertNotNull(shapeTreeDocument);
         Assertions.assertEquals(200, shapeTreeDocument.getStatusCode());
         Assertions.assertTrue(shapeTreeDocument.isExists());
@@ -74,7 +74,7 @@ class HttpDocumentLoaderTests {
         server.setDispatcher(dispatcher);
         Thread.currentThread().interrupt();
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            DocumentResponse shapeTreeDocument = httpExternalDocumentLoader.loadExternalDocument(getURI(server, "/static/shapetrees/validation/shapetree"));
+            DocumentResponse shapeTreeDocument = httpExternalDocumentLoader.loadExternalDocument(getURL(server, "/static/shapetrees/validation/shapetree"));
         });
     }
 

@@ -12,12 +12,14 @@ import org.apache.jena.graph.Node_URI;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.RiotNotFoundException;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
 @Slf4j
 public class ShapeTreeFactory {
@@ -25,57 +27,66 @@ public class ShapeTreeFactory {
     }
 
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
-    private static final Map<URI, ShapeTree> localShapeTreeCache = new HashMap<>();
+    private static final Map<URL, ShapeTree> localShapeTreeCache = new HashMap<>();
 
-    public static ShapeTree getShapeTree(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
+    public static ShapeTree getShapeTree(URL shapeTreeURL) throws MalformedURLException, ShapeTreeException {
 
-        if (localShapeTreeCache.containsKey(shapeTreeURI)) {
-            log.debug("[{}] previously cached -- returning", shapeTreeURI.toString());
-            return localShapeTreeCache.get(shapeTreeURI);
+        if (localShapeTreeCache.containsKey(shapeTreeURL)) {
+            log.debug("[{}] previously cached -- returning", shapeTreeURL.toString());
+            return localShapeTreeCache.get(shapeTreeURL);
         }
 
-        dereferenceAndParseShapeTreeResource(shapeTreeURI);
+        dereferenceAndParseShapeTreeResource(shapeTreeURL);
 
-        return localShapeTreeCache.get(shapeTreeURI);
+        return localShapeTreeCache.get(shapeTreeURL);
     }
 
-    private static void dereferenceAndParseShapeTreeResource(URI shapeTreeURI) throws URISyntaxException, ShapeTreeException {
+    private static void dereferenceAndParseShapeTreeResource(URL shapeTreeUrl) throws MalformedURLException, ShapeTreeException {
         try {
-            DocumentResponse contents = DocumentLoaderManager.getLoader().loadExternalDocument(shapeTreeURI);
-            Model model = GraphHelper.readStringIntoModel(shapeTreeURI, contents.getBody(), contents.getContentType().orElse("text/turtle"));
-            Resource resource = model.getResource(shapeTreeURI.toString());
+            DocumentResponse contents = DocumentLoaderManager.getLoader().loadExternalDocument(shapeTreeUrl);
+            Model model = GraphHelper.readStringIntoModel(urlToUri(shapeTreeUrl), contents.getBody(), contents.getContentType().orElse("text/turtle"));
+            Resource resource = model.getResource(shapeTreeUrl.toString());
             recursivelyParseShapeTree(model, resource);
         } catch (RiotNotFoundException rnfe) {
-            throw new ShapeTreeException(500, "Unable to load graph at URI: " + shapeTreeURI + " - " + rnfe.getMessage());
+            log.error("Unable to load graph at URL {}", shapeTreeUrl);
         }
     }
 
-    private static void recursivelyParseShapeTree(Model model, Resource resource) throws URISyntaxException, ShapeTreeException {
-        String shapeTreeURIString = resource.getURI();
-        log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURIString);
-        URI shapeTreeURI = new URI(shapeTreeURIString);
+    private static void recursivelyParseShapeTree(Model model, Resource resource) throws MalformedURLException, ShapeTreeException {
+        // Set the URL as the ID (string representation)
+        URL shapeTreeURL = new URL(resource.getURI());
+        log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURL);
 
-        // TODO - In cases where a shape tree document references or contains shape trees that are not in
-        // the same document - they will not be parsed. Need to determine whether that is a feature or a bug.
-
-        ShapeTree shapeTree = new ShapeTree(DocumentLoaderManager.getLoader());
-        // Set the URI as the ID (string representation)
-        shapeTree.setId(shapeTreeURIString);
+        if (localShapeTreeCache.containsKey(shapeTreeURL)) {
+            log.debug("[{}] previously cached -- returning", shapeTreeURL);
+            return;
+        }
         // Set the expected resource type
         String expectsType = getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE);
         if (expectsType == null) throw new ShapeTreeException(500, "Shape Tree :expectsType not found");
-        shapeTree.setExpectedResourceType(expectsType);
-        // Set Shape URI
-        shapeTree.setShape(getStringValue(model, resource, ShapeTreeVocabulary.SHAPE));
+
+        // Set Shape URL
+        final String shape = getStringValue(model, resource, ShapeTreeVocabulary.SHAPE);
         // Set Label
-        shapeTree.setLabel(getStringValue(model, resource, RDFS_LABEL));
+        final String label = getStringValue(model, resource, RDFS_LABEL);
         // Set Supports
-        shapeTree.setSupports(getStringValue(model, resource, ShapeTreeVocabulary.SUPPORTS));
+        final String supports = getStringValue(model, resource, ShapeTreeVocabulary.SUPPORTS);
         // Set Reference collection
-        shapeTree.setReferences(new ArrayList<>());
+        final ArrayList<ReferencedShapeTree> references = new ArrayList<>();
+        List<URL> contains = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
+
+        ShapeTree shapeTree = new ShapeTree(
+                DocumentLoaderManager.getLoader(),
+                shapeTreeURL,
+                expectsType,
+                label,
+                shape,
+                supports,
+                references,
+                contains);
 
         // Add the shapeTree to the cache before any of the recursive processing
-        localShapeTreeCache.put(shapeTreeURI, shapeTree);
+        localShapeTreeCache.put(shapeTreeURL, shapeTree);
 
         Property referencesProperty = model.createProperty(ShapeTreeVocabulary.REFERENCES);
         if (resource.hasProperty(referencesProperty)) {
@@ -83,29 +94,27 @@ public class ShapeTreeFactory {
             for (Statement referenceStatement : referenceStatements) {
 
                 Resource referenceResource = referenceStatement.getObject().asResource();
-                URI referenceShapeTreeUri = new URI(getStringValue(model, referenceResource, ShapeTreeVocabulary.HAS_SHAPE_TREE));
+                URL referenceShapeTreeUrl = new URL(getStringValue(model, referenceResource, ShapeTreeVocabulary.HAS_SHAPE_TREE));
                 String shapePath = getStringValue(model, referenceResource, ShapeTreeVocabulary.VIA_SHAPE_PATH);
-                if (!localShapeTreeCache.containsKey(referenceShapeTreeUri)) {
+                if (!localShapeTreeCache.containsKey(referenceShapeTreeUrl)) {
                     // If the model contains the referenced ShapeTree, go ahead and parse and cache it
-                    recursivelyParseShapeTree(model, model.getResource(referenceShapeTreeUri.toString()));
+                    recursivelyParseShapeTree(model, model.getResource(referenceShapeTreeUrl.toString()));
                 }
 
                 // Create the object that defines there relation between a ShapeTree and its children
-                ReferencedShapeTree referencedShapeTree = new ReferencedShapeTree(referenceShapeTreeUri, shapePath);
-                shapeTree.getReferences().add(referencedShapeTree);
+                ReferencedShapeTree referencedShapeTree = new ReferencedShapeTree(referenceShapeTreeUrl, shapePath);
+                references.add(referencedShapeTree);
             }
         }
 
         // Containers are expected to have contents
-        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.CONTAINER)) {
+        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !expectsType.equals(ShapeTreeVocabulary.CONTAINER)) {
             throw new ShapeTreeException(400, "Contents predicate not expected outside of st:Container Types");
         }
-        if (shapeTree.getExpectedResourceType().equals(ShapeTreeVocabulary.CONTAINER)) {
-            List<URI> uris = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
-            shapeTree.setContains(uris);
-            for (URI uri : uris) {
-                if (!localShapeTreeCache.containsKey(uri)) {
-                    recursivelyParseShapeTree(model, model.getResource(uri.toString()));
+        if (expectsType.equals(ShapeTreeVocabulary.CONTAINER)) {
+            for (URL url : contains) {
+                if (!localShapeTreeCache.containsKey(url)) {
+                    recursivelyParseShapeTree(model, model.getResource(url.toString()));
                 }
             }
         }
@@ -127,21 +136,21 @@ public class ShapeTreeFactory {
         return null;
     }
 
-    private static List<URI> getURLListValue(Model model, Resource resource, String predicate) throws URISyntaxException, ShapeTreeException {
-        List<URI> uris = new ArrayList<>();
+    private static List<URL> getURLListValue(Model model, Resource resource, String predicate) throws MalformedURLException, ShapeTreeException {
+        List<URL> urls = new ArrayList<>();
         Property property = model.createProperty(predicate);
         if (resource.hasProperty(property)) {
             List<Statement> propertyStatements = resource.listProperties(property).toList();
             for (Statement propertyStatement : propertyStatements) {
                 Node propertyNode = propertyStatement.getObject().asNode();
                 if (propertyNode instanceof Node_URI) {
-                    URI contentURI = new URI(propertyNode.getURI());
-                    uris.add(contentURI);
+                    URL contentURL = new URL(propertyNode.getURI());
+                    urls.add(contentURL);
                 } else {
                     throw new ShapeTreeException(500, "Must provide a valid URI in URI listing");
                 }
             }
         }
-        return uris;
+        return urls;
     }
 }

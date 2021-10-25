@@ -7,7 +7,7 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 
-import java.net.URI;
+import java.net.URL;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DocumentLoaderTests {
@@ -39,7 +39,7 @@ class DocumentLoaderTests {
 }
 
 class TestDocumentLoader implements ExternalDocumentLoader {
-    public DocumentResponse loadExternalDocument(URI resourceURI) throws ShapeTreeException {
+    public DocumentResponse loadExternalDocument(URL resourceURL) throws ShapeTreeException {
         return new DocumentResponse(null, null, 200);
     }
 }

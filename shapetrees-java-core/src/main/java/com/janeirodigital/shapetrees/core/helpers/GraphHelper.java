@@ -13,6 +13,8 @@ import org.apache.jena.riot.RiotException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.OffsetDateTime;
 
 /**
@@ -136,7 +138,10 @@ public class GraphHelper {
         }
 
         Node objectNode = null;
-        if (object.getClass().equals(URI.class)) {
+        if (object.getClass().equals(URI.class)) { // TODO: needed?
+            objectNode = NodeFactory.createURI(object.toString());
+        }
+        else if (object.getClass().equals(URL.class)) {
             objectNode = NodeFactory.createURI(object.toString());
         }
         else if (object.getClass().equals(String.class)) {
@@ -159,4 +164,16 @@ public class GraphHelper {
         return new Triple(NodeFactory.createURI(subject), NodeFactory.createURI(predicate), objectNode);
     }
 
+    /**
+     * Wrap conversion from URL to URI which should never fail on a well-formed URL.
+     * @param url covert this URL to a URI
+     * @return IRI java native object for a URI (useful for Jena graph operations)
+     */
+    public static URI urlToUri(URL url) {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("can't convert URL <" + url + "> to IRI: " + e);
+        }
+    }
 }

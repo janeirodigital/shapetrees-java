@@ -3,18 +3,17 @@ package com.janeirodigital.shapetrees.core.models;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import java.net.URI;
+import java.net.URL;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@AllArgsConstructor
 public class ValidationResult {
     private Boolean valid;
     private ShapeTree validatingShapeTree;
     private ShapeTree matchingShapeTree;
     private ShapeTreeLocation managingLocation;
-    private URI matchingFocusNode;
+    private URL matchingFocusNode;
     private String message;
 
     public Boolean isValid() {
@@ -48,7 +47,7 @@ public class ValidationResult {
         this.matchingFocusNode = null;
     }
 
-    public ValidationResult(Boolean valid, ShapeTree validatingShapeTree, URI matchingFocusNode) {
+    public ValidationResult(Boolean valid, ShapeTree validatingShapeTree, URL matchingFocusNode) {
         this.valid = valid;
         this.message = null;
         this.validatingShapeTree = validatingShapeTree;
@@ -57,7 +56,7 @@ public class ValidationResult {
         this.matchingFocusNode = matchingFocusNode;
     }
 
-    public ValidationResult(Boolean valid, ShapeTree validatingShapeTree, ShapeTree matchingShapeTree, URI matchingFocusNode) {
+    public ValidationResult(Boolean valid, ShapeTree validatingShapeTree, ShapeTree matchingShapeTree, URL matchingFocusNode) {
         this.valid = valid;
         this.message = null;
         this.validatingShapeTree = validatingShapeTree;
