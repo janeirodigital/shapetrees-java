@@ -125,7 +125,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
 
         @Override
-        public URL getURL() {
+        public URL getUrl() {
             return this.request.url().url();
         }
 

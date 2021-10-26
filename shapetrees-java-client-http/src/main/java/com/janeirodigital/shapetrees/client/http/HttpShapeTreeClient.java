@@ -18,7 +18,6 @@ import org.apache.jena.riot.RDFDataMgr;
 
 import java.io.StringWriter;
 import java.net.URL;
-import java.net.MalformedURLException;
 import java.util.Optional;
 
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
@@ -68,7 +67,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
                 () -> new ShapeTreeException(500, "No metadata resource for <" + primaryResource.getUrl() + ">")
         );
 
-        if  (Boolean.FALSE.equals(primaryResource.isExists())) {
+        if  (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
             return Optional.empty();
         }
@@ -79,7 +78,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Ensure the metadata resource exists
         // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
         // and no shape tree locator will be returned.
-        if (Boolean.FALSE.equals(locatorResource.isExists())) {
+        if (Boolean.FALSE.equals(locatorResource.wasSuccessful())) {
             log.debug("Shape tree locator for {} does not exist", targetResource);
             return Optional.empty();
         }
@@ -110,10 +109,9 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @param focusNode An optional URL representing the target subject within targetResource used for shape validation
      * @return The URL of the Shape Tree Locator that was planted for targetResource
      * @throws ShapeTreeException
-     * @throws MalformedURLException
      */
     @Override
-    public DocumentResponse plantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree, URL focusNode) throws ShapeTreeException, MalformedURLException {
+    public DocumentResponse plantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree, URL focusNode) throws ShapeTreeException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
             throw new ShapeTreeException(500, "Must provide a valid context, target resource, and target shape tree to the plant shape tree");
@@ -126,7 +124,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
         ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
         ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
-        if (Boolean.FALSE.equals(primaryResource.isExists())) {
+        if (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
         URL metadataUrl = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
@@ -141,9 +139,9 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Initialize a shape tree location based on the supplied parameters
         URL locationUrl = locator.mintLocation();
         ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree,
-                                                           targetResource.toString(),
+                                                           targetResource,
                                                            locationUrl,
-                                                           focusNode == null ? null : focusNode.toString(),
+                                                           focusNode,
                                                            null,
                                                            locationUrl);
 
@@ -180,45 +178,45 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     // Create via HTTP PUT
     @Override
-    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL resourceURL, URL focusNode, URL targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL resourceUrl, URL focusNode, URL targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException {
 
-        if (context == null || resourceURL == null) {
+        if (context == null || resourceUrl == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to create shape tree instance via PUT");
         }
 
-        log.debug("Creating shape tree instance via PUT at {}", resourceURL);
+        log.debug("Creating shape tree instance via PUT at {}", resourceUrl);
         log.debug ("Target Shape Tree: {}", targetShapeTree == null ? "None provided" : targetShapeTree.toString());
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNode, targetShapeTree, isContainer,null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURL, headers, bodyString, contentType));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceUrl, headers, bodyString, contentType));
     }
 
     // Update via HTTP PUT
     @Override
-    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL resourceURL, URL focusNode, String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL resourceUrl, URL focusNode, String bodyString, String contentType) throws ShapeTreeException {
 
-        if (context == null || resourceURL == null) {
+        if (context == null || resourceUrl == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to update shape tree instance via PUT");
         }
 
-        log.debug("Updating shape tree instance via PUT at {}", resourceURL);
+        log.debug("Updating shape tree instance via PUT at {}", resourceUrl);
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNode, null, null, null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceURL, headers, bodyString, contentType));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceUrl, headers, bodyString, contentType));
     }
 
     @Override
-    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URL resourceURL, URL focusNode, String patchString) throws ShapeTreeException {
+    public DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URL resourceUrl, URL focusNode, String patchString) throws ShapeTreeException {
 
-        if (context == null || resourceURL == null || patchString == null) {
+        if (context == null || resourceUrl == null || patchString == null) {
             throw new ShapeTreeException(500, "Must provide a valid context, target resource, and PATCH expression to PATCH shape tree instance");
         }
 
-        log.debug("PATCH-ing shape tree instance at {}", resourceURL);
+        log.debug("PATCH-ing shape tree instance at {}", resourceUrl);
         log.debug("PATCH String: {}", patchString);
         log.debug("Focus Node: {}", focusNode == null ? "None provided" : focusNode);
 
@@ -226,25 +224,25 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNode, null, null, null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PATCH", resourceURL, headers, patchString, contentType));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PATCH", resourceUrl, headers, patchString, contentType));
     }
 
     @Override
-    public DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URL resourceURL) throws ShapeTreeException {
+    public DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URL resourceUrl) throws ShapeTreeException {
 
-        if (context == null || resourceURL == null) {
+        if (context == null || resourceUrl == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to DELETE shape tree instance");
         }
 
-        log.debug("DELETE-ing shape tree instance at {}", resourceURL);
+        log.debug("DELETE-ing shape tree instance at {}", resourceUrl);
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, null, null, null, null, null);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", resourceURL, headers,null,null));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", resourceUrl, headers,null,null));
     }
 
     @Override
-    public DocumentResponse unplantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree) throws ShapeTreeException, MalformedURLException {
+    public DocumentResponse unplantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree) throws ShapeTreeException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
             throw new ShapeTreeException(500, "Must provide a valid context, target resource, and target shape tree to unplant");
@@ -260,7 +258,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
                 () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUrl() + ">")
         );
 
-        if (Boolean.FALSE.equals(primaryResource.isExists())) {
+        if (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to unplant: " + targetResource, 404);
         }
 

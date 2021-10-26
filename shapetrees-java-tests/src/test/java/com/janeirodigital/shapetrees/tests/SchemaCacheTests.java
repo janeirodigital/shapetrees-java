@@ -16,12 +16,13 @@ import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,10 +36,6 @@ public class SchemaCacheTests {
     public SchemaCacheTests() {
         httpExternalDocumentLoader = new HttpExternalDocumentLoader();
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
-    }
-
-    protected URL getURL(MockWebServer server, String path) throws MalformedURLException {
-        return new URL(server.url(path).toString());
     }
 
     @BeforeAll
@@ -91,9 +88,9 @@ public class SchemaCacheTests {
     void testPreloadCache() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(getURL(server, "/static/shex/project").toString()));
+        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(toUrl(server, "/static/shex/project").toString()));
         SchemaCache.initializeCache(schemas);
-        assertTrue(SchemaCache.containsSchema(getURL(server, "/static/shex/project")));
+        assertTrue(SchemaCache.containsSchema(toUrl(server, "/static/shex/project")));
     }
 
     @Test
@@ -102,12 +99,12 @@ public class SchemaCacheTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
-        Assertions.assertNull(SchemaCache.getSchema(getURL(server, "/static/shex/project")));
-        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(getURL(server, "/static/shex/project").toString()));
+        Assertions.assertNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
+        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(toUrl(server, "/static/shex/project").toString()));
         Map.Entry<URL, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
         if (firstEntry == null) return;
         SchemaCache.putSchema(firstEntry.getKey(), firstEntry.getValue());
-        Assertions.assertNotNull(SchemaCache.getSchema(getURL(server, "/static/shex/project")));
+        Assertions.assertNotNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
 
     }
 
@@ -118,12 +115,12 @@ public class SchemaCacheTests {
         server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
 
-        Assertions.assertNull(SchemaCache.getSchema(getURL(server, "/static/shex/project")));
-        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(getURL(server, "/static/shex/project").toString()));
+        Assertions.assertNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
+        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(toUrl(server, "/static/shex/project").toString()));
         Map.Entry<URL, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
         if (firstEntry == null) return;
         SchemaCache.putSchema(firstEntry.getKey(), firstEntry.getValue());
-        Assertions.assertNotNull(SchemaCache.getSchema(getURL(server, "/static/shex/project")));
+        Assertions.assertNotNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
 
     }
 

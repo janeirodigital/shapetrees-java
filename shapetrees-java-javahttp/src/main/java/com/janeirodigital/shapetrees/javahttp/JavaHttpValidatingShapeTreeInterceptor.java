@@ -112,7 +112,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         }
 
         @Override
-        public URL getURL() {
+        public URL getUrl() {
             try {
                 return this.request.uri().toURL();
             } catch (MalformedURLException ex) {

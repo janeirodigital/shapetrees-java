@@ -4,7 +4,6 @@ import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
-import java.net.MalformedURLException;
 import java.util.Optional;
 
 public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
@@ -14,11 +13,11 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURL(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
 
-            if (rc.wasCreatedFromMetadata() && rc.getMetadataResourceFork().isExists()) {
+            if (rc.wasCreatedFromMetadata() && rc.getMetadataResourceFork().wasSuccessful()) {
                 // If the DELETE request is for an existing shapetree metadata resource,
                 // it must be evaluated to determine if unplanting is necessary
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));

@@ -18,11 +18,11 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     }
 
     @Override
-    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws MalformedURLException, ShapeTreeException {
+    public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource
-            ShapeTreeResource targetContainer = new ShapeTreeResource(shapeTreeRequest.getURL(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource targetContainer = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
 
             // Get resource name from the slug or default to UUID
             String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeaders.SLUG.getValue()).orElse(UUID.randomUUID().toString());

@@ -13,9 +13,9 @@ import java.net.URL;
 public interface ExternalDocumentLoader {
     /**
      * Describes the retrieval of a remote document
-     * @param resourceURL URL of resource to be retrieved
+     * @param resourceUrl URL of resource to be retrieved
      * @return DocumentResponse representation which contains body and content type
      * @throws ShapeTreeException ShapeTreeException
      */
-    DocumentResponse loadExternalDocument(URL resourceURL) throws ShapeTreeException;
+    DocumentResponse loadExternalDocument(URL resourceUrl) throws ShapeTreeException;
 }
