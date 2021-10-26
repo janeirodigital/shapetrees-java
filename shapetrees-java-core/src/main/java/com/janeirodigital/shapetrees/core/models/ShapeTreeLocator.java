@@ -44,7 +44,7 @@ public class ShapeTreeLocator {
         return this.id;
     }
 
-    public Graph getGraph() {
+    public Graph getGraph() throws ShapeTreeException {
 
         Graph locatorGraph = GraphHelper.getEmptyGraph();
         String locatorSubject = this.getUrl().toString();

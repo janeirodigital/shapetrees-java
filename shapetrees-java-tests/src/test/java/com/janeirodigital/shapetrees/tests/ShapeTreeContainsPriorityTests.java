@@ -19,12 +19,12 @@ import java.net.URL;
 import java.util.List;
 
 @Slf4j
-class ShapeTreeContainsPriorityTest {
+class ShapeTreeContainsPriorityTests {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
     private static HttpExternalDocumentLoader httpExternalDocumentLoader;
 
-    public ShapeTreeContainsPriorityTest() {
+    public ShapeTreeContainsPriorityTests() {
         httpExternalDocumentLoader = new HttpExternalDocumentLoader();
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
     }

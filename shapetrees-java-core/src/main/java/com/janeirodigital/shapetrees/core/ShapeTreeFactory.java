@@ -62,10 +62,6 @@ public class ShapeTreeFactory {
         }
         log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeUrl);
 
-        if (localShapeTreeCache.containsKey(shapeTreeUrl)) {
-            log.debug("[{}] previously cached -- returning", shapeTreeUrl);
-            return;
-        }
         // Set the expected resource type
         URL expectsType = getUrlValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE, shapeTreeUrl);
         if (expectsType == null) throw new ShapeTreeException(500, "Shape Tree :expectsType not found");
@@ -154,7 +150,7 @@ public class ShapeTreeFactory {
         return null;
     }
 
-    private static String getStringValue(Model model, Resource resource, String predicate) {
+    private static String getStringValue(Model model, Resource resource, String predicate) throws ShapeTreeException {
         Property property = model.createProperty(predicate);
         if (resource.hasProperty(property)) {
             Statement statement = resource.getProperty(property);
@@ -163,14 +159,14 @@ public class ShapeTreeFactory {
             } else if (statement.getObject().isURIResource()) {
                 return statement.getObject().asResource().getURI();
             } else {
-                log.error("In getStringValue for predicate [{}] unable to value of Node", predicate);
+                throw new ShapeTreeException(500, "Cannot determine object type when converting from string for: " + predicate);
             }
 
         }
         return null;
     }
 
-    private static List<URL> getURLListValue(Model model, Resource resource, String predicate) throws MalformedURLException {
+    private static List<URL> getURLListValue(Model model, Resource resource, String predicate) throws MalformedURLException, ShapeTreeException {
         List<URL> urls = new ArrayList<>();
         Property property = model.createProperty(predicate);
         if (resource.hasProperty(property)) {
@@ -180,6 +176,8 @@ public class ShapeTreeFactory {
                 if (propertyNode instanceof Node_URI) {
                     URL contentUrl = new URL(propertyNode.getURI());
                     urls.add(contentUrl);
+                } else {
+                    throw new ShapeTreeException(500, "Must provide a valid URI in URI listing");
                 }
             }
         }

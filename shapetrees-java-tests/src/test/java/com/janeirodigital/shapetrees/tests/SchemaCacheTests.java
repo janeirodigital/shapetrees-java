@@ -13,16 +13,16 @@ import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
-import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,6 +45,35 @@ public class SchemaCacheTests {
         ));
     }
 
+    @Test
+    @Order(0)
+    void testFailToOperateOnUninitializedCache() throws MalformedURLException, ShapeTreeException {
+
+        assertFalse(SchemaCache.isInitialized());
+
+        // containsSchema
+        Throwable containsException = Assertions.assertThrows(ShapeTreeException.class, () ->
+                SchemaCache.containsSchema(new URL("http://schema.example"))
+        );
+        Assertions.assertEquals(containsException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+
+        // getSchema
+        Throwable getException = Assertions.assertThrows(ShapeTreeException.class, () ->
+                SchemaCache.getSchema(new URL("http://schema.example"))
+        );
+        Assertions.assertEquals(getException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+
+        // putSchema
+        Throwable putException = Assertions.assertThrows(ShapeTreeException.class, () ->
+                SchemaCache.putSchema(new URL("http://schema.example"), null)
+        );
+        Assertions.assertEquals(putException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+
+        // clearSchema
+        Throwable clearException = Assertions.assertThrows(ShapeTreeException.class, () -> SchemaCache.clearCache());
+        Assertions.assertEquals(clearException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+
+    }
 
     @Test
     @Order(1)
@@ -70,6 +99,22 @@ public class SchemaCacheTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
+        Assertions.assertNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
+        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(toUrl(server, "/static/shex/project").toString()));
+        Map.Entry<URL, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
+        if (firstEntry == null) return;
+        SchemaCache.putSchema(firstEntry.getKey(), firstEntry.getValue());
+        Assertions.assertNotNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
+
+    }
+
+    @Test
+    @Order(4)
+    void testNullOnCacheContains() throws MalformedURLException, ShapeTreeException {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        SchemaCache.clearCache();
+
         Assertions.assertNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
         Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(toUrl(server, "/static/shex/project").toString()));
         Map.Entry<URL, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);

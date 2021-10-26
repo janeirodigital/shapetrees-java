@@ -115,8 +115,14 @@ public class GraphHelper {
      * @param object Object to include
      * @return
      */
-    public static Triple newTriple(URI subject, URI predicate, Object object) {
+    public static Triple newTriple(URI subject, URI predicate, Object object) throws ShapeTreeException {
+
+        if (subject == null || predicate == null || object == null) {
+            throw new ShapeTreeException(500, "Cannot provide null values as input to triple construction");
+        }
+
         return newTriple(subject.toString(), predicate.toString(), object);
+
     }
 
     /**
@@ -126,7 +132,12 @@ public class GraphHelper {
      * @param object Object to include
      * @return
      */
-    public static Triple newTriple(String subject, String predicate, Object object) {
+    public static Triple newTriple(String subject, String predicate, Object object) throws ShapeTreeException {
+
+        if (subject == null || predicate == null || object == null) {
+            throw new ShapeTreeException(500, "Cannot provide null values as input to triple construction");
+        }
+
         Node objectNode = null;
         if (object.getClass().equals(URI.class)) { // TODO: needed?
             objectNode = NodeFactory.createURI(object.toString());
@@ -148,7 +159,7 @@ public class GraphHelper {
         }
 
         if (objectNode == null) {
-            log.error("Not good.  Unable to create objectNode for object {}", object.getClass());
+            throw new ShapeTreeException(500, "Unsupported object value in triple construction: " + object.getClass());
         }
 
         return new Triple(NodeFactory.createURI(subject), NodeFactory.createURI(predicate), objectNode);

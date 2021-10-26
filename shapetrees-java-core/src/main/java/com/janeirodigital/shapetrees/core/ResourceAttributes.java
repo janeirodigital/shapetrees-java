@@ -61,7 +61,8 @@ public class ResourceAttributes {
         ResourceAttributes linkHeaderMap = new ResourceAttributes();
         for (String headerValue : headerValues) {
             Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
-            if (matcher.matches() && matcher.groupCount() >= 2) {
+            // if (matcher.matches() && matcher.groupCount() >= 2) {
+            if (matcher.matches()) {
                 String uri = matcher.group(1);
                 String rel = matcher.group(2);
                 linkHeaderMap.myMapOfLists.computeIfAbsent(rel, k -> new ArrayList<>());

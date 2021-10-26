@@ -1,27 +1,26 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
-import com.janeirodigital.shapetrees.tests.clienthttp.AbstractHttpClientRemoteResourceTests;
+import com.janeirodigital.shapetrees.tests.clienthttp.AbstractHttpClientResourceAccessorTests;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class OkHttpClientRemoteResourceTests extends AbstractHttpClientRemoteResourceTests {
+class JavaHttpClientResourceAccessorTests extends AbstractHttpClientResourceAccessorTests {
 
-    public OkHttpClientRemoteResourceTests() {
+    public JavaHttpClientResourceAccessorTests() {
 
-        // Call AbstractHttpClientRemoteResourceTests constructor
+        // Call AbstractHttpClientResourceAccessorTests constructor
         // Which in turn calls the AbstractHttpClient constructor
         super();
 
-        this.factory = new OkHttpClientFactory(false, new BlackWhiteList(null, null));
+        this.factory = new JavaHttpClientFactory(false);
         AbstractHttpClientFactory.setFactory(this.factory);
         DocumentLoaderManager.setLoader((ExternalDocumentLoader) this.factory);
 
-        this.skipShapeTreeValidation(false);  // Get an OkHttpClient from the HttpClientFactory set above
-
+        this.skipShapeTreeValidation(false);  // Get a JavaHttpClient from the HttpClientFactory set above
     }
 
 }
