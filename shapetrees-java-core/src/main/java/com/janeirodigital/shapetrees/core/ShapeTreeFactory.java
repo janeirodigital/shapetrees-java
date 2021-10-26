@@ -57,10 +57,6 @@ public class ShapeTreeFactory {
         URL shapeTreeURL = new URL(resource.getURI());
         log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURL);
 
-        if (localShapeTreeCache.containsKey(shapeTreeURL)) {
-            log.debug("[{}] previously cached -- returning", shapeTreeURL);
-            return;
-        }
         // Set the expected resource type
         String expectsType = getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE);
         if (expectsType == null) throw new ShapeTreeException(500, "Shape Tree :expectsType not found");
