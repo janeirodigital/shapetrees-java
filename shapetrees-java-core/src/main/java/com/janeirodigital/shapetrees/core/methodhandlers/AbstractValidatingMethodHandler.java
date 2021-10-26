@@ -605,9 +605,9 @@ public abstract class AbstractValidatingMethodHandler {
         }
 
         // Build the primary resource location
-        String matchingNode = primaryResourceMatchingNode == null ? null : primaryResourceMatchingNode.toString();
+        URL matchingNode = primaryResourceMatchingNode == null ? null : primaryResourceMatchingNode;
         ShapeTreeLocation primaryResourceLocation = new ShapeTreeLocation(primaryResourceShapeTree.getId(),
-                primaryResource.getUrl().toString(),
+                primaryResource.getUrl(),
                 rootLocation.getUrl(),
                 matchingNode,
                 primaryResourceShapeTree.getShape(),
@@ -623,16 +623,13 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     private boolean atRootOfPlantHierarchy(ShapeTreeLocation rootLocation, ShapeTreeResource.Fork primaryResource) {
-        return rootLocation.getManagedResource().equals(primaryResource.getUrl().toString());
+        return rootLocation.getManagedResource().toString().equals(primaryResource.getUrl().toString());
     }
 
     // Return a root shape tree locator associated with a given shape tree location
     private ShapeTreeLocator getRootShapeTreeLocator(ShapeTreeContext shapeTreeContext, ShapeTreeLocation location) throws MalformedURLException, ShapeTreeException {
 
         URL rootLocationUrl = location.getRootShapeTreeLocation();
-
-        URL rootLocationBaseUrl = new URL(rootLocationUrl, "/");
-
         ShapeTreeResource.Metadata locatorResource = new ShapeTreeResource(rootLocationUrl, this.resourceAccessor, shapeTreeContext).getMetadataResourceFork(); // this.resourceAccessor.getResource(shapeTreeContext, rootLocationBaseUrl);
         // @@ ensureShapeTreeResourceExists(locatorResource, "Unable to find root shape tree locator");
 

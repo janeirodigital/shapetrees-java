@@ -80,10 +80,10 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         ShapeTreeLocation location = locator.getLocations().get(0);
 
         Assertions.assertEquals(new URL("http://www.example.com/ns/ex#DataTree"), location.getShapeTree());
-        Assertions.assertEquals(targetResource.toString(), location.getManagedResource());
+        Assertions.assertEquals(targetResource.toString(), location.getManagedResource().toString());
         Assertions.assertEquals(location.getUrl(), location.getRootShapeTreeLocation());
-        Assertions.assertEquals(toUrl(server, "/managed").toString() + "#set", location.getFocusNode());
-        Assertions.assertEquals("http://www.example.com/ns/ex#DataSetShape", location.getShape());
+        Assertions.assertEquals(toUrl(server, "/managed").toString() + "#set", location.getFocusNode().toString());
+        Assertions.assertEquals("http://www.example.com/ns/ex#DataSetShape", location.getShape().toString());
 
     }
 
