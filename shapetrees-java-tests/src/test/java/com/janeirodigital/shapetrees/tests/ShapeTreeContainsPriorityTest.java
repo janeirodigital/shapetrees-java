@@ -13,9 +13,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 import java.net.URL;
-import java.net.MalformedURLException;
 import java.util.List;
 
 @Slf4j
@@ -27,10 +27,6 @@ class ShapeTreeContainsPriorityTest {
     public ShapeTreeContainsPriorityTest() {
         httpExternalDocumentLoader = new HttpExternalDocumentLoader();
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
-    }
-
-    protected URL getURL(MockWebServer server, String path) throws MalformedURLException {
-        return new URL(server.url(path).toString());
     }
 
     @BeforeAll
@@ -47,15 +43,15 @@ class ShapeTreeContainsPriorityTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTree containingShapeTree = ShapeTreeFactory.getShapeTree(getURL(server,"/static/shapetrees/contains-priority/shapetree#ContainsAllTypesTree"));
+        ShapeTree containingShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/contains-priority/shapetree#ContainsAllTypesTree"));
 
         // Ensure the ordered result is correct
         List<URL> prioritizedContains = containingShapeTree.getPrioritizedContains();
 
         Assertions.assertEquals(3, prioritizedContains.size());
-        Assertions.assertEquals(getURL(server, "/static/shapetrees/contains-priority/shapetree#LabelShapeTypeTree"), prioritizedContains.get(0));
-        Assertions.assertEquals(getURL(server, "/static/shapetrees/contains-priority/shapetree#LabelTypeTree"), prioritizedContains.get(1));
-        Assertions.assertEquals(getURL(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(2));
+        Assertions.assertEquals(toUrl(server, "/static/shapetrees/contains-priority/shapetree#LabelShapeTypeTree"), prioritizedContains.get(0));
+        Assertions.assertEquals(toUrl(server, "/static/shapetrees/contains-priority/shapetree#LabelTypeTree"), prioritizedContains.get(1));
+        Assertions.assertEquals(toUrl(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(2));
     }
 
     @SneakyThrows
@@ -65,14 +61,14 @@ class ShapeTreeContainsPriorityTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTree containingShapeTree = ShapeTreeFactory.getShapeTree(getURL(server,"/static/shapetrees/contains-priority/shapetree#ContainsShapeTypeTree"));
+        ShapeTree containingShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/contains-priority/shapetree#ContainsShapeTypeTree"));
 
         // Ensure the ordered result is correct
         List<URL> prioritizedContains = containingShapeTree.getPrioritizedContains();
 
         Assertions.assertEquals(2, prioritizedContains.size());
-        Assertions.assertEquals(getURL(server, "/static/shapetrees/contains-priority/shapetree#ShapeTypeTree"), prioritizedContains.get(0));
-        Assertions.assertEquals(getURL(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(1));
+        Assertions.assertEquals(toUrl(server, "/static/shapetrees/contains-priority/shapetree#ShapeTypeTree"), prioritizedContains.get(0));
+        Assertions.assertEquals(toUrl(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(1));
     }
 
     @SneakyThrows
@@ -82,14 +78,14 @@ class ShapeTreeContainsPriorityTest {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        ShapeTree containingShapeTree = ShapeTreeFactory.getShapeTree(getURL(server,"/static/shapetrees/contains-priority/shapetree#ContainsLabelTypeTree"));
+        ShapeTree containingShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/contains-priority/shapetree#ContainsLabelTypeTree"));
 
         // Ensure the ordered result is correct
         List<URL> prioritizedContains = containingShapeTree.getPrioritizedContains();
 
         Assertions.assertEquals(2, prioritizedContains.size());
-        Assertions.assertEquals(getURL(server, "/static/shapetrees/contains-priority/shapetree#LabelTypeTree"), prioritizedContains.get(0));
-        Assertions.assertEquals(getURL(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(1));
+        Assertions.assertEquals(toUrl(server, "/static/shapetrees/contains-priority/shapetree#LabelTypeTree"), prioritizedContains.get(0));
+        Assertions.assertEquals(toUrl(server, "/static/shapetrees/contains-priority/shapetree#TypeOnlyTree"), prioritizedContains.get(1));
 
     }
 

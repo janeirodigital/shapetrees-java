@@ -124,11 +124,11 @@ public interface ShapeTreeClient {
     /**
      * Deletes an existing resource.  Provided as a convenience - no validation is performed
      * @param context ShapeTreeContext that would be used for authentication purposes
-     * @param resourceURL The URL of the resource being deleted
+     * @param resourceUrl The URL of the resource being deleted
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
      */
-    DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URL resourceURL) throws ShapeTreeException;
+    DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URL resourceUrl) throws ShapeTreeException;
 
     /**
      * Indicates whether validation is currently being applied on the client

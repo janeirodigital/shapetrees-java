@@ -24,7 +24,7 @@ public abstract class AbstractHttpClientTests {
         this.context = new ShapeTreeContext(null);
     }
 
-    public URL getURL(MockWebServer server, String path) throws MalformedURLException {
+    public URL toUrl(MockWebServer server, String path) throws MalformedURLException { // TODO: duplicates com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.getURL;
         return new URL(server.url(path).toString());
     }
 

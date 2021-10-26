@@ -40,14 +40,14 @@ public class ShapeTreeLocator {
         this.id = id;
     }
 
-    public URL getURL() throws MalformedURLException {
+    protected URL getUrl() throws MalformedURLException {
         return this.id;
     }
 
     public Graph getGraph() throws MalformedURLException {
 
         Graph locatorGraph = GraphHelper.getEmptyGraph();
-        String locatorSubject = this.getURL().toString();
+        String locatorSubject = this.getUrl().toString();
 
         // <> a st:ShapeTreeLocator
         locatorGraph.add(GraphHelper.newTriple(locatorSubject, RDF.type.toString(), new URL(ShapeTreeVocabulary.SHAPETREE_LOCATOR)));
@@ -102,7 +102,7 @@ public class ShapeTreeLocator {
     public URL mintLocation() throws MalformedURLException {
 
         String fragment = RandomStringUtils.random(8, true, true);
-        String locationString = this.getURL().toString() + "#" + fragment;
+        String locationString = this.getUrl().toString() + "#" + fragment;
 
         URL locationUrl = new URL(locationString);
 
@@ -147,13 +147,13 @@ public class ShapeTreeLocator {
         }
 
         // Get the URL of the ShapeTreeLocator subject node
-        String locatorURL = shapeTreeLocatorTriples.get(0).getSubject().getURI();
+        String locatorUrl = shapeTreeLocatorTriples.get(0).getSubject().getURI();
 
         // Look up ShapeTreeLocation nodes (locator subject node, st:location, any st:location nodes).
         // There should be one result per nested ShapeTreeLocation, each identified by a unique url.
         // Shape Trees, §3: A shape tree locator includes one or more shape tree locations via st:location
         // https://shapetrees.org/TR/specification/#locator
-        final Node s = NodeFactory.createURI(locatorURL);
+        final Node s = NodeFactory.createURI(locatorUrl);
         final Node stLocation = NodeFactory.createURI(ShapeTreeVocabulary.LOCATION);
         List<Triple> locationNodes = shapeTreeMetadataGraph.find(s, stLocation, Node.ANY).toList();
 
