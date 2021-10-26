@@ -44,13 +44,13 @@ public class ShapeTreeLocator {
         return this.id;
     }
 
-    public Graph getGraph() throws MalformedURLException {
+    public Graph getGraph() {
 
         Graph locatorGraph = GraphHelper.getEmptyGraph();
         String locatorSubject = this.getUrl().toString();
 
         // <> a st:ShapeTreeLocator
-        locatorGraph.add(GraphHelper.newTriple(locatorSubject, RDF.type.toString(), new URL(ShapeTreeVocabulary.SHAPETREE_LOCATOR)));
+        locatorGraph.add(GraphHelper.newTriple(locatorSubject, RDF.type.toString(), GraphHelper.knownUrl(ShapeTreeVocabulary.SHAPETREE_LOCATOR)));
 
         // For each location create a blank node and populate
         for (ShapeTreeLocation location : this.locations) {
@@ -120,7 +120,7 @@ public class ShapeTreeLocator {
         return locationUrl;
     }
 
-    public ShapeTreeLocation getContainingShapeTreeLocation() throws MalformedURLException, ShapeTreeException {
+    public ShapeTreeLocation getContainingShapeTreeLocation() throws ShapeTreeException {
 
         for (ShapeTreeLocation location : this.locations) {
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(location.getShapeTree());

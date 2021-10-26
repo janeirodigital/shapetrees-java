@@ -9,5 +9,5 @@ import java.net.MalformedURLException;
 import java.util.Optional;
 
 public interface ValidatingMethodHandler {
-    Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws MalformedURLException, ShapeTreeException;
+    Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException;
 }

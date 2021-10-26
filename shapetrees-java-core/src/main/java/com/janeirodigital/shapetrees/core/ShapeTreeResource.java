@@ -134,7 +134,7 @@ ProjectRecursiveTests
         }
     }
 
-    public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException, MalformedURLException {
+    public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException {
         Metadata primaryMetadataResource = this.getMetadataResourceFork();
         if (!primaryMetadataResource.isExists()) {
             // create primary metadata resource if it doesn't exist
