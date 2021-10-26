@@ -5,7 +5,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.MalformedURLException;
 import java.util.Optional;
 
 @Slf4j
@@ -32,7 +31,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
             } else {
                 ShapeTreeResource.Primary targetResource = rc.getUserOwnedResourceFork();
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
-                if (targetResource.isExists()) {
+                if (targetResource.wasSuccessful()) {
                     // The target resource already exists
                     if (!targetResource.getMetadataResourceUrl().isEmpty()) {
                         // If it is managed by a shape tree the update must be validated

@@ -18,7 +18,6 @@ import org.apache.jena.riot.RDFDataMgr;
 
 import java.io.StringWriter;
 import java.net.URL;
-import java.net.MalformedURLException;
 import java.util.Optional;
 
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
@@ -68,7 +67,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
                 () -> new ShapeTreeException(500, "No metadata resource for <" + primaryResource.getUrl() + ">")
         );
 
-        if  (Boolean.FALSE.equals(primaryResource.isExists())) {
+        if  (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
             return Optional.empty();
         }
@@ -79,7 +78,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Ensure the metadata resource exists
         // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
         // and no shape tree locator will be returned.
-        if (Boolean.FALSE.equals(locatorResource.isExists())) {
+        if (Boolean.FALSE.equals(locatorResource.wasSuccessful())) {
             log.debug("Shape tree locator for {} does not exist", targetResource);
             return Optional.empty();
         }
@@ -125,7 +124,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
         ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
         ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
-        if (Boolean.FALSE.equals(primaryResource.isExists())) {
+        if (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
         URL metadataUrl = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
@@ -259,7 +258,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
                 () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUrl() + ">")
         );
 
-        if (Boolean.FALSE.equals(primaryResource.isExists())) {
+        if (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to unplant: " + targetResource, 404);
         }
 
