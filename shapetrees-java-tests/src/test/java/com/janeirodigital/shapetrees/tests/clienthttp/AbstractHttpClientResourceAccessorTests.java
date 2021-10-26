@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.tests.clienthttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
@@ -15,8 +16,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-// TODO - Rename this to AbstractHttpClientResourceAccessorTests
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientTests {
@@ -34,6 +33,8 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
                 new DispatcherEntry(List.of("remoteResource/resource-empty-link-header"), "GET", "/static/resource/resource-empty-link-header", null),
                 new DispatcherEntry(List.of("remoteResource/resource-container-link-header"), "GET", "/static/resource/resource-container-link-header", null),
                 new DispatcherEntry(List.of("remoteResource/resource-container-link-header"), "GET", "/static/resource/resource-container-link-header/", null),
+                new DispatcherEntry(List.of("errors/500"), "PUT", "/static/resource/resource-container-link-header/", null),
+                new DispatcherEntry(List.of("remoteResource/resource-container-invalid-link-header"), "GET", "/static/resource/resource-container-invalid-link-header/", null),
                 new DispatcherEntry(List.of("errors/404"), "GET", "/static/resource/notpresent", null)
         ));
     }
@@ -106,7 +107,6 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
         assertTrue(((ShapeTreeResource.Primary) resource).isContainer());
     }
 
-
     @Test
     void testNonExistingHeader() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
@@ -115,82 +115,33 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
         assertTrue(resource.isExists());
         Assertions.assertNull(resource.getAttributes().firstValue("invalid").orElse(null));
     }
-/*
-    @Test
-    void updateGraphTestInvalidatedRefresh() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-container-link-header"));;
-        Graph graph = resource.getGraph().get();
-        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
-        resource.updateGraph(graph, true, null);
-        assertTrue(resource.isExists());
-    }
 
-    @Test
-    void doubleUpdateGraphWithoutRefresh() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-container-link-header"));;
-        Graph graph = resource.getGraph().get();
-        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
-        resource.updateGraph(graph, false, null);
-        assertTrue(resource.isExists());
-//        Assertions.assertThrows(ShapeTreeException.class, () -> resource.updateGraph(graph, false, null)); HttpRemoteResource999.invalidated has been removed
-    }
-
-    @Test
-    void updateGraphWithoutRefreshGetBody() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-container-link-header"));;
-        Graph graph = resource.getGraph().get();
-        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
-        resource.updateGraph(graph, false, null);
-        assertTrue(resource.isExists());
-        Assertions.assertNotNull(resource.getBody());
-    }
-
-    @Test
-    void updateGraphWithoutRefreshGetGraph() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-container-link-header"));;
-        Graph graph = resource.getGraph().get();
-        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
-        resource.updateGraph(graph, false, null);
-        assertTrue(resource.isExists());
-        Assertions.assertNotNull(resource.getGraph());
-    }
-
-    @Test
-    void updateGetHeaderForCoverage() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-container-link-header"));;
-        Graph graph = resource.getGraph().get();
-        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
-        resource.updateGraph(graph, false, null);
-        assertTrue(resource.isExists());
-        Assertions.assertNotNull(resource.getAttributes().firstValue("Link").orElse(null));
-    }
-*/
-    /*
-    @Test
-    void getLinkHeaders() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        HttpRemoteResource999 resource = new ShapeTreeResource(getURL(server, "/static/resource/resource-container-link-header"), null);
-        assertTrue(resource.isExists());
-        Assertions.assertNotNull(resource.getLinkHeaders());
-    }
-*/
     @Test
     void test404Target() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/notpresent"));;
         Assertions.assertEquals(resource.getBody(), "");
-//        assertTrue(resource.getGraph().isEmpty());
     }
+
+    @Test
+    void failToParseInvalidLinkHeader() throws MalformedURLException, ShapeTreeException {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-container-invalid-link-header/"));;
+        assertTrue(resource.isExists());
+        assertFalse(((ShapeTreeResource.Primary) resource).isContainer());
+    }
+
+    @Test
+    void testServerFailureBasedOnResponseCode() throws MalformedURLException, ShapeTreeException {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+        // Succeed in getting a resource
+        ShapeTreeResource.Fork resource =  new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), getURL(server, "/static/resource/resource-container-link-header/"));;
+        // Fail to update it
+        DocumentResponse response = new HttpRemoteResourceAccessor().updateResource(new ShapeTreeContext(null), "PUT", resource, "BODY");
+        assertFalse(response.isExists());
+    }
+
 }
