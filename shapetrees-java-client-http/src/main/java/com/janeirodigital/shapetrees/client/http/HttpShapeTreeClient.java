@@ -141,9 +141,9 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Initialize a shape tree location based on the supplied parameters
         URL locationUrl = locator.mintLocation();
         ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree,
-                                                           targetResource.toString(),
+                                                           targetResource,
                                                            locationUrl,
-                                                           focusNode == null ? null : focusNode.toString(),
+                                                           focusNode,
                                                            null,
                                                            locationUrl);
 

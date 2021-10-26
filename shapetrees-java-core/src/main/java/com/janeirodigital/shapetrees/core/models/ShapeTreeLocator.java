@@ -60,15 +60,15 @@ public class ShapeTreeLocator {
 
             final URI subject = urlToUri(location.getUrl());
             locatorGraph.add(GraphHelper.newTriple(subject, URI.create(ShapeTreeVocabulary.HAS_SHAPE_TREE), location.getShapeTree()));
-            locatorGraph.add(GraphHelper.newTriple(subject, URI.create(ShapeTreeVocabulary.HAS_MANAGED_RESOURCE), new URL(location.getManagedResource())));
+            locatorGraph.add(GraphHelper.newTriple(subject, URI.create(ShapeTreeVocabulary.HAS_MANAGED_RESOURCE), location.getManagedResource()));
             locatorGraph.add(GraphHelper.newTriple(subject, URI.create(ShapeTreeVocabulary.HAS_ROOT_SHAPE_TREE_LOCATION), location.getRootShapeTreeLocation()));
 
             if (location.getShape() != null) {
-                locatorGraph.add(GraphHelper.newTriple(subject, URI.create(ShapeTreeVocabulary.SHAPE), new URL(location.getShape())));
+                locatorGraph.add(GraphHelper.newTriple(subject, URI.create(ShapeTreeVocabulary.SHAPE), location.getShape()));
             }
 
             if (location.getFocusNode() != null) {
-                locatorGraph.add(GraphHelper.newTriple(subject, URI.create(ShapeTreeVocabulary.FOCUS_NODE), new URL(location.getFocusNode())));
+                locatorGraph.add(GraphHelper.newTriple(subject, URI.create(ShapeTreeVocabulary.FOCUS_NODE), location.getFocusNode()));
             }
 
         }

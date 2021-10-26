@@ -24,10 +24,10 @@ import java.util.List;
 public class ShapeTreeLocation {
 
     private URL shapeTree;               // Identifies the shape tree to be associated with the managed resource
-    private String managedResource;         // Identifies the resource that the shape tree location is managing
+    private URL managedResource;         // Identifies the resource that the shape tree location is managing
     private URL rootShapeTreeLocation;      // Identifies the root shape tree location
-    private String focusNode;               // Identifies the focus node for shape validation in the managed resource
-    private String shape;                   // Identifies the shape to which focusNode must conform
+    private URL focusNode;               // Identifies the focus node for shape validation in the managed resource
+    private URL shape;                   // Identifies the shape to which focusNode must conform
     private URL url;
 /*
     public URL getBaseUri () throws MalformedURLException {
@@ -47,10 +47,10 @@ public class ShapeTreeLocation {
     public static ShapeTreeLocation getShapeTreeLocationFromGraph(URL url, Graph shapeTreeMetadataGraph) throws MalformedURLException {
 
         URL shapeTree = null;
-        String managedResource = null;
+        URL managedResource = null;
         URL rootShapeTreeLocation = null;
-        String focusNode = null;
-        String shape = null;
+        URL focusNode = null;
+        URL shape = null;
 
         // Look up the ShapeTreeLocation in the Metadata Graph via its URL
         List<Triple> locationTriples = shapeTreeMetadataGraph.find(NodeFactory.createURI(url.toString()), Node.ANY, Node.ANY).toList();
@@ -71,13 +71,13 @@ public class ShapeTreeLocation {
                     rootShapeTreeLocation = new URL(locationTriple.getObject().getURI());
                     break;
                 case ShapeTreeVocabulary.HAS_MANAGED_RESOURCE:
-                    managedResource = locationTriple.getObject().getURI();
+                    managedResource = new URL(locationTriple.getObject().getURI());
                     break;
                 case ShapeTreeVocabulary.SHAPE:
-                    shape = locationTriple.getObject().getURI();
+                    shape = new URL(locationTriple.getObject().getURI());
                     break;
                 case ShapeTreeVocabulary.FOCUS_NODE:
-                    focusNode = locationTriple.getObject().getURI();
+                    focusNode = new URL(locationTriple.getObject().getURI());
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + locationTriple.getPredicate().getURI());

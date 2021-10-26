@@ -44,10 +44,10 @@ public class ShapeTree {
     @NotNull
     final private URL id;
     @NotNull
-    final private String expectedResourceType;
-    final private String shape;
+    final private URL expectedResourceType;
+    final private URL shape;
     final private String label;
-    final private String supports;
+    final private URL supports;
     @NotNull
     final private List<URL> contains;
     @NotNull
@@ -55,10 +55,10 @@ public class ShapeTree {
 
     public ShapeTree(ExternalDocumentLoader externalDocumentLoader,
                      @NotNull URL id,
-                     @NotNull String expectedResourceType,
+                     @NotNull URL expectedResourceType,
                      String label,
-                     String shape,
-                     String supports,
+                     URL shape,
+                     URL supports,
                      @NotNull List<ReferencedShapeTree> references,
                      @NotNull List<URL> contains) {
         this.externalDocumentLoader = externalDocumentLoader;
@@ -90,7 +90,7 @@ public class ShapeTree {
     public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URL focusNodeUrl) throws ShapeTreeException {
 
         // Check whether the proposed resource is the same type as what is expected by the shape tree
-        if (!this.expectedResourceType.equals(resourceType.getValue())) {
+        if (!this.expectedResourceType.toString().equals(resourceType.getValue())) {
             return new ValidationResult(false, this, "Resource type " + resourceType + " is invalid. Expected " + this.expectedResourceType);
         }
 
@@ -115,26 +115,19 @@ public class ShapeTree {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
         }
 
-        URL shapeResourceUrl = null;
-        try {
-            shapeResourceUrl = new URL(this.id, this.shape);
-        } catch (MalformedURLException ex) {
-            throw new ShapeTreeException(500, "Malformed relative URL <" + this.shape + "> (resolved from <" + this.id + ">) " + ex.getMessage());
-        }
-
-//        if (shapeResourceUrl.getFragment() != null) {
+        //        if (shapeResourceUrl.getFragment() != null) {
 //            shapeResourceUrl = new URL(shapeResourceUrl.getScheme(), shapeResourceUrl.getSchemeSpecificPart(), null);
 //        }
 
         ShexSchema schema;
-        if (SchemaCache.isInitialized() && SchemaCache.containsSchema(shapeResourceUrl)) {
-            log.debug("Found cached schema {}", shapeResourceUrl);
-            schema = SchemaCache.getSchema(shapeResourceUrl);
+        if (SchemaCache.isInitialized() && SchemaCache.containsSchema(this.shape)) {
+            log.debug("Found cached schema {}", this.shape);
+            schema = SchemaCache.getSchema(this.shape);
         } else {
-            log.debug("Did not find schema in cache {} will retrieve and parse", shapeResourceUrl);
-            DocumentResponse shexShapeContents = this.externalDocumentLoader.loadExternalDocument(shapeResourceUrl);
+            log.debug("Did not find schema in cache {} will retrieve and parse", this.shape);
+            DocumentResponse shexShapeContents = this.externalDocumentLoader.loadExternalDocument(this.shape);
             if (shexShapeContents == null || shexShapeContents.getBody() == null || shexShapeContents.getBody().isEmpty()) {
-                throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + this.id + ") - Shape at (" + shapeResourceUrl + ") is not found or is empty");
+                throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + this.id + ") - Shape at (" + this.shape + ") is not found or is empty");
             }
 
             String shapeBody = shexShapeContents.getBody();
@@ -143,7 +136,7 @@ public class ShapeTree {
             try {
                 schema = new ShexSchema(GlobalFactory.RDFFactory,shexCParser.getRules(stream),shexCParser.getStart());
                 if (SchemaCache.isInitialized()) {
-                    SchemaCache.putSchema(shapeResourceUrl, schema);
+                    SchemaCache.putSchema(this.shape, schema);
                 }
             } catch (Exception ex) {
                 throw new ShapeTreeException(500, "Error parsing ShEx schema - " + ex.getMessage());
@@ -155,7 +148,7 @@ public class ShapeTree {
         GlobalFactory.RDFFactory = jenaRDF;
 
         ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
-        Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.shape));
+        Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.shape.toString()));
 
         if (focusNodeUrl != null) {
 
@@ -200,7 +193,7 @@ public class ShapeTree {
 
     public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource) throws ShapeTreeException {
 
-        if (this.contains == null || this.contains.isEmpty()) {
+        if (this.contains == null || this.contains.isEmpty()) { // TODO: say it can't be null?
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
             return new ValidationResult(true, this, this, null);
         }

@@ -67,15 +67,15 @@ public class ShapeTreeFactory {
             return;
         }
         // Set the expected resource type
-        String expectsType = getStringValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE);
+        URL expectsType = getUrlValue(model, resource, ShapeTreeVocabulary.EXPECTS_TYPE, shapeTreeUrl);
         if (expectsType == null) throw new ShapeTreeException(500, "Shape Tree :expectsType not found");
 
         // Set Shape URL
-        final String shape = getStringValue(model, resource, ShapeTreeVocabulary.SHAPE);
+        final URL shape = getUrlValue(model, resource, ShapeTreeVocabulary.SHAPE, shapeTreeUrl);
         // Set Label
         final String label = getStringValue(model, resource, RDFS_LABEL);
         // Set Supports
-        final String supports = getStringValue(model, resource, ShapeTreeVocabulary.SUPPORTS);
+        final URL supports = getUrlValue(model, resource, ShapeTreeVocabulary.SUPPORTS, shapeTreeUrl);
         // Set Reference collection
         final ArrayList<ReferencedShapeTree> references = new ArrayList<>();
         final List<URL> contains;
@@ -124,16 +124,34 @@ public class ShapeTreeFactory {
         }
 
         // Containers are expected to have contents
-        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !expectsType.equals(ShapeTreeVocabulary.CONTAINER)) {
+        if (resource.hasProperty(model.createProperty(ShapeTreeVocabulary.CONTAINS)) && !expectsType.toString().equals(ShapeTreeVocabulary.CONTAINER)) {
             throw new ShapeTreeException(400, "Contents predicate not expected outside of st:Container Types");
         }
-        if (expectsType.equals(ShapeTreeVocabulary.CONTAINER)) {
+        if (expectsType.toString().equals(ShapeTreeVocabulary.CONTAINER)) {
             for (URL url : contains) {
                 if (!localShapeTreeCache.containsKey(url)) {
                     recursivelyParseShapeTree(model, model.getResource(url.toString()));
                 }
             }
         }
+    }
+
+    private static URL getUrlValue(Model model, Resource resource, String predicate, URL shapeTreeUrl) throws ShapeTreeException {
+        Property property = model.createProperty(predicate);
+        if (resource.hasProperty(property)) {
+            Statement statement = resource.getProperty(property);
+            final RDFNode object = statement.getObject();
+            if (object.isURIResource()) {
+                try {
+                    return new URL(object.asResource().getURI());
+                } catch (MalformedURLException ex) {
+                    throw new IllegalStateException("Malformed ShapeTree <" + shapeTreeUrl + ">: Jena URIResource <" + object + "> didn't parse as URL - " + ex.getMessage());
+                }
+            } else {
+                throw new ShapeTreeException(500, "Malformed ShapeTree <" + shapeTreeUrl + ">: expected " + object + " to be a URL");
+            }
+        }
+        return null;
     }
 
     private static String getStringValue(Model model, Resource resource, String predicate) {
