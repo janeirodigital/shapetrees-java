@@ -62,7 +62,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource for pointer to associated shape tree locator
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
         ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
-        ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
+        ShapeTreeResource.Primary primaryResource = resource.getPrimaryResourceFork();
         URL metadataUri = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
                 () -> new ShapeTreeException(500, "No metadata resource for <" + primaryResource.getUrl() + ">")
         );
@@ -123,7 +123,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
         ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
-        ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
+        ShapeTreeResource.Primary primaryResource = resource.getPrimaryResourceFork();
         if (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
@@ -253,7 +253,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Lookup the target resource
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
         ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
-        ShapeTreeResource.Primary primaryResource = resource.getUserOwnedResourceFork();
+        ShapeTreeResource.Primary primaryResource = resource.getPrimaryResourceFork();
         URL metadataUrl = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
                 () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUrl() + ">")
         );
