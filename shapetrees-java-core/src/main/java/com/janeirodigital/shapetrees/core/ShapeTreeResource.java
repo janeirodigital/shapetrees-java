@@ -136,7 +136,7 @@ ProjectRecursiveTests
 
     public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException {
         Metadata primaryMetadataResource = this.getMetadataResourceFork();
-        if (!primaryMetadataResource.isExists()) {
+        if (!primaryMetadataResource.wasSuccessful()) {
             // create primary metadata resource if it doesn't exist
             ResourceAttributes headers = new ResourceAttributes();
             headers.setAll(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
@@ -181,7 +181,7 @@ ProjectRecursiveTests
         public String getName() {
             return this.name;
         }
-        public boolean isExists() {
+        public boolean wasSuccessful() {
             return this.exists;
         }
     }

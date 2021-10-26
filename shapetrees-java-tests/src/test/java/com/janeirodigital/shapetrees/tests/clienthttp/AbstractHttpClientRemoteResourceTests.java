@@ -41,7 +41,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-no-link-headers"));
-        assertTrue(resource.isExists());
+        assertTrue(resource.wasSuccessful());
         Assertions.assertTrue(((ShapeTreeResource.Primary) resource).getMetadataResourceUrl().isEmpty());
     }
 
@@ -50,7 +50,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-empty-link-header"));;
-        assertTrue(resource.isExists());
+        assertTrue(resource.wasSuccessful());
         Assertions.assertTrue(((ShapeTreeResource.Primary) resource).getMetadataResourceUrl().isEmpty());
     }
 
@@ -64,7 +64,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-no-slash"));;
-        assertFalse(resource.isExists());
+        assertFalse(resource.wasSuccessful());
         assertFalse(((ShapeTreeResource.Primary) resource).isContainer());
     }
 
@@ -73,7 +73,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-slash/"));;
-        assertFalse(resource.isExists());
+        assertFalse(resource.wasSuccessful());
         assertTrue(((ShapeTreeResource.Primary) resource).isContainer());
     }
 
@@ -82,7 +82,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-slash/#withfragment"));;
-        assertFalse(resource.isExists());
+        assertFalse(resource.wasSuccessful());
         assertTrue(((ShapeTreeResource.Primary) resource).isContainer());
     }
 
@@ -91,7 +91,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header"));;
-        assertTrue(resource.isExists());
+        assertTrue(resource.wasSuccessful());
         assertTrue(((ShapeTreeResource.Primary) resource).isContainer());
     }
 
@@ -100,7 +100,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header/"));;
-        assertTrue(resource.isExists());
+        assertTrue(resource.wasSuccessful());
         assertTrue(((ShapeTreeResource.Primary) resource).isContainer());
     }
 
@@ -110,7 +110,7 @@ public class AbstractHttpClientRemoteResourceTests extends AbstractHttpClientTes
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         ShapeTreeResource.Fork resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header"));;
-        assertTrue(resource.isExists());
+        assertTrue(resource.wasSuccessful());
         Assertions.assertNull(resource.getAttributes().firstValue("invalid").orElse(null));
     }
 /*

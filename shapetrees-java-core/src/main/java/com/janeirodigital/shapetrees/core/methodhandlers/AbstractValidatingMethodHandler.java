@@ -349,7 +349,7 @@ public abstract class AbstractValidatingMethodHandler {
         }
 
         boolean isContainer = false;
-        boolean resourceAlreadyExists = existingResource.getUserOwnedResourceFork().isExists();
+        boolean resourceAlreadyExists = existingResource.getUserOwnedResourceFork().wasSuccessful();
         if ((shapeTreeRequest.getMethod().equals(PUT) || shapeTreeRequest.getMethod().equals(PATCH)) && resourceAlreadyExists) {
             isContainer = existingResource.getUserOwnedResourceFork().isContainer();
         } else if (shapeTreeRequest.getLinkHeaders() != null) {
@@ -538,7 +538,7 @@ public abstract class AbstractValidatingMethodHandler {
      */
     protected Graph getGraphForResource(ShapeTreeResource.Fork resource, URL baseUrl) throws ShapeTreeException {
 
-        if (!resource.isExists()) return null;
+        if (!resource.wasSuccessful()) return null;
             final URI baseUri = urlToUri(baseUrl);
             return GraphHelper.readStringIntoGraph(baseUri, resource.getBody(), resource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
     }
@@ -552,7 +552,7 @@ public abstract class AbstractValidatingMethodHandler {
 
     protected ShapeTreeLocator getShapeTreeLocatorFromResource(ShapeTreeResource.Metadata metadataResource) throws ShapeTreeException {
 
-        if (!metadataResource.isExists()) { return null; }
+        if (!metadataResource.wasSuccessful()) { return null; }
         Graph metadataResourceGraph = getGraphForResource(metadataResource, normalizeSolidResourceUrl(metadataResource.getUrl(), null, metadataResource.getResourceType()));
         if (metadataResourceGraph == null) { return null; }
         return ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataResource.getUrl(), metadataResourceGraph);
@@ -595,7 +595,7 @@ public abstract class AbstractValidatingMethodHandler {
         // When at the top of the plant hierarchy, use the root locator from the initial plant request body
         if (atRootOfPlantHierarchy(rootLocation, primaryResource.getUserOwnedResourceFork())) { return rootLocator; }
 
-        if (!primaryResource.getMetadataResourceFork().isExists()) {
+        if (!primaryResource.getMetadataResourceFork().wasSuccessful()) {
             // If the existing metadata resource doesn't exist make a new shape tree locator
             primaryResourceLocator = new ShapeTreeLocator(primaryResource.getMetadataResourceFork().getUrl());
         } else {
@@ -679,7 +679,7 @@ public abstract class AbstractValidatingMethodHandler {
     }
 
     private void ensureShapeTreeResourceExists(ShapeTreeResource.Fork shapeTreeResource, String message) throws ShapeTreeException {
-        if (shapeTreeResource == null || !shapeTreeResource.isExists()) {
+        if (shapeTreeResource == null || !shapeTreeResource.wasSuccessful()) {
             throw new ShapeTreeException(404, message);
         }
     }
@@ -692,7 +692,7 @@ public abstract class AbstractValidatingMethodHandler {
 
     private void ensureTargetPrimaryResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URL targetResourceUrl, String message) throws ShapeTreeException {
         ShapeTreeResource targetResource = new ShapeTreeResource(targetResourceUrl, this.resourceAccessor, shapeTreeContext);
-        if (targetResource.wasCreatedFromMetadata() || targetResource.getUserOwnedResourceFork().isExists()) {
+        if (targetResource.wasCreatedFromMetadata() || targetResource.getUserOwnedResourceFork().wasSuccessful()) {
             throw new ShapeTreeException(409, message);
         }
     }

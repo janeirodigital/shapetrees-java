@@ -4,7 +4,6 @@ import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
-import java.net.MalformedURLException;
 import java.util.Optional;
 
 public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
@@ -24,7 +23,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
             } else {
                 ShapeTreeResource.Primary targetResource = rc.getUserOwnedResourceFork();
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
-                if (targetResource.isExists()) {
+                if (targetResource.wasSuccessful()) {
                     // The target resource already exists
                     if (!targetResource.getMetadataResourceUrl().isEmpty()) {
                         // If it is managed by a shape tree the update must be validated
