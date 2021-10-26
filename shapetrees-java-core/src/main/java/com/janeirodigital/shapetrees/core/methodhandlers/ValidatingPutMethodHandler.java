@@ -17,7 +17,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURL(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
             if (rc.wasCreatedFromMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
                 return Optional.of(manageShapeTree(rc, shapeTreeRequest));
@@ -32,7 +32,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
                     }
                 } else {
                     // The target resource doesn't exist
-                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerURL(targetResource), this.resourceAccessor, shapeTreeContext);
+                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerUrl(targetResource), this.resourceAccessor, shapeTreeContext);
                     if (!parentResource.getUserOwnedResourceFork().getMetadataResourceUrl().isEmpty()) {
                         // If the parent container is managed by a shape tree, the resource to create must be validated
                         return createShapeTreeInstance(rc, parentResource, shapeTreeRequest, getRequestResourceName(targetResource));

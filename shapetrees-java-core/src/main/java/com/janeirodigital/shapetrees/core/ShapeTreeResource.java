@@ -92,10 +92,10 @@ ProjectRecursiveTests
         Metadata mr;
         if (this.metadataResource.isEmpty()) {
 //            Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
-//            if (... no shapeTreeMetadataURIForResource ...) {
+//            if (... no shapeTreeMetadataUrlForResource ...) {
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.url + ">");
 //            }
-            final URL url = this.getShapeTreeMetadataURLForResource();
+            final URL url = this.getShapeTreeMetadataUrlForResource();
             Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
             if (str instanceof Metadata) {
                 this.metadataResource = Optional.of(mr = (Metadata) str);
@@ -108,7 +108,7 @@ ProjectRecursiveTests
         return mr;
     }
 
-    protected URL getShapeTreeMetadataURLForResource() throws ShapeTreeException {
+    protected URL getShapeTreeMetadataUrlForResource() throws ShapeTreeException {
         Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
         final List<String> linkHeaderValues = uor.attributes.allValues(HttpHeaders.LINK.getValue());
         ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
@@ -118,18 +118,18 @@ ProjectRecursiveTests
             log.error("The resource {} does not contain a link header of {}", base, LinkRelations.SHAPETREE_LOCATOR.getValue());
             throw new ShapeTreeException(500, "The resource <" + base + "> has no Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
         }
-        String metaDataURLString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElseThrow(
+        String metaDataUrlString = linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).orElseThrow(
                 () -> new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found")
         );
         try {
-            return new URL(base, metaDataURLString);
+            return new URL(base, metaDataUrlString);
         } catch (MalformedURLException e) { // TODO: ACTION: ericP to migrate everything to URLs
             // throw new ShapeTreeException(500, "No Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
             // If we can't do relative URL resolution, assume that the locator is a URL and we have some other means of resolving it.
             try {
-                return new URL(metaDataURLString);
+                return new URL(metaDataUrlString);
             } catch (MalformedURLException ex) {
-                throw new IllegalStateException("Malformed relative URL <" + metaDataURLString + "> (resolved from <" + base + ">)");
+                throw new IllegalStateException("Malformed relative URL <" + metaDataUrlString + "> (resolved from <" + base + ">)");
             }
         }
     }

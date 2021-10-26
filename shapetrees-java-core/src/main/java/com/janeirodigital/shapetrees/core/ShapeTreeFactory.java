@@ -29,16 +29,16 @@ public class ShapeTreeFactory {
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
     private static final Map<URL, ShapeTree> localShapeTreeCache = new HashMap<>();
 
-    public static ShapeTree getShapeTree(URL shapeTreeURL) throws MalformedURLException, ShapeTreeException {
+    public static ShapeTree getShapeTree(URL shapeTreeUrl) throws MalformedURLException, ShapeTreeException {
 
-        if (localShapeTreeCache.containsKey(shapeTreeURL)) {
-            log.debug("[{}] previously cached -- returning", shapeTreeURL.toString());
-            return localShapeTreeCache.get(shapeTreeURL);
+        if (localShapeTreeCache.containsKey(shapeTreeUrl)) {
+            log.debug("[{}] previously cached -- returning", shapeTreeUrl.toString());
+            return localShapeTreeCache.get(shapeTreeUrl);
         }
 
-        dereferenceAndParseShapeTreeResource(shapeTreeURL);
+        dereferenceAndParseShapeTreeResource(shapeTreeUrl);
 
-        return localShapeTreeCache.get(shapeTreeURL);
+        return localShapeTreeCache.get(shapeTreeUrl);
     }
 
     private static void dereferenceAndParseShapeTreeResource(URL shapeTreeUrl) throws MalformedURLException, ShapeTreeException {
@@ -54,11 +54,11 @@ public class ShapeTreeFactory {
 
     private static void recursivelyParseShapeTree(Model model, Resource resource) throws MalformedURLException, ShapeTreeException {
         // Set the URL as the ID (string representation)
-        URL shapeTreeURL = new URL(resource.getURI());
-        log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeURL);
+        URL shapeTreeUrl = new URL(resource.getURI());
+        log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeUrl);
 
-        if (localShapeTreeCache.containsKey(shapeTreeURL)) {
-            log.debug("[{}] previously cached -- returning", shapeTreeURL);
+        if (localShapeTreeCache.containsKey(shapeTreeUrl)) {
+            log.debug("[{}] previously cached -- returning", shapeTreeUrl);
             return;
         }
         // Set the expected resource type
@@ -77,7 +77,7 @@ public class ShapeTreeFactory {
 
         ShapeTree shapeTree = new ShapeTree(
                 DocumentLoaderManager.getLoader(),
-                shapeTreeURL,
+                shapeTreeUrl,
                 expectsType,
                 label,
                 shape,
@@ -86,7 +86,7 @@ public class ShapeTreeFactory {
                 contains);
 
         // Add the shapeTree to the cache before any of the recursive processing
-        localShapeTreeCache.put(shapeTreeURL, shapeTree);
+        localShapeTreeCache.put(shapeTreeUrl, shapeTree);
 
         Property referencesProperty = model.createProperty(ShapeTreeVocabulary.REFERENCES);
         if (resource.hasProperty(referencesProperty)) {
@@ -144,8 +144,8 @@ public class ShapeTreeFactory {
             for (Statement propertyStatement : propertyStatements) {
                 Node propertyNode = propertyStatement.getObject().asNode();
                 if (propertyNode instanceof Node_URI) {
-                    URL contentURL = new URL(propertyNode.getURI());
-                    urls.add(contentURL);
+                    URL contentUrl = new URL(propertyNode.getURI());
+                    urls.add(contentUrl);
                 }
             }
         }

@@ -16,7 +16,7 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
     @Override
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException, MalformedURLException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURL(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
 
             if (rc.wasCreatedFromMetadata() && rc.getMetadataResourceFork().isExists()) {
                 // If the DELETE request is for an existing shapetree metadata resource,

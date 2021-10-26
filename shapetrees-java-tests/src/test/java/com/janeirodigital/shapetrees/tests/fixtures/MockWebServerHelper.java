@@ -7,7 +7,7 @@ import java.net.MalformedURLException;
 
 public class MockWebServerHelper {
 
-    public URL getURL(MockWebServer server, String path) throws MalformedURLException {
+    public static URL toUrl(MockWebServer server, String path) throws MalformedURLException {
         return new URL(server.url(path).toString());
     }
 

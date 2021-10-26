@@ -115,8 +115,8 @@ public abstract class AbstractValidatingMethodHandler {
         ensureRequestResourceIsContainer(containerResource.getUserOwnedResourceFork(),"Cannot create a shape tree instance in a non-container resource");
 
         // Prepare the target resource for validation and creation
-        URL targetResourceURL = normalizeSolidResourceUrl(containerResource.getUserOwnedResourceFork().getUrl(), proposedName, shapeTreeRequest.getResourceType());
-        ensureTargetPrimaryResourceDoesNotExist(targetResource.getShapeTreeContext(), targetResourceURL,"Cannot create a shape tree instance in a non-container resource " + targetResourceURL);
+        URL targetResourceUrl = normalizeSolidResourceUrl(containerResource.getUserOwnedResourceFork().getUrl(), proposedName, shapeTreeRequest.getResourceType());
+        ensureTargetPrimaryResourceDoesNotExist(targetResource.getShapeTreeContext(), targetResourceUrl,"Cannot create a shape tree instance in a non-container resource " + targetResourceUrl);
 
         ensureShapeTreeResourceExists(containerResource.getMetadataResourceFork(), "Should not be creating a shape tree instance on an unmanaged target container");
 
@@ -132,21 +132,21 @@ public abstract class AbstractValidatingMethodHandler {
             return Optional.empty();
         }
 
-        URL containerShapeTreeURL = containingLocation.getShapeTree();
-        ShapeTree containerShapeTree = ShapeTreeFactory.getShapeTree(containerShapeTreeURL);
+        URL containerShapeTreeUrl = containingLocation.getShapeTree();
+        ShapeTree containerShapeTree = ShapeTreeFactory.getShapeTree(containerShapeTreeUrl);
 
         URL targetShapeTree = getIncomingTargetShapeTreeHint(shapeTreeRequest);
-        URL incomingFocusNode = getIncomingResolvedFocusNode(shapeTreeRequest, targetResourceURL);
-        Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, targetResourceURL, null);
+        URL incomingFocusNode = getIncomingResolvedFocusNode(shapeTreeRequest, targetResourceUrl);
+        Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, targetResourceUrl, null);
 
         ValidationResult validationResult = containerShapeTree.validateContainedResource(proposedName, shapeTreeRequest.getResourceType(), targetShapeTree, incomingBodyGraph, incomingFocusNode);
         if (Boolean.FALSE.equals(validationResult.isValid())) {
             return failValidation(validationResult);
         }
 
-        log.debug("Creating shape tree instance at {}", targetResourceURL);
+        log.debug("Creating shape tree instance at {}", targetResourceUrl);
 
-        ShapeTreeResource createdResource = new ShapeTreeResource(targetResourceURL, this.resourceAccessor, targetResource.getShapeTreeContext(), shapeTreeRequest);
+        ShapeTreeResource createdResource = new ShapeTreeResource(targetResourceUrl, this.resourceAccessor, targetResource.getShapeTreeContext(), shapeTreeRequest);
 
         ShapeTreeLocation rootShapeTreeLocation = getRootShapeTreeLocation(targetResource.getShapeTreeContext(), containingLocation);
         ensureShapeTreeLocationExists(rootShapeTreeLocation, "Unable to find root shape tree location at " + containingLocation.getRootShapeTreeLocation());
@@ -386,8 +386,8 @@ public abstract class AbstractValidatingMethodHandler {
      * @return Graph representation of request body
      * @throws ShapeTreeException ShapeTreeException
      */
-    protected Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseURL, ShapeTreeResource.Fork targetResource) throws ShapeTreeException {
-        log.debug("Reading request body into graph with baseURL {}", baseURL);
+    protected Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseUrl, ShapeTreeResource.Fork targetResource) throws ShapeTreeException {
+        log.debug("Reading request body into graph with baseUrl {}", baseUrl);
 
         if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF
                 && !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update"))
@@ -404,7 +404,7 @@ public abstract class AbstractValidatingMethodHandler {
             // resultant graph back to the caller
 
             if (targetResource != null) {
-                targetResourceGraph = getGraphForResource(targetResource, baseURL);
+                targetResourceGraph = getGraphForResource(targetResource, baseUrl);
             }
 
             if (targetResourceGraph == null) {   // if the target resource doesn't exist or has no content
@@ -413,7 +413,7 @@ public abstract class AbstractValidatingMethodHandler {
             }
 
             // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
-            UpdateRequest updateRequest = UpdateFactory.create(shapeTreeRequest.getBody(), baseURL.toString());
+            UpdateRequest updateRequest = UpdateFactory.create(shapeTreeRequest.getBody(), baseUrl.toString());
             UpdateAction.execute(updateRequest, targetResourceGraph);
 
             if (targetResourceGraph == null) {
@@ -421,7 +421,7 @@ public abstract class AbstractValidatingMethodHandler {
             }
 
         } else {
-            targetResourceGraph = GraphHelper.readStringIntoGraph(urlToUri(baseURL), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
+            targetResourceGraph = GraphHelper.readStringIntoGraph(urlToUri(baseUrl), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
         }
 
         return targetResourceGraph;
@@ -430,14 +430,14 @@ public abstract class AbstractValidatingMethodHandler {
     /**
      * Gets focus node from request header
      * @param shapeTreeRequest Request
-     * @param baseURL Base URL for use on relative focus nodes
+     * @param baseUrl Base URL for use on relative focus nodes
      * @return URL of focus node
      * @throws IOException IOException
      */
-    protected URL getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URL baseURL) throws MalformedURLException {
+    protected URL getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws MalformedURLException {
         final String focusNode = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.FOCUS_NODE.getValue()).orElse(null);
         if (focusNode != null) {
-            return new URL(baseURL, focusNode);
+            return new URL(baseUrl, focusNode);
         }
         return null;
     }
@@ -471,7 +471,7 @@ public abstract class AbstractValidatingMethodHandler {
             }
         }
         // As a secondary attempt, use slash path semantics
-        return shapeTreeRequest.getURL().getPath().endsWith("/");
+        return shapeTreeRequest.getUrl().getPath().endsWith("/");
     }
 
     /**
@@ -489,7 +489,7 @@ public abstract class AbstractValidatingMethodHandler {
      * @param primaryResource Resource
      * @return URL to the resource's parent container
      */
-    protected URL getParentContainerURL(ShapeTreeResource.Primary primaryResource) throws MalformedURLException {
+    protected URL getParentContainerUrl(ShapeTreeResource.Primary primaryResource) throws MalformedURLException {
         return new URL(primaryResource.getUrl(), primaryResource.isContainer() ? ".." : ".");
     }
 
@@ -500,7 +500,7 @@ public abstract class AbstractValidatingMethodHandler {
      */
     protected String getRequestResourceName(ShapeTreeResource.Primary primaryResource) throws MalformedURLException {
 
-        String resourceName = primaryResource.getUrl().toString().replace(getParentContainerURL(primaryResource).toString(), "");
+        String resourceName = primaryResource.getUrl().toString().replace(getParentContainerUrl(primaryResource).toString(), "");
 
         if (resourceName.equals("/")) { return "/"; }
 
@@ -515,22 +515,22 @@ public abstract class AbstractValidatingMethodHandler {
     /**
      * Returns a graph representation of a resource
      * @param resource Resource to get graph of
-     * @param baseURL BaseURL to use for triples
+     * @param baseUrl BaseURL to use for triples
      * @return Graph representation of resource
      * @throws ShapeTreeException ShapeTreeException
      */
-    protected Graph getGraphForResource(ShapeTreeResource.Fork resource, URL baseURL) throws ShapeTreeException {
+    protected Graph getGraphForResource(ShapeTreeResource.Fork resource, URL baseUrl) throws ShapeTreeException {
 
         if (!resource.isExists()) return null;
-            final URI baseURI = urlToUri(baseURL);
-            return GraphHelper.readStringIntoGraph(baseURI, resource.getBody(), resource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+            final URI baseUri = urlToUri(baseUrl);
+            return GraphHelper.readStringIntoGraph(baseUri, resource.getBody(), resource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
     }
 
     protected ShapeTreeLocator getShapeTreeLocatorFromRequest(ShapeTreeRequest shapeTreeRequest, ShapeTreeResource.Metadata metadataResource) throws MalformedURLException, ShapeTreeException {
 
-        Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, normalizeSolidResourceUrl(shapeTreeRequest.getURL(), null, ShapeTreeResourceType.RESOURCE), metadataResource);
+        Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, normalizeSolidResourceUrl(shapeTreeRequest.getUrl(), null, ShapeTreeResourceType.RESOURCE), metadataResource);
         if (incomingBodyGraph == null) { return null; }
-        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(shapeTreeRequest.getURL(), incomingBodyGraph);
+        return ShapeTreeLocator.getShapeTreeLocatorFromGraph(shapeTreeRequest.getUrl(), incomingBodyGraph);
     }
 
     protected ShapeTreeLocator getShapeTreeLocatorFromResource(ShapeTreeResource.Metadata metadataResource) throws MalformedURLException, ShapeTreeException {
@@ -676,8 +676,8 @@ public abstract class AbstractValidatingMethodHandler {
         }
     }
 
-    private void ensureTargetPrimaryResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URL targetResourceURL, String message) throws ShapeTreeException {
-        ShapeTreeResource targetResource = new ShapeTreeResource(targetResourceURL, this.resourceAccessor, shapeTreeContext);
+    private void ensureTargetPrimaryResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URL targetResourceUrl, String message) throws ShapeTreeException {
+        ShapeTreeResource targetResource = new ShapeTreeResource(targetResourceUrl, this.resourceAccessor, shapeTreeContext);
         if (targetResource.wasCreatedFromMetadata() || targetResource.getUserOwnedResourceFork().isExists()) {
             throw new ShapeTreeException(409, message);
         }

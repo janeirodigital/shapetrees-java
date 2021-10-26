@@ -24,7 +24,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
 
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getURL(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
 
             if (rc.wasCreatedFromMetadata()) {
                 // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
@@ -40,7 +40,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                     }
                 } else {
                     // The target resource doesn't exist
-                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerURL(targetResource), this.resourceAccessor, shapeTreeContext);
+                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerUrl(targetResource), this.resourceAccessor, shapeTreeContext);
                     if (!targetResource.getMetadataResourceUrl().isEmpty()) {
                         // If the parent container is managed by a shape tree, the resource to create must be validated
                         return createShapeTreeInstance(rc, parentResource, shapeTreeRequest, getRequestResourceName(targetResource));

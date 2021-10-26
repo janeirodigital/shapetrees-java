@@ -54,9 +54,9 @@ public class AbstractHttpClientProjectRecursiveTests extends AbstractHttpClientT
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
 
-        URL targetResource = getURL(server, "/data/");
-        URL targetShapeTree = getURL(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
-        URL focusNode = getURL(server, "/data/#repository");
+        URL targetResource = toUrl(server, "/data/");
+        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
+        URL focusNode = toUrl(server, "/data/#repository");
 
         // Plant the data collection recursively on already existing hierarchy
         DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
@@ -84,8 +84,8 @@ public class AbstractHttpClientProjectRecursiveTests extends AbstractHttpClientT
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/.shapetree", null));
 
-        URL targetResource = getURL(server, "/data/projects/");
-        URL targetShapeTree = getURL(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
+        URL targetResource = toUrl(server, "/data/projects/");
+        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
 
         // Plant the projects collection recursively on already existing hierarchy
         DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);

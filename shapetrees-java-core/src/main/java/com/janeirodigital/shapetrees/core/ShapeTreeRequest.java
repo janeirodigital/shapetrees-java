@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ShapeTreeRequest {
     String getMethod();
-    URL getURL();
+    URL getUrl();
     ResourceAttributes getHeaders();
     ResourceAttributes getLinkHeaders();
     List<String> getHeaderValues(String header);

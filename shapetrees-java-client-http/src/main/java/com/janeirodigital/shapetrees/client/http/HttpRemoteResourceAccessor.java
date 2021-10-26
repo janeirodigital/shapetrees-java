@@ -83,7 +83,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         ResourceAttributes parsedLinkHeaders = linkHeaders.size() == 0 // !!
                 ? new ResourceAttributes()
                 : ResourceAttributes.parseLinkHeaders(linkHeaders);
-        final Optional<URL> metadataUrl = calculateMetadataURL(url, parsedLinkHeaders);
+        final Optional<URL> metadataUrl = calculateMetadataUrl(url, parsedLinkHeaders);
         final boolean metadata = calculateIsMetadata(url, exists, parsedLinkHeaders);;
 
         if (Boolean.TRUE.equals(metadata)) {
@@ -213,17 +213,17 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         return ShapeTreeResourceType.NON_RDF;
     }
 
-    static Optional<URL> calculateMetadataURL(URL url, ResourceAttributes parsedLinkHeaders) throws ShapeTreeException {
+    static Optional<URL> calculateMetadataUrl(URL url, ResourceAttributes parsedLinkHeaders) throws ShapeTreeException {
         final Optional<String> optLocatorString = parsedLinkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue());
         if (optLocatorString.isEmpty()) {
             log.info("The resource {} does not contain a link header of {}", url, LinkRelations.SHAPETREE_LOCATOR.getValue());
             return Optional.empty();
         }
-        String metaDataURLString = optLocatorString.get();
+        String metaDataUrlString = optLocatorString.get();
         try {
-            return Optional.of(new URL(url, metaDataURLString));
+            return Optional.of(new URL(url, metaDataUrlString));
         } catch (MalformedURLException e) {
-            throw new ShapeTreeException(500, "Malformed relative URL <" + metaDataURLString + "> (resolved from <" + url + ">)");
+            throw new ShapeTreeException(500, "Malformed relative URL <" + metaDataUrlString + "> (resolved from <" + url + ">)");
         }
     }
 

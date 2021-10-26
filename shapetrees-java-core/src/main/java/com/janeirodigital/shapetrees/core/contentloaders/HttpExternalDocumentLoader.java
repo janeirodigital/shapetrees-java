@@ -20,15 +20,15 @@ public class HttpExternalDocumentLoader implements ExternalDocumentLoader {
     private final HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
 
     @Override
-    public DocumentResponse loadExternalDocument(URL resourceURL) throws ShapeTreeException {
+    public DocumentResponse loadExternalDocument(URL resourceUrl) throws ShapeTreeException {
 
         try {
 
-            HttpRequest request = HttpRequest.newBuilder().GET().uri(resourceURL.toURI()).build();
+            HttpRequest request = HttpRequest.newBuilder().GET().uri(resourceUrl.toURI()).build();
             HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                throw new IOException("Failed to load contents of document: " + resourceURL);
+                throw new IOException("Failed to load contents of document: " + resourceUrl);
             }
 
             ResourceAttributes attributes = new ResourceAttributes(response.headers().map());
@@ -36,12 +36,12 @@ public class HttpExternalDocumentLoader implements ExternalDocumentLoader {
             return new DocumentResponse(attributes, response.body(), response.statusCode());
 
         } catch (IOException ex) {
-            throw new ShapeTreeException(500, "Error retrieving <"+resourceURL+">: " + ex.getMessage());
+            throw new ShapeTreeException(500, "Error retrieving <"+resourceUrl+">: " + ex.getMessage());
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new ShapeTreeException(500, "Error retrieving <"+resourceURL+">: " + ex.getMessage());
+            throw new ShapeTreeException(500, "Error retrieving <"+resourceUrl+">: " + ex.getMessage());
         } catch (URISyntaxException ex) {
-            throw new ShapeTreeException(500, "Malformed URL <"+resourceURL+">: " + ex.getMessage());
+            throw new ShapeTreeException(500, "Malformed URL <"+resourceUrl+">: " + ex.getMessage());
         }
 
     }

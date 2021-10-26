@@ -13,6 +13,7 @@ import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -37,10 +38,6 @@ public class SchemaCacheTests {
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
     }
 
-    protected URL getURL(MockWebServer server, String path) throws MalformedURLException {
-        return new URL(server.url(path).toString());
-    }
-
     @BeforeAll
     static void beforeAll() {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
@@ -62,9 +59,9 @@ public class SchemaCacheTests {
     void testPreloadCache() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(getURL(server, "/static/shex/project").toString()));
+        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(toUrl(server, "/static/shex/project").toString()));
         SchemaCache.initializeCache(schemas);
-        assertTrue(SchemaCache.containsSchema(getURL(server, "/static/shex/project")));
+        assertTrue(SchemaCache.containsSchema(toUrl(server, "/static/shex/project")));
     }
 
     @Test
@@ -73,12 +70,12 @@ public class SchemaCacheTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
-        Assertions.assertNull(SchemaCache.getSchema(getURL(server, "/static/shex/project")));
-        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(getURL(server, "/static/shex/project").toString()));
+        Assertions.assertNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
+        Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(toUrl(server, "/static/shex/project").toString()));
         Map.Entry<URL, ShexSchema> firstEntry = schemas.entrySet().stream().findFirst().orElse(null);
         if (firstEntry == null) return;
         SchemaCache.putSchema(firstEntry.getKey(), firstEntry.getValue());
-        Assertions.assertNotNull(SchemaCache.getSchema(getURL(server, "/static/shex/project")));
+        Assertions.assertNotNull(SchemaCache.getSchema(toUrl(server, "/static/shex/project")));
 
     }
 

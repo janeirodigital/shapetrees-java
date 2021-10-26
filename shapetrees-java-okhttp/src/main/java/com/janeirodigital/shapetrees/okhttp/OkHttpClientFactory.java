@@ -80,17 +80,17 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
      * This fulfils the ExternalDocumentLoader interface, so this factory can be use in
      *   DocumentLoaderManager.setLoader(new OkHttpClientFactory(...));
      *
-     * @param resourceURL URL of resource to be retrieved
+     * @param resourceUrl URL of resource to be retrieved
      * @return a DocumentResponse with the results of a successful GET
      * @throws ShapeTreeException if the GET was not successful
      */
     @Override
-    public DocumentResponse loadExternalDocument(URL resourceURL) throws ShapeTreeException {
+    public DocumentResponse loadExternalDocument(URL resourceUrl) throws ShapeTreeException {
         if (this.blackWhiteList != null) {
-            this.blackWhiteList.check(resourceURL); }
+            this.blackWhiteList.check(resourceUrl); }
 
-        DocumentResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceURL, null, null, null));
-        if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceURL); }
+        DocumentResponse response = this.get(false).fetchShapeTreeResponse(new HttpRequest("GET", resourceUrl, null, null, null));
+        if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceUrl); }
         return response;
     }
 }
