@@ -48,9 +48,8 @@ public interface ShapeTreeClient {
      * @param focusNode An optional URL representing the target subject within targetResource used for shape validation
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
-     * @throws MalformedURLException MalformedURLException
      */
-    DocumentResponse plantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree, URL focusNode) throws ShapeTreeException, MalformedURLException;
+    DocumentResponse plantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree, URL focusNode) throws ShapeTreeException;
 
     /**
      * Shape Trees, §4.3: This operation unassigns a planted root shape tree from a root shape tree instance. If
@@ -63,7 +62,7 @@ public interface ShapeTreeClient {
      * @param targetResource URL of target resource to unplant shape tree from
      * @param targetShapeTree URL of shape tree being unplanted
      */
-    DocumentResponse unplantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree) throws MalformedURLException, ShapeTreeException;
+    DocumentResponse unplantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree) throws ShapeTreeException;
 
     /**
      * Creates a resource via HTTP POST that has been validated against the provided shape tree
@@ -77,9 +76,8 @@ public interface ShapeTreeClient {
      * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
-     * @throws MalformedURLException MalformedURLException
      */
-    DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URL parentContainer, URL focusNode, URL targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws MalformedURLException, ShapeTreeException;
+    DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URL parentContainer, URL focusNode, URL targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Creates a resource via HTTP PUT that has been validated against the provided target shape tree
@@ -92,9 +90,8 @@ public interface ShapeTreeClient {
      * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
-     * @throws MalformedURLException
      */
-    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, URL targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws MalformedURLException, ShapeTreeException;
+    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, URL targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PUT that has been validated against an associated shape tree
@@ -105,9 +102,8 @@ public interface ShapeTreeClient {
      * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
-     * @throws MalformedURLException
      */
-    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String bodyString, String contentType) throws MalformedURLException, ShapeTreeException;
+    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PATCH that has been validated against an associated shape tree
@@ -117,9 +113,8 @@ public interface ShapeTreeClient {
      * @param patchString SPARQL Update statement to use in patching the resource
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
-     * @throws MalformedURLException
      */
-    DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String patchString) throws MalformedURLException, ShapeTreeException;
+    DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String patchString) throws ShapeTreeException;
 
     /**
      * Deletes an existing resource.  Provided as a convenience - no validation is performed

@@ -261,11 +261,11 @@ public class ShapeTree {
 
     }
 
-    public Iterator<ReferencedShapeTree> getReferencedShapeTrees() throws MalformedURLException, ShapeTreeException {
+    public Iterator<ReferencedShapeTree> getReferencedShapeTrees() throws ShapeTreeException {
         return getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
     }
 
-    public Iterator<ReferencedShapeTree> getReferencedShapeTrees(RecursionMethods recursionMethods) throws MalformedURLException, ShapeTreeException {
+    public Iterator<ReferencedShapeTree> getReferencedShapeTrees(RecursionMethods recursionMethods) throws ShapeTreeException {
         return getReferencedShapeTreesList(recursionMethods).iterator();
     }
 
@@ -278,7 +278,7 @@ public class ShapeTree {
 
     }
 
-    private List<ReferencedShapeTree> getReferencedShapeTreesList(RecursionMethods recursionMethods) throws MalformedURLException, ShapeTreeException {
+    private List<ReferencedShapeTree> getReferencedShapeTreesList(RecursionMethods recursionMethods) throws ShapeTreeException {
         if (recursionMethods.equals(RecursionMethods.BREADTH_FIRST)) {
             return getReferencedShapeTreesListBreadthFirst();
         } else {
@@ -287,7 +287,7 @@ public class ShapeTree {
         }
     }
 
-    private List<ReferencedShapeTree> getReferencedShapeTreesListBreadthFirst() throws MalformedURLException, ShapeTreeException {
+    private List<ReferencedShapeTree> getReferencedShapeTreesListBreadthFirst() throws ShapeTreeException {
         List<ReferencedShapeTree> referencedShapeTrees = new ArrayList<>();
         Queue<ReferencedShapeTree> queue = new LinkedList<>(this.getReferences());
 
@@ -305,7 +305,7 @@ public class ShapeTree {
         return referencedShapeTrees;
     }
 
-    private List<ReferencedShapeTree> getReferencedShapeTreesListDepthFirst(List<ReferencedShapeTree> currentReferencedShapeTrees, List<ReferencedShapeTree> referencedShapeTrees) throws MalformedURLException, ShapeTreeException {
+    private List<ReferencedShapeTree> getReferencedShapeTreesListDepthFirst(List<ReferencedShapeTree> currentReferencedShapeTrees, List<ReferencedShapeTree> referencedShapeTrees) throws ShapeTreeException {
         for (ReferencedShapeTree currentShapeTreeReference : currentReferencedShapeTrees) {
             referencedShapeTrees.add(currentShapeTreeReference);
             ShapeTree currentReferencedShapeTree = ShapeTreeFactory.getShapeTree(currentShapeTreeReference.getReferencedShapeTreeUrl());

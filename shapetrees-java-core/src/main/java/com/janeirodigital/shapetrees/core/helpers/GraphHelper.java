@@ -12,6 +12,7 @@ import org.apache.jena.riot.RiotException;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -161,8 +162,16 @@ public class GraphHelper {
     public static URI urlToUri(URL url) {
         try {
             return url.toURI();
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException("can't convert URL <" + url + "> to IRI: " + e);
+        } catch (URISyntaxException ex) {
+            throw new IllegalStateException("can't convert URL <" + url + "> to IRI: " + ex);
+        }
+    }
+
+    public static URL knownUrl(String urlString) {
+        try {
+            return new URL(urlString);
+        } catch (MalformedURLException ex) {
+            throw new IllegalStateException("Expected known URL <" + urlString + "> to parse as valid URL - " + ex.toString());
         }
     }
 }
