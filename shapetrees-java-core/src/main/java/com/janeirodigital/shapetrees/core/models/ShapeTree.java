@@ -27,6 +27,7 @@ import org.apache.jena.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
@@ -70,15 +71,11 @@ public class ShapeTree {
         this.contains = contains;
     }
 
-    public URL getURL() throws MalformedURLException {
-        return this.id;
-    }
-
-    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource) throws ShapeTreeException {
         return validateResource(targetResource, null);
     }
 
-    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource, URL focusNodeUrl) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource, URL focusNodeUrl) throws ShapeTreeException {
         Graph bodyGraph = null;
 
         if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
@@ -90,7 +87,7 @@ public class ShapeTree {
         return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeUrl);
     }
 
-    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URL focusNodeUrl) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, URL focusNodeUrl) throws ShapeTreeException {
 
         // Check whether the proposed resource is the same type as what is expected by the shape tree
         if (!this.expectedResourceType.equals(resourceType.getValue())) {
@@ -112,13 +109,18 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateGraph(Graph graph, URL focusNodeUrl) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateGraph(Graph graph, URL focusNodeUrl) throws ShapeTreeException {
         // if (true) return new ValidationResult(true, this, this, focusNodeUrl); // [debug] ShExC parser brings debugger to its knees
         if (this.shape == null) {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
         }
 
-        URL shapeResourceUrl = new URL(this.id, this.shape);
+        URL shapeResourceUrl = null;
+        try {
+            shapeResourceUrl = new URL(this.id, this.shape);
+        } catch (MalformedURLException ex) {
+            throw new ShapeTreeException(500, "Malformed relative URL <" + this.shape + "> (resolved from <" + this.id + ">) " + ex.getMessage());
+        }
 
 //        if (shapeResourceUrl.getFragment() != null) {
 //            shapeResourceUrl = new URL(shapeResourceUrl.getScheme(), shapeResourceUrl.getSchemeSpecificPart(), null);
@@ -174,11 +176,20 @@ public class ShapeTree {
 
             for (Node evaluateNode : evaluateNodes) {
 
-                IRI node = GlobalFactory.RDFFactory.createIRI(evaluateNode.getURI()); // TODO: can we use the old one directly?
+                final String focusUriString = evaluateNode.getURI();
+                IRI node = GlobalFactory.RDFFactory.createIRI(focusUriString); // TODO: can we use the old one directly?
                 validation.validate(node, shapeLabel);
                 boolean valid = validation.getTyping().isConformant(node, shapeLabel);
 
-                if (valid) { return new ValidationResult(valid, this, this, new URL(evaluateNode.getURI())); }
+                if (valid) {
+                    final URL matchingFocusNode;
+                    try {
+                        matchingFocusNode = new URL(focusUriString);
+                    } catch (MalformedURLException ex) {
+                        throw new ShapeTreeException(500, "Error reporting validation success on malformed URL <" + focusUriString + ">: " + ex.getMessage());
+                    }
+                    return new ValidationResult(valid, this, this, matchingFocusNode);
+                }
 
             }
 
@@ -187,7 +198,7 @@ public class ShapeTree {
         }
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource) throws ShapeTreeException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
@@ -198,7 +209,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource, URL targetShapeTreeUrl, URL focusNodeUrl) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource, URL targetShapeTreeUrl, URL focusNodeUrl) throws ShapeTreeException {
 
         Graph containedResourceGraph = null;
 // !! containedResource.getGraph().get();
@@ -212,7 +223,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URL targetShapeTreeUrl, Graph bodyGraph, URL focusNodeUrl) throws ShapeTreeException, MalformedURLException {
+    public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, URL targetShapeTreeUrl, Graph bodyGraph, URL focusNodeUrl) throws ShapeTreeException {
 
         if (this.contains == null || this.contains.isEmpty()) {
             // The contained resource is permitted because this shape tree has no restrictions on what it contains

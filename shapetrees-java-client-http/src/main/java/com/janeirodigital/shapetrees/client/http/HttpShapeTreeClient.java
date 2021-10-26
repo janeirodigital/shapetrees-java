@@ -113,7 +113,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @throws MalformedURLException
      */
     @Override
-    public DocumentResponse plantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree, URL focusNode) throws ShapeTreeException, MalformedURLException {
+    public DocumentResponse plantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree, URL focusNode) throws ShapeTreeException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
             throw new ShapeTreeException(500, "Must provide a valid context, target resource, and target shape tree to the plant shape tree");
@@ -152,7 +152,11 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Get an RDF version of the locator stored in a turtle string
         StringWriter sw = new StringWriter();
-        RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
+        try {
+            RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
+        } catch (MalformedURLException ex) {
+            throw new IllegalStateException("error writing locator graph - " + ex.getMessage());
+        }
 
         // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
@@ -244,7 +248,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public DocumentResponse unplantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree) throws ShapeTreeException, MalformedURLException {
+    public DocumentResponse unplantShapeTree(ShapeTreeContext context, URL targetResource, URL targetShapeTree) throws ShapeTreeException {
 
         if (context == null || targetResource == null || targetShapeTree == null) {
             throw new ShapeTreeException(500, "Must provide a valid context, target resource, and target shape tree to unplant");
@@ -287,7 +291,11 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
             // Get a RDF version of the locator stored in a turtle string
             StringWriter sw = new StringWriter();
-            RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
+            try {
+                RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
+            } catch (MalformedURLException ex) {
+                throw new IllegalStateException("error writing locator graph - " + ex.getMessage());
+            }
             body = sw.toString();
             contentType = "text/turtle";
         }

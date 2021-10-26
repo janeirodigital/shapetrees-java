@@ -29,7 +29,7 @@ public class ShapeTreeFactory {
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
     private static final Map<URL, ShapeTree> localShapeTreeCache = new HashMap<>();
 
-    public static ShapeTree getShapeTree(URL shapeTreeUrl) throws MalformedURLException, ShapeTreeException {
+    public static ShapeTree getShapeTree(URL shapeTreeUrl) throws ShapeTreeException {
 
         if (localShapeTreeCache.containsKey(shapeTreeUrl)) {
             log.debug("[{}] previously cached -- returning", shapeTreeUrl.toString());
@@ -41,7 +41,7 @@ public class ShapeTreeFactory {
         return localShapeTreeCache.get(shapeTreeUrl);
     }
 
-    private static void dereferenceAndParseShapeTreeResource(URL shapeTreeUrl) throws MalformedURLException, ShapeTreeException {
+    private static void dereferenceAndParseShapeTreeResource(URL shapeTreeUrl) throws ShapeTreeException {
         try {
             DocumentResponse contents = DocumentLoaderManager.getLoader().loadExternalDocument(shapeTreeUrl);
             Model model = GraphHelper.readStringIntoModel(urlToUri(shapeTreeUrl), contents.getBody(), contents.getContentType().orElse("text/turtle"));
@@ -52,9 +52,14 @@ public class ShapeTreeFactory {
         }
     }
 
-    private static void recursivelyParseShapeTree(Model model, Resource resource) throws MalformedURLException, ShapeTreeException {
+    private static void recursivelyParseShapeTree(Model model, Resource resource) throws ShapeTreeException {
         // Set the URL as the ID (string representation)
-        URL shapeTreeUrl = new URL(resource.getURI());
+        final URL shapeTreeUrl;
+        try {
+            shapeTreeUrl = new URL(resource.getURI());
+        } catch (MalformedURLException ex) {
+            throw new ShapeTreeException(500, "Error reporting validation success on malformed URL <" + resource.getURI() + ">: " + ex.getMessage());
+        }
         log.debug("Entering recursivelyParseShapeTree for [{}]", shapeTreeUrl);
 
         if (localShapeTreeCache.containsKey(shapeTreeUrl)) {
@@ -73,7 +78,12 @@ public class ShapeTreeFactory {
         final String supports = getStringValue(model, resource, ShapeTreeVocabulary.SUPPORTS);
         // Set Reference collection
         final ArrayList<ReferencedShapeTree> references = new ArrayList<>();
-        List<URL> contains = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
+        final List<URL> contains;
+        try {
+            contains = getURLListValue(model, resource, ShapeTreeVocabulary.CONTAINS);
+        } catch (MalformedURLException ex) {
+            throw new ShapeTreeException(500, "List <"+ shapeTreeUrl +"> containes malformed URL: " + ex.getMessage());
+        }
 
         ShapeTree shapeTree = new ShapeTree(
                 DocumentLoaderManager.getLoader(),
@@ -94,15 +104,21 @@ public class ShapeTreeFactory {
             for (Statement referenceStatement : referenceStatements) {
 
                 Resource referenceResource = referenceStatement.getObject().asResource();
-                URL referenceShapeTreeUrl = new URL(getStringValue(model, referenceResource, ShapeTreeVocabulary.HAS_SHAPE_TREE));
+                final String referencedShapeTreeUrlString = getStringValue(model, referenceResource, ShapeTreeVocabulary.HAS_SHAPE_TREE);
+                final URL referencedShapeTreeUrl;
+                try {
+                    referencedShapeTreeUrl = new URL(referencedShapeTreeUrlString);
+                } catch (MalformedURLException ex) {
+                    throw new ShapeTreeException(500, "ShapeTree <" + shapeTreeUrl + "> references malformed URL <" + referencedShapeTreeUrlString + ">: " + ex.getMessage());
+                }
                 String shapePath = getStringValue(model, referenceResource, ShapeTreeVocabulary.VIA_SHAPE_PATH);
-                if (!localShapeTreeCache.containsKey(referenceShapeTreeUrl)) {
+                if (!localShapeTreeCache.containsKey(referencedShapeTreeUrl)) {
                     // If the model contains the referenced ShapeTree, go ahead and parse and cache it
-                    recursivelyParseShapeTree(model, model.getResource(referenceShapeTreeUrl.toString()));
+                    recursivelyParseShapeTree(model, model.getResource(referencedShapeTreeUrl.toString()));
                 }
 
                 // Create the object that defines there relation between a ShapeTree and its children
-                ReferencedShapeTree referencedShapeTree = new ReferencedShapeTree(referenceShapeTreeUrl, shapePath);
+                ReferencedShapeTree referencedShapeTree = new ReferencedShapeTree(referencedShapeTreeUrl, shapePath);
                 references.add(referencedShapeTree);
             }
         }
