@@ -40,7 +40,7 @@ public class ShapeTreeLocator {
         this.id = id;
     }
 
-    protected URL getUrl() throws MalformedURLException {
+    protected URL getUrl() {
         return this.id;
     }
 
@@ -76,7 +76,7 @@ public class ShapeTreeLocator {
         return locatorGraph;
     }
 
-    public void addShapeTreeLocation(ShapeTreeLocation location) throws ShapeTreeException, MalformedURLException {
+    public void addShapeTreeLocation(ShapeTreeLocation location) throws ShapeTreeException {
 
         if (this.locations == null || location == null) {
             throw new ShapeTreeException(500, "Must provide a non-null location to an initialized List of ShapeTreeLocations");
@@ -99,12 +99,17 @@ public class ShapeTreeLocator {
     }
 
     // Generates or "mints" a URL for a new location contained in the locator
-    public URL mintLocation() throws MalformedURLException {
+    public URL mintLocation() {
 
         String fragment = RandomStringUtils.random(8, true, true);
         String locationString = this.getUrl().toString() + "#" + fragment;
 
-        URL locationUrl = new URL(locationString);
+        final URL locationUrl;
+        try {
+            locationUrl = new URL(locationString);
+        } catch (MalformedURLException ex) {
+            throw new IllegalStateException("Minted illegal URL <" + locationString + "> - " + ex.getMessage());
+        }
 
         for (ShapeTreeLocation location : this.locations) {
             if (location.getUrl() != null && location.getUrl().equals(locationUrl)) {
