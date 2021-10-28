@@ -34,7 +34,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     private static final String PATCH = "PATCH";
 
     @Override
-    public ShapeTreeResource.Fork getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
+    public ShapeTreeResource.Common getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
         log.debug("HttpRemoteResourceAccessor#getResource({})", url);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
@@ -42,11 +42,11 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         HttpRequest req = new HttpRequest("GET", url, headers, null, null);
 
         DocumentResponse response = fetcher.fetchShapeTreeResponse(req);
-        return makeAFork(url, response);
+        return generateResource(url, response);
     }
 
     @Override
-    public ShapeTreeResource.Fork createResource(ShapeTreeContext context, String method, URL url, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
+    public ShapeTreeResource.Common createResource(ShapeTreeContext context, String method, URL url, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URL [{}], headers [{}]", method, url, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
@@ -55,10 +55,10 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         if (!response.isExists()) {
             throw new ShapeTreeException(500, "Unable to create pre-existing resource <" + url + ">");
         }
-        return makeAFork(url, response);
+        return generateResource(url, response);
     }
 
-    protected ShapeTreeResource.Fork makeAFork(URL url, DocumentResponse response) throws ShapeTreeException {
+    protected ShapeTreeResource.Common generateResource(URL url, DocumentResponse response) throws ShapeTreeException {
         Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
         if (location.isPresent()) {
             try {
@@ -107,7 +107,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     @Override
     public List<ShapeTreeResource> getContainedResources(ShapeTreeContext context, URL containerResourceUrl) throws ShapeTreeException {
         try {
-            ShapeTreeResource.Fork rf = this.getResource(context, containerResourceUrl);
+            ShapeTreeResource.Common rf = this.getResource(context, containerResourceUrl);
             if (!(rf instanceof ShapeTreeResource.Primary)) {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a metadata resource <" + containerResourceUrl + ">");
             }
@@ -141,7 +141,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public DocumentResponse updateResource(ShapeTreeContext context, String method, ShapeTreeResource.Fork updatedResource, String body) throws ShapeTreeException {
+    public DocumentResponse updateResource(ShapeTreeContext context, String method, ShapeTreeResource.Common updatedResource, String body) throws ShapeTreeException {
         log.debug("updateResource: URL [{}]", updatedResource.getUrl());
 
         String contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);

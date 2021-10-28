@@ -33,7 +33,7 @@ public class ShapeTreeResource {
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     // constructors
-    private ShapeTreeResource(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Fork str) {
+    private ShapeTreeResource(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Common str) {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
         if (str instanceof Metadata) {
@@ -52,7 +52,7 @@ public class ShapeTreeResource {
     }
 
     // Get resource forks
-    public Primary getPrimaryResourceFork() throws ShapeTreeException {
+    public Primary getPrimaryResource() throws ShapeTreeException {
         Primary primaryResource;
         if (this.primaryResource.isEmpty()) {
             Metadata mr = this.metadataResource.orElseThrow(unintialized_resourceFork);
@@ -76,7 +76,7 @@ ProjectRecursiveTests
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.url + ">");
 //            }
             URL url = mr.getPrimary();
-            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
+            Common str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
             if (str instanceof Primary) {
                 this.primaryResource = Optional.of(primaryResource = (Primary) str);
             } else {
@@ -88,7 +88,7 @@ ProjectRecursiveTests
         return primaryResource;
     }
 
-    public Metadata getMetadataResourceFork() throws ShapeTreeException {
+    public Metadata getMetadataResource() throws ShapeTreeException {
         Metadata mr;
         if (this.metadataResource.isEmpty()) {
 //            Primary primaryResource = this.primaryResource.orElseThrow(unintialized_resourceFork);
@@ -96,7 +96,7 @@ ProjectRecursiveTests
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + primaryResource.url + ">");
 //            }
             final URL url = this.getShapeTreeMetadataUrlForResource();
-            Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
+            Common str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
             if (str instanceof Metadata) {
                 this.metadataResource = Optional.of(mr = (Metadata) str);
             } else {
@@ -135,7 +135,7 @@ ProjectRecursiveTests
     }
 
     public void createOrUpdateMetadataResource(ShapeTreeLocator primaryResourceLocator) throws ShapeTreeException {
-        Metadata primaryMetadataResource = this.getMetadataResourceFork();
+        Metadata primaryMetadataResource = this.getMetadataResource();
         if (!primaryMetadataResource.wasSuccessful()) {
             // create primary metadata resource if it doesn't exist
             ResourceAttributes headers = new ResourceAttributes();
@@ -147,9 +147,9 @@ ProjectRecursiveTests
         }
     }
 
-    static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized Fork");
+    static final Supplier<IllegalStateException> unintialized_resourceFork = () -> new IllegalStateException("unintialized Common");
 
-    static public class Fork {
+    static public class Common {
         final protected URL url;
         final protected ShapeTreeResourceType resourceType;
         final protected ResourceAttributes attributes;
@@ -157,7 +157,7 @@ ProjectRecursiveTests
         final protected String name;
         final protected boolean exists;
 
-        Fork(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
+        Common(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists) {
             this.url = url;
             this.resourceType = resourceType;
             this.attributes = attributes;
@@ -186,7 +186,7 @@ ProjectRecursiveTests
         }
     }
 
-    static public class Primary extends Fork {
+    static public class Primary extends Common {
         final protected Optional<URL> metadataResourceUrl;
         final protected boolean _container;
 
@@ -204,7 +204,7 @@ ProjectRecursiveTests
         }
     }
 
-    static public class Metadata extends Fork {
+    static public class Metadata extends Common {
         final protected URL primary;
 
         public Metadata(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URL primary) {

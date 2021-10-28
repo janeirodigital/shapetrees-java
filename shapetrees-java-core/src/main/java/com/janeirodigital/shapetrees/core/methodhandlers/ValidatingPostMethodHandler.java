@@ -28,7 +28,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
             // If the parent container is managed by a shape tree, the proposed resource being posted must be
             // validated against the parent tree.
-            if (!targetContainer.getPrimaryResourceFork().getMetadataResourceUrl().isEmpty()) {
+            if (!targetContainer.getPrimaryResource().getMetadataResourceUrl().isEmpty()) {
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, targetContainer));
                 return createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }
