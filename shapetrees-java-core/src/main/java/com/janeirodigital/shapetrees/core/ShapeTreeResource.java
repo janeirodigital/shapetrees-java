@@ -25,7 +25,7 @@ public class ShapeTreeResource {
     final protected boolean _wasCreateFromMetadata;
 
     // components
-    private Optional<Primary> userOwnedResource = Optional.empty();
+    private Optional<Primary> primaryResource = Optional.empty();
     private Optional<Metadata> metadataResource = Optional.empty();
 
     // simple getters
@@ -41,7 +41,7 @@ public class ShapeTreeResource {
             this.metadataResource = Optional.of((Metadata) str);
         } else {
             this._wasCreateFromMetadata = false;
-            this.userOwnedResource = Optional.of((Primary) str);
+            this.primaryResource = Optional.of((Primary) str);
         }
     }
     public ShapeTreeResource(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
@@ -52,9 +52,9 @@ public class ShapeTreeResource {
     }
 
     // Get resource forks
-    public Primary getUserOwnedResourceFork() throws ShapeTreeException {
-        Primary uor;
-        if (this.userOwnedResource.isEmpty()) {
+    public Primary getPrimaryResourceFork() throws ShapeTreeException {
+        Primary primaryResource;
+        if (this.primaryResource.isEmpty()) {
             Metadata mr = this.metadataResource.orElseThrow(unintialized_resourceFork);
             /* TODO: #86 @see https://github.com/xformativ/shapetrees-java/issues/86
 MedicalRecordTests
@@ -72,28 +72,28 @@ ProjectRecursiveTests
   plantDataRecursively()
   plantProjectsRecursively()
             */
-//            if (... no userOwnedResourceUri ...) {
+//            if (... no primaryResourceUri ...) {
 //                throw new ShapeTreeException(500, "No link headers in metadata resource <" + mr.url + ">");
 //            }
-            URL url = mr.getUserOwnedResourceUrl();
+            URL url = mr.getPrimary();
             Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
             if (str instanceof Primary) {
-                this.userOwnedResource = Optional.of(uor = (Primary) str);
+                this.primaryResource = Optional.of(primaryResource = (Primary) str);
             } else {
                 throw new IllegalStateException("Dereferencing <" + url + "> did not yield a Primary");
             }
         } else {
-            uor = this.userOwnedResource.get();
+            primaryResource = this.primaryResource.get();
         }
-        return uor;
+        return primaryResource;
     }
 
     public Metadata getMetadataResourceFork() throws ShapeTreeException {
         Metadata mr;
         if (this.metadataResource.isEmpty()) {
-//            Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
+//            Primary primaryResource = this.primaryResource.orElseThrow(unintialized_resourceFork);
 //            if (... no shapeTreeMetadataUrlForResource ...) {
-//                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + uor.url + ">");
+//                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + primaryResource.url + ">");
 //            }
             final URL url = this.getShapeTreeMetadataUrlForResource();
             Fork str = this._resourceAccessor.getResource(this._shapeTreeContext, url);
@@ -109,11 +109,11 @@ ProjectRecursiveTests
     }
 
     protected URL getShapeTreeMetadataUrlForResource() throws ShapeTreeException {
-        Primary uor = this.userOwnedResource.orElseThrow(unintialized_resourceFork);
-        final List<String> linkHeaderValues = uor.attributes.allValues(HttpHeaders.LINK.getValue());
+        Primary primaryResource = this.primaryResource.orElseThrow(unintialized_resourceFork);
+        final List<String> linkHeaderValues = primaryResource.attributes.allValues(HttpHeaders.LINK.getValue());
         ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
 
-        final URL base = uor.url;
+        final URL base = primaryResource.url;
         if (linkHeaders.firstValue(LinkRelations.SHAPETREE_LOCATOR.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", base, LinkRelations.SHAPETREE_LOCATOR.getValue());
             throw new ShapeTreeException(500, "The resource <" + base + "> has no Link header with relation of " + LinkRelations.SHAPETREE_LOCATOR.getValue() + " found");
@@ -205,15 +205,15 @@ ProjectRecursiveTests
     }
 
     static public class Metadata extends Fork {
-        final protected URL userOwnedResourceUrl;
+        final protected URL primary;
 
-        public Metadata(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URL userOwnedResourceUrl) {
+        public Metadata(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, URL primary) {
             super(url, resourceType, attributes, body, name, exists);
-            this.userOwnedResourceUrl = userOwnedResourceUrl;
+            this.primary = primary;
         }
 
-        public URL getUserOwnedResourceUrl() {
-            return this.userOwnedResourceUrl;
+        public URL getPrimary() {
+            return this.primary;
         }
     }
 }

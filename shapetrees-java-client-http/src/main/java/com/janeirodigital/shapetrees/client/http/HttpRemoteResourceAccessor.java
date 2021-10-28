@@ -90,15 +90,15 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             // If this implementation uses a dot notation for meta, trim it from the path
             // Rebuild without the query string in case that was employed
             // @see https://github.com/xformativ/shapetrees-java/issues/86
-            final URL userOwnedResourceUrl;
+            final URL primaryResourceUrl;
             try {
-                userOwnedResourceUrl = new URL(url, url.getPath().replaceAll("\\.shapetree$", ""));
+                primaryResourceUrl = new URL(url, url.getPath().replaceAll("\\.shapetree$", ""));
             } catch (MalformedURLException e) {
                 throw new ShapeTreeException(500, "can't calculate primary resource for metadata <" + url + ">");
             }
 
             final Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
-            return new ShapeTreeResource.Metadata(url, resourceType, attributes, body, name, exists, userOwnedResourceUrl);
+            return new ShapeTreeResource.Metadata(url, resourceType, attributes, body, name, exists, primaryResourceUrl);
         } else {
             return new ShapeTreeResource.Primary(url, resourceType, attributes, body, name, exists, metadataUrl, container);
         }

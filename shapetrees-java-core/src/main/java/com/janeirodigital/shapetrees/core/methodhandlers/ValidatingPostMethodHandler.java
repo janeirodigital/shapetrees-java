@@ -6,7 +6,6 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.MalformedURLException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,7 +28,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
             // If the parent container is managed by a shape tree, the proposed resource being posted must be
             // validated against the parent tree.
-            if (!targetContainer.getUserOwnedResourceFork().getMetadataResourceUrl().isEmpty()) {
+            if (!targetContainer.getPrimaryResourceFork().getMetadataResourceUrl().isEmpty()) {
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, targetContainer));
                 return createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }
