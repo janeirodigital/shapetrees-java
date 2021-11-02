@@ -1,7 +1,11 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ResourceAccessor;
+import com.janeirodigital.shapetrees.core.ShapeTreeInstance;
+import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +25,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");
             }
 
-            ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
+            ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
 
             ShapeTreeInstance targetInstance = new ShapeTreeInstance(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
 
@@ -30,7 +34,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                 return Optional.of(manageShapeTree(targetInstance, shapeTreeRequest));
             } else {
                 ShapeTreeInstance.ManagedResource targetResource = targetInstance.getManagedResource();
-                shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, targetInstance));
+                shapeTreeRequest.setResourceType(RequestHelper.determineResourceType(shapeTreeRequest, targetInstance));
                 if (targetResource.wasSuccessful()) {
                     // The target resource already exists
                     if (!targetResource.getManagerResourceUrl().isEmpty()) {

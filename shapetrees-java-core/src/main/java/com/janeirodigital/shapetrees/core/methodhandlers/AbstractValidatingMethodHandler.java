@@ -1,41 +1,25 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
 import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
-import com.janeirodigital.shapetrees.core.enums.LinkRelations;
-import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
+import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
 import com.janeirodigital.shapetrees.core.models.*;
-import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.update.UpdateAction;
-import org.apache.jena.update.UpdateFactory;
-import org.apache.jena.update.UpdateRequest;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-
-import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 /**
  * Abstract class providing reusable functionality to different method handlers
  */
 @Slf4j
 public abstract class AbstractValidatingMethodHandler {
-    public static final String TEXT_TURTLE = "text/turtle";
-    private static final String POST = "POST";
-    private static final String PUT = "PUT";
-    private static final String PATCH = "PATCH";
     private static final String DELETE = "DELETE";
     protected final ResourceAccessor resourceAccessor;
-    protected final Set<String> supportedRDFContentTypes = Set.of(TEXT_TURTLE, "application/rdf+xml", "application/n-triples", "application/ld+json");
-    protected final Set<String> supportedSPARQLContentTypes = Set.of("application/sparql-update");
 
     protected AbstractValidatingMethodHandler(ResourceAccessor resourceAccessor) {
         this.resourceAccessor = resourceAccessor;
@@ -44,7 +28,7 @@ public abstract class AbstractValidatingMethodHandler {
     protected DocumentResponse manageShapeTree(ShapeTreeInstance shapeTreeInstance, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
 
         Optional<DocumentResponse> validationResponse = null;
-        ShapeTreeManager updatedRootManager = getShapeTreeManagerFromRequest(shapeTreeRequest, shapeTreeInstance.getManagerResource());
+        ShapeTreeManager updatedRootManager = RequestHelper.getIncomingShapeTreeManager(shapeTreeRequest, shapeTreeInstance.getManagerResource());
         ShapeTreeManager existingRootManager = shapeTreeInstance.getManagerResource().getManager();
 
         // Determine assignments that have been removed, added, and/or updated
@@ -115,7 +99,7 @@ public abstract class AbstractValidatingMethodHandler {
         ensureRequestResourceIsContainer(containerResource.getManagedResource(),"Cannot create a shape tree instance in a non-container resource");
 
         // Prepare the target resource for validation and creation
-        URL targetResourceUrl = normalizeSolidResourceUrl(containerResource.getManagedResource().getUrl(), proposedName, shapeTreeRequest.getResourceType());
+        URL targetResourceUrl = RequestHelper.normalizeSolidResourceUrl(containerResource.getManagedResource().getUrl(), proposedName, shapeTreeRequest.getResourceType());
         ensureTargetManagedResourceDoesNotExist(shapeTreeInstance.getShapeTreeContext(), targetResourceUrl,"Cannot create a shape tree instance in a non-container resource " + targetResourceUrl);
 
         ensureShapeTreeInstanceResourceExists(containerResource.getManagerResource(), "Should not be creating a shape tree instance on an unmanaged target container");
@@ -135,9 +119,9 @@ public abstract class AbstractValidatingMethodHandler {
         URL containerShapeTreeUrl = containingAssignment.getShapeTree();
         ShapeTree containerShapeTree = ShapeTreeFactory.getShapeTree(containerShapeTreeUrl);
 
-        URL targetShapeTree = getIncomingTargetShapeTreeHint(shapeTreeRequest, targetResourceUrl);
-        URL incomingFocusNode = getIncomingResolvedFocusNode(shapeTreeRequest, targetResourceUrl);
-        Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, targetResourceUrl, null);
+        URL targetShapeTree = RequestHelper.getIncomingTargetShapeTree(shapeTreeRequest, targetResourceUrl);
+        URL incomingFocusNode = RequestHelper.getIncomingFocusNode(shapeTreeRequest, targetResourceUrl);
+        Graph incomingBodyGraph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, targetResourceUrl, null);
 
         ValidationResult validationResult = containerShapeTree.validateContainedResource(proposedName, shapeTreeRequest.getResourceType(), targetShapeTree, incomingBodyGraph, incomingFocusNode);
         if (Boolean.FALSE.equals(validationResult.isValid())) {
@@ -175,7 +159,7 @@ public abstract class AbstractValidatingMethodHandler {
             // All must pass for the update to validate
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
             URL managedResourceUrl = targetResource.getManagedResource().getUrl();
-            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), getIncomingBodyGraph(shapeTreeRequest, managedResourceUrl, targetResource.getManagedResource()), getIncomingResolvedFocusNode(shapeTreeRequest, managedResourceUrl));
+            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), RequestHelper.getIncomingBodyGraph(shapeTreeRequest, managedResourceUrl, targetResource.getManagedResource()), RequestHelper.getIncomingFocusNode(shapeTreeRequest, managedResourceUrl));
             if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
 
         }
@@ -299,218 +283,6 @@ public abstract class AbstractValidatingMethodHandler {
 
     }
 
-    // TODO - Consider moving to ShapeTreeRequest Interface / implementations or new RequestHelper
-    /**
-     * Builds a ShapeTreeContext from the incoming request.  Specifically it retrieves
-     * the incoming Authorization header and stashes that value for use on any additional requests made during
-     * validation.
-     * @param shapeTreeRequest Incoming request
-     * @return ShapeTreeContext object populated with authentication details, if present
-     */
-    protected ShapeTreeContext buildContextFromRequest(ShapeTreeRequest shapeTreeRequest) {
-        return new ShapeTreeContext(shapeTreeRequest.getHeaderValue(HttpHeaders.AUTHORIZATION.getValue()));
-    }
-
-    // TODO - Consider moving to ShapeTreeRequest Interface / implementations or new RequestHelper
-    /**
-     * This determines the type of resource being processed.
-     *
-     * Initial test is based on the incoming request headers, specifically the Content-Type header.
-     * If the content type is not one of the accepted RDF types, it will be treated as a NON-RDF source.
-     *
-     * Then the determination becomes whether or not the resource is a container.
-     *
-     * If it is a PATCH or PUT and the URL provided already exists, then the existing resource's Link header(s)
-     * are used to determine if it is a container or not.
-     *
-     * If it is a POST or if the resource does not already exist, the incoming request Link header(s) are relied
-     * upon.
-     *
-     * @param shapeTreeRequest The current incoming request
-     * @param existingResource The resource located at the incoming request's URL
-     * @return ShapeTreeResourceType aligning to current request
-     * @throws ShapeTreeException ShapeTreeException throw, specifically if Content-Type is not included on request
-     */
-    protected ShapeTreeResourceType determineResourceType(ShapeTreeRequest shapeTreeRequest, ShapeTreeInstance existingResource) throws ShapeTreeException {
-        boolean isNonRdf;
-        if (!shapeTreeRequest.getMethod().equals(DELETE)) {
-            String incomingRequestContentType = shapeTreeRequest.getContentType();
-            // Ensure a content-type is present
-            if (incomingRequestContentType == null) {
-                throw new ShapeTreeException(400, "Content-Type is required");
-            }
-
-            isNonRdf = determineIsNonRdfSource(incomingRequestContentType);
-
-        } else {
-            isNonRdf = false;
-        }
-
-        if (isNonRdf) {
-            return ShapeTreeResourceType.NON_RDF;
-        }
-
-        boolean isContainer = false;
-        boolean resourceAlreadyExists = existingResource.getManagedResource().wasSuccessful();
-        if ((shapeTreeRequest.getMethod().equals(PUT) || shapeTreeRequest.getMethod().equals(PATCH)) && resourceAlreadyExists) {
-            isContainer = existingResource.getManagedResource().isContainer();
-        } else if (shapeTreeRequest.getLinkHeaders() != null) {
-            isContainer = getIsContainerFromRequest(shapeTreeRequest);
-        }
-
-        return isContainer ? ShapeTreeResourceType.CONTAINER : ShapeTreeResourceType.RESOURCE;
-    }
-
-    /**
-     * Normalizes the BaseURL to use for a request based on the incoming request.
-     * @param url URL of request
-     * @param requestedName Requested name of resource (provided on created resources via POST)
-     * @param resourceType Description of resource (Container, NonRDF, Resource)
-     * @return BaseURL to use for RDF Graphs
-     * @throws ShapeTreeException ShapeTreeException
-     */
-    protected URL normalizeSolidResourceUrl(URL url, String requestedName, ShapeTreeResourceType resourceType) throws ShapeTreeException {
-        String urlString = url.toString();
-        if (requestedName != null) {
-            urlString += requestedName;
-        }
-        if (resourceType == ShapeTreeResourceType.CONTAINER && !urlString.endsWith("/")) {
-            urlString += "/";
-        }
-        try {
-            return new URL(urlString);
-        } catch (MalformedURLException ex) {
-            throw new ShapeTreeException(500, "normalized to malformed URL <" + urlString + "> - " + ex.getMessage());
-        }
-    }
-
-    // TODO - Consider moving to ShapeTreeRequest Interface / implementations or new RequestHelper
-    /**
-     * Loads body of request into graph
-     * @param shapeTreeRequest Request
-     * @param baseUrl BaseURL to use for graph
-     * @param targetResource
-     * @return Graph representation of request body
-     * @throws ShapeTreeException ShapeTreeException
-     */
-    protected Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseUrl, ShapeTreeInstance.Resource targetResource) throws ShapeTreeException {
-        log.debug("Reading request body into graph with baseUrl {}", baseUrl);
-
-        if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF
-                && !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update"))
-                || shapeTreeRequest.getBody() == null
-                || shapeTreeRequest.getBody().length() == 0) {
-            return null;
-        }
-
-        Graph targetResourceGraph = null;
-
-        if (shapeTreeRequest.getMethod().equals(PATCH)) {
-
-            // In the event of a SPARQL PATCH, we get the SPARQL query and evaluate it, passing the
-            // resultant graph back to the caller
-
-            if (targetResource != null) {
-                targetResourceGraph = targetResource.getGraph(baseUrl);
-            }
-
-            if (targetResourceGraph == null) {   // if the target resource doesn't exist or has no content
-                log.debug("Existing target resource graph to patch does not exist.  Creating an empty graph.");
-                targetResourceGraph = ModelFactory.createDefaultModel().getGraph();
-            }
-
-            // Perform a SPARQL update locally to ensure that resulting graph validates against ShapeTree
-            UpdateRequest updateRequest = UpdateFactory.create(shapeTreeRequest.getBody(), baseUrl.toString());
-            UpdateAction.execute(updateRequest, targetResourceGraph);
-
-            if (targetResourceGraph == null) {
-                throw new ShapeTreeException(400, "No graph after update");
-            }
-
-        } else {
-            targetResourceGraph = GraphHelper.readStringIntoGraph(urlToUri(baseUrl), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
-        }
-
-        return targetResourceGraph;
-    }
-
-    // TODO - Consider moving to ShapeTreeRequest Interface / implementations or new RequestHelper
-    /**
-     * Gets focus node from request header
-     * @param shapeTreeRequest Request
-     * @param baseUrl Base URL for use on relative focus nodes
-     * @return URL of focus node
-     * @throws IOException IOException
-     */
-    protected URL getIncomingResolvedFocusNode(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
-        final String focusNode = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.FOCUS_NODE.getValue()).orElse(null);
-        if (focusNode != null) {
-            try {
-                return new URL(baseUrl, focusNode);
-            } catch (MalformedURLException e) {
-                throw new ShapeTreeException(500, "Malformed focus node when resolving <" + focusNode + "> against <" + baseUrl + ">");
-            }
-        }
-        return null;
-    }
-
-    // TODO - Consider moving to ShapeTreeRequest Interface / implementations or new RequestHelper
-    /**
-     * Gets target shape tree / hint from request header
-     * @param shapeTreeRequest Request
-     * @return URL value of target shape tree
-     * @throws ShapeTreeException ShapeTreeException
-     */
-    protected URL getIncomingTargetShapeTreeHint(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
-        final String targetShapeTree = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.TARGET_SHAPETREE.getValue()).orElse(null);
-        if (targetShapeTree != null) {
-            try {
-                return new URL(targetShapeTree);
-            } catch (MalformedURLException e) {
-                throw new ShapeTreeException(500, "Malformed focus node when resolving <" + targetShapeTree + "> against <" + baseUrl + ">");
-            }
-        }
-        return null;
-    }
-
-    // TODO - Consider moving to ShapeTreeRequest Interface / implementations or new RequestHelper
-    /**
-     * Determines if a resource should be treated as a container based on its request Link headers
-     * @param shapeTreeRequest Request
-     * @return Is the resource a container?
-     */
-    protected Boolean getIsContainerFromRequest(ShapeTreeRequest shapeTreeRequest) {
-        // First try to determine based on link headers
-        if (shapeTreeRequest.getLinkHeaders() != null) {
-            final List<String> typeLinks = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TYPE.getValue());
-            if (typeLinks.size() != 0) {
-                return (typeLinks.contains(LdpVocabulary.CONTAINER) ||
-                        typeLinks.contains(LdpVocabulary.BASIC_CONTAINER));
-            }
-        }
-        // As a secondary attempt, use slash path semantics
-        return shapeTreeRequest.getUrl().getPath().endsWith("/");
-    }
-
-    // TODO - Consider moving to ShapeTreeRequest Interface / implementations or new RequestHelper
-    /**
-     * Determines whether a content type is a supported RDF type
-     * @param incomingRequestContentType Content type to test
-     * @return Boolean indicating whether it is RDF or not
-     */
-    protected boolean determineIsNonRdfSource(String incomingRequestContentType) {
-        return (!this.supportedRDFContentTypes.contains(incomingRequestContentType.toLowerCase()) &&
-                !this.supportedSPARQLContentTypes.contains(incomingRequestContentType.toLowerCase()));
-    }
-
-    // TODO - Consider moving to ShapeTreeRequest interface / implementations
-    protected ShapeTreeManager getShapeTreeManagerFromRequest(ShapeTreeRequest shapeTreeRequest, ShapeTreeInstance.ManagerResource managerResource) throws ShapeTreeException {
-
-        Graph incomingBodyGraph = getIncomingBodyGraph(shapeTreeRequest, normalizeSolidResourceUrl(shapeTreeRequest.getUrl(), null, ShapeTreeResourceType.RESOURCE), managerResource);
-        if (incomingBodyGraph == null) { return null; }
-        return ShapeTreeManager.getFromGraph(shapeTreeRequest.getUrl(), incomingBodyGraph);
-    }
-
     private void deleteOrUpdateManagerResource(ShapeTreeContext shapeTreeContext,
                                                ShapeTreeInstance.ManagerResource managerResource,
                                                ShapeTreeManager shapeTreeManager) throws ShapeTreeException {
@@ -548,7 +320,7 @@ public abstract class AbstractValidatingMethodHandler {
 
     }
 
-    private ShapeTreeAssignment getAssignment(ShapeTreeInstance.Resource managedResource,
+    private ShapeTreeAssignment getAssignment(ShapeTreeInstance.ManagedResource managedResource,
                                               ShapeTreeManager shapeTreeManager,
                                               ShapeTreeAssignment rootAssignment,
                                               ShapeTree managedResourceShapeTree,
@@ -579,11 +351,10 @@ public abstract class AbstractValidatingMethodHandler {
 
     }
 
-    private boolean atRootOfPlantHierarchy(ShapeTreeAssignment rootAssignment, ShapeTreeInstance.Resource managedResource) {
-        return rootAssignment.getManagedResource().toString().equals(managedResource.getUrl().toString());
+    private boolean atRootOfPlantHierarchy(ShapeTreeAssignment rootAssignment, ShapeTreeInstance.ManagedResource managedResource) {
+        return rootAssignment.getManagedResource().equals(managedResource.getUrl());
     }
 
-    // TODO - Move to ShapeTreeInstance
     // Return a root shape tree manager associated with a given shape tree assignment
     private ShapeTreeManager getRootManager(ShapeTreeContext shapeTreeContext, ShapeTreeAssignment assignment) throws ShapeTreeException {
 
@@ -594,7 +365,6 @@ public abstract class AbstractValidatingMethodHandler {
 
     }
 
-    // TODO - Move to ShapeTreeInstance
     // Return a root shape tree manager associated with a given shape tree assignment
     private ShapeTreeAssignment getRootAssignment(ShapeTreeContext shapeTreeContext, ShapeTreeAssignment assignment) throws ShapeTreeException {
 

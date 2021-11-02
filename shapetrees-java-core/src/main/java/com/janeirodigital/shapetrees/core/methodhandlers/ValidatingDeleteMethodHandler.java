@@ -1,7 +1,11 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ResourceAccessor;
+import com.janeirodigital.shapetrees.core.ShapeTreeInstance;
+import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
 import java.util.Optional;
@@ -14,7 +18,7 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
 
     @Override
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
-            ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
+            ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
             ShapeTreeInstance targetInstance = new ShapeTreeInstance(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
 
             if (targetInstance.wasCreatedFromManager() && targetInstance.getManagerResource().wasSuccessful()) {
