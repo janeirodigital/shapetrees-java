@@ -76,7 +76,7 @@ public interface ShapeTreeClient {
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
      */
-    DocumentResponse postShapeTreeInstance(ShapeTreeContext context, URL parentContainer, URL focusNode, URL targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse postManagedInstance(ShapeTreeContext context, URL parentContainer, URL focusNode, URL targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Creates a resource via HTTP PUT that has been validated against the provided target shape tree
@@ -90,7 +90,7 @@ public interface ShapeTreeClient {
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
      */
-    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, URL targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, URL focusNode, URL targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PUT that has been validated against an associated shape tree
@@ -102,7 +102,7 @@ public interface ShapeTreeClient {
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
      */
-    DocumentResponse putShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PATCH that has been validated against an associated shape tree
@@ -113,7 +113,7 @@ public interface ShapeTreeClient {
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
      */
-    DocumentResponse patchShapeTreeInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String patchString) throws ShapeTreeException;
+    DocumentResponse patchManagedInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String patchString) throws ShapeTreeException;
 
     /**
      * Deletes an existing resource.  Provided as a convenience - no validation is performed
@@ -122,7 +122,7 @@ public interface ShapeTreeClient {
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
      */
-    DocumentResponse deleteShapeTreeInstance(ShapeTreeContext context, URL resourceUrl) throws ShapeTreeException;
+    DocumentResponse deleteManagedInstance(ShapeTreeContext context, URL resourceUrl) throws ShapeTreeException;
 
     /**
      * Indicates whether validation is currently being applied on the client

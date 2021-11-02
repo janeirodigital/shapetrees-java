@@ -136,7 +136,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // Create the projects container as a shape tree instance.
         // 1. Will be validated by the parent DataRepositoryTree planted on /data
         // 2. Will have a manager/assignment created for it as an instance of DataCollectionTree
-        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, parentContainer, focusNode, targetShapeTree, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -190,7 +190,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // Create the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
         // 2. Will have a manager/assignment created for it as an instance of ProjectTree
-        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, parentContainer, focusNode, targetShapeTree, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -220,7 +220,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // Update the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
         // 2. Will have a manager/assignment created for it as an instance of ProjectTree
-        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNode, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(200, response.getStatusCode());
 
     }
@@ -245,7 +245,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Create the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, targetShapeTree, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNode, targetShapeTree, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -274,7 +274,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Update the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNode, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -307,7 +307,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // Create the milestone-3 container in /projects/project-1/ as a shape tree instance using PUT to create
         // 1. Will be validated by the parent ProjectTree planted on /data/projects/project-1/
         // 2. Will have a manager/assignment created for it as an instance of MilestoneTree
-        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, targetShapeTree, true, getMilestoneThreeBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNode, targetShapeTree, true, getMilestoneThreeBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -339,7 +339,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Update the milestone-3 container in /projects/project-1/ using PATCH
         // 1. Will be validated by the MilestoneTree planted on /data/projects/project-1/milestone-3/
-        DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, focusNode, getMilestoneThreeSparqlPatch());
+        DocumentResponse response = shapeTreeClient.patchManagedInstance(context, targetResource, focusNode, getMilestoneThreeSparqlPatch());
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -372,7 +372,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Create the task-6 container in /projects/project-1/milestone-3/ using PATCH
         // 1. Will be validated by the parent MilestoneTree planted on /data/projects/project-1/milestone-3/
-        DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, focusNode, getTaskSixSparqlPatch());
+        DocumentResponse response = shapeTreeClient.patchManagedInstance(context, targetResource, focusNode, getTaskSixSparqlPatch());
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -404,7 +404,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#TaskTree");
 
         // create task-48 in milestone-3 - supply a target shape tree, but not a focus node
-        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, null, targetShapeTree, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, targetContainer, null, targetShapeTree, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -435,7 +435,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetContainer = toUrl(server, "/data/projects/project-1/milestone-3/");
 
         // create task-48 in milestone-3 - don't supply a target shape tree or focus node
-        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, null, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, targetContainer, null, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -467,7 +467,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL focusNode = toUrl(server, "/data/projects/project-1/milestone-3/task-48/#task");
 
         // create task-48 in milestone-3 - supply a focus node but no target shape tree
-        DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, targetContainer, focusNode, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, targetContainer, focusNode, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -502,7 +502,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-48/attachment-48");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree");
 
-        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -537,7 +537,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-48/random.png");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree");
 
-        DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -663,7 +663,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetResource = toUrl(server, "/data/.shapetree");
 
         // Plant the data repository on newly created data container
-        DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, null, getPlantDataRepositorySparqlPatch(server));
+        DocumentResponse response = shapeTreeClient.patchManagedInstance(context, targetResource, null, getPlantDataRepositorySparqlPatch(server));
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -685,7 +685,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetResource = toUrl(server, "/data/projects/.shapetree");
 
         // Update the manager directly for the /data/projects/ with PATCH
-        DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, null, getUpdateDataRepositorySparqlPatch(server));
+        DocumentResponse response = shapeTreeClient.patchManagedInstance(context, targetResource, null, getUpdateDataRepositorySparqlPatch(server));
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
