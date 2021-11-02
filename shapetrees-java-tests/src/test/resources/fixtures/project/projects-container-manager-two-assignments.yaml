@@ -1,0 +1,28 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX ex: <http://www.example.com/ns/ex#>
+
+  <>
+    a st:Manager ;
+    st:hasAssignment <#ln1>, <#ln2> .
+
+  <#ln1>
+    st:assigns <${SERVER_BASE}/static/shapetrees/project/shapetree#DataCollectionTree> ;
+    st:manages </data/projects/> ;
+    st:hasRootAssignment </data/.shapetree#ln1> ;
+    st:focusNode </data/projects/#collection> ;
+    st:shape <${SERVER_BASE}/static/shex/project/shex#DataCollectionShape> .
+
+  <#ln2>
+    st:assigns <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectCollectionTree> ;
+    st:manages </data/projects/> ;
+    st:hasRootAssignment </data/projects/.shapetree#ln2> ;
+    st:focusNode </data/projects/#collection> ;
+    st:shape <${SERVER_BASE}/static/shex/project/shex#ProjectCollectionShape> .

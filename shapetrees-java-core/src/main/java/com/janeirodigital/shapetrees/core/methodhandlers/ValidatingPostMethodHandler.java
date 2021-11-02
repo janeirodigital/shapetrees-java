@@ -20,15 +20,15 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource
-            ShapeTreeResource targetContainer = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
+            // Look up the target container for the POST. Error if it doesn't exist, or is a manager resource
+            ShapeTreeInstance targetContainer = new ShapeTreeInstance(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
 
             // Get resource name from the slug or default to UUID
             String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeaders.SLUG.getValue()).orElse(UUID.randomUUID().toString());
 
             // If the parent container is managed by a shape tree, the proposed resource being posted must be
             // validated against the parent tree.
-            if (!targetContainer.getPrimaryResourceFork().getMetadataResourceUrl().isEmpty()) {
+            if (!targetContainer.getManagedResource().getManagerResourceUrl().isEmpty()) {
                 shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, targetContainer));
                 return createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }

@@ -63,4 +63,11 @@ public class SchemaCache {
         }
         cache.clear();
     }
+
+    public static void unInitializeCache() throws ShapeTreeException {
+        if (cache != null) {
+            cache.clear();
+        }
+        cache = null;
+    }
 }

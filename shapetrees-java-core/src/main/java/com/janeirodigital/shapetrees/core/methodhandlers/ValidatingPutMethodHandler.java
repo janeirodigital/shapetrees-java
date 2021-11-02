@@ -16,25 +16,25 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
             ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
 
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
-            if (rc.wasCreatedFromMetadata()) {
-                // Target resource is for shape tree metadata, manage shape trees to plant and/or unplant
-                return Optional.of(manageShapeTree(rc, shapeTreeRequest));
+            ShapeTreeInstance targetInstance = new ShapeTreeInstance(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
+            if (targetInstance.wasCreatedFromManager()) {
+                // Target resource is for shape tree manager, manage shape trees to plant and/or unplant
+                return Optional.of(manageShapeTree(targetInstance, shapeTreeRequest));
             } else {
-                ShapeTreeResource.Primary targetResource = rc.getPrimaryResourceFork();
-                shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, rc));
+                ShapeTreeInstance.ManagedResource targetResource = targetInstance.getManagedResource();
+                shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, targetInstance));
                 if (targetResource.wasSuccessful()) {
                     // The target resource already exists
-                    if (!targetResource.getMetadataResourceUrl().isEmpty()) {
+                    if (!targetResource.getManagerResourceUrl().isEmpty()) {
                         // If it is managed by a shape tree the update must be validated
-                        return updateShapeTreeInstance(rc, shapeTreeContext, shapeTreeRequest);
+                        return updateShapeTreeInstance(targetInstance, shapeTreeContext, shapeTreeRequest);
                     }
                 } else {
                     // The target resource doesn't exist
-                    ShapeTreeResource parentResource = new ShapeTreeResource(getParentContainerUrl(targetResource), this.resourceAccessor, shapeTreeContext);
-                    if (!parentResource.getPrimaryResourceFork().getMetadataResourceUrl().isEmpty()) {
+                    ShapeTreeInstance parentInstance = new ShapeTreeInstance(targetResource.getParentContainerUrl(), this.resourceAccessor, shapeTreeContext);
+                    if (!parentInstance.getManagedResource().getManagerResourceUrl().isEmpty()) {
                         // If the parent container is managed by a shape tree, the resource to create must be validated
-                        return createShapeTreeInstance(rc, parentResource, shapeTreeRequest, getRequestResourceName(targetResource));
+                        return createShapeTreeInstance(targetInstance, parentInstance, shapeTreeRequest, targetResource.getName());
                     }
                 }
             }

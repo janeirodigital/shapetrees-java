@@ -3,14 +3,14 @@ package com.janeirodigital.shapetrees.client.http;
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
+import com.janeirodigital.shapetrees.core.ShapeTreeInstance;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeAssignment;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
@@ -38,11 +38,11 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     /**
-     * Discover the ShapeTreeLocator associated with a given target resource.
+     * Discover the ShapeTreeManager associated with a given target resource.
      * Implements {@link ShapeTreeClient#discoverShapeTree}
      *
      * Shape Trees, §4.1: This operation is used by a client-side agent to discover any shape trees associated
-     * with a given resource. If URL is a managed resource, the associated Shape Tree Locator will be returned.
+     * with a given resource. If URL is a managed resource, the associated Shape Tree Manager will be returned.
      * https://shapetrees.org/TR/specification/#discover
      *
      * @param context ShapeTreeContext that would be used for authentication purposes
@@ -51,51 +51,51 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @throws ShapeTreeException
      */
     @Override
-    public Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException {
+    public Optional<ShapeTreeManager> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException {
 
         if (targetResource == null) {
             throw new ShapeTreeException(500, "Must provide a value target resource for discovery");
         }
 
-        log.debug("Discovering shape tree locator managing {}", targetResource);
+        log.debug("Discovering shape tree manager managing {}", targetResource);
 
-        // Lookup the target resource for pointer to associated shape tree locator
+        // Lookup the target resource for pointer to associated shape tree manager
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
-        ShapeTreeResource.Primary primaryResource = resource.getPrimaryResourceFork();
-        URL metadataUri = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
-                () -> new ShapeTreeException(500, "No metadata resource for <" + primaryResource.getUrl() + ">")
+        ShapeTreeInstance instance = new ShapeTreeInstance(targetResource, resourceAccessor, context);
+        ShapeTreeInstance.ManagedResource managedResource = instance.getManagedResource();
+        URL managerUrl = managedResource.getManagerResourceUrl().orElseThrow( // politely handle no-metadata case before getManagerResource() throws less informatively
+                () -> new ShapeTreeException(500, "No manager resource for <" + managedResource.getUrl() + ">")
         );
 
-        if  (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
+        if  (Boolean.FALSE.equals(managedResource.wasSuccessful())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
             return Optional.empty();
         }
 
-        // Lookup the associated shape tree locator resource based on the pointer
-        ShapeTreeResource.Metadata locatorResource = resource.getMetadataResourceFork();
+        // Lookup the associated shape tree manager resource based on the pointer
+        ShapeTreeInstance.ManagerResource managerResource = instance.getManagerResource();
 
-        // Ensure the metadata resource exists
-        // Shape Trees, §4.1: If LOCATORURI is empty, the resource at RESOURCEURI is not a managed resource,
-        // and no shape tree locator will be returned.
-        if (Boolean.FALSE.equals(locatorResource.wasSuccessful())) {
-            log.debug("Shape tree locator for {} does not exist", targetResource);
+        // Ensure the manager resource exists
+        // Shape Trees, §4.1: If MANAGERURI is empty, the resource at RESOURCEURI is not a managed resource,
+        // and no shape tree manager will be returned.
+        if (Boolean.FALSE.equals(managerResource.wasSuccessful())) {
+            log.debug("Shape tree manager for {} does not exist", targetResource);
             return Optional.empty();
         }
 
-        Graph locatorGraph = GraphHelper.readStringIntoGraph(urlToUri(metadataUri), locatorResource.getBody(), locatorResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+        Graph managerGraph = GraphHelper.readStringIntoGraph(urlToUri(managerUrl), managerResource.getBody(), managerResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
 
-        // Populate a ShapeTreeLocator from the graph in locatorResource and return it
-        return Optional.of(ShapeTreeLocator.getShapeTreeLocatorFromGraph(metadataUri, locatorGraph)
+        // Populate a ShapeTreeManager from the graph in managerResource and return it
+        return Optional.of(ShapeTreeManager.getFromGraph(managerUrl, managerGraph)
         );
     }
 
     /**
      * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,
-     * by associating a shape tree locator with the resource, and turning it into a managed resource.
+     * by associating a shape tree manager with the resource, and turning it into a managed resource.
      *
-     * If the resource is already managed, the associated shape tree locator will be updated with another
-     * shape tree location for the planted shape tree.
+     * If the resource is already managed, the associated shape tree manager will be updated with another
+     * shape tree assignment for the planted shape tree.
      *
      * If the resource is a container that already contains existing resources, and a recursive plant is requested,
      * this operation will perform a depth first traversal through the containment hierarchy, validating
@@ -107,7 +107,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
      * @param targetResource The URL of the resource to plant on
      * @param targetShapeTree A URL representing the shape tree to plant for targetResource
      * @param focusNode An optional URL representing the target subject within targetResource used for shape validation
-     * @return The URL of the Shape Tree Locator that was planted for targetResource
+     * @return The URL of the Shape Tree Manager that was planted for targetResource
      * @throws ShapeTreeException
      */
     @Override
@@ -122,41 +122,41 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
-        ShapeTreeResource.Primary primaryResource = resource.getPrimaryResourceFork();
-        if (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
+        ShapeTreeInstance instance = new ShapeTreeInstance(targetResource, resourceAccessor, context);
+        ShapeTreeInstance.ManagedResource managedResource = instance.getManagedResource();
+        if (Boolean.FALSE.equals(managedResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
-        URL metadataUrl = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
-                () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUrl() + ">") // TODO: Spec/API: should this return a 404 or something like that? nearby: ProjectTests.failPlantOnMissingDataContainer()
+        URL managerResourceUrl = managedResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively
+                () -> new IllegalStateException("No manager resource for <" + managedResource.getUrl() + ">") // TODO: Spec/API: should this return a 404 or something like that? nearby: ProjectTests.failPlantOnMissingDataContainer()
         );
 
         // Determine whether the target resource is already a managed resource
-        ShapeTreeLocator locator = discoverShapeTree(context, targetResource)
-            // If the target resource is not managed, initialize a new locator
-            .orElse(new ShapeTreeLocator(metadataUrl));
+        ShapeTreeManager manager = discoverShapeTree(context, targetResource)
+            // If the target resource is not managed, initialize a new manager
+            .orElse(new ShapeTreeManager(managerResourceUrl));
 
-        // Initialize a shape tree location based on the supplied parameters
-        URL locationUrl = locator.mintLocation();
-        ShapeTreeLocation location = new ShapeTreeLocation(targetShapeTree,
-                                                           targetResource,
-                                                           locationUrl,
-                                                           focusNode,
-                                                           null,
-                                                           locationUrl);
+        // Initialize a shape tree assignment based on the supplied parameters
+        URL assignmentUrl = manager.mintAssignment();
+        ShapeTreeAssignment assignment = new ShapeTreeAssignment(targetShapeTree,
+                                                                 targetResource,
+                                                                 assignmentUrl,
+                                                                 focusNode,
+                                                                 null,
+                                                                 assignmentUrl);
 
-        // Add the location to the locator
-        locator.addShapeTreeLocation(location);
+        // Add the assignment to the manager
+        manager.addAssignment(assignment);
 
-        // Get an RDF version of the locator stored in a turtle string
+        // Get an RDF version of the manager stored in a turtle string
         StringWriter sw = new StringWriter();
-        RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
+        RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
 
-        // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
+        // Build an HTTP PUT request with the manager graph in turtle as the content body + link header
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", metadataUrl, headers, sw.toString(), "text/turtle"));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", managerResourceUrl, headers, sw.toString(), "text/turtle"));
     }
 
     @Override
@@ -252,46 +252,46 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ShapeTreeResource resource = new ShapeTreeResource(targetResource, resourceAccessor, context);
-        ShapeTreeResource.Primary primaryResource = resource.getPrimaryResourceFork();
-        URL metadataUrl = primaryResource.getMetadataResourceUrl().orElseThrow( // politely handle no-metadata case before getMetadataResourceFork() throws less informatively
-                () -> new IllegalStateException("No metadata resource for <" + primaryResource.getUrl() + ">")
+        ShapeTreeInstance instance = new ShapeTreeInstance(targetResource, resourceAccessor, context);
+        ShapeTreeInstance.ManagedResource managedResource = instance.getManagedResource();
+        URL managerResourceUrl = managedResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively
+                () -> new IllegalStateException("No manager resource for <" + managedResource.getUrl() + ">")
         );
 
-        if (Boolean.FALSE.equals(primaryResource.wasSuccessful())) {
+        if (Boolean.FALSE.equals(managedResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to unplant: " + targetResource, 404);
         }
 
         // Determine whether the target resource is already a managed resource
-        Optional<ShapeTreeLocator> discovered = discoverShapeTree(context, targetResource);
+        Optional<ShapeTreeManager> discovered = discoverShapeTree(context, targetResource);
         if (discovered.isEmpty()) {
             return new DocumentResponse(null, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource, 500);
         }
-        ShapeTreeLocator locator = discovered.get();
+        ShapeTreeManager manager = discovered.get();
 
-        // Remove location from locator that corresponds with the provided shape tree
-        locator.removeShapeTreeLocationForShapeTree(targetShapeTree);
+        // Remove assignment from manager that corresponds with the provided shape tree
+        manager.removeAssignmentForShapeTree(targetShapeTree);
 
         String method;
         String body;
         String contentType;
-        if (locator.getLocations().isEmpty()) {
+        if (manager.getAssignments().isEmpty()) {
             method = "DELETE";
             body = null;
             contentType = null;
         } else {
-            // Build an HTTP PUT request with the locator graph in turtle as the content body + link header
+            // Build an HTTP PUT request with the manager graph in turtle as the content body + link header
             method = "PUT";
 
-            // Get a RDF version of the locator stored in a turtle string
+            // Get a RDF version of the manager stored in a turtle string
             StringWriter sw = new StringWriter();
-            RDFDataMgr.write(sw, locator.getGraph(), Lang.TURTLE);
+            RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
             body = sw.toString();
             contentType = "text/turtle";
         }
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, metadataUrl,
+        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, managerResourceUrl,
                                               null, // why no getCommonHeaders(context, null, null, null, null, null)
                                               body, contentType));
     }

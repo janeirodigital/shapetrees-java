@@ -11,7 +11,7 @@ body: >
     st:expectsType st:Resource ;
     st:shape pm:ProjectShape ;
     st:references [
-      st:hasShapeTree <#MilestoneTree> ;
+      st:referencesShapeTree <#MilestoneTree> ;
       st:viaShapePath "@pm:ProjectShape~pm:hasMilestone"
     ] .
 
@@ -20,11 +20,11 @@ body: >
     st:expectsType st:Resource ;
     st:shape pm:MilestoneShape ;
     st:references [
-      st:hasShapeTree <#TaskTree> ;
+      st:referencesShapeTree <#TaskTree> ;
       st:viaShapePath "@pm:MilestoneShape~pm:hasTask"
     ] ,
     [
-      st:hasShapeTree <#IssueTree> ;
+      st:referencesShapeTree <#IssueTree> ;
       st:viaShapePath "@pm:MilestoneShape~pm:hasIssue"
     ] .
 

@@ -10,12 +10,12 @@ body: >
   PREFIX ex: <http://www.example.com/ns/ex#>
 
   <>
-    a st:ShapeTreeLocator ;
-    st:location <#ln1> .
+    a st:Manager ;
+    st:hasAssignment <#ln1> .
 
   <#ln1>
-    st:hasShapeTree <${SERVER_BASE}/static/shapetrees/project/shapetree#TaskTree> ;
-    st:hasManagedResource </data/projects/project-1/milestone-3/task-48/> ;
-    st:hasRootShapeTreeLocation </data/projects/.shapetree#ln2> ;
-    st:node </data/projects/project-1/milestone-3/task-48/#task> ;
+    st:assigns <${SERVER_BASE}/static/shapetrees/project/shapetree#TaskTree> ;
+    st:manages </data/projects/project-1/milestone-3/task-48/> ;
+    st:hasRootAssignment </data/projects/.shapetree#ln2> ;
+    st:focusNode </data/projects/project-1/milestone-3/task-48/#task> ;
     st:shape <${SERVER_BASE}/static/shex/project/shex#TaskShape> .

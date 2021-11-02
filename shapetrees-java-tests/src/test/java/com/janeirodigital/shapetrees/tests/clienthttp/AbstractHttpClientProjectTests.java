@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.tests.clienthttp;
 
 import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeManager;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import jdk.jfr.Label;
@@ -34,7 +34,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         List dispatcherList = new ArrayList();
 
         dispatcherList.add(new DispatcherEntry(List.of("project/root-container"), "GET", "/", null));
-        dispatcherList.add(new DispatcherEntry(List.of("project/root-container-locator"), "GET", "/.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("project/root-container-manager"), "GET", "/.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project/shex", null));
 
@@ -51,10 +51,10 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetResource = toUrl(server,"/");
 
         // Use the discover operation to see if the root container is managed
-        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
+        ShapeTreeManager manager = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
 
         // The root container isn't managed so check to ensure that a NULL value is returned
-        Assertions.assertNull(locator);
+        Assertions.assertNull(manager);
     }
 
     @SneakyThrows
@@ -124,7 +124,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Setup initial fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixture for /projects/ to handle the POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-create-response"), "POST", "/data/projects/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
@@ -135,7 +135,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Create the projects container as a shape tree instance.
         // 1. Will be validated by the parent DataRepositoryTree planted on /data
-        // 2. Will have a locator/location created for it as an instance of DataCollectionTree
+        // 2. Will have a manager/assignment created for it as an instance of DataCollectionTree
         DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
@@ -150,10 +150,10 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager"), "GET", "/data/projects/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
@@ -175,10 +175,10 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/ to handle the POST response
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-create-response"), "POST", "/data/projects/project-1/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/.shapetree", null));
@@ -189,7 +189,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Create the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        // 2. Will have a locator/location created for it as an instance of ProjectTree
+        // 2. Will have a manager/assignment created for it as an instance of ProjectTree
         DocumentResponse response = shapeTreeClient.postShapeTreeInstance(context, parentContainer, focusNode, targetShapeTree, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
@@ -204,13 +204,13 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for updated project-1
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains-updated"), "PUT", "/data/projects/project-1/", null));
 
@@ -219,7 +219,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Update the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        // 2. Will have a locator/location created for it as an instance of ProjectTree
+        // 2. Will have a manager/assignment created for it as an instance of ProjectTree
         DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(200, response.getStatusCode());
 
@@ -234,10 +234,10 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/");
         URL focusNode = toUrl(server, "/data/projects/project-1/#project");
@@ -261,13 +261,13 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // try to update an existing project-1 to be malformed and fail validation
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/");
         URL focusNode = toUrl(server, "/data/projects/project-1/#project");
@@ -289,13 +289,13 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3 to handle response to create via PUT
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "PUT", "/data/projects/project-1/milestone-3/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/.shapetree", null));
@@ -306,7 +306,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Create the milestone-3 container in /projects/project-1/ as a shape tree instance using PUT to create
         // 1. Will be validated by the parent ProjectTree planted on /data/projects/project-1/
-        // 2. Will have a locator/location created for it as an instance of MilestoneTree
+        // 2. Will have a manager/assignment created for it as an instance of MilestoneTree
         DocumentResponse response = shapeTreeClient.putShapeTreeInstance(context, targetResource, focusNode, targetShapeTree, true, getMilestoneThreeBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
@@ -321,16 +321,16 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3 to handle response to update via PATCH
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains-updated"), "PATCH", "/data/projects/project-1/milestone-3/", null));
 
@@ -353,16 +353,16 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to update via PATCH
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-6-container-no-contains-updated"), "PATCH", "/data/projects/project-1/milestone-3/task-6/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-6/.shapetree", null));
@@ -386,16 +386,16 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
@@ -411,23 +411,23 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Create Second Task in Project Without Target Shape Tree or Focus Node")
+    @Label("Create Third Task in Project Without Target Shape Tree or Focus Node")
     void createThirdTaskInProjectWithoutAnyContext() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
@@ -449,16 +449,16 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
@@ -482,19 +482,19 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // create an attachment in task-48 (success)
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-locator"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
         // Add fixture to handle PUT response and follow-up request
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/attachment-48"), "PUT", "/data/projects/project-1/milestone-3/task-48/attachment-48", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", null));
@@ -517,19 +517,19 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // create an attachment in task-48 (success)
         // Add fixtures for /data/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-locator"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
         // Add fixture to handle PUT response and follow-up request
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/random-png"), "PUT", "/data/projects/project-1/milestone-3/task-48/random.png", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", null));
@@ -549,9 +549,9 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        // Add fixture for /data/projects/project-1/milestone-3/, which is not the root of the project hierarchy according to its locator
+        // Add fixture for /data/projects/project-1/milestone-3/, which is not the root of the project hierarchy according to its manager
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/");
         URL targetShapeTreeOne = toUrl(server, "/static/shapetrees/project/shapetree#MilestoneTree");
@@ -577,39 +577,39 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Unplant the project collection, recursing down the tree (success)
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-locator"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/.shapetree", null));
         // Add fixtures for tasks in /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-6-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/task-6/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-6-container-locator"), "GET", "/data/projects/project-1/milestone-3/task-6/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-6-container-manager"), "GET", "/data/projects/project-1/milestone-3/task-6/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/task-6/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container"), "GET", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-locator"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
         // Add fixtures for attachments in task-48
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/random-png"), "GET", "/data/projects/project-1/milestone-3/task-48/random.png", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/random-png-locator"), "GET", "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/random-png-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/attachment-48"), "GET", "/data/projects/project-1/milestone-3/task-48/attachment-48", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/attachment-48-locator"), "GET", "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/attachment-48-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", null));
         // Add fixtures for issues in /projects/project-1/milestone-3/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-2"), "GET", "/data/projects/project-1/milestone-3/issue-2", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-2-locator"), "GET", "/data/projects/project-1/milestone-3/issue-2.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-2-manager"), "GET", "/data/projects/project-1/milestone-3/issue-2.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/issue-2.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-3"), "GET", "/data/projects/project-1/milestone-3/issue-3", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-3-locator"), "GET", "/data/projects/project-1/milestone-3/issue-3.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-3-manager"), "GET", "/data/projects/project-1/milestone-3/issue-3.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/issue-3.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/");
@@ -629,21 +629,21 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Unplant the data collection, recursing down the tree (success). The root level (pre-loaded) and one level below projects included for completeness
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator-two-locations"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "PUT", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-locator"), "GET", "/data/projects/project-1/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
 
         // Unplant the data collection, recursing down the tree (only two levels)
-        // Since the projects collection still manages /data/projects/, it should not delete the locator, only update it
+        // Since the projects collection still manages /data/projects/, it should not delete the manager, only update it
         DocumentResponse response = shapeTreeClient.unplantShapeTree(context, targetResource, targetShapeTree);
         Assertions.assertEquals(201, response.getStatusCode());
 
@@ -670,21 +670,21 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Update Project Collection Locator with Patch")
-    void updateProjectsLocatorWithPatch() {
+    @Label("Update Project Collection manager with Patch")
+    void updateProjectsManagerWithPatch() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        // Add fixtures for data repository container and locator
+        // Add fixtures for data repository container and manager
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-locator"), "GET", "/data/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-locator"), "GET", "/data/projects/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager"), "GET", "/data/projects/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/.shapetree");
 
-        // Update the locator directly for the /data/projects/ with PATCH
+        // Update the manager directly for the /data/projects/ with PATCH
         DocumentResponse response = shapeTreeClient.patchShapeTreeInstance(context, targetResource, null, getUpdateDataRepositorySparqlPatch(server));
         Assertions.assertEquals(201, response.getStatusCode());
 
@@ -810,13 +810,12 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
                 "PREFIX st: <http://www.w3.org/ns/shapetrees#> \n" +
                 "PREFIX ex: <http://www.example.com/ns/ex#> \n" +
                 "INSERT DATA { \n" +
-                "   <>  st:hasShapeTreeLocator <#locator> . \n" +
-                "   <#locator> a st:ShapeTreeLocator . \n" +
-                "   <#locator> st:location <#ln1> . \n" +
-                "   <#ln1> st:hasShapeTree <" + toUrl(server, "/static/shapetrees/project/shapetree#DataRepositoryTree") + "> . \n" +
-                "   <#ln1> st:hasManagedResource </data/> . \n" +
-                "   <#ln1> st:hasRootShapeTreeLocation </data/.shapetree#ln1> . \n" +
-                "   <#ln1> st:node </data/#repository> . \n" +
+                "   <> a st:Manager . \n" +
+                "   <> st:hasAssignment <#ln1> . \n" +
+                "   <#ln1> st:assigns <" + toUrl(server, "/static/shapetrees/project/shapetree#DataRepositoryTree") + "> . \n" +
+                "   <#ln1> st:manages </data/> . \n" +
+                "   <#ln1> st:hasRootAssignment </data/.shapetree#ln1> . \n" +
+                "   <#ln1> st:focusNode </data/#repository> . \n" +
                 "   <#ln1> st:shape <" + toUrl(server, "/static/shex/project/shex#DataRepositoryShape") + "> . \n" +
                 "} \n" ;
     }
@@ -827,11 +826,12 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
                 "PREFIX st: <http://www.w3.org/ns/shapetrees#> \n" +
                 "PREFIX ex: <http://www.example.com/ns/ex#> \n" +
                 "INSERT DATA { \n" +
-                "   <#locator> st:location <#ln2> . \n" +
-                "   <#ln2> st:hasShapeTree <" + toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree") + "> . \n" +
-                "   <#ln2> st:hasManagedResource </data/projects/> . \n" +
-                "   <#ln2> st:hasRootShapeTreeLocation </data/projects/.shapetree#ln2> . \n" +
-                "   <#ln2> st:node </data/projects/#collection> . \n" +
+                "   <> a st:Manager . \n" +
+                "   <> st:hasAssignment <#ln2> . \n" +
+                "   <#ln2> st:assigns <" + toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree") + "> . \n" +
+                "   <#ln2> st:manages </data/projects/> . \n" +
+                "   <#ln2> st:hasRootAssignment </data/projects/.shapetree#ln2> . \n" +
+                "   <#ln2> st:focusNode </data/projects/#collection> . \n" +
                 "   <#ln2> st:shape <" + toUrl(server, "/static/shex/project/shex#ProjectCollectionShape") + "> . \n" +
                 "} \n" ;
     }

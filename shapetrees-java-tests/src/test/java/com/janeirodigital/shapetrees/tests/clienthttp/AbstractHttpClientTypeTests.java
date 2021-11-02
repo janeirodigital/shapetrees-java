@@ -27,11 +27,11 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         List dispatcherList = new ArrayList();
 
         dispatcherList.add(new DispatcherEntry(List.of("type/containers-container"), "GET", "/containers/", null));
-        dispatcherList.add(new DispatcherEntry(List.of("type/containers-container-locator"), "GET", "/containers/.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("type/containers-container-manager"), "GET", "/containers/.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("type/resources-container"), "GET", "/resources/", null));
-        dispatcherList.add(new DispatcherEntry(List.of("type/resources-container-locator"), "GET", "/resources/.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("type/resources-container-manager"), "GET", "/resources/.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("type/non-rdf-resources-container"), "GET", "/non-rdf-resources/", null));
-        dispatcherList.add(new DispatcherEntry(List.of("type/non-rdf-resources-container-locator"), "GET", "/non-rdf-resources/.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("type/non-rdf-resources-container-manager"), "GET", "/non-rdf-resources/.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("shapetrees/type-shapetree-ttl"), "GET", "/static/shapetrees/type/shapetree", null));
 
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);

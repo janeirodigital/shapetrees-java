@@ -9,23 +9,23 @@ body: >
   PREFIX ex: <http://www.example.com/ns/ex#>
 
   <>
-    a st:ShapeTreeLocator ;
-    st:location <#ln1>, <#ln2> .
+    a st:Manager ;
+    st:hasAssignment <#ln1>, <#ln2> .
 
   <#invalid>
-    a st:ShapeTreeLocator ;
-    st:location <#ln1>, <#ln2> .
+    a st:Manager ;
+    st:hasAssignment <#ln1>, <#ln2> .
 
   <#ln1>
     st:hasRootShapeTree ex:DataTree ;
-    st:hasShapeTree ex:DataTree ;
+    st:assigns ex:DataTree ;
     st:hasRootShapeTreeInstance </managed> ;
-    st:node </managed#set> ;
+    st:focusNode </managed#set> ;
     st:shape ex:DataSetShape .
 
   <#ln2>
     st:hasRootShapeTree ex:DataTree ;
-    st:hasShapeTree ex:DataTree ;
+    st:assigns ex:DataTree ;
     st:hasRootShapeTreeInstance </managed> ;
-    st:node </managed#set> ;
+    st:focusNode </managed#set> ;
     st:shape ex:DataSetShape .

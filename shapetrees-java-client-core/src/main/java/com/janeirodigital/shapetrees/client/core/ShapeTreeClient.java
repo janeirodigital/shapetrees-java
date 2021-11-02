@@ -3,10 +3,9 @@ package com.janeirodigital.shapetrees.client.core;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeManager;
 
 import java.net.URL;
-import java.net.MalformedURLException;
 import java.util.Optional;
 
 /**
@@ -17,23 +16,23 @@ public interface ShapeTreeClient {
 
     /**
      * Shape Trees, §4.1: This operation is used by a client-side agent to discover any shape trees associated
-     * with a given resource. If URL is a managed resource, the associated Shape Tree Locator will be returned.
+     * with a given resource. If URL is a managed resource, the associated Shape Tree Manager will be returned.
      *
      * https://shapetrees.org/TR/specification/#discover
      *
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param targetResource The URL of the target resource for shape tree discovery
-     * @return A ShapeTreeLocator associated with targetResource
+     * @return A ShapeTreeManager associated with targetResource
      * @throws ShapeTreeException ShapeTreeException
      */
-    Optional<ShapeTreeLocator> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException;
+    Optional<ShapeTreeManager> discoverShapeTree(ShapeTreeContext context, URL targetResource) throws ShapeTreeException;
 
     /**
      * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,
-     * by associating a shape tree locator with the resource, and turning it into a managed resource.
+     * by associating a shape tree manager with the resource, and turning it into a managed resource.
      *
-     * If the resource is already managed, the associated shape tree locator will be updated with another
-     * shape tree location for the planted shape tree.
+     * If the resource is already managed, the associated shape tree manager will be updated with another
+     * shape tree assignment for the planted shape tree.
      *
      * If the resource is a container that already contains existing resources, this operation will
      * perform a depth first traversal through the containment hierarchy, validating
