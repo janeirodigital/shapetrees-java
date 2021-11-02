@@ -3,7 +3,7 @@ package com.janeirodigital.shapetrees.client.http;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ShapeTreeInstance;
+import com.janeirodigital.shapetrees.core.ManageableInstance;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -34,7 +34,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     private static final String PATCH = "PATCH";
 
     @Override
-    public ShapeTreeInstance.Resource getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
+    public ManageableInstance.Resource getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
         log.debug("HttpRemoteResourceAccessor#getResource({})", url);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
@@ -46,7 +46,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public ShapeTreeInstance.Resource createResource(ShapeTreeContext context, String method, URL url, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
+    public ManageableInstance.Resource createResource(ShapeTreeContext context, String method, URL url, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URL [{}], headers [{}]", method, url, headers.toString());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
@@ -58,7 +58,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
         return generateResource(url, response);
     }
 
-    protected ShapeTreeInstance.Resource generateResource(URL url, DocumentResponse response) throws ShapeTreeException {
+    protected ManageableInstance.Resource generateResource(URL url, DocumentResponse response) throws ShapeTreeException {
         Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
         if (location.isPresent()) {
             try {
@@ -98,20 +98,20 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
             }
 
             final Optional<String> contentType = attributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue().toLowerCase());
-            return new ShapeTreeInstance.ManagerResource(url, resourceType, attributes, body, name, exists, managedResourceUrl);
+            return new ManageableInstance.ManagerResource(url, resourceType, attributes, body, name, exists, managedResourceUrl);
         } else {
-            return new ShapeTreeInstance.ManagedResource(url, resourceType, attributes, body, name, exists, managerUrl, container);
+            return new ManageableInstance.ManageableResource(url, resourceType, attributes, body, name, exists, managerUrl, container);
         }
     }
 
     @Override
-    public List<ShapeTreeInstance> getContainedResources(ShapeTreeContext context, URL containerResourceUrl) throws ShapeTreeException {
+    public List<ManageableInstance> getContainedResources(ShapeTreeContext context, URL containerResourceUrl) throws ShapeTreeException {
         try {
-            ShapeTreeInstance.Resource rf = this.getResource(context, containerResourceUrl);
-            if (!(rf instanceof ShapeTreeInstance.ManagedResource)) {
+            ManageableInstance.Resource rf = this.getResource(context, containerResourceUrl);
+            if (!(rf instanceof ManageableInstance.ManageableResource)) {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a manager resource <" + containerResourceUrl + ">");
             }
-            ShapeTreeInstance.ManagedResource containerResource = (ShapeTreeInstance.ManagedResource) rf;
+            ManageableInstance.ManageableResource containerResource = (ManageableInstance.ManageableResource) rf;
 
             if (Boolean.FALSE.equals(containerResource.isContainer())) {
                 throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container <" + containerResourceUrl + ">");
@@ -127,10 +127,10 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
             if (containerTriples.isEmpty()) { return Collections.emptyList(); }
 
-            ArrayList<ShapeTreeInstance> containedResources = new ArrayList<>();
+            ArrayList<ManageableInstance> containedResources = new ArrayList<>();
 
             for (Triple containerTriple : containerTriples) {
-                ShapeTreeInstance containedResource = new ShapeTreeInstance(new URL(containerTriple.getObject().getURI()), this, context); // getResource(context,URL.create(containerTriple.getObject().getURL()));
+                ManageableInstance containedResource = new ManageableInstance(new URL(containerTriple.getObject().getURI()), this, context); // getResource(context,URL.create(containerTriple.getObject().getURL()));
                 containedResources.add(containedResource);
             }
 
@@ -141,7 +141,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public DocumentResponse updateResource(ShapeTreeContext context, String method, ShapeTreeInstance.Resource updatedResource, String body) throws ShapeTreeException {
+    public DocumentResponse updateResource(ShapeTreeContext context, String method, ManageableInstance.Resource updatedResource, String body) throws ShapeTreeException {
         log.debug("updateResource: URL [{}]", updatedResource.getUrl());
 
         String contentType = updatedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
@@ -153,7 +153,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
     }
 
     @Override
-    public DocumentResponse deleteResource(ShapeTreeContext context, ShapeTreeInstance.ManagerResource deletedResource) throws ShapeTreeException {
+    public DocumentResponse deleteResource(ShapeTreeContext context, ManageableInstance.ManagerResource deletedResource) throws ShapeTreeException {
         log.debug("deleteResource: URL [{}]", deletedResource.getUrl());
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);

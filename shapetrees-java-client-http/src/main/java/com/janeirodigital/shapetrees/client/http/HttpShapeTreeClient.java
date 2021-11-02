@@ -3,7 +3,7 @@ package com.janeirodigital.shapetrees.client.http;
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ShapeTreeInstance;
+import com.janeirodigital.shapetrees.core.ManageableInstance;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -61,19 +61,19 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource for pointer to associated shape tree manager
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ShapeTreeInstance instance = new ShapeTreeInstance(targetResource, resourceAccessor, context);
-        ShapeTreeInstance.ManagedResource managedResource = instance.getManagedResource();
-        URL managerUrl = managedResource.getManagerResourceUrl().orElseThrow( // politely handle no-metadata case before getManagerResource() throws less informatively
-                () -> new ShapeTreeException(500, "No manager resource for <" + managedResource.getUrl() + ">")
+        ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
+        ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
+        URL managerUrl = manageableResource.getManagerResourceUrl().orElseThrow( // politely handle no-metadata case before getManagerResource() throws less informatively
+                () -> new ShapeTreeException(500, "No manager resource for <" + manageableResource.getUrl() + ">")
         );
 
-        if  (Boolean.FALSE.equals(managedResource.wasSuccessful())) {
+        if  (Boolean.FALSE.equals(manageableResource.wasSuccessful())) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
             return Optional.empty();
         }
 
         // Lookup the associated shape tree manager resource based on the pointer
-        ShapeTreeInstance.ManagerResource managerResource = instance.getManagerResource();
+        ManageableInstance.ManagerResource managerResource = instance.getManagerResource();
 
         // Ensure the manager resource exists
         // Shape Trees, §4.1: If MANAGERURI is empty, the resource at RESOURCEURI is not a managed resource,
@@ -122,13 +122,13 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ShapeTreeInstance instance = new ShapeTreeInstance(targetResource, resourceAccessor, context);
-        ShapeTreeInstance.ManagedResource managedResource = instance.getManagedResource();
-        if (Boolean.FALSE.equals(managedResource.wasSuccessful())) {
+        ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
+        ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
+        if (Boolean.FALSE.equals(manageableResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
-        URL managerResourceUrl = managedResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively
-                () -> new IllegalStateException("No manager resource for <" + managedResource.getUrl() + ">") // TODO: Spec/API: should this return a 404 or something like that? nearby: ProjectTests.failPlantOnMissingDataContainer()
+        URL managerResourceUrl = manageableResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively
+                () -> new IllegalStateException("No manager resource for <" + manageableResource.getUrl() + ">") // TODO: Spec/API: should this return a 404 or something like that? nearby: ProjectTests.failPlantOnMissingDataContainer()
         );
 
         // Determine whether the target resource is already a managed resource
@@ -252,13 +252,13 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource
         final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
-        ShapeTreeInstance instance = new ShapeTreeInstance(targetResource, resourceAccessor, context);
-        ShapeTreeInstance.ManagedResource managedResource = instance.getManagedResource();
-        URL managerResourceUrl = managedResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively
-                () -> new IllegalStateException("No manager resource for <" + managedResource.getUrl() + ">")
+        ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
+        ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
+        URL managerResourceUrl = manageableResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively
+                () -> new IllegalStateException("No manager resource for <" + manageableResource.getUrl() + ">")
         );
 
-        if (Boolean.FALSE.equals(managedResource.wasSuccessful())) {
+        if (Boolean.FALSE.equals(manageableResource.wasSuccessful())) {
             return new DocumentResponse(null, "Cannot find target resource to unplant: " + targetResource, 404);
         }
 

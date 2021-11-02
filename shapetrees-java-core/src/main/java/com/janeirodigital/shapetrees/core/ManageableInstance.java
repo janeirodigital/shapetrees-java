@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
 @Slf4j
-public class ShapeTreeInstance {
+public class ManageableInstance {
     public static final String TEXT_TURTLE = "text/turtle";
 
     // access parameters
@@ -31,7 +31,7 @@ public class ShapeTreeInstance {
 
     // components
     // TODO - Is there always one or the other? Both?
-    private Optional<ManagedResource> managedResource = Optional.empty();
+    private Optional<ManageableResource> manageableResource = Optional.empty();
     private Optional<ManagerResource> managerResource = Optional.empty();
 
     // simple getters
@@ -39,7 +39,7 @@ public class ShapeTreeInstance {
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
     // constructors
-    private ShapeTreeInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Resource str) {
+    private ManageableInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Resource str) {
         this._resourceAccessor = resourceAccessor;
         this._shapeTreeContext = shapeTreeContext;
         if (str instanceof ManagerResource) {
@@ -47,22 +47,22 @@ public class ShapeTreeInstance {
             this._wasCreateFromManager = true;
             this.managerResource = Optional.of((ManagerResource) str);
         } else {
-            // If the resource is being created from a managed resource, let them know it wasn't from a manager, and assign it
+            // If the resource is being created from a manageable resource, let them know it wasn't from a manager, and assign it
             this._wasCreateFromManager = false;
-            this.managedResource = Optional.of((ManagedResource) str);
+            this.manageableResource = Optional.of((ManageableResource) str);
         }
     }
-    public ShapeTreeInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
+    public ManageableInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this(url, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, url));
     }
-    public ShapeTreeInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+    public ManageableInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
         this(url, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), url, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
     }
 
     // Get specific types of individual resource
-    public ManagedResource getManagedResource() throws ShapeTreeException {
-        ManagedResource managedResource;
-        if (this.managedResource.isEmpty()) {
+    public ManageableResource getManageableResource() throws ShapeTreeException {
+        ManageableResource manageableResource;
+        if (this.manageableResource.isEmpty()) {
             ManagerResource managerResource = this.managerResource.orElseThrow(unintialized_instanceResource);
             /* TODO: #86 @see https://github.com/xformativ/shapetrees-java/issues/86            */
 //            if (... no managedResourceUrl ...) {
@@ -70,21 +70,21 @@ public class ShapeTreeInstance {
 //            }
             URL url = managerResource.getManagedResourceUrl();
             Resource instanceResource = this._resourceAccessor.getResource(this._shapeTreeContext, url);
-            if (instanceResource instanceof ManagedResource) {
-                this.managedResource = Optional.of(managedResource = (ManagedResource) instanceResource);
+            if (instanceResource instanceof ManageableResource) {
+                this.manageableResource = Optional.of(manageableResource = (ManageableResource) instanceResource);
             } else {
-                throw new IllegalStateException("Dereferencing <" + url + "> did not yield a ManagedResource");
+                throw new IllegalStateException("Dereferencing <" + url + "> did not yield a ManageableResource");
             }
         } else {
-            managedResource = this.managedResource.get();
+            manageableResource = this.manageableResource.get();
         }
-        return managedResource;
+        return manageableResource;
     }
 
     public ManagerResource getManagerResource() throws ShapeTreeException {
         ManagerResource managerResource;
         if (this.managerResource.isEmpty()) {
-//            ManagedResource managedResource = this.managedResource.orElseThrow(unintialized_instanceResource);
+//            ManageableResource managedResource = this.managedResource.orElseThrow(unintialized_instanceResource);
 //            if (... no shapeTreeManagerUrlForResource ...) {
 //                throw new ShapeTreeException(500, "No link headers in user-owned resource <" + managedResource.url + ">");
 //            }
@@ -93,7 +93,7 @@ public class ShapeTreeInstance {
             if (instanceResource instanceof ManagerResource) {
                 this.managerResource = Optional.of(managerResource = (ManagerResource) instanceResource);
             } else {
-                throw new IllegalStateException("Dereferencing <" + url + "> did not yield a ManagedResource");
+                throw new IllegalStateException("Dereferencing <" + url + "> did not yield a ManageableResource");
             }
         } else {
             managerResource = this.managerResource.get();
@@ -102,11 +102,11 @@ public class ShapeTreeInstance {
     }
 
     protected URL getManagerUrlForManagedResource() throws ShapeTreeException {
-        ManagedResource managedResource = this.managedResource.orElseThrow(unintialized_instanceResource);
-        final List<String> linkHeaderValues = managedResource.attributes.allValues(HttpHeaders.LINK.getValue());
+        ManageableResource manageableResource = this.manageableResource.orElseThrow(unintialized_instanceResource);
+        final List<String> linkHeaderValues = manageableResource.attributes.allValues(HttpHeaders.LINK.getValue());
         ResourceAttributes linkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaderValues);
 
-        final URL base = managedResource.url;
+        final URL base = manageableResource.url;
         if (linkHeaders.firstValue(LinkRelations.MANAGED_BY.getValue()).isEmpty()) {
             log.error("The resource {} does not contain a link header of {}", base, LinkRelations.MANAGED_BY.getValue());
             throw new ShapeTreeException(500, "The resource <" + base + "> has no Link header with relation of " + LinkRelations.MANAGED_BY.getValue() + " found");
@@ -183,11 +183,11 @@ public class ShapeTreeInstance {
         }
     }
 
-    static public class ManagedResource extends Resource {
+    static public class ManageableResource extends Resource {
         final protected Optional<URL> managerResourceUrl;
         final protected boolean _container;
 
-        public ManagedResource(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URL> managerResourceUrl, boolean isContainer) {
+        public ManageableResource(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, boolean exists, Optional<URL> managerResourceUrl, boolean isContainer) {
             super(url, resourceType, attributes, body, name, exists);
             this.managerResourceUrl = managerResourceUrl;
             this._container = isContainer;

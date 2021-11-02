@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.core.helpers;
 
-import com.janeirodigital.shapetrees.core.ShapeTreeInstance;
+import com.janeirodigital.shapetrees.core.ManageableInstance;
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
@@ -66,7 +66,7 @@ public class RequestHelper {
      * @return ShapeTreeResourceType aligning to current request
      * @throws ShapeTreeException ShapeTreeException throw, specifically if Content-Type is not included on request
      */
-    public static ShapeTreeResourceType determineResourceType(ShapeTreeRequest shapeTreeRequest, ShapeTreeInstance existingResource) throws ShapeTreeException {
+    public static ShapeTreeResourceType determineResourceType(ShapeTreeRequest shapeTreeRequest, ManageableInstance existingResource) throws ShapeTreeException {
         boolean isNonRdf;
         if (!shapeTreeRequest.getMethod().equals("DELETE")) {
             String incomingRequestContentType = shapeTreeRequest.getContentType();
@@ -86,9 +86,9 @@ public class RequestHelper {
         }
 
         boolean isContainer = false;
-        boolean resourceAlreadyExists = existingResource.getManagedResource().wasSuccessful();
+        boolean resourceAlreadyExists = existingResource.getManageableResource().wasSuccessful();
         if ((shapeTreeRequest.getMethod().equals(PUT) || shapeTreeRequest.getMethod().equals(PATCH)) && resourceAlreadyExists) {
-            isContainer = existingResource.getManagedResource().isContainer();
+            isContainer = existingResource.getManageableResource().isContainer();
         } else if (shapeTreeRequest.getLinkHeaders() != null) {
             isContainer = getIsContainerFromRequest(shapeTreeRequest);
         }
@@ -126,7 +126,7 @@ public class RequestHelper {
         return null;
     }
 
-    public static ShapeTreeManager getIncomingShapeTreeManager(ShapeTreeRequest shapeTreeRequest, ShapeTreeInstance.ManagerResource managerResource) throws ShapeTreeException {
+    public static ShapeTreeManager getIncomingShapeTreeManager(ShapeTreeRequest shapeTreeRequest, ManageableInstance.ManagerResource managerResource) throws ShapeTreeException {
 
         Graph incomingBodyGraph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, RequestHelper.normalizeSolidResourceUrl(shapeTreeRequest.getUrl(), null, ShapeTreeResourceType.RESOURCE), managerResource);
         if (incomingBodyGraph == null) { return null; }
@@ -164,7 +164,7 @@ public class RequestHelper {
      * @return Graph representation of request body
      * @throws ShapeTreeException ShapeTreeException
      */
-    public static Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseUrl, ShapeTreeInstance.Resource targetResource) throws ShapeTreeException {
+    public static Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseUrl, ManageableInstance.Resource targetResource) throws ShapeTreeException {
         log.debug("Reading request body into graph with baseUrl {}", baseUrl);
 
         if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF

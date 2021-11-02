@@ -30,7 +30,7 @@ class ShapeTreeManagerDeltaTests {
         
         assignmentOne = new ShapeTreeAssignment(
                 new URL("http://shapetrees.example/#firstTree"), // ShapeTree
-                new URL("http://data.example/resourceOne"), // ManagedResource
+                new URL("http://data.example/resourceOne"), // ManageableResource
                 new URL("http://data.example/resourceOne.shapetree#assignmentOne"), // RootAssignment
                 new URL("http://data.example/resourceOne#focus"), // FocusNode
                 new URL("http://shapes.example/#firstShape"), // Shape
@@ -39,7 +39,7 @@ class ShapeTreeManagerDeltaTests {
 
         assignmentTwo = new ShapeTreeAssignment(
                 new URL("http://shapetrees.example/#secondTree"), // ShapeTree
-                new URL("http://data.example/resourceTwo"), // ManagedResource
+                new URL("http://data.example/resourceTwo"), // ManageableResource
                 new URL("http://data.example/resourceTwo.shapetree#assignmentTwo"), // RootAssignment
                 new URL("http://data.example/resourceTwo#focus"), // FocusNode
                 new URL("http://shapes.example/#secondShape"), // Shape
@@ -48,7 +48,7 @@ class ShapeTreeManagerDeltaTests {
 
         assignmentThree = new ShapeTreeAssignment(
                 new URL("http://shapetrees.example/#thirdTree"), // ShapeTree
-                new URL("http://data.example/resourceThree"), // ManagedResource
+                new URL("http://data.example/resourceThree"), // ManageableResource
                 new URL("http://data.example/resourceThree.shapetree#assignmentThree"), // RootAssignment
                 new URL("http://data.example/resourceThree#focus"), // FocusNode
                 new URL("http://shapes.example/#thirdShape"), // Shape
@@ -57,7 +57,7 @@ class ShapeTreeManagerDeltaTests {
 
         assignmentFour = new ShapeTreeAssignment(
                 new URL("http://shapetrees.example/#fourthTree"), // ShapeTree
-                new URL("http://data.example/resourceFour"), // ManagedResource
+                new URL("http://data.example/resourceFour"), // ManageableResource
                 new URL("http://data.example/resourceFour.shapetree#assignmentFour"), // RootAssignment
                 new URL("http://data.example/resourceFour#focus"), // FocusNode
                 new URL("http://shapes.example/#fourthShape"), // Shape
@@ -66,7 +66,7 @@ class ShapeTreeManagerDeltaTests {
 
         assignmentFive = new ShapeTreeAssignment(
                 new URL("http://shapetrees.example/#fifthTree"), // ShapeTree
-                new URL("http://data.example/resourceFive"), // ManagedResource
+                new URL("http://data.example/resourceFive"), // ManageableResource
                 new URL("http://data.example/resourceFive.shapetree#assignmentFive"), // RootAssignment
                 new URL("http://data.example/resourceFive#focus"), // FocusNode
                 new URL("http://shapes.example/#fifthShape"), // Shape
