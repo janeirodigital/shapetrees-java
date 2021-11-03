@@ -26,7 +26,7 @@ import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
 @NoArgsConstructor
 @Slf4j
-public class HttpRemoteResourceAccessor implements ResourceAccessor {
+public class HttpResourceAccessor implements ResourceAccessor {
 
     protected static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
     private static final String POST = "POST";
@@ -35,7 +35,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
 
     @Override
     public ManageableInstance.Resource getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
-        log.debug("HttpRemoteResourceAccessor#getResource({})", url);
+        log.debug("HttpResourceAccessor#getResource({})", url);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
@@ -84,7 +84,7 @@ public class HttpRemoteResourceAccessor implements ResourceAccessor {
                 ? new ResourceAttributes()
                 : ResourceAttributes.parseLinkHeaders(linkHeaders);
         final Optional<URL> managerUrl = calculateManagerUrl(url, parsedLinkHeaders);
-        final boolean isManager = calculateIsManager(url, exists, parsedLinkHeaders);;
+        final boolean isManager = calculateIsManager(url, exists, parsedLinkHeaders);
 
         if (Boolean.TRUE.equals(isManager)) {
             // If this implementation uses a dot notation for meta, trim it from the path

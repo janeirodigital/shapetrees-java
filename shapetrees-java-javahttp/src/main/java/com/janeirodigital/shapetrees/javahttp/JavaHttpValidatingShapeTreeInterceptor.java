@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.javahttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
+import com.janeirodigital.shapetrees.client.http.HttpResourceAccessor;
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -34,7 +34,7 @@ public class JavaHttpValidatingShapeTreeInterceptor {
     public java.net.http.HttpResponse validatingWrap(java.net.http.HttpRequest clientRequest, java.net.http.HttpClient httpClient, String body, String contentType) throws IOException, InterruptedException {
 
         ShapeTreeRequest shapeTreeRequest = new JavaHttpShapeTreeRequest(clientRequest, body, contentType);
-        ResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
+        ResourceAccessor resourceAccessor = new HttpResourceAccessor();
 
         // Get the handler
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);

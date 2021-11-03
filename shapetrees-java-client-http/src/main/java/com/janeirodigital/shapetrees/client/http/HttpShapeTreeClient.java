@@ -60,7 +60,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug("Discovering shape tree manager managing {}", targetResource);
 
         // Lookup the target resource for pointer to associated shape tree manager
-        final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
+        final HttpResourceAccessor resourceAccessor = new HttpResourceAccessor();
         ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
         ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
         URL managerUrl = manageableResource.getManagerResourceUrl().orElseThrow( // politely handle no-metadata case before getManagerResource() throws less informatively
@@ -121,7 +121,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug("Focus node: {}", focusNode == null ? "None provided" : focusNode);
 
         // Lookup the target resource
-        final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
+        final HttpResourceAccessor resourceAccessor = new HttpResourceAccessor();
         ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
         ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
         if (Boolean.FALSE.equals(manageableResource.wasSuccessful())) {
@@ -251,7 +251,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug("Unplanting shape tree {} managing {}: ", targetShapeTree, targetResource);
 
         // Lookup the target resource
-        final HttpRemoteResourceAccessor resourceAccessor = new HttpRemoteResourceAccessor();
+        final HttpResourceAccessor resourceAccessor = new HttpResourceAccessor();
         ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
         ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
         URL managerResourceUrl = manageableResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively

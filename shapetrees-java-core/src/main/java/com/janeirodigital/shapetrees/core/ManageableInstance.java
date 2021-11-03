@@ -38,25 +38,52 @@ public class ManageableInstance {
     public boolean wasCreatedFromManager() { return this._wasCreateFromManager; }    // TODO - why is this important?
     public ShapeTreeContext getShapeTreeContext() { return this._shapeTreeContext; }
 
-    // constructors
-    private ManageableInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Resource str) {
-        this._resourceAccessor = resourceAccessor;
-        this._shapeTreeContext = shapeTreeContext;
-        if (str instanceof ManagerResource) {
-            // If the resource is being created from a manager resource, keep track of that, and assign it
-            this._wasCreateFromManager = true;
-            this.managerResource = Optional.of((ManagerResource) str);
-        } else {
-            // If the resource is being created from a manageable resource, let them know it wasn't from a manager, and assign it
-            this._wasCreateFromManager = false;
-            this.manageableResource = Optional.of((ManageableResource) str);
-        }
-    }
+    /**
+     * Construct a ManageableInstance based on a resource retrieved from the provided <code>url</code>
+     * via the provided <code>resourceAccessor</code>.
+     * @param url
+     * @param resourceAccessor
+     * @param shapeTreeContext
+     * @throws ShapeTreeException
+     */
     public ManageableInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext) throws ShapeTreeException {
         this(url, resourceAccessor, shapeTreeContext, resourceAccessor.getResource(shapeTreeContext, url));
     }
+
+    /**
+     * Construct a ManageableInstance based on a resource created at the provided <code>url</code> using
+     * the provided <code>ShapeTreeRequest</code>.
+     * @param url
+     * @param resourceAccessor
+     * @param shapeTreeContext
+     * @param shapeTreeRequest
+     * @throws ShapeTreeException
+     */
     public ManageableInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
         this(url, resourceAccessor, shapeTreeContext, resourceAccessor.createResource(shapeTreeContext, shapeTreeRequest.getMethod(), url, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType()));
+    }
+
+    /**
+     * Private constructor for ManageableInstance that takes a resource which was either retrieved or created by
+     * one of the two public constructors. The <code>resourceAccessor</code> and <code>shapeTreeContext</code>
+     * are retained as part of the ManageableInstance.
+     * @param url
+     * @param resourceAccessor
+     * @param shapeTreeContext
+     * @param instanceResource
+     */
+    private ManageableInstance(URL url, ResourceAccessor resourceAccessor, ShapeTreeContext shapeTreeContext, Resource instanceResource) {
+        this._resourceAccessor = resourceAccessor;
+        this._shapeTreeContext = shapeTreeContext;
+        if (instanceResource instanceof ManagerResource) {
+            // If the resource is being created from a manager resource, keep track of that, and assign it
+            this._wasCreateFromManager = true;
+            this.managerResource = Optional.of((ManagerResource) instanceResource);
+        } else {
+            // If the resource is being created from a manageable resource, let them know it wasn't from a manager, and assign it
+            this._wasCreateFromManager = false;
+            this.manageableResource = Optional.of((ManageableResource) instanceResource);
+        }
     }
 
     // Get specific types of individual resource

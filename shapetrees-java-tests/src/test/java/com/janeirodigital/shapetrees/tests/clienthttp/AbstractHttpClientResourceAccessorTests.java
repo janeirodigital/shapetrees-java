@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.tests.clienthttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpRemoteResourceAccessor;
+import com.janeirodigital.shapetrees.client.http.HttpResourceAccessor;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ManageableInstance;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -42,7 +42,7 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void testRetrieveResourceNoLinkHeaders() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-no-link-headers"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-no-link-headers"));
         assertTrue(resource.wasSuccessful());
         Assertions.assertTrue(((ManageableInstance.ManageableResource) resource).getManagerResourceUrl().isEmpty());
     }
@@ -51,21 +51,21 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void testRetrieveResourceEmptyLinkHeader() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-empty-link-header"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-empty-link-header"));
         assertTrue(resource.wasSuccessful());
         Assertions.assertTrue(((ManageableInstance.ManageableResource) resource).getManagerResourceUrl().isEmpty());
     }
 
     @Test
     void testRetrieveInvalidURLString() throws MalformedURLException, ShapeTreeException { // TODO: Test: may as well deleted as it's only testing URL.create()
-        Assertions.assertThrows(MalformedURLException.class, () -> new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), new URL(":invalid")));
+        Assertions.assertThrows(MalformedURLException.class, () -> new HttpResourceAccessor().getResource(new ShapeTreeContext(null), new URL(":invalid")));
     }
 
     @Test
     void testIsContainerNewResourceNoSlash() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-no-slash"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-no-slash"));
         assertFalse(resource.wasSuccessful());
         assertFalse(((ManageableInstance.ManageableResource) resource).isContainer());
     }
@@ -74,7 +74,7 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void testIsContainerNewResourceSlash() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-slash/"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-slash/"));
         assertFalse(resource.wasSuccessful());
         assertTrue(((ManageableInstance.ManageableResource) resource).isContainer());
     }
@@ -83,7 +83,7 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void testIsContainerNewResourceSlashWithFragment() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-slash/#withfragment"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/not-existing-slash/#withfragment"));
         assertFalse(resource.wasSuccessful());
         assertTrue(((ManageableInstance.ManageableResource) resource).isContainer());
     }
@@ -92,7 +92,7 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void testIsContainerExistingContainerNoSlash() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header"));
         assertTrue(resource.wasSuccessful());
         assertTrue(((ManageableInstance.ManageableResource) resource).isContainer());
     }
@@ -101,7 +101,7 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void testIsContainerExistingContainer() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header/"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header/"));
         assertTrue(resource.wasSuccessful());
         assertTrue(((ManageableInstance.ManageableResource) resource).isContainer());
     }
@@ -110,7 +110,7 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void testNonExistingHeader() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header"));
         assertTrue(resource.wasSuccessful());
         Assertions.assertNull(resource.getAttributes().firstValue("invalid").orElse(null));
     }
@@ -119,7 +119,7 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void test404Target() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/notpresent"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/notpresent"));
         Assertions.assertEquals(resource.getBody(), "");
     }
 
@@ -127,7 +127,7 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
     void failToParseInvalidLinkHeader() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        ManageableInstance.Resource resource = new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-invalid-link-header/"));
+        ManageableInstance.Resource resource = new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-invalid-link-header/"));
         assertTrue(resource.wasSuccessful());
         assertFalse(((ManageableInstance.ManageableResource) resource).isContainer());
     }
@@ -137,9 +137,9 @@ public class AbstractHttpClientResourceAccessorTests extends AbstractHttpClientT
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
         // Succeed in getting a resource
-        ManageableInstance.Resource resource =  new HttpRemoteResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header/"));
+        ManageableInstance.Resource resource =  new HttpResourceAccessor().getResource(new ShapeTreeContext(null), toUrl(server, "/static/resource/resource-container-link-header/"));
         // Fail to update it
-        DocumentResponse response = new HttpRemoteResourceAccessor().updateResource(new ShapeTreeContext(null), "PUT", resource, "BODY");
+        DocumentResponse response = new HttpResourceAccessor().updateResource(new ShapeTreeContext(null), "PUT", resource, "BODY");
         assertFalse(response.isExists());
     }
 

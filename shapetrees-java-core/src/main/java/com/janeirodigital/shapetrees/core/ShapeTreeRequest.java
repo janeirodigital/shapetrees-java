@@ -16,5 +16,4 @@ public interface ShapeTreeRequest {
     String getContentType();
     ShapeTreeResourceType getResourceType();
     void setResourceType(ShapeTreeResourceType resourceType);
-    // determineIsNonRdfSource
 }
