@@ -142,11 +142,11 @@
                 <version>${maven-javadoc.version}</version>
                 <configuration>
                     <sourcepath>
-                        shapetrees-java-client-core/target/generated-sources/delombok;
-                        shapetrees-java-client-http/target/generated-sources/delombok;
-                        shapetrees-java-core/target/generated-sources/delombok;
-                        shapetrees-java-javahttp/target/generated-sources/delombok;
-                        shapetrees-java-okhttp/target/generated-sources/delombok
+                        shapetrees-java-client-core/target/delombok;
+                        shapetrees-java-client-http/target/delombok;
+                        shapetrees-java-core/target/delombok;
+                        shapetrees-java-javahttp/target/delombok;
+                        shapetrees-java-okhttp/target/delombok
                     </sourcepath>
                 </configuration>
                 <reportSets>
