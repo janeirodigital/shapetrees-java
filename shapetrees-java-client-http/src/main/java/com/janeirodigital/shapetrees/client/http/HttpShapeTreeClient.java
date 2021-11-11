@@ -2,25 +2,22 @@ package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.ManageableInstance;
+import com.janeirodigital.shapetrees.core.ManageableResource;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeAssignment;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeManager;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.Optional;
-
-import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
 @Slf4j
 public class HttpShapeTreeClient implements ShapeTreeClient {
@@ -61,33 +58,22 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource for pointer to associated shape tree manager
         final HttpResourceAccessor resourceAccessor = new HttpResourceAccessor();
-        ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
-        ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
-        URL managerUrl = manageableResource.getManagerResourceUrl().orElseThrow( // politely handle no-metadata case before getManagerResource() throws less informatively
-                () -> new ShapeTreeException(500, "No manager resource for <" + manageableResource.getUrl() + ">")
-        );
+        ManageableInstance instance = resourceAccessor.getInstance(context, targetResource);
+        ManageableResource manageableResource = instance.getManageableResource();
 
-        if  (Boolean.FALSE.equals(manageableResource.wasSuccessful())) {
+        if  (!manageableResource.isExists()) {
             log.debug("Target resource for discovery {} does not exist", targetResource);
             return Optional.empty();
         }
 
-        // Lookup the associated shape tree manager resource based on the pointer
-        ManageableInstance.ManagerResource managerResource = instance.getManagerResource();
-
-        // Ensure the manager resource exists
-        // Shape Trees, §4.1: If MANAGERURI is empty, the resource at RESOURCEURI is not a managed resource,
-        // and no shape tree manager will be returned.
-        if (Boolean.FALSE.equals(managerResource.wasSuccessful())) {
-            log.debug("Shape tree manager for {} does not exist", targetResource);
-            return Optional.empty();
+        if (instance.wasRequestForManager()) {
+            throw new ShapeTreeException(500, "Discovery target must not be a shape tree manager resource");
         }
 
-        Graph managerGraph = GraphHelper.readStringIntoGraph(urlToUri(managerUrl), managerResource.getBody(), managerResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+        if (instance.isUnmanaged()) { return Optional.empty(); }
 
-        // Populate a ShapeTreeManager from the graph in managerResource and return it
-        return Optional.of(ShapeTreeManager.getFromGraph(managerUrl, managerGraph)
-        );
+        return Optional.of(instance.getManagerResource().getManager());
+
     }
 
     /**
@@ -122,19 +108,21 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource
         final HttpResourceAccessor resourceAccessor = new HttpResourceAccessor();
-        ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
-        ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
-        if (Boolean.FALSE.equals(manageableResource.wasSuccessful())) {
+        ManageableInstance instance = resourceAccessor.getInstance(context, targetResource);
+        ManageableResource manageableResource = instance.getManageableResource();
+
+        if (!manageableResource.isExists()) {
             return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
         }
-        URL managerResourceUrl = manageableResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively
-                () -> new IllegalStateException("No manager resource for <" + manageableResource.getUrl() + ">") // TODO: Spec/API: should this return a 404 or something like that? nearby: ProjectTests.failPlantOnMissingDataContainer()
-        );
 
-        // Determine whether the target resource is already a managed resource
-        ShapeTreeManager manager = discoverShapeTree(context, targetResource)
-            // If the target resource is not managed, initialize a new manager
-            .orElse(new ShapeTreeManager(managerResourceUrl));
+        ShapeTreeManager manager;
+        URL managerResourceUrl = instance.getManagerResource().getUrl();
+
+        if (instance.isManaged()) {
+            manager = instance.getManagerResource().getManager();
+        } else {
+            manager = new ShapeTreeManager(managerResourceUrl);
+        }
 
         // Initialize a shape tree assignment based on the supplied parameters
         URL assignmentUrl = manager.mintAssignment();
@@ -252,24 +240,19 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         // Lookup the target resource
         final HttpResourceAccessor resourceAccessor = new HttpResourceAccessor();
-        ManageableInstance instance = new ManageableInstance(targetResource, resourceAccessor, context);
-        ManageableInstance.ManageableResource manageableResource = instance.getManageableResource();
-        URL managerResourceUrl = manageableResource.getManagerResourceUrl().orElseThrow( // politely handle no-manager case before getManagerResource() throws less informatively
-                () -> new IllegalStateException("No manager resource for <" + manageableResource.getUrl() + ">")
-        );
+        ManageableInstance instance = resourceAccessor.getInstance(context, targetResource);
+        ManageableResource manageableResource = instance.getManageableResource();
 
-        if (Boolean.FALSE.equals(manageableResource.wasSuccessful())) {
+        if (!manageableResource.isExists()) {
             return new DocumentResponse(null, "Cannot find target resource to unplant: " + targetResource, 404);
         }
 
-        // Determine whether the target resource is already a managed resource
-        Optional<ShapeTreeManager> discovered = discoverShapeTree(context, targetResource);
-        if (discovered.isEmpty()) {
+        if (instance.isUnmanaged()) {
             return new DocumentResponse(null, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource, 500);
         }
-        ShapeTreeManager manager = discovered.get();
 
         // Remove assignment from manager that corresponds with the provided shape tree
+        ShapeTreeManager manager = instance.getManagerResource().getManager();
         manager.removeAssignmentForShapeTree(targetShapeTree);
 
         String method;
@@ -282,7 +265,6 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         } else {
             // Build an HTTP PUT request with the manager graph in turtle as the content body + link header
             method = "PUT";
-
             // Get a RDF version of the manager stored in a turtle string
             StringWriter sw = new StringWriter();
             RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
@@ -291,7 +273,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(this.useClientShapeTreeValidation);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, managerResourceUrl,
+        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, manager.getId(),
                                               null, // why no getCommonHeaders(context, null, null, null, null, null)
                                               body, contentType));
     }

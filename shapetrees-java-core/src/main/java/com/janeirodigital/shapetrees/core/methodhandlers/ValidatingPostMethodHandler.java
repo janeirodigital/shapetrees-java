@@ -22,14 +22,14 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a manager resource
-            ManageableInstance targetContainer = new ManageableInstance(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
+            ManageableInstance targetContainer = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
 
             // Get resource name from the slug or default to UUID
             String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeaders.SLUG.getValue()).orElse(UUID.randomUUID().toString());
 
             // If the parent container is managed by a shape tree, the proposed resource being posted must be
             // validated against the parent tree.
-            if (!targetContainer.getManageableResource().getManagerResourceUrl().isEmpty()) {
+            if (targetContainer.isManaged()) {
                 shapeTreeRequest.setResourceType(RequestHelper.determineResourceType(shapeTreeRequest, targetContainer));
                 return createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }

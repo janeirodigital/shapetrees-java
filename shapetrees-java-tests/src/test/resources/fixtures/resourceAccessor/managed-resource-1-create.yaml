@@ -1,0 +1,7 @@
+statusCode : 201
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+  - 'Link:<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
+  - 'Link:</static/resource/managed-container-1/managed-resource-1/.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
+body: > 

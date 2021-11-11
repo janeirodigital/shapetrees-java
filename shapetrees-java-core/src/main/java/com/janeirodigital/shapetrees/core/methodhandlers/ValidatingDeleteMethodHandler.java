@@ -19,9 +19,9 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
     @Override
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
             ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
-            ManageableInstance targetInstance = new ManageableInstance(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
+            ManageableInstance targetInstance = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
 
-            if (targetInstance.wasCreatedFromManager() && targetInstance.getManagerResource().wasSuccessful()) {
+            if (targetInstance.wasRequestForManager() && targetInstance.getManagerResource().isExists()) {
                 // If the DELETE request is for an existing shapetree manager resource,
                 // it must be evaluated to determine if unplanting is necessary
                 return Optional.of(manageShapeTree(targetInstance, shapeTreeRequest));

@@ -8,8 +8,8 @@ import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
 
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 
 @Slf4j
 public abstract class AbstractHttpClientTests {
@@ -35,4 +35,5 @@ public abstract class AbstractHttpClientTests {
             throw new Error(e);
         }
     }
+
 }

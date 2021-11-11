@@ -11,7 +11,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * The HttpClientHeaders object is a multi-map with some constructors and put-ers tailored to the
  * shapetrees-java libraries. The only behavior that's at all HTTP-specific is the
- * parseLinkHeaders(List<String> headerValues) factory which includes logic for HTTP Link headers.
+ * parseLinkHeaders factory which includes logic for HTTP Link headers.
  */
 @Slf4j
 public class ResourceAttributes {
@@ -78,7 +78,7 @@ public class ResourceAttributes {
      * make a new HttpClientHeaders with the additional attr/value set.
      * @param attr attribute (header) name to set
      * @param value String value to assign to attr
-     * @returns original HttpClientHeaders if no change is made; otherwise a new copy.
+     * @return original HttpClientHeaders if no change is made; otherwise a new copy.
      */
     public ResourceAttributes maybePlus(String attr, String value) {
         if (attr == null || value == null) {

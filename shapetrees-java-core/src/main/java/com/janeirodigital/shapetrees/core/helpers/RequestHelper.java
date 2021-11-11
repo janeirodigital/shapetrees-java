@@ -1,6 +1,8 @@
 package com.janeirodigital.shapetrees.core.helpers;
 
+import com.janeirodigital.shapetrees.core.InstanceResource;
 import com.janeirodigital.shapetrees.core.ManageableInstance;
+import com.janeirodigital.shapetrees.core.ManagerResource;
 import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
@@ -86,7 +88,7 @@ public class RequestHelper {
         }
 
         boolean isContainer = false;
-        boolean resourceAlreadyExists = existingResource.getManageableResource().wasSuccessful();
+        boolean resourceAlreadyExists = existingResource.getManageableResource().isExists();
         if ((shapeTreeRequest.getMethod().equals(PUT) || shapeTreeRequest.getMethod().equals(PATCH)) && resourceAlreadyExists) {
             isContainer = existingResource.getManageableResource().isContainer();
         } else if (shapeTreeRequest.getLinkHeaders() != null) {
@@ -126,7 +128,7 @@ public class RequestHelper {
         return null;
     }
 
-    public static ShapeTreeManager getIncomingShapeTreeManager(ShapeTreeRequest shapeTreeRequest, ManageableInstance.ManagerResource managerResource) throws ShapeTreeException {
+    public static ShapeTreeManager getIncomingShapeTreeManager(ShapeTreeRequest shapeTreeRequest, ManagerResource managerResource) throws ShapeTreeException {
 
         Graph incomingBodyGraph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, RequestHelper.normalizeSolidResourceUrl(shapeTreeRequest.getUrl(), null, ShapeTreeResourceType.RESOURCE), managerResource);
         if (incomingBodyGraph == null) { return null; }
@@ -164,7 +166,7 @@ public class RequestHelper {
      * @return Graph representation of request body
      * @throws ShapeTreeException ShapeTreeException
      */
-    public static Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseUrl, ManageableInstance.Resource targetResource) throws ShapeTreeException {
+    public static Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseUrl, InstanceResource targetResource) throws ShapeTreeException {
         log.debug("Reading request body into graph with baseUrl {}", baseUrl);
 
         if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF

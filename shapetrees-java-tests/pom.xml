@@ -91,6 +91,7 @@
                 <configuration>
                     <excludes>
                         <exclude>**/clienthttp/**</exclude>
+                        <exclude>**/AbstractResourceAccessorTests.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
