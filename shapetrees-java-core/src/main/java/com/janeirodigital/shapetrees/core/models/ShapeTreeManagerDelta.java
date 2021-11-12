@@ -3,6 +3,8 @@ package com.janeirodigital.shapetrees.core.models;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.Getter;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,9 +85,17 @@ public class ShapeTreeManagerDelta {
 
     }
 
-    public static ShapeTreeAssignment containsSameUrl(ShapeTreeAssignment assignment, List<ShapeTreeAssignment> targetAssignments) {
+    public static ShapeTreeAssignment containsSameUrl(ShapeTreeAssignment assignment, List<ShapeTreeAssignment> targetAssignments) throws ShapeTreeException {
         for (ShapeTreeAssignment targetAssignment : targetAssignments) {
-            if (assignment.getUrl().equals(targetAssignment.getUrl())) { return targetAssignment; }
+            URI assignmentUri;
+            URI targetAssignmentUri;
+            try {
+                assignmentUri = assignment.getUrl().toURI();
+                targetAssignmentUri = targetAssignment.getUrl().toURI();
+            } catch (URISyntaxException ex) {
+                throw new ShapeTreeException(500, "Unable to convert assignment URLs for comparison: " + ex.getMessage());
+            }
+            if (assignmentUri.equals(targetAssignmentUri)) { return targetAssignment; }
         }
         return null;
     }
