@@ -2,5 +2,5 @@ statusCode : 201
 delay: 0
 headers:
   - 'Content-type:text/turtle'
-  - 'Link:</containers/valid-container/.shapetree>; rel="http://www.w3.org/ns/shapetrees#ShapeTreeLocator"'
+  - 'Link:</containers/valid-container/.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
 body: >

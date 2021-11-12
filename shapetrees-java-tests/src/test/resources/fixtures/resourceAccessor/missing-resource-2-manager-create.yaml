@@ -1,0 +1,6 @@
+statusCode : 201
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+  - 'Link:</static/resource/missing-resource-2>; rel="http://www.w3.org/ns/shapetrees#manages"'
+body: > 

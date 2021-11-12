@@ -39,10 +39,11 @@ public class SchemaCacheTests {
     }
 
     @BeforeAll
-    static void beforeAll() {
+    static void beforeAll() throws ShapeTreeException {
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
                 new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project", null)
         ));
+        SchemaCache.unInitializeCache();
     }
 
     @Test

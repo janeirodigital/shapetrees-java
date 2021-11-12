@@ -23,12 +23,13 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 import java.io.StringReader;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 class ShapeTreeValidationTests {
 
@@ -250,42 +251,7 @@ class ShapeTreeValidationTests {
         Assertions.assertTrue(result.isValid());
 
     }
-/*
-    @SneakyThrows
-    @Test
-    @Label("Validate contained resource at various input stages")
-    void validateCascadingContainedResource() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        ValidationResult result;
 
-        ShapeTreeContext context = new ShapeTreeContext("null");
-        ShapeTreeResource999 primaryResource = resourceAccessor.getResource(context, toUrl(server, "/validation/valid-resource"));
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooContainingTree"));
-
-        result = shapeTree.validateContainedResource(primaryResource);
-        Assertions.assertTrue(result.isValid());
-
-        result = shapeTree.validateContainedResource(primaryResource, toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"), toUrl(server, "/validation/valid-resource#foo"));
-        Assertions.assertTrue(result.isValid());
-
-        result = shapeTree.validateContainedResource(primaryResource, toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"), toUrl(server, "/validation/valid-resource#foo"));
-        Assertions.assertTrue(result.isValid());
-
-        // With target shape tree and focus node
-        result = shapeTree.validateContainedResource("valid-resource", ShapeTreeResourceType.RESOURCE, toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"), getFooBodyGraph(toUrl(server, "/validation/valid-resource#foo")), toUrl(server, "/validation/valid-resource#foo"));
-        Assertions.assertTrue(result.isValid());
-
-        // With target shape tree / without focus node
-        result = shapeTree.validateContainedResource("valid-resource", ShapeTreeResourceType.RESOURCE, toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"), getFooBodyGraph(toUrl(server, "/validation/valid-resource#foo")), null);
-        Assertions.assertTrue(result.isValid());
-
-        // Without target shape tree / with focus node
-        result = shapeTree.validateContainedResource("valid-resource", ShapeTreeResourceType.RESOURCE, null, getFooBodyGraph(toUrl(server, "/validation/valid-resource#foo")), toUrl(server, "/validation/valid-resource#foo"));
-        Assertions.assertTrue(result.isValid());
-
-    }
-*/
     private Graph getFooBodyGraph(URL baseUrl) throws ShapeTreeException {
         String body = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n" +
                       "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +

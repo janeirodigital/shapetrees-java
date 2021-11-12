@@ -70,8 +70,6 @@ public class ShapeTreeFactory {
         final URL shape = getUrlValue(model, resource, ShapeTreeVocabulary.SHAPE, shapeTreeUrl);
         // Set Label
         final String label = getStringValue(model, resource, RDFS_LABEL);
-        // Set Supports
-        final URL supports = getUrlValue(model, resource, ShapeTreeVocabulary.SUPPORTS, shapeTreeUrl);
         // Set Reference collection
         final ArrayList<ReferencedShapeTree> references = new ArrayList<>();
         final List<URL> contains;
@@ -87,7 +85,6 @@ public class ShapeTreeFactory {
                 expectsType,
                 label,
                 shape,
-                supports,
                 references,
                 contains);
 
@@ -100,7 +97,7 @@ public class ShapeTreeFactory {
             for (Statement referenceStatement : referenceStatements) {
 
                 Resource referenceResource = referenceStatement.getObject().asResource();
-                final String referencedShapeTreeUrlString = getStringValue(model, referenceResource, ShapeTreeVocabulary.HAS_SHAPE_TREE);
+                final String referencedShapeTreeUrlString = getStringValue(model, referenceResource, ShapeTreeVocabulary.REFERENCES_SHAPE_TREE);
                 final URL referencedShapeTreeUrl;
                 try {
                     referencedShapeTreeUrl = new URL(referencedShapeTreeUrlString);

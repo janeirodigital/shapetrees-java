@@ -1,0 +1,20 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX ex: <http://www.example.com/ns/ex#>
+
+  <>
+    a st:Manager ;
+    st:hasAssignment <#ln1> .
+
+  <#ln1>
+    st:assigns ex:DataTree ;
+    st:manages </managed> ;
+    st:hasRootAssignment </managed.shapetree#ln1> ;
+    st:focusNode </managed#set> ;
+    st:shape ex:DataSetShape .

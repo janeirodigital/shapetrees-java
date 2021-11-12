@@ -2,7 +2,6 @@ package com.janeirodigital.shapetrees.core.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.net.URL;
 
@@ -12,7 +11,7 @@ public class ValidationResult {
     private Boolean valid;
     private ShapeTree validatingShapeTree;
     private ShapeTree matchingShapeTree;
-    private ShapeTreeLocation managingLocation;
+    private ShapeTreeAssignment managingAssignment;
     private URL matchingFocusNode;
     private String message;
 
@@ -25,7 +24,7 @@ public class ValidationResult {
         this.message = message;
         this.validatingShapeTree = null;
         this.matchingShapeTree = null;
-        this.managingLocation = null;
+        this.managingAssignment = null;
         this.matchingFocusNode = null;
     }
 
@@ -34,7 +33,7 @@ public class ValidationResult {
         this.message = null;
         this.validatingShapeTree = validatingShapeTree;
         this.matchingShapeTree = null;
-        this.managingLocation = null;
+        this.managingAssignment = null;
         this.matchingFocusNode = null;
     }
 
@@ -43,7 +42,7 @@ public class ValidationResult {
         this.message = message;
         this.validatingShapeTree = validatingShapeTree;
         this.matchingShapeTree = null;
-        this.managingLocation = null;
+        this.managingAssignment = null;
         this.matchingFocusNode = null;
     }
 
@@ -52,7 +51,7 @@ public class ValidationResult {
         this.message = null;
         this.validatingShapeTree = validatingShapeTree;
         this.matchingShapeTree = null;
-        this.managingLocation = null;
+        this.managingAssignment = null;
         this.matchingFocusNode = matchingFocusNode;
     }
 
@@ -61,7 +60,7 @@ public class ValidationResult {
         this.message = null;
         this.validatingShapeTree = validatingShapeTree;
         this.matchingShapeTree = matchingShapeTree;
-        this.managingLocation = null;
+        this.managingAssignment = null;
         this.matchingFocusNode = matchingFocusNode;
     }
 

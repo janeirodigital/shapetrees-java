@@ -98,7 +98,6 @@ public class GraphHelper {
     /**
      * Creates an empty Graph with initialized prefixes
      * @return Graph Empty Graph
-     * @throws ShapeTreeException ShapeTreeException
      */
     public static Graph getEmptyGraph() {
         Model model = ModelFactory.createDefaultModel();

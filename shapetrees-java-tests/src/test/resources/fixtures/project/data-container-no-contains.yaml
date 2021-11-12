@@ -3,7 +3,7 @@ delay: 0
 headers:
   - 'Content-type:text/turtle'
   - 'Link:<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
-  - 'Link:</data/.shapetree>; rel="http://www.w3.org/ns/shapetrees#ShapeTreeLocator"'
+  - 'Link:</data/.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
 body: >
 
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>

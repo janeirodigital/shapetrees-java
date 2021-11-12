@@ -3,6 +3,7 @@ package com.janeirodigital.shapetrees.core.methodhandlers;
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,18 +19,18 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
 
     @Override
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
-            ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
+            ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
 
-            // Look up the target container for the POST. Error if it doesn't exist, or is a metadata resource
-            ShapeTreeResource targetContainer = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
+            // Look up the target container for the POST. Error if it doesn't exist, or is a manager resource
+            ManageableInstance targetContainer = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
 
             // Get resource name from the slug or default to UUID
             String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeaders.SLUG.getValue()).orElse(UUID.randomUUID().toString());
 
             // If the parent container is managed by a shape tree, the proposed resource being posted must be
             // validated against the parent tree.
-            if (!targetContainer.getPrimaryResourceFork().getMetadataResourceUrl().isEmpty()) {
-                shapeTreeRequest.setResourceType(determineResourceType(shapeTreeRequest, targetContainer));
+            if (targetContainer.isManaged()) {
+                shapeTreeRequest.setResourceType(RequestHelper.determineResourceType(shapeTreeRequest, targetContainer));
                 return createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }
 

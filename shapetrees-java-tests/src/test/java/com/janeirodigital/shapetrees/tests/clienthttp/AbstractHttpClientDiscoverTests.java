@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.tests.clienthttp;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeLocation;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeLocator;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeAssignment;
+import com.janeirodigital.shapetrees.core.models.ShapeTreeManager;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import jdk.jfr.Label;
@@ -31,14 +31,14 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         List dispatcherList = new ArrayList();
 
         dispatcherList.add(new DispatcherEntry(List.of("discover/unmanaged"), "GET", "/unmanaged", null));
-        dispatcherList.add(new DispatcherEntry(List.of("discover/unmanaged-locator"), "GET", "/unmanaged.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("discover/unmanaged-manager"), "GET", "/unmanaged.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("discover/managed"), "GET", "/managed", null));
-        dispatcherList.add(new DispatcherEntry(List.of("discover/managed-locator"), "GET", "/managed.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("discover/managed-manager"), "GET", "/managed.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-1"), "GET", "/managed-invalid-1", null));
-        dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-1-locator"), "GET", "/managed-invalid-1.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-1-manager"), "GET", "/managed-invalid-1.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-2"), "GET", "/managed-invalid-2", null));
-        dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-2-locator"), "GET", "/managed-invalid-2.shapetree", null));
-        dispatcherList.add(new DispatcherEntry(List.of("discover/no-locator"), "GET", "/no-locator", null));
+        dispatcherList.add(new DispatcherEntry(List.of("discover/managed-invalid-2-manager"), "GET", "/managed-invalid-2.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("discover/no-manager"), "GET", "/no-manager", null));
 
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
     }
@@ -54,10 +54,10 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
         URL targetResource = toUrl(server, "/unmanaged");
 
         // Use the discover operation to see if the root container is managed
-        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
+        ShapeTreeManager manager = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
 
         // The root container isn't managed so check to ensure that a NULL value is returned
-        Assertions.assertNull(locator);
+        Assertions.assertNull(manager);
     }
 
     @Order(2)
@@ -70,36 +70,36 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
 
         URL targetResource = toUrl(server, "/managed");
 
-        // Perform a discover on a resource that has a shape tree locator already planted
-        ShapeTreeLocator locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
+        // Perform a discover on a resource that has a shape tree manager already planted
+        ShapeTreeManager manager = this.shapeTreeClient.discoverShapeTree(this.context, targetResource).orElse(null);
 
         // Ensure that it was planted successfully
-        Assertions.assertNotNull(locator);
-        Assertions.assertEquals(1, locator.getLocations().size());
+        Assertions.assertNotNull(manager);
+        Assertions.assertEquals(1, manager.getAssignments().size());
 
-        ShapeTreeLocation location = locator.getLocations().get(0);
+        ShapeTreeAssignment assignment = manager.getAssignments().get(0);
 
-        Assertions.assertEquals(new URL("http://www.example.com/ns/ex#DataTree"), location.getShapeTree());
-        Assertions.assertEquals(targetResource.toString(), location.getManagedResource().toString());
-        Assertions.assertEquals(location.getUrl(), location.getRootShapeTreeLocation());
-        Assertions.assertEquals(toUrl(server, "/managed").toString() + "#set", location.getFocusNode().toString());
-        Assertions.assertEquals("http://www.example.com/ns/ex#DataSetShape", location.getShape().toString());
+        Assertions.assertEquals(new URL("http://www.example.com/ns/ex#DataTree"), assignment.getShapeTree());
+        Assertions.assertEquals(targetResource.toString(), assignment.getManagedResource().toString());
+        Assertions.assertEquals(assignment.getUrl(), assignment.getRootAssignment());
+        Assertions.assertEquals(toUrl(server, "/managed").toString() + "#set", assignment.getFocusNode().toString());
+        Assertions.assertEquals("http://www.example.com/ns/ex#DataSetShape", assignment.getShape().toString());
 
     }
 
     @Order(3)
     @SneakyThrows
     @Test
-    @Label("Fail to discover managed resource with multiple locators")
-    void failToDiscoverDueToMultipleLocators() {
+    @Label("Fail to discover managed resource with multiple managers")
+    void failToDiscoverDueToMultipleManagers() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
         URL targetResource = toUrl(server, "/managed-invalid-1");
 
-        // If a locator resource has multiple shapetree locators it is considered invalid
+        // If a manager resource has multiple shapetree managers it is considered invalid
         Assertions.assertThrows(IllegalStateException.class, () -> {
-            Optional<ShapeTreeLocator> locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+            Optional<ShapeTreeManager> manager = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
         });
 
     }
@@ -107,16 +107,16 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
     @Order(4)
     @SneakyThrows
     @Test
-    @Label("Fail to discover managed resource with no locators")
-    void failToDiscoverDueToNoLocators() {
+    @Label("Fail to discover managed resource with no managers")
+    void failToDiscoverDueToNoManagers() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
         URL targetResource = toUrl(server, "/managed-invalid-2");
 
-        // If a locator resource exists, but has no locators it is considered invalid
+        // If a manager resource exists, but has no managers it is considered invalid
         Assertions.assertThrows(IllegalStateException.class, () -> {
-            Optional<ShapeTreeLocator> locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+            Optional<ShapeTreeManager> manager = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
         });
 
     }
@@ -125,15 +125,15 @@ public class AbstractHttpClientDiscoverTests extends AbstractHttpClientTests {
     @SneakyThrows
     @Test
     @Label("Discover server doesn't support ShapeTrees")
-    void failToDiscoverDueToNoLocatorLink() {
+    void failToDiscoverDueToNoManagerLink() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        URL targetResource = toUrl(server, "/no-locator");
+        URL targetResource = toUrl(server, "/no-manager");
 
-        // If a locator resource exists, but has no locators it is considered invalid
+        // If a manager resource exists, but has no managers it is considered invalid
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            Optional<ShapeTreeLocator> locator = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
+            Optional<ShapeTreeManager> manager = this.shapeTreeClient.discoverShapeTree(this.context, targetResource);
         });
     }
 }

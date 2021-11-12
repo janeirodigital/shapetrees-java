@@ -1,9 +1,6 @@
 package com.janeirodigital.shapetrees.core.models;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.SchemaCache;
-import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
@@ -27,7 +24,6 @@ import org.apache.jena.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
@@ -47,7 +43,6 @@ public class ShapeTree {
     final private URL expectedResourceType;
     final private URL shape;
     final private String label;
-    final private URL supports;
     @NotNull
     final private List<URL> contains;
     @NotNull
@@ -58,7 +53,6 @@ public class ShapeTree {
                      @NotNull URL expectedResourceType,
                      String label,
                      URL shape,
-                     URL supports,
                      @NotNull List<ReferencedShapeTree> references,
                      @NotNull List<URL> contains) {
         this.externalDocumentLoader = externalDocumentLoader;
@@ -66,16 +60,15 @@ public class ShapeTree {
         this.expectedResourceType = expectedResourceType;
         this.label = label;
         this.shape = shape;
-        this.supports = supports;
         this.references = references;
         this.contains = contains;
     }
 
-    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource) throws ShapeTreeException {
+    public ValidationResult validateResource(ManageableResource targetResource) throws ShapeTreeException {
         return validateResource(targetResource, null);
     }
 
-    public ValidationResult validateResource(ShapeTreeResource.Primary targetResource, URL focusNodeUrl) throws ShapeTreeException {
+    public ValidationResult validateResource(ManageableResource targetResource, URL focusNodeUrl) throws ShapeTreeException {
         Graph bodyGraph = null;
 
         if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
@@ -191,7 +184,7 @@ public class ShapeTree {
         }
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource) throws ShapeTreeException {
+    public ValidationResult validateContainedResource(ManageableResource containedResource) throws ShapeTreeException {
 
         if (this.contains == null || this.contains.isEmpty()) { // TODO: say it can't be null?
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
@@ -202,7 +195,7 @@ public class ShapeTree {
 
     }
 
-    public ValidationResult validateContainedResource(ShapeTreeResource.Primary containedResource, URL targetShapeTreeUrl, URL focusNodeUrl) throws ShapeTreeException {
+    public ValidationResult validateContainedResource(ManageableResource containedResource, URL targetShapeTreeUrl, URL focusNodeUrl) throws ShapeTreeException {
 
         Graph containedResourceGraph = null;
 // !! containedResource.getGraph().get();

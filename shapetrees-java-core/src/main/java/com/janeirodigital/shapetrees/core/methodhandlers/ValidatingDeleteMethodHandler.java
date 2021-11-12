@@ -1,7 +1,11 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ResourceAccessor;
+import com.janeirodigital.shapetrees.core.ManageableInstance;
+import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
 import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 
 import java.util.Optional;
@@ -14,13 +18,13 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
 
     @Override
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
-            ShapeTreeContext shapeTreeContext = buildContextFromRequest(shapeTreeRequest);
-            ShapeTreeResource rc = new ShapeTreeResource(shapeTreeRequest.getUrl(), this.resourceAccessor, shapeTreeContext);
+            ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
+            ManageableInstance targetInstance = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
 
-            if (rc.wasCreatedFromMetadata() && rc.getMetadataResourceFork().wasSuccessful()) {
-                // If the DELETE request is for an existing shapetree metadata resource,
+            if (targetInstance.wasRequestForManager() && targetInstance.getManagerResource().isExists()) {
+                // If the DELETE request is for an existing shapetree manager resource,
                 // it must be evaluated to determine if unplanting is necessary
-                return Optional.of(manageShapeTree(rc, shapeTreeRequest));
+                return Optional.of(manageShapeTree(targetInstance, shapeTreeRequest));
             }
 
             // Reaching this point means validation was not necessary
