@@ -64,13 +64,9 @@ public class ShapeTreeResource {
 
     /**
      * Clears the local shape tree resource cache
-     * @throws ShapeTreeException
      */
     public static void
-    clearCache() throws ShapeTreeException {
-        if (localResourceCache == null) {
-            throw new ShapeTreeException(500, "Cache is not initialized");
-        }
+    clearCache() {
         localResourceCache.clear();
     }
 

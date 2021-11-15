@@ -222,13 +222,9 @@ public class ShapeTreeFactory {
 
     /**
      * Clears the local shape tree cache
-     * @throws ShapeTreeException
      */
     public static void
-    clearCache() throws ShapeTreeException {
-        if (localShapeTreeCache == null) {
-            throw new ShapeTreeException(500, "Cache is not initialized");
-        }
+    clearCache() {
         localShapeTreeCache.clear();
     }
 
