@@ -22,8 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 class ShapeTreeParsingTests {
 
-    private static RequestMatchingFixtureDispatcher dispatcher = null;
     private static HttpExternalDocumentLoader httpExternalDocumentLoader;
+    private static RequestMatchingFixtureDispatcher dispatcher = null;
+    protected static MockWebServer server = null;
 
     public ShapeTreeParsingTests() {
         httpExternalDocumentLoader = new HttpExternalDocumentLoader();
@@ -74,14 +75,14 @@ class ShapeTreeParsingTests {
                 new DispatcherEntry(List.of("parsing/cycle-ttl"), "GET", "/static/shapetrees/parsing/cycle", null),
                 new DispatcherEntry(List.of("http/404"), "GET", "/static/shapetrees/invalid/shapetree-missing", null)
         ));
+        server = new MockWebServer();
+        server.setDispatcher(dispatcher);
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Reuse previously cached shapetree")
     void parseShapeTreeReuse() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree projectShapeTree1 = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree#ProjectTree"));
         Assertions.assertNotNull(projectShapeTree1);
         ShapeTree projectShapeTree2 = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree#ProjectTree"));
@@ -96,8 +97,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Ensure reuse within recursion")
     void ensureCacheWithRecursion() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         // Retrieve the MilestoneTree shapetree (which is referred to by the ProjectTree shapetree)
         ShapeTree milestoneShapeTree1 = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-virtual#MilestoneTree"));
         Assertions.assertNotNull(milestoneShapeTree1);
@@ -118,8 +117,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Parse Tree with references")
     void parseShapeTreeReferences() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-virtual#ProjectTree"));
         Assertions.assertNotNull(projectShapeTree);
         assertFalse(projectShapeTree.getReferences().isEmpty());
@@ -129,8 +126,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Parse Tree with contains")
     void parseShapeTreeContains() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree#ProjectTree"));
         Assertions.assertNotNull(projectShapeTree);
         assertTrue(projectShapeTree.getContains().contains(toUrl(server,"/static/shapetrees/project/shapetree#MilestoneTree")));
@@ -140,22 +135,17 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Parse Tree that allows reserved resource types")
     void parseShapeTreeContainsReservedTypes() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree reservedShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/reserved/shapetree#EverythingTree"));
         Assertions.assertNotNull(reservedShapeTree);
         assertTrue(reservedShapeTree.getContains().contains(toUrl(server,"http://www.w3.org/ns/shapetrees#ResourceTree")));
         assertTrue(reservedShapeTree.getContains().contains(toUrl(server,"http://www.w3.org/ns/shapetrees#NonRDFResourceTree")));
-        // TODO - vocab at w3.org has a bug that causes the below line to fail - fixed in latest spec - waiting on push to update w3.org to re-add this
-        // assertTrue(reservedShapeTree.getContains().contains(toUrl(server,"https://www.w3.org/ns/shapetrees#ContainerTree")));
+        assertTrue(reservedShapeTree.getContains().contains(toUrl(server,"http://www.w3.org/ns/shapetrees#ContainerTree")));
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Traverse References")
     void testTraverseReferences() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-virtual#ProjectTree"));
         projectShapeTree.getReferencedShapeTrees();
         Assertions.assertTrue(projectShapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST).hasNext());
@@ -166,8 +156,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with missing expectsType")
     void failToParseMissingExpectsType() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
             ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/missing-expects-type#DataRepositoryTree"))
         );
@@ -177,8 +165,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with st:contains but expects a non-container resource")
     void failToParseBadExpectsTypeOnContains() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/contains-with-bad-expects-type#DataRepositoryTree"))
         );
@@ -191,8 +177,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with invalid object type")
     void failToParseBadObjectTypeOnContains() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/bad-object-type#DataRepositoryTree"))
         );
@@ -202,8 +186,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse missing shape tree")
     void failToParseMissingShapeTree() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/shapetree-missing#missing"))
         );
@@ -212,8 +194,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with invalid content type")
     void failToParseShapeTreeWithInvalidContentType() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-bad-content-type#bad"))
         );
@@ -223,8 +203,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with invalid contains objects")
     void failToParseInvalidContainsObjects() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
             ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/shapetree-invalid-contains-objects#DataRepositoryTree"))
         );
@@ -235,8 +213,6 @@ class ShapeTreeParsingTests {
     @DisplayName("Parse st:contains across multiple documents")
     void parseContainsAcrossMultipleDocuments() {
         // Parse for recursive st:contains (use contains across multiple documents)
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree containsShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/parsing/contains-1#1ATree"));
 
         // Check the shape tree cache to ensure every contains shape tree was visited, parsed, and cached
@@ -268,8 +244,6 @@ class ShapeTreeParsingTests {
     @DisplayName("Parse st:references across multiple documents")
     void parseReferencesAcrossMultipleDocuments() {
         // Parse for recursive st:references (use references across multiple documents)
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree referencesShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/parsing/references-1#1ATree"));
 
         // Check the shape tree cache to ensure every referenced shape tree was visited, parsed, and cached
@@ -301,8 +275,6 @@ class ShapeTreeParsingTests {
     @DisplayName("Parse st:contains and st:references across multiple documents")
     void parseContainsAndReferencesAcrossMultipleDocuments() {
         // Parse for mix of st:contains and references
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree referencesShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/parsing/mixed-1#1ATree"));
 
         // Check the shape tree cache to ensure every referenced shape tree was visited, parsed, and cached
@@ -336,10 +308,7 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Parse shape tree hierarchy with circular reference")
     void parseWithCircularReference() {
-
         // Ensure the parser correctly handles circular references
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree circularShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/parsing/cycle#1ATree"));
 
         Assertions.assertEquals(12, ShapeTreeFactory.getLocalShapeTreeCache().size());

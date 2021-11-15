@@ -22,9 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AbstractResourceAccessorTests {
 
-    // Dispatcher in here
-    // Move tests in here
-
     protected ResourceAccessor resourceAccessor = null;
     protected final ShapeTreeContext context;
     protected static MockWebServer server = null;
