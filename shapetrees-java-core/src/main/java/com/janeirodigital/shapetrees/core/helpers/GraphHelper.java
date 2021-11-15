@@ -177,6 +177,22 @@ public class GraphHelper {
         }
     }
 
+    /**
+     * Remove a fragment from a URL. Returns the same URL if there is no fragment
+     * @param url to remove fragment from
+     * @return URL without fragment
+     */
+    public static URL removeUrlFragment(URL url) {
+        URI uri = urlToUri(url);
+        if (uri.getFragment() == null) { return url; }
+        try {
+            URI noFragment = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
+            return noFragment.toURL();
+        } catch (MalformedURLException | URISyntaxException ex) {
+            throw new IllegalStateException("Unable to remove fragment from URL: " + ex.getMessage());
+        }
+    }
+
     public static URL knownUrl(String urlString) {
         try {
             return new URL(urlString);

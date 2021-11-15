@@ -1,7 +1,10 @@
 package com.janeirodigital.shapetrees.core.models;
 
-import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ManageableResource;
+import com.janeirodigital.shapetrees.core.SchemaCache;
+import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -26,8 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -36,26 +39,23 @@ import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 @Getter
 @Slf4j
 public class ShapeTree {
-    private ExternalDocumentLoader externalDocumentLoader;
     @NotNull
-    final private URL id;
+    private final URL id;
     @NotNull
-    final private URL expectedResourceType;
-    final private URL shape;
-    final private String label;
+    private final URL expectedResourceType;
+    private final URL shape;
+    private final String label;
     @NotNull
-    final private List<URL> contains;
+    private final List<URL> contains;
     @NotNull
-    final private List<ReferencedShapeTree> references;
+    private final List<ShapeTreeReference> references;
 
-    public ShapeTree(ExternalDocumentLoader externalDocumentLoader,
-                     @NotNull URL id,
+    public ShapeTree(@NotNull URL id,
                      @NotNull URL expectedResourceType,
                      String label,
                      URL shape,
-                     @NotNull List<ReferencedShapeTree> references,
+                     @NotNull List<ShapeTreeReference> references,
                      @NotNull List<URL> contains) {
-        this.externalDocumentLoader = externalDocumentLoader;
         this.id = id;
         this.expectedResourceType = expectedResourceType;
         this.label = label;
@@ -108,17 +108,13 @@ public class ShapeTree {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
         }
 
-        //        if (shapeResourceUrl.getFragment() != null) {
-//            shapeResourceUrl = new URL(shapeResourceUrl.getScheme(), shapeResourceUrl.getSchemeSpecificPart(), null);
-//        }
-
         ShexSchema schema;
         if (SchemaCache.isInitialized() && SchemaCache.containsSchema(this.shape)) {
             log.debug("Found cached schema {}", this.shape);
             schema = SchemaCache.getSchema(this.shape);
         } else {
             log.debug("Did not find schema in cache {} will retrieve and parse", this.shape);
-            DocumentResponse shexShapeContents = this.externalDocumentLoader.loadExternalDocument(this.shape);
+            DocumentResponse shexShapeContents = DocumentLoaderManager.getLoader().loadExternalDocument(this.shape);
             if (shexShapeContents == null || shexShapeContents.getBody() == null || shexShapeContents.getBody().isEmpty()) {
                 throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + this.id + ") - Shape at (" + this.shape + ") is not found or is empty");
             }
@@ -254,11 +250,11 @@ public class ShapeTree {
 
     }
 
-    public Iterator<ReferencedShapeTree> getReferencedShapeTrees() throws ShapeTreeException {
+    public Iterator<ShapeTreeReference> getReferencedShapeTrees() throws ShapeTreeException {
         return getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
     }
 
-    public Iterator<ReferencedShapeTree> getReferencedShapeTrees(RecursionMethods recursionMethods) throws ShapeTreeException {
+    public Iterator<ShapeTreeReference> getReferencedShapeTrees(RecursionMethods recursionMethods) throws ShapeTreeException {
         return getReferencedShapeTreesList(recursionMethods).iterator();
     }
 
@@ -271,25 +267,25 @@ public class ShapeTree {
 
     }
 
-    private List<ReferencedShapeTree> getReferencedShapeTreesList(RecursionMethods recursionMethods) throws ShapeTreeException {
+    private List<ShapeTreeReference> getReferencedShapeTreesList(RecursionMethods recursionMethods) throws ShapeTreeException {
         if (recursionMethods.equals(RecursionMethods.BREADTH_FIRST)) {
             return getReferencedShapeTreesListBreadthFirst();
         } else {
-            List<ReferencedShapeTree> referencedShapeTrees = new ArrayList<>();
+            List<ShapeTreeReference> referencedShapeTrees = new ArrayList<>();
             return getReferencedShapeTreesListDepthFirst(this.getReferences(), referencedShapeTrees);
         }
     }
 
-    private List<ReferencedShapeTree> getReferencedShapeTreesListBreadthFirst() throws ShapeTreeException {
-        List<ReferencedShapeTree> referencedShapeTrees = new ArrayList<>();
-        Queue<ReferencedShapeTree> queue = new LinkedList<>(this.getReferences());
+    private List<ShapeTreeReference> getReferencedShapeTreesListBreadthFirst() throws ShapeTreeException {
+        List<ShapeTreeReference> referencedShapeTrees = new ArrayList<>();
+        Queue<ShapeTreeReference> queue = new LinkedList<>(this.getReferences());
 
         while (!queue.isEmpty()) {
-            ReferencedShapeTree currentShapeTree = queue.poll();
+            ShapeTreeReference currentShapeTree = queue.poll();
             referencedShapeTrees.add(currentShapeTree);
-            ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(currentShapeTree.getReferencedShapeTreeUrl());
+            ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(currentShapeTree.getReferenceUrl());
             if (shapeTree != null) {
-                List<ReferencedShapeTree> currentReferencedShapeTrees = shapeTree.getReferences();
+                List<ShapeTreeReference> currentReferencedShapeTrees = shapeTree.getReferences();
                 if (currentReferencedShapeTrees != null) {
                     queue.addAll(currentReferencedShapeTrees);
                 }
@@ -298,10 +294,10 @@ public class ShapeTree {
         return referencedShapeTrees;
     }
 
-    private List<ReferencedShapeTree> getReferencedShapeTreesListDepthFirst(List<ReferencedShapeTree> currentReferencedShapeTrees, List<ReferencedShapeTree> referencedShapeTrees) throws ShapeTreeException {
-        for (ReferencedShapeTree currentShapeTreeReference : currentReferencedShapeTrees) {
+    private List<ShapeTreeReference> getReferencedShapeTreesListDepthFirst(List<ShapeTreeReference> currentReferencedShapeTrees, List<ShapeTreeReference> referencedShapeTrees) throws ShapeTreeException {
+        for (ShapeTreeReference currentShapeTreeReference : currentReferencedShapeTrees) {
             referencedShapeTrees.add(currentShapeTreeReference);
-            ShapeTree currentReferencedShapeTree = ShapeTreeFactory.getShapeTree(currentShapeTreeReference.getReferencedShapeTreeUrl());
+            ShapeTree currentReferencedShapeTree = ShapeTreeFactory.getShapeTree(currentShapeTreeReference.getReferenceUrl());
             if (currentReferencedShapeTree != null) {
                 referencedShapeTrees = getReferencedShapeTreesListDepthFirst(currentReferencedShapeTree.getReferences(), referencedShapeTrees);
             }
@@ -309,9 +305,6 @@ public class ShapeTree {
         return referencedShapeTrees;
     }
 
-    public void setExternalDocumentLoader(ExternalDocumentLoader externalDocumentLoader) {
-        this.externalDocumentLoader = externalDocumentLoader;
-    }
 }
 
 class SortByShapeTreeContainsPriority implements Comparator<URL>, Serializable
