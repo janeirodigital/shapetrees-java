@@ -4,7 +4,7 @@ import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
 import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
 

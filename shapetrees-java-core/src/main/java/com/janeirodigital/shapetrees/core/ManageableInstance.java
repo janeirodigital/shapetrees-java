@@ -1,6 +1,5 @@
 package com.janeirodigital.shapetrees.core;
 
-import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

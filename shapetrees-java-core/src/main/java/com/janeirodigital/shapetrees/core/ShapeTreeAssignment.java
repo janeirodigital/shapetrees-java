@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core.models;
+package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.vocabularies.RdfVocabulary;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;

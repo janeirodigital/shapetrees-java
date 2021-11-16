@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.tests.clienthttp;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeAssignment;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeManager;
+import com.janeirodigital.shapetrees.core.ShapeTreeAssignment;
+import com.janeirodigital.shapetrees.core.ShapeTreeManager;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import jdk.jfr.Label;

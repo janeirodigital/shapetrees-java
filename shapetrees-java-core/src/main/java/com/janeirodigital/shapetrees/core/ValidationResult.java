@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core.models;
+package com.janeirodigital.shapetrees.core;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

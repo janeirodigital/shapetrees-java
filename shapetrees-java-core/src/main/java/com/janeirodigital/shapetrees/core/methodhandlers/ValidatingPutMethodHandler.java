@@ -3,7 +3,7 @@ package com.janeirodigital.shapetrees.core.methodhandlers;
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 
 import java.util.Optional;
 

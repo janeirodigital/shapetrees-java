@@ -6,7 +6,7 @@ import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTree;
+import com.janeirodigital.shapetrees.core.ShapeTree;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import lombok.SneakyThrows;

@@ -1,8 +1,6 @@
 package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTree;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeReference;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

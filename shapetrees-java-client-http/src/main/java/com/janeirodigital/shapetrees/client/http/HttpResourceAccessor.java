@@ -5,7 +5,7 @@ import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

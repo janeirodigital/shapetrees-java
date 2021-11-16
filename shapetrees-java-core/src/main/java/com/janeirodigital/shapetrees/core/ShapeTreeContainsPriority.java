@@ -1,0 +1,46 @@
+package com.janeirodigital.shapetrees.core;
+
+import lombok.SneakyThrows;
+
+import java.io.Serializable;
+import java.net.URL;
+import java.util.Comparator;
+
+class ShapeTreeContainsPriority implements Comparator<URL>, Serializable {
+    // Used for sorting shape trees in st:contains by most to least strict
+    @SneakyThrows
+    @Override
+    public int compare(URL stUrl1, URL stUrl2) {
+
+        ShapeTree st1 = ShapeTreeFactory.getShapeTree(stUrl1);
+        ShapeTree st2 = ShapeTreeFactory.getShapeTree(stUrl2);
+
+        Integer st1Priority = 0;
+        Integer st2Priority = 0;
+
+        if (st1.getShape() != null) {
+            st1Priority += 2;
+        }
+        if (st1.getLabel() != null) {
+            st1Priority++;
+        }
+        if (st1.getExpectedResourceType() != null) {
+            st1Priority++;
+        }
+
+        if (st2.getShape() != null) {
+            st2Priority += 2;
+        }
+        if (st2.getLabel() != null) {
+            st2Priority++;
+        }
+        if (st2.getExpectedResourceType() != null) {
+            st2Priority++;
+        }
+
+        // Reversed to ensure ordering goes from most strict to least
+        return Integer.compare(st2Priority, st1Priority);
+
+    }
+
+}

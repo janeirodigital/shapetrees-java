@@ -1,9 +1,9 @@
 package com.janeirodigital.shapetrees.tests;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeAssignment;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeManager;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeManagerDelta;
+import com.janeirodigital.shapetrees.core.ShapeTreeAssignment;
+import com.janeirodigital.shapetrees.core.ShapeTreeManager;
+import com.janeirodigital.shapetrees.core.ShapeTreeManagerDelta;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
