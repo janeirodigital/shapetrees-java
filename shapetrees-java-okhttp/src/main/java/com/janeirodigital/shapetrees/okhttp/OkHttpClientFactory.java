@@ -38,7 +38,7 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
     /**
      * Create or re-use okhttp HttpClient.
      * This fulfils the HttpClientFactory interface, so this factory can be use in
-     *   AbstractHttpClientFactory.setFactory(new OkHttpClientFactory(...));
+     *   HttpClientFactoryManager.setFactory(new OkHttpClientFactory(...));
      *
      * @param useClientShapeTreeValidation
      * @return a new or existing okhttp HttpClient

@@ -255,7 +255,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
         log.debug("HttpResourceAccessor#getResource({})", url);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
         HttpRequest req = new HttpRequest("GET", url, headers, null, null);
 
         DocumentResponse response = fetcher.fetchShapeTreeResponse(req);
@@ -280,7 +280,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
     createResource(ShapeTreeContext context, String method, URL url, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URL [{}], headers [{}]", method, url, headers.toString());
 
-        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
         ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, url, allHeaders, body, contentType));
         if (!response.isExists()) {
@@ -414,7 +414,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
         String contentType = updateResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         // [careful] updateResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         ResourceAttributes allHeaders = updateResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
         return fetcher.fetchShapeTreeResponse(new HttpRequest(method, updateResource.getUrl(), allHeaders, body, contentType));
     }
 
@@ -430,7 +430,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
     deleteResource(ShapeTreeContext context, ManagerResource deleteResource) throws ShapeTreeException {
         log.debug("deleteResource: URL [{}]", deleteResource.getUrl());
 
-        HttpClient fetcher = AbstractHttpClientFactory.getFactory().get(false);
+        HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
         ResourceAttributes allHeaders = deleteResource.getAttributes().maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", deleteResource.getUrl(), allHeaders, null, null));
         int respCode = response.getStatusCode();

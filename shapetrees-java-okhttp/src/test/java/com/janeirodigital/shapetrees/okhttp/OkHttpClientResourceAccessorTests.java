@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
 import com.janeirodigital.shapetrees.tests.clienthttp.AbstractHttpClientResourceAccessorTests;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -15,7 +15,7 @@ class OkHttpClientResourceAccessorTests extends AbstractHttpClientResourceAccess
         super();
 
         this.factory = new OkHttpClientFactory(false, new BlackWhiteList(null, null));
-        AbstractHttpClientFactory.setFactory(this.factory);
+        HttpClientFactoryManager.setFactory(this.factory);
         this.skipShapeTreeValidation(false);  // Get an OkHttpClient from the HttpClientFactory set above
 
     }
