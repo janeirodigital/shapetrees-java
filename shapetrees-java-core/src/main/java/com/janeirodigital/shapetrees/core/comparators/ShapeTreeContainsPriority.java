@@ -1,12 +1,15 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.comparators;
 
+import com.janeirodigital.shapetrees.core.ShapeTree;
+import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import lombok.SneakyThrows;
 
 import java.io.Serializable;
 import java.net.URL;
 import java.util.Comparator;
 
-class ShapeTreeContainsPriority implements Comparator<URL>, Serializable {
+public class
+ShapeTreeContainsPriority implements Comparator<URL>, Serializable {
     // Used for sorting shape trees in st:contains by most to least strict
     @SneakyThrows
     @Override

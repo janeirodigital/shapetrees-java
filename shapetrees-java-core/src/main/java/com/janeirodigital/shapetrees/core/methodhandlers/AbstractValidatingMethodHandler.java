@@ -1,14 +1,13 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
 import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.comparators.ResourceTypeAssignmentPriority;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 
-import java.io.Serializable;
 import java.net.URL;
 import java.util.*;
 
@@ -230,7 +229,7 @@ public abstract class AbstractValidatingMethodHandler {
             // TODO - Provide a configurable maximum limit on contained resources for a recursive plant, generate ShapeTreeException
             List<ManageableInstance> containedResources = this.resourceAccessor.getContainedInstances(shapeTreeContext, manageableInstance.getManageableResource().getUrl());
             if (!containedResources.isEmpty()) {
-                Collections.sort(containedResources, new SortByShapeTreeResourceType());  // Evaluate containers, then resources
+                Collections.sort(containedResources, new ResourceTypeAssignmentPriority());  // Evaluate containers, then resources
                 for (ManageableInstance containedResource : containedResources) {
                     validationResponse = assignShapeTreeToResource(containedResource, shapeTreeContext, null, rootAssignment, managingAssignment, null);
                     if (validationResponse.isPresent()) { return validationResponse; }
@@ -274,7 +273,7 @@ public abstract class AbstractValidatingMethodHandler {
             // If the container is not empty
             if (!containedResources.isEmpty()) {
                 // Sort contained resources so that containers are evaluated first, then resources
-                Collections.sort(containedResources, new SortByShapeTreeResourceType());
+                Collections.sort(containedResources, new ResourceTypeAssignmentPriority());
                 // Perform a depth first unassignment for each contained resource
                 for (ManageableInstance containedResource : containedResources) {
                     // Recursively call this function on the contained resource
@@ -469,17 +468,3 @@ public abstract class AbstractValidatingMethodHandler {
 }
 
 
-
-class SortByShapeTreeResourceType implements Comparator<ManageableInstance>, Serializable {
-
-    // Used for sorting by shape tree resource type with the following order
-    // 1. Containers
-    // 2. Resources
-    // 3. Non-RDF Resources
-
-    @SneakyThrows // @@ These are known to be user-owned
-    public int compare (ManageableInstance a, ManageableInstance b) {
-        return a.getManageableResource().getResourceType().compareTo(b.getManageableResource().getResourceType());
-    }
-
-}

@@ -1,5 +1,6 @@
 package com.janeirodigital.shapetrees.core;
 
+import com.janeirodigital.shapetrees.core.comparators.ShapeTreeContainsPriority;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
@@ -13,7 +14,6 @@ import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
 import fr.inria.lille.shexjava.validation.RecursiveValidation;
 import fr.inria.lille.shexjava.validation.ValidationAlgorithm;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.jena.JenaRDF;
@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
