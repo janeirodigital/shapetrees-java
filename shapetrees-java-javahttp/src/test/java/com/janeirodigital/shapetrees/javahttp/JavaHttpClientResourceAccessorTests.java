@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.javahttp;
 
-import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
 import com.janeirodigital.shapetrees.tests.clienthttp.AbstractHttpClientResourceAccessorTests;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -15,7 +15,7 @@ class JavaHttpClientResourceAccessorTests extends AbstractHttpClientResourceAcce
         super();
 
         this.factory = new JavaHttpClientFactory(false);
-        AbstractHttpClientFactory.setFactory(this.factory);
+        HttpClientFactoryManager.setFactory(this.factory);
 
         this.skipShapeTreeValidation(false);  // Get a JavaHttpClient from the HttpClientFactory set above
     }

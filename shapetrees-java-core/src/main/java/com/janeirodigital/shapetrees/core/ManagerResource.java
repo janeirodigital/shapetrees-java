@@ -2,7 +2,6 @@ package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.models.ShapeTreeManager;
 import lombok.Getter;
 import org.apache.jena.graph.Graph;
 

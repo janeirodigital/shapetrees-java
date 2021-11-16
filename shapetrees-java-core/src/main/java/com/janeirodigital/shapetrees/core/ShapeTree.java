@@ -1,9 +1,6 @@
-package com.janeirodigital.shapetrees.core.models;
+package com.janeirodigital.shapetrees.core;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.ManageableResource;
-import com.janeirodigital.shapetrees.core.SchemaCache;
-import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.comparators.ShapeTreeContainsPriority;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
@@ -17,7 +14,6 @@ import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
 import fr.inria.lille.shexjava.validation.RecursiveValidation;
 import fr.inria.lille.shexjava.validation.ValidationAlgorithm;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.jena.JenaRDF;
@@ -28,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -262,7 +257,7 @@ public class ShapeTree {
     public List<URL> getPrioritizedContains() {
 
         List<URL> prioritized = new ArrayList<>(this.contains);
-        Collections.sort(prioritized, new SortByShapeTreeContainsPriority());
+        Collections.sort(prioritized, new ShapeTreeContainsPriority());
         return prioritized;
 
     }
@@ -307,30 +302,3 @@ public class ShapeTree {
 
 }
 
-class SortByShapeTreeContainsPriority implements Comparator<URL>, Serializable
-{
-    // Used for sorting shape trees in st:contains by most to least strict
-    @SneakyThrows
-    @Override
-    public int compare(URL stUrl1, URL stUrl2) {
-
-        ShapeTree st1 = ShapeTreeFactory.getShapeTree(stUrl1);
-        ShapeTree st2 = ShapeTreeFactory.getShapeTree(stUrl2);
-
-        Integer st1Priority = 0;
-        Integer st2Priority = 0;
-
-        if (st1.getShape() != null) { st1Priority += 2; }
-        if (st1.getLabel() != null) { st1Priority++; }
-        if (st1.getExpectedResourceType() != null) { st1Priority++; }
-
-        if (st2.getShape() != null) { st2Priority += 2; }
-        if (st2.getLabel() != null) { st2Priority++; }
-        if (st2.getExpectedResourceType() != null) { st2Priority++; }
-
-        // Reversed to ensure ordering goes from most strict to least
-        return Integer.compare(st2Priority, st1Priority);
-
-    }
-
-}

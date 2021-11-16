@@ -7,8 +7,8 @@ import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoa
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
-import com.janeirodigital.shapetrees.core.models.ShapeTree;
-import com.janeirodigital.shapetrees.core.models.ValidationResult;
+import com.janeirodigital.shapetrees.core.ShapeTree;
+import com.janeirodigital.shapetrees.core.ValidationResult;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import fr.inria.lille.shexjava.schema.ShexSchema;

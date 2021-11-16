@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.javahttp;
 
-import com.janeirodigital.shapetrees.client.http.AbstractHttpClientFactory;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.tests.clienthttp.AbstractHttpClientInitializeTests;
@@ -17,7 +17,7 @@ class JavaHttpClientInitializeTests extends AbstractHttpClientInitializeTests {
         super();
 
         this.factory = new JavaHttpClientFactory(false);
-        AbstractHttpClientFactory.setFactory(this.factory);
+        HttpClientFactoryManager.setFactory(this.factory);
         DocumentLoaderManager.setLoader((ExternalDocumentLoader) this.factory);
 
         this.skipShapeTreeValidation(false);  // Get an JavaHttpClient from the HttpClientFactory set above

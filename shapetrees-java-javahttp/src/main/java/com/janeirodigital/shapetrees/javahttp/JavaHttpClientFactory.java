@@ -28,7 +28,7 @@ public class JavaHttpClientFactory implements HttpClientFactory, ExternalDocumen
     /**
      * Create a new java.net.http HttpClient.
      * This fulfils the HttpClientFactory interface, so this factory can be use in
-     *   AbstractHttpClientFactory.setFactory(new JavaHttpClientFactory(...));
+     *   HttpClientFactoryManager.setFactory(new JavaHttpClientFactory(...));
      *
      * @param useShapeTreeValidation
      * @return a new or existing java.net.http HttpClient
