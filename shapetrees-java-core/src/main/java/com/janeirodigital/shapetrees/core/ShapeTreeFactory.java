@@ -11,11 +11,14 @@ import org.apache.jena.graph.Node_URI;
 import org.apache.jena.rdf.model.*;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
 /**
  * Provides a factory to look up and initialize ShapeTrees.
@@ -29,7 +32,7 @@ public class ShapeTreeFactory {
 
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
     @Getter
-    private static final Map<URL, ShapeTree> localShapeTreeCache = new HashMap<>();
+    private static final Map<URI, ShapeTree> localShapeTreeCache = new HashMap<>();
 
     /**
      * Looks up and parses the shape tree at <code>shapeTreeUrl</code>.
@@ -45,9 +48,9 @@ public class ShapeTreeFactory {
 
         log.debug("Parsing shape tree: {}", shapeTreeUrl);
 
-        if (localShapeTreeCache.containsKey(shapeTreeUrl)) {
+        if (localShapeTreeCache.containsKey(urlToUri(shapeTreeUrl))) {
             log.debug("[{}] previously cached -- returning", shapeTreeUrl.toString());
-            return localShapeTreeCache.get(shapeTreeUrl);
+            return localShapeTreeCache.get(urlToUri(shapeTreeUrl));
         }
 
         // Load the entire shape tree resource (which may contain multiple shape trees)
@@ -73,7 +76,7 @@ public class ShapeTreeFactory {
 
         ShapeTree shapeTree = new ShapeTree(shapeTreeUrl, expectsType, label, shape, references, contains);
 
-        localShapeTreeCache.put(shapeTreeUrl, shapeTree);
+        localShapeTreeCache.put(urlToUri(shapeTreeUrl), shapeTree);
 
         // Recursively parse contained shape trees
         for (URL containedUrl : contains) { getShapeTree(containedUrl); }

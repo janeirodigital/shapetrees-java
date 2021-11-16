@@ -194,7 +194,7 @@ public class ShapeTree {
     public ValidationResult validateContainedResource(ManageableResource containedResource, URL targetShapeTreeUrl, URL focusNodeUrl) throws ShapeTreeException {
 
         Graph containedResourceGraph = null;
-// !! containedResource.getGraph().get();
+
         if (containedResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
             containedResourceGraph = GraphHelper.readStringIntoGraph(urlToUri(containedResource.getUrl()),
                     containedResource.getBody(),

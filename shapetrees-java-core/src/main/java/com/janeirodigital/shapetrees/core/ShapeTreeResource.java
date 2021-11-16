@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.rdf.model.Model;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class ShapeTreeResource {
     final Model model;
 
     @Getter
-    private static final Map<URL, ShapeTreeResource> localResourceCache = new HashMap<>();
+    private static final Map<URI, ShapeTreeResource> localResourceCache = new HashMap<>();
 
     /**
      * Looks up and caches the shape tree resource at <code>resourceUrl</code>. Will used cached
@@ -42,9 +43,9 @@ public class ShapeTreeResource {
 
         resourceUrl = removeUrlFragment(resourceUrl);
 
-        if (localResourceCache.containsKey(resourceUrl)) {
+        if (localResourceCache.containsKey(urlToUri(resourceUrl))) {
             log.debug("[{}] previously cached -- returning", resourceUrl);
-            return localResourceCache.get(resourceUrl);
+            return localResourceCache.get(urlToUri(resourceUrl));
         }
 
         DocumentResponse externalDocument = DocumentLoaderManager.getLoader().loadExternalDocument(resourceUrl);
@@ -56,7 +57,7 @@ public class ShapeTreeResource {
 
         ShapeTreeResource resource = new ShapeTreeResource(resourceUrl, externalDocument.getBody(), externalDocument.getContentType().orElse("text/turtle"), model);
 
-        localResourceCache.put(resourceUrl, resource);
+        localResourceCache.put(urlToUri(resourceUrl), resource);
 
         return resource;
 
