@@ -1,0 +1,128 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX pv: <http://www.example/ns/parsing#>
+  PREFIX pr: <${SERVER_BASE}/static/shex/parsing/shex#>
+
+  <#1ATree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:contains
+      <#2ATree> ,
+      <#2DTree> ;
+    st:references
+      [
+        st:referencesShapeTree <#2ATree> ;
+        st:viaShapePath "@pr:FooShape~pv:hasTree"
+      ] ,
+      [
+        st:referencesShapeTree <#2BTree> ;
+        st:viaShapePath "@pr:FooShape~pv:hasTree"
+      ] ,
+      [
+        st:referencesShapeTree <#2CTree> ;
+        st:viaPredicate pv:hasTree
+      ] .
+
+  <#2ATree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:contains
+      <#2A1Tree> ,
+      <#2A2Tree> ;
+    st:references
+      [
+        st:referencesShapeTree <#1ATree> ;
+        st:viaPredicate pv:hasTree
+      ].
+
+  <#2A1Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource .
+
+  <#2A2Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pr:FooShape .
+
+  <#2BTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:contains
+      <#2ATree> ;
+    st:references
+      [
+        st:referencesShapeTree <#1ATree> ;
+        st:viaPredicate pv:hasTree
+      ] .
+
+  <#2B1Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pr:FooShape .
+
+  <#2CTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:references
+      [
+        st:referencesShapeTree <#2C1Tree> ;
+        st:viaShapePath "@pr:FooShape~pv:hasTree"
+      ] ,
+      [
+        st:referencesShapeTree <#2C2Tree> ;
+        st:viaPredicate pv:hasTree
+      ] ,
+      [
+        st:referencesShapeTree <#2C3Tree> ;
+        st:viaShapePath "@pr:FooShape~pv:hasTree"
+      ] .
+
+  <#2C1Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pr:FooShape .
+
+  <#2C2Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:contains
+      <#2C1Tree> ,
+      <#2C2ATree> ;
+    st:references
+      [
+        st:referencesShapeTree <#2ATree> ;
+        st:viaPredicate pv:hasTree
+      ] .
+
+  <#2C2ATree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pr:FooShape .
+
+  <#2C3Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pr:FooShape .
+
+  <#2DTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:contains
+      <#2ATree> ,
+      <#2BTree> ,
+      <#2D1Tree> .
+
+  <#2D1Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pr:FooShape .

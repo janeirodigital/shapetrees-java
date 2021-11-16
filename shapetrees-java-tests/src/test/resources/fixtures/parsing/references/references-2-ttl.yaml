@@ -1,0 +1,53 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX pr: <${SERVER_BASE}/static/shex/parsing/shex#>
+  PREFIX pv: <http://www.example/ns/parsing#>
+  PREFIX r2a: <${SERVER_BASE}/static/shapetrees/parsing/references-2A#>
+  PREFIX r2b: <${SERVER_BASE}/static/shapetrees/parsing/references-2B#>
+  PREFIX r2c: <${SERVER_BASE}/static/shapetrees/parsing/references-2C#>
+
+  <#2ATree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:references
+      [
+        st:referencesShapeTree r2a:2A1Tree ;
+        st:viaPredicate pv:hasTree
+      ],
+      [
+        st:referencesShapeTree r2a:2A2Tree ;
+        st:viaShapePath "@pr:FooShape~pv:hasTree"
+      ] .
+
+  <#2BTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:references
+      [
+        st:referencesShapeTree r2b:2B1Tree ;
+        st:viaPredicate pv:hasTree
+      ] .
+
+  <#2CTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:references
+      [
+        st:referencesShapeTree r2c:2C1Tree ;
+        st:viaShapePath "@pr:FooShape~pv:hasTree"
+      ] ,
+      [
+        st:referencesShapeTree r2c:2C2Tree ;
+        st:viaPredicate pv:hasTree
+      ] ,
+      [
+        st:referencesShapeTree r2c:2C3Tree ;
+        st:viaShapePath "@pr:FooShape~pv:hasTree"
+      ] .

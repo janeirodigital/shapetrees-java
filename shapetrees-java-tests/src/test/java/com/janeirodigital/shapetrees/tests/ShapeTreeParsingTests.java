@@ -1,6 +1,7 @@
 package com.janeirodigital.shapetrees.tests;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
@@ -11,10 +12,7 @@ import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispat
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 
@@ -24,12 +22,20 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 class ShapeTreeParsingTests {
 
-    private static RequestMatchingFixtureDispatcher dispatcher = null;
     private static HttpExternalDocumentLoader httpExternalDocumentLoader;
+    private static RequestMatchingFixtureDispatcher dispatcher = null;
+    protected static MockWebServer server = null;
 
     public ShapeTreeParsingTests() {
         httpExternalDocumentLoader = new HttpExternalDocumentLoader();
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
+    }
+
+    @BeforeEach
+    @SneakyThrows
+    void beforeEach() {
+        ShapeTreeFactory.clearCache();
+        ShapeTreeResource.clearCache();
     }
 
     @BeforeAll
@@ -47,16 +53,36 @@ class ShapeTreeParsingTests {
                 new DispatcherEntry(List.of("shapetrees/bad-object-type-shapetree-ttl"), "GET", "/static/shapetrees/invalid/bad-object-type", null),
                 new DispatcherEntry(List.of("shapetrees/invalid-contains-objects-shapetree-ttl"), "GET", "/static/shapetrees/invalid/shapetree-invalid-contains-objects", null),
                 new DispatcherEntry(List.of("shapetrees/contains-with-nonrdf-expects-type-shapetree-ttl"), "GET", "/static/shapetrees/invalid/contains-with-nonrdf-expects-type", null),
+                new DispatcherEntry(List.of("parsing/contains/contains-1-ttl"), "GET", "/static/shapetrees/parsing/contains-1", null),
+                new DispatcherEntry(List.of("parsing/contains/contains-2-ttl"), "GET", "/static/shapetrees/parsing/contains-2", null),
+                new DispatcherEntry(List.of("parsing/contains/contains-2A-ttl"), "GET", "/static/shapetrees/parsing/contains-2A", null),
+                new DispatcherEntry(List.of("parsing/contains/contains-2B-ttl"), "GET", "/static/shapetrees/parsing/contains-2B", null),
+                new DispatcherEntry(List.of("parsing/contains/contains-2C-ttl"), "GET", "/static/shapetrees/parsing/contains-2C", null),
+                new DispatcherEntry(List.of("parsing/contains/contains-2C2-ttl"), "GET", "/static/shapetrees/parsing/contains-2C2", null),
+                new DispatcherEntry(List.of("parsing/references/references-1-ttl"), "GET", "/static/shapetrees/parsing/references-1", null),
+                new DispatcherEntry(List.of("parsing/references/references-2-ttl"), "GET", "/static/shapetrees/parsing/references-2", null),
+                new DispatcherEntry(List.of("parsing/references/references-2A-ttl"), "GET", "/static/shapetrees/parsing/references-2A", null),
+                new DispatcherEntry(List.of("parsing/references/references-2B-ttl"), "GET", "/static/shapetrees/parsing/references-2B", null),
+                new DispatcherEntry(List.of("parsing/references/references-2C-ttl"), "GET", "/static/shapetrees/parsing/references-2C", null),
+                new DispatcherEntry(List.of("parsing/references/references-2C2-ttl"), "GET", "/static/shapetrees/parsing/references-2C2", null),
+                new DispatcherEntry(List.of("parsing/mixed/mixed-1-ttl"), "GET", "/static/shapetrees/parsing/mixed-1", null),
+                new DispatcherEntry(List.of("parsing/mixed/mixed-2-ttl"), "GET", "/static/shapetrees/parsing/mixed-2", null),
+                new DispatcherEntry(List.of("parsing/mixed/mixed-2A-ttl"), "GET", "/static/shapetrees/parsing/mixed-2A", null),
+                new DispatcherEntry(List.of("parsing/mixed/mixed-2B-ttl"), "GET", "/static/shapetrees/parsing/mixed-2B", null),
+                new DispatcherEntry(List.of("parsing/mixed/mixed-2C-ttl"), "GET", "/static/shapetrees/parsing/mixed-2C", null),
+                new DispatcherEntry(List.of("parsing/mixed/mixed-2C2-ttl"), "GET", "/static/shapetrees/parsing/mixed-2C2", null),
+                new DispatcherEntry(List.of("parsing/mixed/mixed-2D-ttl"), "GET", "/static/shapetrees/parsing/mixed-2D", null),
+                new DispatcherEntry(List.of("parsing/cycle-ttl"), "GET", "/static/shapetrees/parsing/cycle", null),
                 new DispatcherEntry(List.of("http/404"), "GET", "/static/shapetrees/invalid/shapetree-missing", null)
         ));
+        server = new MockWebServer();
+        server.setDispatcher(dispatcher);
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Reuse previously cached shapetree")
     void parseShapeTreeReuse() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree projectShapeTree1 = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree#ProjectTree"));
         Assertions.assertNotNull(projectShapeTree1);
         ShapeTree projectShapeTree2 = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree#ProjectTree"));
@@ -71,8 +97,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Ensure reuse within recursion")
     void ensureCacheWithRecursion() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         // Retrieve the MilestoneTree shapetree (which is referred to by the ProjectTree shapetree)
         ShapeTree milestoneShapeTree1 = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-virtual#MilestoneTree"));
         Assertions.assertNotNull(milestoneShapeTree1);
@@ -93,8 +117,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Parse Tree with references")
     void parseShapeTreeReferences() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-virtual#ProjectTree"));
         Assertions.assertNotNull(projectShapeTree);
         assertFalse(projectShapeTree.getReferences().isEmpty());
@@ -104,34 +126,26 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Parse Tree with contains")
     void parseShapeTreeContains() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree#ProjectTree"));
         Assertions.assertNotNull(projectShapeTree);
         assertTrue(projectShapeTree.getContains().contains(toUrl(server,"/static/shapetrees/project/shapetree#MilestoneTree")));
     }
 
-    /* TODO - This test currently fails due to cross-resource parsing.
     @SneakyThrows
     @Test
     @DisplayName("Parse Tree that allows reserved resource types")
     void parseShapeTreeContainsReservedTypes() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-        ShapeTree reservedShapeTree = ShapeTreeFactory.getShapeTree(getURL(server,"/static/shapetrees/reserved/shapetree#EverythingTree"));
+        ShapeTree reservedShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/reserved/shapetree#EverythingTree"));
         Assertions.assertNotNull(reservedShapeTree);
-        assertTrue(reservedShapeTree.getContains().contains(getURL(server,"http://www.w3.org/ns/shapetrees#ResourceTree")));
-        assertTrue(reservedShapeTree.getContains().contains(getURL(server,"http://www.w3.org/ns/shapetrees#NonRDFResourceTree")));
-        assertTrue(reservedShapeTree.getContains().contains(getURL(server,"https://www.w3.org/ns/shapetrees#ContainerTree")));
+        assertTrue(reservedShapeTree.getContains().contains(toUrl(server,"http://www.w3.org/ns/shapetrees#ResourceTree")));
+        assertTrue(reservedShapeTree.getContains().contains(toUrl(server,"http://www.w3.org/ns/shapetrees#NonRDFResourceTree")));
+        assertTrue(reservedShapeTree.getContains().contains(toUrl(server,"http://www.w3.org/ns/shapetrees#ContainerTree")));
     }
-     */
 
     @SneakyThrows
     @Test
     @DisplayName("Traverse References")
     void testTraverseReferences() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-virtual#ProjectTree"));
         projectShapeTree.getReferencedShapeTrees();
         Assertions.assertTrue(projectShapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST).hasNext());
@@ -142,8 +156,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with missing expectsType")
     void failToParseMissingExpectsType() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
             ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/missing-expects-type#DataRepositoryTree"))
         );
@@ -153,8 +165,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with st:contains but expects a non-container resource")
     void failToParseBadExpectsTypeOnContains() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/contains-with-bad-expects-type#DataRepositoryTree"))
         );
@@ -167,8 +177,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with invalid object type")
     void failToParseBadObjectTypeOnContains() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/bad-object-type#DataRepositoryTree"))
         );
@@ -178,8 +186,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse missing shape tree")
     void failToParseMissingShapeTree() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/shapetree-missing#missing"))
         );
@@ -188,8 +194,6 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with invalid content type")
     void failToParseShapeTreeWithInvalidContentType() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
                 ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-bad-content-type#bad"))
         );
@@ -199,11 +203,128 @@ class ShapeTreeParsingTests {
     @Test
     @DisplayName("Fail to parse shape tree with invalid contains objects")
     void failToParseInvalidContainsObjects() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () ->
             ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/invalid/shapetree-invalid-contains-objects#DataRepositoryTree"))
         );
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Parse st:contains across multiple documents")
+    void parseContainsAcrossMultipleDocuments() {
+        // Parse for recursive st:contains (use contains across multiple documents)
+        ShapeTree containsShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/parsing/contains-1#1ATree"));
+
+        // Check the shape tree cache to ensure every contains shape tree was visited, parsed, and cached
+        Assertions.assertEquals(11, ShapeTreeFactory.getLocalShapeTreeCache().size());
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-1#1ATree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2#2ATree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2#2BTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2#2CTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2A#2A1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2A#2A2Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2B#2B1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2C#2C1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2C#2C2Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2C#2C3Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/contains-2C2#2C21Tree"));
+
+        // Check the resource cache to ensure every visited resource was cached
+        Assertions.assertEquals(6, ShapeTreeResource.getLocalResourceCache().size());
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/contains-1"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/contains-2"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/contains-2A"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/contains-2B"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/contains-2C2"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/contains-2C"));
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Parse st:references across multiple documents")
+    void parseReferencesAcrossMultipleDocuments() {
+        // Parse for recursive st:references (use references across multiple documents)
+        ShapeTree referencesShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/parsing/references-1#1ATree"));
+
+        // Check the shape tree cache to ensure every referenced shape tree was visited, parsed, and cached
+        Assertions.assertEquals(11, ShapeTreeFactory.getLocalShapeTreeCache().size());
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-1#1ATree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2#2ATree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2#2BTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2#2CTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2A#2A1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2A#2A2Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2B#2B1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2C#2C1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2C#2C2Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2C#2C3Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/references-2C2#2C21Tree"));
+
+        // Check the resource cache to ensure every visited resource was cached
+        Assertions.assertEquals(6, ShapeTreeResource.getLocalResourceCache().size());
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/references-1"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/references-2"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/references-2A"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/references-2B"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/references-2C2"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/references-2C"));
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Parse st:contains and st:references across multiple documents")
+    void parseContainsAndReferencesAcrossMultipleDocuments() {
+        // Parse for mix of st:contains and references
+        ShapeTree referencesShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/parsing/mixed-1#1ATree"));
+
+        // Check the shape tree cache to ensure every referenced shape tree was visited, parsed, and cached
+        Assertions.assertEquals(13, ShapeTreeFactory.getLocalShapeTreeCache().size());
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-1#1ATree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2#2ATree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2#2BTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2#2CTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2#2DTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2A#2A1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2A#2A2Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2B#2B1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2C#2C1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2C#2C2Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2C#2C3Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2C2#2C21Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2D#2D1Tree"));
+
+        // Check the resource cache to ensure every visited resource was cached
+        Assertions.assertEquals(7, ShapeTreeResource.getLocalResourceCache().size());
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/mixed-1"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/mixed-2"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/mixed-2A"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/mixed-2B"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/mixed-2C2"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/mixed-2C"));
+        ShapeTreeResource.getLocalResourceCache().containsKey(toUrl(server, "/static/shapetrees/parsing/mixed-2D"));
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Parse shape tree hierarchy with circular reference")
+    void parseWithCircularReference() {
+        // Ensure the parser correctly handles circular references
+        ShapeTree circularShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/parsing/cycle#1ATree"));
+
+        Assertions.assertEquals(12, ShapeTreeFactory.getLocalShapeTreeCache().size());
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-1#1ATree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2#2ATree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2#2BTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2#2CTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2#2DTree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2A#2A1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2A#2A2Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2B#2B1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2C#2C1Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2C#2C2Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2C#2C3Tree"));
+        ShapeTreeFactory.getLocalShapeTreeCache().containsKey(toUrl(server,"/static/shapetrees/parsing/mixed-2D#2D1Tree"));
+
     }
 
 }
