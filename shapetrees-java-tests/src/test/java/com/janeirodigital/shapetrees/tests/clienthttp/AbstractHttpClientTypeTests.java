@@ -9,6 +9,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -50,7 +51,7 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         DocumentResponse response;
 
         // Provide target shape tree
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/containers/"), null, toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree"), "valid-container", true, null, TEXT_TURTLE);
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/containers/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree")), "valid-container", true, null, TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
         // Do not provide target shape tree
@@ -70,11 +71,11 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         DocumentResponse response;
 
         // Provide target shape tree for a resource when container shape tree is expected
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/containers/"), null, toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree"), "invalid-resource", false, null, TEXT_TURTLE);
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/containers/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree")), "invalid-resource", false, null, TEXT_TURTLE);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Provide target shape tree for a container even though what's being sent is a resource
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/containers/"), null, toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree"), "invalid-resource", false, null, TEXT_TURTLE);
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/containers/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree")), "invalid-resource", false, null, TEXT_TURTLE);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Don't provide a target shape tree at all
@@ -96,7 +97,7 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         DocumentResponse response;
 
         // Provide target shape tree
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/resources/"), null, toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree"), "valid-resource", false, null, TEXT_TURTLE);
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree")), "valid-resource", false, null, TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
         // Do not provide target shape tree
@@ -115,11 +116,11 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         DocumentResponse response;
 
         // Provide target shape tree for a container when resource shape tree is expected
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/resources/"), null, toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree"), "invalid-container", true, null, TEXT_TURTLE);
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree")), "invalid-container", true, null, TEXT_TURTLE);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Provide target shape tree for a resource even though what's being sent is a container
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/resources/"), null, toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree"), "invalid-container", true, null, TEXT_TURTLE);
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree")), "invalid-container", true, null, TEXT_TURTLE);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Don't provide a target shape tree at all
@@ -140,7 +141,7 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/non-rdf-resources/valid-non-rdf-resource.shapetree", null)); // TODO: Test: should this fail? should it have already failed?
         DocumentResponse response;
 
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/non-rdf-resources/"), null, toUrl(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree"), "valid-non-rdf-resource", false, null, "application/octet-stream");
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/non-rdf-resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree")), "valid-non-rdf-resource", false, null, "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
         response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/non-rdf-resources/"), null, null, "valid-non-rdf-resource", false, null, "application/octet-stream");
@@ -157,11 +158,11 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         DocumentResponse response;
 
         // Provide target shape tree for a resource when non-rdf-resource shape tree is expected
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/non-rdf-resources/"), null, toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree"), "invalid-non-rdf-resource", false, null, TEXT_TURTLE);
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/non-rdf-resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree")), "invalid-non-rdf-resource", false, null, TEXT_TURTLE);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Provide target shape tree for a non-rdf-resource even though what's being sent is a resource
-        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/non-rdf-resources/"), null, toUrl(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree"), "invalid-non-rdf-resource", false, null, TEXT_TURTLE);
+        response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/non-rdf-resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree")), "invalid-non-rdf-resource", false, null, TEXT_TURTLE);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Don't provide a target shape tree at all

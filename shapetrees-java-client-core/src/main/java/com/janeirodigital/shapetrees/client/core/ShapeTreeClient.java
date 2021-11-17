@@ -1,11 +1,12 @@
 package com.janeirodigital.shapetrees.client.core;
 
 import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.ShapeTreeManager;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
 import java.net.URL;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -67,8 +68,8 @@ public interface ShapeTreeClient {
      * Creates a resource via HTTP POST that has been validated against the provided shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param parentContainer The container the created resource should be created within
-     * @param focusNode The node/subject to use for validation purposes
-     * @param targetShapeTree The shape tree the body should be validated by
+     * @param focusNodes One or more nodes/subjects to use as the focus for shape validation
+     * @param targetShapeTrees One or more target shape trees the resource should be validated by
      * @param proposedName Proposed resource name (aka Slug) for the resulting resource
      * @param isContainer Specifies whether the newly created resource should be created as a container or not
      * @param bodyString String representation of body of the created resource
@@ -76,44 +77,44 @@ public interface ShapeTreeClient {
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
      */
-    DocumentResponse postManagedInstance(ShapeTreeContext context, URL parentContainer, URL focusNode, URL targetShapeTree, String proposedName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse postManagedInstance(ShapeTreeContext context, URL parentContainer, List<URL> focusNodes, List<URL> targetShapeTrees, String proposedName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Creates a resource via HTTP PUT that has been validated against the provided target shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param targetResource The target resource to be created or updated
-     * @param focusNode The node/subject to use for validation purposes
-     * @param targetShapeTree The shape tree that a proposed resource to be created should be validated against
+     * @param focusNodes One or more nodes/subjects to use as the focus for shape validation
+     * @param targetShapeTrees The shape trees that a proposed resource to be created should be validated against
      * @param isContainer Specifies whether a newly created resource should be created as a container or not
      * @param bodyString String representation of the body of the resource to create or update
      * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
      */
-    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, URL focusNode, URL targetShapeTree, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, List<URL> focusNodes, List<URL> targetShapeTrees, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PUT that has been validated against an associated shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param targetResource The target resource to be created or updated
-     * @param focusNode The node/subject to use for validation purposes
+     * @param focusNodes One or more nodes/subjects to use as the focus for shape validation
      * @param bodyString String representation of the body of the resource to create or update
      * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
      */
-    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, List<URL> focusNodes, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PATCH that has been validated against an associated shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param targetResource The target resource to be created or updated
-     * @param focusNode The node/subject to use for validation purposes
+     * @param focusNodes One or more nodes/subjects to use as the focus for shape validation
      * @param patchString SPARQL Update statement to use in patching the resource
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
      */
-    DocumentResponse patchManagedInstance(ShapeTreeContext context, URL targetResource, URL focusNode, String patchString) throws ShapeTreeException;
+    DocumentResponse patchManagedInstance(ShapeTreeContext context, URL targetResource, List<URL> focusNodes, String patchString) throws ShapeTreeException;
 
     /**
      * Deletes an existing resource.  Provided as a convenience - no validation is performed

@@ -138,7 +138,8 @@ class ShapeTreeValidationTests {
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
 
         // Validate shape with focus node
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), toUrl(server, "/validation/valid-resource#foo"));
+        List<URL> focusNodeUrls = List.of(toUrl(server, "/validation/valid-resource#foo"));
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), focusNodeUrls);
         Assertions.assertTrue(result.isValid());
 
         // Validate shape without focus node
@@ -158,7 +159,8 @@ class ShapeTreeValidationTests {
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
 
         // Pass in body content that will fail validation of the shape associated with FooTree
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getInvalidFooBodyGraph(toUrl(server, "/validation/valid-resource")), toUrl(server, "/validation/valid-resource#foo"));
+        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getInvalidFooBodyGraph(toUrl(server, "/validation/valid-resource")), focusNodeUrls);
         Assertions.assertFalse(result.isValid());
 
     }
@@ -176,7 +178,8 @@ class ShapeTreeValidationTests {
         Graph fooBodyGraph = getFooBodyGraph(toUrl(server, "/validation/valid-resource"));
 
         // Catch exception thrown when a shape in a shape tree cannot be found
-        Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, fooBodyGraph, toUrl(server, "/validation/valid-resource#foo")));
+        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
+        Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, fooBodyGraph, focusNodeUrls));
 
     }
 
@@ -193,7 +196,8 @@ class ShapeTreeValidationTests {
         Graph fooBodyGraph = getFooBodyGraph(toUrl(server, "/validation/valid-resource"));
 
         // Catch exception thrown when a shape in a shape tree is invalid
-        Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, fooBodyGraph, toUrl(server, "/validation/valid-resource#foo")));
+        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
+        Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, fooBodyGraph, focusNodeUrls));
 
     }
 
@@ -208,11 +212,12 @@ class ShapeTreeValidationTests {
         // so it should return an error when using to validate
         ShapeTree noShapeValidationTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#NoShapeValidationTree"));
         String graphTtl = "<#a> <#b> <#c> .";
+        List<URL> focusNodeUrls = List.of(toUrl(server,"http://a.example/b/c.d#a"));
         StringReader sr = new StringReader(graphTtl);
         Model model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, sr, "http://example.com/", Lang.TTL);
 
-        Assertions.assertThrows(ShapeTreeException.class, () -> noShapeValidationTree.validateGraph(model.getGraph(), new URL("http://a.example/b/c.d#a")));
+        Assertions.assertThrows(ShapeTreeException.class, () -> noShapeValidationTree.validateGraph(model.getGraph(), focusNodeUrls));
     }
 
     @SneakyThrows
@@ -228,7 +233,8 @@ class ShapeTreeValidationTests {
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
 
         // Validate shape with focus node
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), toUrl(server, "/validation/valid-resource#foo"));
+        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), focusNodeUrls);
         Assertions.assertTrue(result.isValid());
 
     }
@@ -247,7 +253,8 @@ class ShapeTreeValidationTests {
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
 
         // Validate shape with focus node
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), toUrl(server, "/validation/valid-resource#foo"));
+        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), focusNodeUrls);
         Assertions.assertTrue(result.isValid());
 
     }
