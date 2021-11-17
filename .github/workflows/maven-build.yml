@@ -37,8 +37,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          key: ${{ runner.os }}-v02-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-v02-m2
       - name: Build with Maven and Analyze with Sonar
         run: mvn -B clean verify --file pom.xml -s ${{ github.workspace }}/settings.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=xformativ_shapetrees-java
         env:
