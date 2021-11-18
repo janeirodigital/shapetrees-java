@@ -37,7 +37,7 @@ class ShapeTreeManagerTests {
     }
 
     @BeforeAll
-    static void beforeAll() throws MalformedURLException {
+    static void beforeAll() throws MalformedURLException, ShapeTreeException {
 
         dispatcher = new RequestMatchingFixtureDispatcher(List.of(
                 new DispatcherEntry(List.of("shapetrees/manager-shapetree-ttl"), "GET", "/static/shapetrees/managers/shapetree", null)
@@ -75,7 +75,7 @@ class ShapeTreeManagerTests {
                 toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree"),
                 toUrl(server, "/data/container/"),
                 toUrl(server, "/data/container/.shapetree#ln1"),
-                toUrl(server, "/data/container/#container"),
+                null,
                 null,
                 toUrl(server, "/data/container/.shapetree#ln1"));
 
@@ -83,7 +83,7 @@ class ShapeTreeManagerTests {
                 toUrl(server, "/static/shapetrees/managers/shapetree#ContainingTree"),
                 toUrl(server, "/data/container/"),
                 toUrl(server, "/data/container/.shapetree#ln2"),
-                toUrl(server, "/data/container/#container"),
+                null,
                 null,
                 toUrl(server, "/data/container/.shapetree#ln2"));
 
@@ -91,7 +91,7 @@ class ShapeTreeManagerTests {
                 toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree2"),
                 toUrl(server, "/data/container/"),
                 toUrl(server, "/data/container/.shapetree#ln3"),
-                toUrl(server, "/data/container/#container"),
+                null,
                 null,
                 toUrl(server, "/data/container/.shapetree#ln3"));
 
@@ -136,29 +136,40 @@ class ShapeTreeManagerTests {
         Assertions.assertThrows( ShapeTreeException.class, () -> { manager.addAssignment(assignment1); });
     }
 
-    @SneakyThrows
     @Test
-    @DisplayName("Fail to add assignment with Malformed URLs")
-    void failToAddAssignmentWithBadUrls() {
+    @DisplayName("Fail to add assignment with certain null values")
+    void failToAddAssignmentWithBadValues() {
 
-        Assertions.assertThrows( MalformedURLException.class, () -> {
-            ShapeTreeAssignment assignmentWithNullUrl = new ShapeTreeAssignment(
-                    new URL("https://tree.example/tree#TreeThree"),
+        Assertions.assertThrows(ShapeTreeException.class, () -> {
+            new ShapeTreeAssignment(
+                    null,
                     new URL("https://site.example/resource"),
-                    new URL(null),
+                    null,
                     new URL("https://site.example/resource#node"),
                     new URL("https://shapes.example/schema#ShapeThree"),
                     new URL("https://site.example/resource.shapetree#ln3"));
         });
 
-        Assertions.assertThrows( MalformedURLException.class, () -> {
-            ShapeTreeAssignment assignmentWithNullRoot = new ShapeTreeAssignment(
+        Assertions.assertThrows( ShapeTreeException.class, () -> {
+            // focus node with no shape
+            new ShapeTreeAssignment(
                     new URL("https://tree.example/tree#TreeThree"),
                     new URL("https://site.example/resource"),
                     new URL("https://site.example/resource.shapetree#ln3"),
                     new URL("https://site.example/resource#node"),
+                    null,
+                    new URL("https://site.example/resource.shapetree#ln3"));
+        });
+
+        Assertions.assertThrows( ShapeTreeException.class, () -> {
+            // shape with no focus node
+            new ShapeTreeAssignment(
+                    new URL("https://tree.example/tree#TreeThree"),
+                    new URL("https://site.example/resource"),
+                    new URL("https://site.example/resource.shapetree#ln3"),
+                    null,
                     new URL("https://shapes.example/schema#ShapeThree"),
-                    new URL("urn:cool:names:specification:what:evs:rdf:4.1.2"));
+                    new URL("https://site.example/resource.shapetree#ln3"));
         });
 
     }

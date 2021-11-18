@@ -2,6 +2,7 @@ package com.janeirodigital.shapetrees.tests.clienthttp;
 
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ShapeTreeManager;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import lombok.SneakyThrows;
@@ -111,9 +112,10 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetShapeTree = toUrl(server, "/static/shapetrees/missing/shapetree#NonExistentTree");
         URL focusNode = toUrl(server, "/data/#repository");
 
-        // Plant the data repository on newly created data container
-        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
-        Assertions.assertEquals(500, response.getStatusCode());
+        // Plant will fail and throw an exception when the shape tree to plant cannot be looked up
+        Assertions.assertThrows(ShapeTreeException.class, () -> {
+            DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
+        });
 
     }
 
@@ -197,12 +199,10 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         URL targetResource = toUrl(server, "/data/projects/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
-        URL focusNode = toUrl(server, "/data/projects/#collection");
 
         // Plant the second shape tree (ProjectCollectionTree) on /data/projects/
-        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
+        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);
         Assertions.assertEquals(201, response.getStatusCode());
-
 
     }
 

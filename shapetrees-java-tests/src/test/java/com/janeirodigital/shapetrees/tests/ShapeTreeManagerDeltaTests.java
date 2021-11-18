@@ -283,7 +283,7 @@ class ShapeTreeManagerDeltaTests {
 
     }
 
-    private ShapeTreeAssignment duplicateAssignment(ShapeTreeAssignment assignment, final URL shapeTree, final URL focusNode) throws MalformedURLException {
+    private ShapeTreeAssignment duplicateAssignment(ShapeTreeAssignment assignment, final URL shapeTree, final URL focusNode) throws MalformedURLException, ShapeTreeException {
 
         ShapeTreeAssignment duplicateAssignment = new ShapeTreeAssignment(
                 shapeTree != null ? shapeTree : assignment.getShapeTree(),
