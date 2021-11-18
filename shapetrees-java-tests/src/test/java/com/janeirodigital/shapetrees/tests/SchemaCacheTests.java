@@ -47,7 +47,7 @@ public class SchemaCacheTests {
     }
 
     @Test
-    @Order(0)
+    @Order(1)
     void testFailToOperateOnUninitializedCache() throws MalformedURLException, ShapeTreeException {
 
         assertFalse(SchemaCache.isInitialized());
@@ -77,7 +77,7 @@ public class SchemaCacheTests {
     }
 
     @Test
-    @Order(1)
+    @Order(2)
     void testInitializeCache() throws MalformedURLException, ShapeTreeException {
         SchemaCache.initializeCache();
         assertTrue(SchemaCache.isInitialized());
@@ -85,7 +85,7 @@ public class SchemaCacheTests {
     }
 
     @Test
-    @Order(2)
+    @Order(3)
     void testPreloadCache() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -95,7 +95,7 @@ public class SchemaCacheTests {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void testClearPutGet() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -110,7 +110,7 @@ public class SchemaCacheTests {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     void testNullOnCacheContains() throws MalformedURLException, ShapeTreeException {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);

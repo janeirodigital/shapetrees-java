@@ -37,14 +37,14 @@ public class ShapeTreeManagerDelta {
         delta.removedAssignments = new ArrayList<>();
 
 
-        if (updatedManager == null || updatedManager.getAssignments() == null || updatedManager.getAssignments().isEmpty()) {
+        if (updatedManager == null || updatedManager.getAssignments().isEmpty()) {
             // All assignments have been removed in the updated manager, so any existing assignments should
             // similarly be removed. No need for further comparison.
             delta.removedAssignments = existingManager.getAssignments();
             return delta;
         }
 
-        if (existingManager == null || existingManager.getAssignments() == null || existingManager.getAssignments().isEmpty()) {
+        if (existingManager == null || existingManager.getAssignments().isEmpty()) {
             // This existing manager doesn't have any assignments (which means it shouldn't exist)
             // Anything in the updated manager is being added as new. No need for further comparison.
             delta.updatedAssignments = updatedManager.getAssignments();

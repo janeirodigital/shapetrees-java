@@ -346,7 +346,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         if (!atRootOfPlantHierarchy(rootAssignment, manageableResource)) {
             // Mint a new assignment URL, since it wouldn't have been passed in the initial request body
-            assignmentUrl = shapeTreeManager.mintAssignment();
+            assignmentUrl = shapeTreeManager.mintAssignmentUrl();
         }
 
         // Build the managed resource assignment

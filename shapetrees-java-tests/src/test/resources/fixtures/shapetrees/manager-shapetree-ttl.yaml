@@ -1,0 +1,34 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+
+  <#ContainingTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:contains
+      <#ContainedTree1> ,
+      <#ContainedTree2> .
+
+  <#ContainedTree1>
+    a st:ShapeTree ;
+    st:expectsType st:Container .
+
+  <#ContainedTree2>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:contains <#ContainedTree3> .
+
+  <#ContainedTree3>
+    a st:ShapeTree ;
+    st:expectsType st:Resource .
+
+  <#NonContainingTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource .
+
+  <#NonContainingTree2>
+    a st:ShapeTree ;
+    st:expectsType st:Resource .

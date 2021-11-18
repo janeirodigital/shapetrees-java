@@ -120,7 +120,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Initialize a shape tree assignment based on the supplied parameters
-        URL assignmentUrl = manager.mintAssignment();
+        URL assignmentUrl = manager.mintAssignmentUrl();
         ShapeTreeAssignment assignment = new ShapeTreeAssignment(targetShapeTree,
                                                                  targetResource,
                                                                  assignmentUrl,
