@@ -97,7 +97,7 @@ public class RequestHelper {
     public static List<URL>
     getIncomingFocusNodes(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
         final List<String> focusNodeStrings = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.FOCUS_NODE.getValue());
-        final List<URL> focusNodeUrls = new ArrayList<URL>();
+        final List<URL> focusNodeUrls = new ArrayList<>();
         if (!focusNodeStrings.isEmpty()) {
             for (String focusNodeUrlString : focusNodeStrings) {
                 try {
@@ -120,7 +120,7 @@ public class RequestHelper {
     public static List<URL>
     getIncomingTargetShapeTrees(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
         final List<String> targetShapeTreeStrings = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TARGET_SHAPETREE.getValue());
-        final List<URL> targetShapeTreeUrls = new ArrayList<URL>();
+        final List<URL> targetShapeTreeUrls = new ArrayList<>();
         if (!targetShapeTreeStrings.isEmpty()) {
             for (String targetShapeTreeUrlString : targetShapeTreeStrings) {
                 try {
