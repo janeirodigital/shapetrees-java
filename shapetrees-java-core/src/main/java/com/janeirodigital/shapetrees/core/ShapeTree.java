@@ -134,7 +134,6 @@ public class ShapeTree {
 
         ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
         Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.shape.toString()));
-        ValidationResult validationResult;
 
         if (!focusNodeUrls.isEmpty()) {  // One or more focus nodes were provided for validation
 

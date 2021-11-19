@@ -342,12 +342,10 @@ public abstract class AbstractValidatingMethodHandler {
                                               ShapeTree managingShapeTree,
                                               URL matchingFocusNode) throws ShapeTreeException {
 
-        URL assignmentUrl = null;
+        if (atRootOfPlantHierarchy(rootAssignment, manageableResource)) { return rootAssignment; }
 
-        if (!atRootOfPlantHierarchy(rootAssignment, manageableResource)) {
-            // Mint a new assignment URL, since it wouldn't have been passed in the initial request body
-            assignmentUrl = shapeTreeManager.mintAssignment();
-        }
+        // Mint a new assignment URL, since it wouldn't have been passed in the initial request body
+        URL assignmentUrl = shapeTreeManager.mintAssignmentUrl();
 
         // Build the managed resource assignment
         URL matchingNode = matchingFocusNode == null ? null : matchingFocusNode;
@@ -358,10 +356,8 @@ public abstract class AbstractValidatingMethodHandler {
                 managingShapeTree.getShape(),
                 assignmentUrl);
 
-        if (!atRootOfPlantHierarchy(rootAssignment, manageableResource)) {
-            // Add the shape tree assignment to the shape tree managed for the managed resource
-            shapeTreeManager.addAssignment(managedResourceAssignment);
-        }
+        // Add the shape tree assignment to the shape tree managed for the managed resource
+        shapeTreeManager.addAssignment(managedResourceAssignment);
 
         return managedResourceAssignment;
 

@@ -32,19 +32,35 @@ import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 @Getter
 public class ShapeTreeManager {
 
-    private URL id;
+    private final URL id;
     // Each ShapeTreeManager has one or more ShapeTreeAssignments
-    private List<ShapeTreeAssignment> assignments = new ArrayList<>();
+    private final List<ShapeTreeAssignment> assignments = new ArrayList<>();
 
-    public ShapeTreeManager(URL id) {
+    /**
+     * Constructor for a new ShapeTreeManager
+     * @param id URL of the ShapeTreeManager resource
+     */
+    public
+    ShapeTreeManager(URL id) {
         this.id = id;
     }
 
-    protected URL getUrl() {
+    /**
+     * Get the URL (identifier) of the ShapeTreeManager
+     * @return URL identifier of the ShapeTreeManager
+     */
+    protected URL
+    getUrl() {
         return this.id;
     }
 
-    public Graph getGraph() throws ShapeTreeException {
+    /**
+     * Get the ShapeTreeManager as an RDF Graph
+     * @return Graph of the ShapeTreeManager
+     * @throws ShapeTreeException
+     */
+    public Graph
+    getGraph() throws ShapeTreeException {
 
         Graph managerGraph = GraphHelper.getEmptyGraph();
         String managerSubject = this.getUrl().toString();
@@ -76,14 +92,16 @@ public class ShapeTreeManager {
         return managerGraph;
     }
 
-    public void addAssignment(ShapeTreeAssignment assignment) throws ShapeTreeException {
+    /**
+     * Add a {@link com.janeirodigital.shapetrees.core.ShapeTreeAssignment} to the ShapeTreeManager.
+     * @param assignment Shape tree assignment to add
+     * @throws ShapeTreeException
+     */
+    public void
+    addAssignment(ShapeTreeAssignment assignment) throws ShapeTreeException {
 
-        if (this.assignments == null || assignment == null) {
+        if (assignment == null) {
             throw new ShapeTreeException(500, "Must provide a non-null assignment to an initialized List of assignments");
-        }
-
-        if (assignment.getUrl() == null) {
-            assignment.setUrl(this.mintAssignment());
         }
 
         if (!this.assignments.isEmpty()) {
@@ -98,8 +116,12 @@ public class ShapeTreeManager {
 
     }
 
-    // Generates or "mints" a URL for a new assignment contained in the manager
-    public URL mintAssignment() {
+    /**
+     * Generates or "mints" a URL for a new ShapeTreeAssignment
+     * @return URL minted for a new shape tree assignment
+     */
+    public URL
+    mintAssignmentUrl() {
 
         String fragment = RandomStringUtils.random(8, true, true);
         String assignmentString = this.getUrl().toString() + "#" + fragment;
@@ -111,28 +133,40 @@ public class ShapeTreeManager {
             throw new IllegalStateException("Minted illegal URL <" + assignmentString + "> - " + ex.getMessage());
         }
 
+        return assignmentUrl;
+    }
+
+    /**
+     * Ensure a proposed URL for a new ShapeTreeAssigment doesn't conflict with
+     * other assignment URLs already allocated for the ShapeTreeManager
+     * @param proposedAssignmentUrl URL of the proposed shape tree assignment
+     * @return Minted URL for a new shape tree assignment
+     */
+    public URL
+    mintAssignmentUrl(URL proposedAssignmentUrl) {
+
         for (ShapeTreeAssignment assignment : this.assignments) {
-            if (assignment.getUrl() != null && assignment.getUrl().equals(assignmentUrl)) {
-                // If we somehow managed to randomly generate a assignment URL that already exists, generate another
-                return mintAssignment();
+            if (assignment.getUrl().equals(proposedAssignmentUrl)) {
+                // If we somehow managed to randomly generate a location URL that already exists, generate another
+                return mintAssignmentUrl();
             }
         }
-        return assignmentUrl;
+        return proposedAssignmentUrl;
     }
 
     public List<ShapeTreeAssignment>
     getContainingAssignments() throws ShapeTreeException {
 
-        ArrayList<ShapeTreeAssignment> assignments = new ArrayList<ShapeTreeAssignment>();
+        ArrayList<ShapeTreeAssignment> containingAssignments = new ArrayList<>();
 
         for (ShapeTreeAssignment assignment : this.assignments) {
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
             if (!shapeTree.getContains().isEmpty()) {
-                assignments.add(assignment);
+                containingAssignments.add(assignment);
             }
         }
 
-        return assignments;
+        return containingAssignments;
     }
 
     public static ShapeTreeManager getFromGraph(URL id, Graph managerGraph) throws ShapeTreeException {
@@ -182,7 +216,7 @@ public class ShapeTreeManager {
 
     public ShapeTreeAssignment getAssignmentForShapeTree(URL shapeTreeUrl) {
 
-        if (this.assignments == null || this.assignments.isEmpty()) { return null; }
+        if (this.assignments.isEmpty()) { return null; }
 
         for (ShapeTreeAssignment assignment : this.assignments) {
             if (assignment.getShapeTree().equals(shapeTreeUrl)) { return assignment; }
@@ -208,7 +242,7 @@ public class ShapeTreeManager {
             throw new IllegalStateException("Cannot remove a null assignment");
         }
 
-        if (this.assignments == null || this.assignments.isEmpty()) {
+        if (this.assignments.isEmpty()) {
             throw new IllegalStateException("Cannot remove assignments from empty set");
         }
 

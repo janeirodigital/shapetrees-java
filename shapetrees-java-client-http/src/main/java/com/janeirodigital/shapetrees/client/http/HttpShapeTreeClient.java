@@ -101,8 +101,10 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         log.debug("Planting shape tree {} on {}: ", targetShapeTree, targetResource);
         log.debug("Focus node: {}", focusNode == null ? "None provided" : focusNode);
 
-        // Lookup the target resource
         final HttpResourceAccessor resourceAccessor = new HttpResourceAccessor();
+        // Lookup the shape tree
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(targetShapeTree);
+        // Lookup the target resource
         ManageableInstance instance = resourceAccessor.getInstance(context, targetResource);
         ManageableResource manageableResource = instance.getManageableResource();
 
@@ -112,7 +114,6 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         ShapeTreeManager manager;
         URL managerResourceUrl = instance.getManagerResource().getUrl();
-
         if (instance.isManaged()) {
             manager = instance.getManagerResource().getManager();
         } else {
@@ -120,12 +121,12 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Initialize a shape tree assignment based on the supplied parameters
-        URL assignmentUrl = manager.mintAssignment();
+        URL assignmentUrl = manager.mintAssignmentUrl();
         ShapeTreeAssignment assignment = new ShapeTreeAssignment(targetShapeTree,
                                                                  targetResource,
                                                                  assignmentUrl,
                                                                  focusNode,
-                                                                 null,
+                                                                 shapeTree.getShape(),
                                                                  assignmentUrl);
 
         // Add the assignment to the manager
