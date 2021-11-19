@@ -155,9 +155,8 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // Another attempt without any only one of two target shape trees
         response = shapeTreeClient.postManagedInstance(context, parentContainer, null, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
-
     }
-    
+
     @SneakyThrows
     @Test
     @DisplayName("Create Projects Container and Validate DataCollectionTree")

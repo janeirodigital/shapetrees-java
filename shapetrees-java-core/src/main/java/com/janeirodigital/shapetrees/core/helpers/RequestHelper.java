@@ -24,7 +24,6 @@ import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 @Slf4j
 public class RequestHelper {
 
-    private static final String POST = "POST";
     private static final String PUT = "PUT";
     private static final String PATCH = "PATCH";
     private static final String DELETE = "DELETE";
@@ -66,7 +65,7 @@ public class RequestHelper {
      */
     public static ShapeTreeResourceType determineResourceType(ShapeTreeRequest shapeTreeRequest, ManageableInstance existingResource) throws ShapeTreeException {
         boolean isNonRdf;
-        if (!shapeTreeRequest.getMethod().equals("DELETE")) {
+        if (!shapeTreeRequest.getMethod().equals(DELETE)) {
             String incomingRequestContentType = shapeTreeRequest.getContentType();
             // Ensure a content-type is present
             if (incomingRequestContentType == null) {
@@ -232,7 +231,7 @@ public class RequestHelper {
         // First try to determine based on link headers
         if (shapeTreeRequest.getLinkHeaders() != null) {
             final List<String> typeLinks = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TYPE.getValue());
-            if (typeLinks.size() != 0) {
+            if (!typeLinks.isEmpty()) {
                 return (typeLinks.contains(LdpVocabulary.CONTAINER) ||
                         typeLinks.contains(LdpVocabulary.BASIC_CONTAINER));
             }
