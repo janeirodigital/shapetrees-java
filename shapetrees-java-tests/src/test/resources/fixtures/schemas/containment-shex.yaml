@@ -1,0 +1,42 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:text/plain'
+body: >
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX xml: <http://www.w3.org/XML/1998/namespace>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  PREFIX shx: <http://www.w3.org/ns/shex#>
+  PREFIX ex: <http://www.example.com/ns/ex#>
+
+  BASE <${SERVER_BASE}/static/shex/validation/shex>
+
+  <#ContainerShape> {
+    ex:id xsd:integer ;
+    ex:name xsd:string ;
+    ex:created_at xsd:dateTime ;
+    ex:hasFacet IRI*
+  }
+
+  <#AttributeShape> {
+      ex:name xsd:string ;
+      ex:created_at xsd:dateTime
+  }
+
+  <#OtherAttributeShape> {
+      ex:otherName xsd:string ;
+      ex:update_at xsd:dateTime
+  }
+
+  <#ElementShape> {
+      ex:name xsd:string ;
+      ex:description xsd:string ;
+      ex:created_at xsd:dateTime
+  }
+
+  <#OtherElementShape> {
+      ex:otherName xsd:string ;
+      ex:summary xsd:string ;
+      ex:updated_at xsd:dateTime
+  }

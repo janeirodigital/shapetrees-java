@@ -21,7 +21,6 @@ import java.util.Objects;
  */
 @Slf4j
 public class JavaHttpClient implements HttpClient {
-    private static final boolean USE_INTERCEPTOR = false;
     private final java.net.http.HttpClient httpClient;
     private JavaHttpValidatingShapeTreeInterceptor validatingWrapper;
 

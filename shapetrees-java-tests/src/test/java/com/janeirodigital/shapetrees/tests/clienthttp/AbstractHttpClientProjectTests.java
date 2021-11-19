@@ -4,14 +4,14 @@ import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ShapeTreeManager;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
-import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -36,14 +36,16 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcherList.add(new DispatcherEntry(List.of("project/root-container"), "GET", "/", null));
         dispatcherList.add(new DispatcherEntry(List.of("project/root-container-manager"), "GET", "/.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("shapetrees/information-shapetree-ttl"), "GET", "/static/shapetrees/information/shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project/shex", null));
+        dispatcherList.add(new DispatcherEntry(List.of("schemas/information-shex"), "GET", "/static/shex/information/shex", null));
 
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
     }
 
     @SneakyThrows
     @Test
-    @Label("Discover unmanaged root resource")
+    @DisplayName("Discover unmanaged root resource")
     void discoverUnmanagedRoot() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -59,7 +61,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Fail to plant on a non-existent data container")
+    @DisplayName("Fail to plant on a non-existent data container")
     void failPlantOnMissingDataContainer() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -76,7 +78,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Plant Data Repository")
+    @DisplayName("Plant Data Repository")
     void plantDataRepository() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -97,7 +99,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Fail to plant on missing shape tree")
+    @DisplayName("Fail to plant on missing shape tree")
     void failPlantOnMissingShapeTree() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -117,7 +119,45 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Create Projects Container and Validate DataCollectionTree")
+    @DisplayName("Create Projects Container and Validate DataCollectionTree and InformationSetTree")
+    void createAndValidateProjectsWithMultipleContains() {
+        MockWebServer server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
+        // Setup initial fixtures for /data/
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-multiplecontains-manager"), "GET", "/data/.shapetree", null));
+        // Add fixture for /projects/ to handle the POST response
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-create-response"), "POST", "/data/projects/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
+
+        URL parentContainer = toUrl(server, "/data/");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/#collection"));
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#DataCollectionTree"),
+                                                   toUrl(server, "/static/shapetrees/information/shapetree#InformationSetTree"));
+
+        // Create the projects container as a managed instance.
+        // 1. Will be validated by the parent DataRepositoryTree and the InformationSetTree both planted on /data (multiple contains)
+        // 2. Will have a manager/assignment created for it as an instance of DataCollectionTree and InformationSetTree
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, parentContainer, focusNodes, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        Assertions.assertEquals(201, response.getStatusCode());
+
+        // Another attempt without any target shape trees
+        response = shapeTreeClient.postManagedInstance(context, parentContainer, focusNodes, null, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        Assertions.assertEquals(201, response.getStatusCode());
+
+        // Another attempt without any target focus nodes
+        response = shapeTreeClient.postManagedInstance(context, parentContainer, null, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        Assertions.assertEquals(201, response.getStatusCode());
+
+        // Another attempt without any only one of two target shape trees
+        response = shapeTreeClient.postManagedInstance(context, parentContainer, null, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        Assertions.assertEquals(201, response.getStatusCode());
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Create Projects Container and Validate DataCollectionTree")
     void createAndValidateProjects() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -130,20 +170,19 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
 
         URL parentContainer = toUrl(server, "/data/");
-        URL focusNode = toUrl(server, "/data/projects/#collection");
-        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#DataCollectionTree");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/#collection"));
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#DataCollectionTree"));
 
         // Create the projects container as a shape tree instance.
         // 1. Will be validated by the parent DataRepositoryTree planted on /data
         // 2. Will have a manager/assignment created for it as an instance of DataCollectionTree
-        DocumentResponse response = shapeTreeClient.postManagedInstance(context, parentContainer, focusNode, targetShapeTree, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, parentContainer, focusNodes, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
-
     }
 
     @SneakyThrows
     @Test
-    @Label("Plant ProjectCollectionTree on Projects Container")
+    @DisplayName("Plant ProjectCollectionTree on Projects Container")
     void plantSecondShapeTreeOnProjects() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -168,7 +207,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Create Project in the Projects Collection")
+    @DisplayName("Create Project in the Projects Collection")
     void createProjectInProjects() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -184,20 +223,20 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/.shapetree", null));
 
         URL parentContainer = toUrl(server, "/data/projects/");
-        URL focusNode = toUrl(server, "/data/projects/project-1/#project");
-        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectTree");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/#project"));
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#ProjectTree"));
 
         // Create the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
         // 2. Will have a manager/assignment created for it as an instance of ProjectTree
-        DocumentResponse response = shapeTreeClient.postManagedInstance(context, parentContainer, focusNode, targetShapeTree, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, parentContainer, focusNodes, targetShapeTrees, "project-1", true, getProjectOneBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @SneakyThrows
     @Test
-    @Label("Update Project in the Projects Collection")
+    @DisplayName("Update Project in the Projects Collection")
     void updateProjectInProjects() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -215,19 +254,19 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains-updated"), "PUT", "/data/projects/project-1/", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/");
-        URL focusNode = toUrl(server, "/data/projects/project-1/#project");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/#project"));
 
         // Update the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
         // 2. Will have a manager/assignment created for it as an instance of ProjectTree
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNode, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(200, response.getStatusCode());
 
     }
 
     @SneakyThrows
     @Test
-    @Label("Fail to Create a Malformed Project in the Projects Collection")
+    @DisplayName("Fail to Create a Malformed Project in the Projects Collection")
     void failToCreateMalformedProject() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -240,12 +279,12 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/");
-        URL focusNode = toUrl(server, "/data/projects/project-1/#project");
-        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectTree");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/#project"));
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#ProjectTree"));
 
         // Create the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNode, targetShapeTree, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, targetShapeTrees, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -253,7 +292,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Fail to Update a Project to be Malformed in the Projects Collection")
+    @DisplayName("Fail to Update a Project to be Malformed in the Projects Collection")
     void failToUpdateMalformedProject() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -270,11 +309,11 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/");
-        URL focusNode = toUrl(server, "/data/projects/project-1/#project");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/#project"));
 
         // Update the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNode, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -282,7 +321,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Create Milestone in Project With Put")
+    @DisplayName("Create Milestone in Project With Put")
     void createMilestoneInProjectWithPut() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -301,20 +340,19 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/");
-        URL focusNode = toUrl(server, "/data/projects/project-1/milestone-3/#milestone");
-        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#MilestoneTree");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/milestone-3/#milestone"));
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#MilestoneTree"));
 
         // Create the milestone-3 container in /projects/project-1/ as a shape tree instance using PUT to create
         // 1. Will be validated by the parent ProjectTree planted on /data/projects/project-1/
         // 2. Will have a manager/assignment created for it as an instance of MilestoneTree
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNode, targetShapeTree, true, getMilestoneThreeBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, targetShapeTrees, true, getMilestoneThreeBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
-
     }
 
     @SneakyThrows
     @Test
-    @Label("Update Milestone in Project With Patch")
+    @DisplayName("Update Milestone in Project With Patch")
     void updateMilestoneInProjectWithPatch() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -335,18 +373,18 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains-updated"), "PATCH", "/data/projects/project-1/milestone-3/", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/");
-        URL focusNode = toUrl(server, "/data/projects/project-1/milestone-3/#milestone");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/milestone-3/#milestone"));
 
         // Update the milestone-3 container in /projects/project-1/ using PATCH
         // 1. Will be validated by the MilestoneTree planted on /data/projects/project-1/milestone-3/
-        DocumentResponse response = shapeTreeClient.patchManagedInstance(context, targetResource, focusNode, getMilestoneThreeSparqlPatch());
+        DocumentResponse response = shapeTreeClient.patchManagedInstance(context, targetResource, focusNodes, getMilestoneThreeSparqlPatch());
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @SneakyThrows
     @Test
-    @Label("Create First Task in Project With Patch")
+    @DisplayName("Create First Task in Project With Patch")
     void createFirstTaskInProjectWithPatch() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -368,18 +406,18 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-6/.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-6/");
-        URL focusNode = toUrl(server, "/data/projects/project-1/milestone-3/task-6/#task");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/milestone-3/task-6/#task"));
 
         // Create the task-6 container in /projects/project-1/milestone-3/ using PATCH
         // 1. Will be validated by the parent MilestoneTree planted on /data/projects/project-1/milestone-3/
-        DocumentResponse response = shapeTreeClient.patchManagedInstance(context, targetResource, focusNode, getTaskSixSparqlPatch());
+        DocumentResponse response = shapeTreeClient.patchManagedInstance(context, targetResource, focusNodes, getTaskSixSparqlPatch());
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @SneakyThrows
     @Test
-    @Label("Create Second Task in Project Without Focus Node")
+    @DisplayName("Create Second Task in Project Without Focus Node")
     void createSecondTaskInProjectWithoutFocusNode() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -401,17 +439,17 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
 
         URL targetContainer = toUrl(server, "/data/projects/project-1/milestone-3/");
-        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#TaskTree");
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#TaskTree"));
 
         // create task-48 in milestone-3 - supply a target shape tree, but not a focus node
-        DocumentResponse response = shapeTreeClient.postManagedInstance(context, targetContainer, null, targetShapeTree, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, targetContainer, null, targetShapeTrees, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @SneakyThrows
     @Test
-    @Label("Create Third Task in Project Without Target Shape Tree or Focus Node")
+    @DisplayName("Create Third Task in Project Without Target Shape Tree or Focus Node")
     void createThirdTaskInProjectWithoutAnyContext() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -442,7 +480,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Create Second Task in Project With Focus Node Without Target Shape Tree")
+    @DisplayName("Create Second Task in Project With Focus Node Without Target Shape Tree")
     void createSecondTaskInProjectWithFocusNodeWithoutTargetShapeTree() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -464,17 +502,17 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
 
         URL targetContainer = toUrl(server, "/data/projects/project-1/milestone-3/");
-        URL focusNode = toUrl(server, "/data/projects/project-1/milestone-3/task-48/#task");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/milestone-3/task-48/#task"));
 
         // create task-48 in milestone-3 - supply a focus node but no target shape tree
-        DocumentResponse response = shapeTreeClient.postManagedInstance(context, targetContainer, focusNode, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.postManagedInstance(context, targetContainer, focusNodes, null, "task-48", true, getTaskFortyEightBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @SneakyThrows
     @Test
-    @Label("Create Attachment in Task")
+    @DisplayName("Create Attachment in Task")
     void createAttachmentInTask() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -500,16 +538,16 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-48/attachment-48");
-        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree");
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree"));
 
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, targetShapeTrees, false, null, "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @SneakyThrows
     @Test
-    @Label("Create Second Attachment in Task")
+    @DisplayName("Create Second Attachment in Task")
     void createSecondAttachmentInTask() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -535,16 +573,16 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", null));
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-48/random.png");
-        URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree");
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree"));
 
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, targetShapeTree, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, targetShapeTrees, false, null, "application/octet-stream");
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
 
     @SneakyThrows
     @Test
-    @Label("Fail to Unplant Non-Root Task")
+    @DisplayName("Fail to Unplant Non-Root Task")
     void failToUnplantNonRootTask() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -570,7 +608,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Unplant Projects")
+    @DisplayName("Unplant Projects")
     void unplantProjects() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -622,7 +660,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Unplant Data Set")
+    @DisplayName("Unplant Data Set")
     void unplantData() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -651,7 +689,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Plant Data Repository with Patch")
+    @DisplayName("Plant Data Repository with Patch")
     void plantDataRepositoryWithPatch() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -670,7 +708,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     @SneakyThrows
     @Test
-    @Label("Update Project Collection manager with Patch")
+    @DisplayName("Update Project Collection manager with Patch")
     void updateProjectsManagerWithPatch() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);

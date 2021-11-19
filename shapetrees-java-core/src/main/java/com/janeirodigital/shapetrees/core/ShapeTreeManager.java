@@ -120,16 +120,19 @@ public class ShapeTreeManager {
         return assignmentUrl;
     }
 
-    public ShapeTreeAssignment getContainingAssignment() throws ShapeTreeException {
+    public List<ShapeTreeAssignment>
+    getContainingAssignments() throws ShapeTreeException {
+
+        ArrayList<ShapeTreeAssignment> assignments = new ArrayList<ShapeTreeAssignment>();
 
         for (ShapeTreeAssignment assignment : this.assignments) {
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
-            if (shapeTree.getContains() != null && !shapeTree.getContains().isEmpty()) {
-                return assignment;
+            if (!shapeTree.getContains().isEmpty()) {
+                assignments.add(assignment);
             }
         }
 
-        return null;
+        return assignments;
     }
 
     public static ShapeTreeManager getFromGraph(URL id, Graph managerGraph) throws ShapeTreeException {

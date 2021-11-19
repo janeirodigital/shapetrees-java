@@ -1,0 +1,65 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX cn: <${SERVER_BASE}/static/shex/validation/shex#>
+
+  <#ContainerAttributeTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape cn:ContainerShape ;
+    st:contains
+      <#AttributeTree> ,
+      <#OtherAttributeTree> .
+
+  <#AttributeTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape cn:AttributeShape .
+
+  <#OtherAttributeTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape cn:OtherAttributeShape .
+
+  <#ContainerElementTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape cn:ContainerShape ;
+    st:contains
+      <#ElementTree> ,
+      <#OtherElementTree> .
+
+  <#ElementTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape cn:ElementShape .
+
+  <#OtherElementTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape cn:OtherElementShape .
+
+  <#StandAloneTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape cn:OtherElementShape .
+
+  <#ContainerFirstTwinTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape cn:ContainerAttributeShape ;
+    st:contains <#ChildTree> .
+
+  <#ChildTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape cn:AttributeShape .
+
+  <#ContainerSecondTwinTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape cn:ContainerShape ;
+    st:contains <#ChildTree> .

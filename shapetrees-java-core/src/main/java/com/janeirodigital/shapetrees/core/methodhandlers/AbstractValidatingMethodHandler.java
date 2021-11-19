@@ -107,38 +107,45 @@ public abstract class AbstractValidatingMethodHandler {
         ensureShapeTreeManagerExists(containerManager, "Cannot have a shape tree manager resource without a shape tree manager containing at least one shape tree assignment");
 
         // Get the shape tree associated that specifies what resources can be contained by the target container (st:contains)
-        ShapeTreeAssignment containingAssignment = containerManager.getContainingAssignment();
 
-        if (containingAssignment == null) {
-            // If there is no containing shape tree for the target container, then the request is valid and can
-            // be passed straight through
-            return Optional.empty();
-        }
+        List<ShapeTreeAssignment> containingAssignments = containerManager.getContainingAssignments();
 
-        URL containerShapeTreeUrl = containingAssignment.getShapeTree();
-        ShapeTree containerShapeTree = ShapeTreeFactory.getShapeTree(containerShapeTreeUrl);
+        // If there are no containing shape trees for the target container, request is valid and can be passed through
+        if (containingAssignments.isEmpty()) { return Optional.empty(); }
 
-        URL targetShapeTree = RequestHelper.getIncomingTargetShapeTree(shapeTreeRequest, targetResourceUrl);
-        URL incomingFocusNode = RequestHelper.getIncomingFocusNode(shapeTreeRequest, targetResourceUrl);
+        List<URL> targetShapeTrees = RequestHelper.getIncomingTargetShapeTrees(shapeTreeRequest, targetResourceUrl);
+        List<URL> incomingFocusNodes = RequestHelper.getIncomingFocusNodes(shapeTreeRequest, targetResourceUrl);
         Graph incomingBodyGraph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, targetResourceUrl, null);
+        HashMap<ShapeTreeAssignment, ValidationResult> validationResults = new HashMap<>();
 
-        ValidationResult validationResult = containerShapeTree.validateContainedResource(proposedName, shapeTreeRequest.getResourceType(), targetShapeTree, incomingBodyGraph, incomingFocusNode);
-        if (Boolean.FALSE.equals(validationResult.isValid())) {
-            return failValidation(validationResult);
+        for (ShapeTreeAssignment containingAssignment : containingAssignments) {
+            URL containerShapeTreeUrl = containingAssignment.getShapeTree();
+            ShapeTree containerShapeTree = ShapeTreeFactory.getShapeTree(containerShapeTreeUrl);
+            ValidationResult validationResult = containerShapeTree.validateContainedResource(proposedName, shapeTreeRequest.getResourceType(), targetShapeTrees, incomingBodyGraph, incomingFocusNodes);
+            if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
+            validationResults.put(containingAssignment, validationResult);
         }
+
+        // if any of the provided focus nodes weren't matched validation must fail
+        List<URL> unmatchedNodes  = getUnmatchedFocusNodes(validationResults.values(), incomingFocusNodes);
+        if (!unmatchedNodes.isEmpty()) { return failValidation(new ValidationResult(false, "Failed to match target focus nodes: " + unmatchedNodes)); }
 
         log.debug("Creating shape tree instance at {}", targetResourceUrl);
 
         ManageableInstance createdInstance = this.resourceAccessor.createInstance(manageableInstance.getShapeTreeContext(), shapeTreeRequest.getMethod(), targetResourceUrl, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
 
-        ShapeTreeAssignment rootShapeTreeAssignment = getRootAssignment(manageableInstance.getShapeTreeContext(), containingAssignment);
-        ensureAssignmentExists(rootShapeTreeAssignment, "Unable to find root shape tree assignment at " + containingAssignment.getRootAssignment());
+        for (ShapeTreeAssignment containingAssignment : containingAssignments) {
 
-        log.debug("Assigning shape tree to created resource: {}", createdInstance.getManagerResource().getUrl());
-        // Note: By providing the positive advance validationResult, we let the assignment operation know that validation
-        // has already been performed with a positive result, and avoid having it perform the validation a second time
-        Optional<DocumentResponse> assignResult = assignShapeTreeToResource(createdInstance, manageableInstance.getShapeTreeContext(), null, rootShapeTreeAssignment, containingAssignment, validationResult);
-        if (assignResult.isPresent()) { return assignResult; }
+            ShapeTreeAssignment rootShapeTreeAssignment = getRootAssignment(manageableInstance.getShapeTreeContext(), containingAssignment);
+            ensureAssignmentExists(rootShapeTreeAssignment, "Unable to find root shape tree assignment at " + containingAssignment.getRootAssignment());
+
+            log.debug("Assigning shape tree to created resource: {}", createdInstance.getManagerResource().getUrl());
+            // Note: By providing the positive advance validationResult, we let the assignment operation know that validation
+            // has already been performed with a positive result, and avoid having it perform the validation a second time
+            Optional<DocumentResponse> assignResult = assignShapeTreeToResource(createdInstance, manageableInstance.getShapeTreeContext(), null, rootShapeTreeAssignment, containingAssignment, validationResults.get(containingAssignment));
+            if (assignResult.isPresent()) { return assignResult; }
+
+        }
 
         return Optional.of(successfulValidation());
     }
@@ -158,7 +165,7 @@ public abstract class AbstractValidatingMethodHandler {
             // All must pass for the update to validate
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
             URL managedResourceUrl = targetResource.getManageableResource().getUrl();
-            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), RequestHelper.getIncomingBodyGraph(shapeTreeRequest, managedResourceUrl, targetResource.getManageableResource()), RequestHelper.getIncomingFocusNode(shapeTreeRequest, managedResourceUrl));
+            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), RequestHelper.getIncomingBodyGraph(shapeTreeRequest, managedResourceUrl, targetResource.getManageableResource()), RequestHelper.getIncomingFocusNodes(shapeTreeRequest, managedResourceUrl));
             if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
 
         }
@@ -222,7 +229,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         // If the primary resource is a container, and its shape tree specifies its contents with st:contains
         // Recursively traverse the hierarchy and perform shape tree assignment
-        if (manageableInstance.getManageableResource().isContainer() && managingShapeTree.getContains() != null && !managingShapeTree.getContains().isEmpty()) {
+        if (manageableInstance.getManageableResource().isContainer() && !managingShapeTree.getContains().isEmpty()) {
 
             // If the container is not empty, perform a recursive, depth first validation and assignment for each
             // contained resource by recursively calling this method (assignShapeTreeToResource)
@@ -266,7 +273,7 @@ public abstract class AbstractValidatingMethodHandler {
 
         // If the managed resource is a container, and its shape tree specifies its contents with st:contains
         // Recursively traverse the hierarchy and perform shape tree unassignment
-        if (manageableInstance.getManageableResource().isContainer() && assignedShapeTree.getContains() != null && !assignedShapeTree.getContains().isEmpty()) {
+        if (manageableInstance.getManageableResource().isContainer() && !assignedShapeTree.getContains().isEmpty()) {
 
             // TODO - Should there also be a configurable maximum limit on unplanting?
             List<ManageableInstance> containedResources = this.resourceAccessor.getContainedInstances(shapeTreeContext, manageableInstance.getManageableResource().getUrl());
@@ -386,6 +393,22 @@ public abstract class AbstractValidatingMethodHandler {
         }
         return null;
 
+    }
+
+    private List<URL>
+    getUnmatchedFocusNodes(Collection<ValidationResult> validationResults, List<URL> focusNodes) {
+        List<URL> unmatchedNodes = new ArrayList<>();
+        for (URL focusNode : focusNodes) {
+            // Determine if each target focus node was matched
+            boolean matched = false;
+            for (ValidationResult validationResult : validationResults) {
+                if (validationResult.getMatchingShapeTree().getShape() != null) {
+                    if (validationResult.getMatchingFocusNode().equals(focusNode)) { matched = true; }
+                }
+            }
+            if (!matched) { unmatchedNodes.add(focusNode); }
+        }
+        return unmatchedNodes;
     }
 
     private void ensureValidationResultIsUsableForAssignment(ValidationResult validationResult, String message) throws ShapeTreeException {

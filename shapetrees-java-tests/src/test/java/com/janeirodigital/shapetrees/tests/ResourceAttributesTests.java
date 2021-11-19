@@ -104,13 +104,13 @@ class ResourceAttributesTests {
 
         // Try to reset with the same attribute and value (to no change)
         resourceAttributes.maybeSet("First Attribute", "First Attribute First Value");
-        Assertions.assertEquals(resourceAttributes.toMultimap().size(), 1);
-        Assertions.assertEquals(resourceAttributes.firstValue("First Attribute"), Optional.of("First Attribute First Value"));
+        Assertions.assertEquals(1, resourceAttributes.toMultimap().size());
+        Assertions.assertEquals(Optional.of("First Attribute First Value"), resourceAttributes.firstValue("First Attribute"));
 
         // Add to the same attribute with a different value, growing the list size
         resourceAttributes.maybeSet("First Attribute", "First Attribute Second Value");
-        Assertions.assertEquals(resourceAttributes.toMultimap().size(), 1);
-        Assertions.assertEquals(resourceAttributes.allValues("First Attribute").size(), 2);
+        Assertions.assertEquals(1, resourceAttributes.toMultimap().size());
+        Assertions.assertEquals(2, resourceAttributes.allValues("First Attribute").size());
 
     }
 

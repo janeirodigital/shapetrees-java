@@ -284,7 +284,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
         ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         DocumentResponse response = fetcher.fetchShapeTreeResponse(new HttpRequest(method, url, allHeaders, body, contentType));
         if (!response.isExists()) {
-            throw new ShapeTreeException(500, "Unable to create pre-existing resource <" + url + ">");
+            throw new ShapeTreeException(500, "Unable to create resource <" + url + ">");
         }
         return generateResource(url, response);
     }

@@ -55,14 +55,14 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
                 if (!shapeTreeResponse.isPresent()) {
                     return OkHttpClient.check(chain.proceed(chain.request()));
                 } else {
-                    return createResponse(shapeTreeRequest, chain.request(), shapeTreeResponse.get());
+                    return createResponse(chain.request(), shapeTreeResponse.get());
                 }
             } catch (ShapeTreeException ex){
                 log.error("Error processing shape tree request: ", ex);
-                return createErrorResponse(ex, shapeTreeRequest, chain.request());
+                return createErrorResponse(ex, chain.request());
             } catch (Exception ex) {
                 log.error("Error processing shape tree request: ", ex);
-                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest, chain.request());
+                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), chain.request());
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
@@ -85,8 +85,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
     }
 
-    // TODO: Spec/API: send error response as a structured JSON-LD body
-    private Response createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, Request nativeRequest) {
+    private Response createErrorResponse(ShapeTreeException exception, Request nativeRequest) {
         return new Response.Builder()
                 .code(exception.getStatusCode())
                 .body(ResponseBody.create(exception.getMessage(), MediaType.get("text/plain")))
@@ -96,7 +95,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
                 .build();
     }
 
-    private Response createResponse(ShapeTreeRequest request, Request nativeRequest, DocumentResponse response) {
+    private Response createResponse(Request nativeRequest, DocumentResponse response) {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
         ResourceAttributes responseHeaders = response.getResourceAttributes();

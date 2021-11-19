@@ -1,15 +1,10 @@
 package com.janeirodigital.shapetrees.core.helpers;
 
-import com.janeirodigital.shapetrees.core.InstanceResource;
-import com.janeirodigital.shapetrees.core.ManageableInstance;
-import com.janeirodigital.shapetrees.core.ManagerResource;
-import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.ShapeTreeContext;
-import com.janeirodigital.shapetrees.core.ShapeTreeManager;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
@@ -20,6 +15,7 @@ import org.apache.jena.update.UpdateRequest;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +24,6 @@ import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 @Slf4j
 public class RequestHelper {
 
-    private static final String POST = "POST";
     private static final String PUT = "PUT";
     private static final String PATCH = "PATCH";
     private static final String DELETE = "DELETE";
@@ -70,7 +65,7 @@ public class RequestHelper {
      */
     public static ShapeTreeResourceType determineResourceType(ShapeTreeRequest shapeTreeRequest, ManageableInstance existingResource) throws ShapeTreeException {
         boolean isNonRdf;
-        if (!shapeTreeRequest.getMethod().equals("DELETE")) {
+        if (!shapeTreeRequest.getMethod().equals(DELETE)) {
             String incomingRequestContentType = shapeTreeRequest.getContentType();
             // Ensure a content-type is present
             if (incomingRequestContentType == null) {
@@ -98,16 +93,21 @@ public class RequestHelper {
         return isContainer ? ShapeTreeResourceType.CONTAINER : ShapeTreeResourceType.RESOURCE;
     }
 
-    public static URL getIncomingFocusNode(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
-        final String focusNode = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.FOCUS_NODE.getValue()).orElse(null);
-        if (focusNode != null) {
-            try {
-                return new URL(baseUrl, focusNode);
-            } catch (MalformedURLException e) {
-                throw new ShapeTreeException(500, "Malformed focus node when resolving <" + focusNode + "> against <" + baseUrl + ">");
+    public static List<URL>
+    getIncomingFocusNodes(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
+        final List<String> focusNodeStrings = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.FOCUS_NODE.getValue());
+        final List<URL> focusNodeUrls = new ArrayList<URL>();
+        if (!focusNodeStrings.isEmpty()) {
+            for (String focusNodeUrlString : focusNodeStrings) {
+                try {
+                    final URL focusNodeUrl = new URL(baseUrl, focusNodeUrlString);
+                    focusNodeUrls.add(focusNodeUrl);
+                } catch (MalformedURLException e) {
+                    throw new ShapeTreeException(500, "Malformed focus node when resolving <" + focusNodeUrlString + "> against <" + baseUrl + ">");
+                }
             }
         }
-        return null;
+        return focusNodeUrls;
     }
 
     /**
@@ -116,16 +116,21 @@ public class RequestHelper {
      * @return URL value of target shape tree
      * @throws ShapeTreeException ShapeTreeException
      */
-    public static URL getIncomingTargetShapeTree(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
-        final String targetShapeTree = shapeTreeRequest.getLinkHeaders().firstValue(LinkRelations.TARGET_SHAPETREE.getValue()).orElse(null);
-        if (targetShapeTree != null) {
-            try {
-                return new URL(targetShapeTree);
-            } catch (MalformedURLException e) {
-                throw new ShapeTreeException(500, "Malformed focus node when resolving <" + targetShapeTree + "> against <" + baseUrl + ">");
+    public static List<URL>
+    getIncomingTargetShapeTrees(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
+        final List<String> targetShapeTreeStrings = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TARGET_SHAPETREE.getValue());
+        final List<URL> targetShapeTreeUrls = new ArrayList<URL>();
+        if (!targetShapeTreeStrings.isEmpty()) {
+            for (String targetShapeTreeUrlString : targetShapeTreeStrings) {
+                try {
+                    final URL targetShapeTreeUrl = new URL(targetShapeTreeUrlString);
+                    targetShapeTreeUrls.add(targetShapeTreeUrl);
+                } catch (MalformedURLException e) {
+                    throw new ShapeTreeException(500, "Malformed focus node when resolving <" + targetShapeTreeUrlString + "> against <" + baseUrl + ">");
+                }
             }
         }
-        return null;
+        return targetShapeTreeUrls;
     }
 
     public static ShapeTreeManager getIncomingShapeTreeManager(ShapeTreeRequest shapeTreeRequest, ManagerResource managerResource) throws ShapeTreeException {
@@ -226,7 +231,7 @@ public class RequestHelper {
         // First try to determine based on link headers
         if (shapeTreeRequest.getLinkHeaders() != null) {
             final List<String> typeLinks = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TYPE.getValue());
-            if (typeLinks.size() != 0) {
+            if (!typeLinks.isEmpty()) {
                 return (typeLinks.contains(LdpVocabulary.CONTAINER) ||
                         typeLinks.contains(LdpVocabulary.BASIC_CONTAINER));
             }
