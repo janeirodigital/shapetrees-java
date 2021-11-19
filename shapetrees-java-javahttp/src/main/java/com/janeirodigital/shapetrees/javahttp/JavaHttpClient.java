@@ -76,7 +76,7 @@ public class JavaHttpClient implements HttpClient {
 
             SSLContext sc=null;
             try {
-                sc = SSLContext.getInstance("SSL");
+                sc = SSLContext.getInstance("TLSv1.2");
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
