@@ -31,7 +31,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             // validated against the parent tree.
             if (targetContainer.isManaged()) {
                 shapeTreeRequest.setResourceType(RequestHelper.determineResourceType(shapeTreeRequest, targetContainer));
-                return createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
+                return this.requestHandler.createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }
 
             // Reaching this point means validation was not necessary
