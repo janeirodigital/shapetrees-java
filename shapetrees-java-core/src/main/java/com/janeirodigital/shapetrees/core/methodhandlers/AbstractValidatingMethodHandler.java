@@ -27,7 +27,7 @@ public abstract class AbstractValidatingMethodHandler {
 
     protected DocumentResponse manageShapeTree(ManageableInstance manageableInstance, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
 
-        Optional<DocumentResponse> validationResponse = null;
+        Optional<DocumentResponse> validationResponse = Optional.empty();
         ShapeTreeManager updatedRootManager = RequestHelper.getIncomingShapeTreeManager(shapeTreeRequest, manageableInstance.getManagerResource());
         ShapeTreeManager existingRootManager = manageableInstance.getManagerResource().getManager();
 
@@ -192,7 +192,7 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTreeManager shapeTreeManager = null;
         URL matchingFocusNode = null;
         ShapeTreeAssignment managingAssignment = null;
-        Optional<DocumentResponse> validationResponse = null;
+        Optional<DocumentResponse> validationResponse = Optional.empty();
 
         ensureValidationResultIsUsableForAssignment(advanceValidationResult, "Invalid advance validation result provided for resource assignment");
         if (advanceValidationResult != null) { managingShapeTree = advanceValidationResult.getMatchingShapeTree(); }
@@ -269,7 +269,7 @@ public abstract class AbstractValidatingMethodHandler {
         ShapeTreeAssignment assignmentToRemove = shapeTreeManager.getAssignmentForRoot(rootAssignment);
         ShapeTree assignedShapeTree = ShapeTreeFactory.getShapeTree(assignmentToRemove.getShapeTree());
 
-        Optional<DocumentResponse> validationResponse = null;
+        Optional<DocumentResponse> validationResponse = Optional.empty();
 
         // If the managed resource is a container, and its shape tree specifies its contents with st:contains
         // Recursively traverse the hierarchy and perform shape tree unassignment
