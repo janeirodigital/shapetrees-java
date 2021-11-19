@@ -49,6 +49,10 @@ public class JavaHttpValidatingShapeTreeInterceptor {
             } catch (ShapeTreeException ex){
                 log.error("Error processing shape tree request: ", ex);
                 return createErrorResponse(ex, clientRequest);
+            } catch (InterruptedException ex) {
+                log.error("Interrupted! ", ex);
+                Thread.currentThread().interrupt();
+                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), clientRequest);
             } catch (Exception ex) {
                 log.error("Error processing shape tree request: ", ex);
                 return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), clientRequest);

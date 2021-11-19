@@ -51,7 +51,7 @@ public class JavaHttpClient implements HttpClient {
      * @throws NoSuchAlgorithmException potentially thrown while disabling SSL validation
      * @throws KeyManagementException potentially thrown while disabling SSL validation
      */
-    protected JavaHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
+    protected JavaHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException, ShapeTreeException {
         java.net.http.HttpClient.Builder clientBuilder = java.net.http.HttpClient.newBuilder();
         this.validatingWrapper = null;
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
@@ -82,8 +82,9 @@ public class JavaHttpClient implements HttpClient {
             }
             try {
                 sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            } catch (KeyManagementException e) {
+            } catch (NullPointerException|KeyManagementException e) {
                 e.printStackTrace();
+                throw new ShapeTreeException(500, "Failed to initialize java http client");
             }
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 
@@ -144,11 +145,16 @@ public class JavaHttpClient implements HttpClient {
             } else {
                 return this.validatingWrapper.validatingWrap(nativeRequest, this.httpClient, request.body, request.contentType);
             }
-        } catch (IOException | InterruptedException ex) {
+        } catch (IOException ex) {
+            throw new ShapeTreeException(500, ex.getMessage());
+        } catch (InterruptedException ex) {
+            log.error("Interrupted! ", ex);
+            Thread.currentThread().interrupt();
             throw new ShapeTreeException(500, ex.getMessage());
         } catch (URISyntaxException ex) {
             throw new ShapeTreeException(500, "Malformed URL <" + request.resourceURL + ">: " + ex.getMessage());
         }
+
     }
 
     protected static java.net.http.HttpResponse check(java.net.http.HttpResponse resp) {
