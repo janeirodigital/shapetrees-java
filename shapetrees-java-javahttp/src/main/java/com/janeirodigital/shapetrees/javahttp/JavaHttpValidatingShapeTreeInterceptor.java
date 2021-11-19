@@ -44,14 +44,14 @@ public class JavaHttpValidatingShapeTreeInterceptor {
                 if (!shapeTreeResponse.isPresent()) {
                     return JavaHttpClient.check(httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString()));
                 } else {
-                    return createResponse(shapeTreeRequest, clientRequest, shapeTreeResponse.get());
+                    return createResponse(clientRequest, shapeTreeResponse.get());
                 }
             } catch (ShapeTreeException ex){
                 log.error("Error processing shape tree request: ", ex);
-                return createErrorResponse(ex, shapeTreeRequest, clientRequest);
+                return createErrorResponse(ex, clientRequest);
             } catch (Exception ex) {
                 log.error("Error processing shape tree request: ", ex);
-                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), shapeTreeRequest, clientRequest);
+                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), clientRequest);
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
@@ -74,15 +74,12 @@ public class JavaHttpValidatingShapeTreeInterceptor {
         }
     }
 
-    // TODO: Spec/API: send error response as a structured JSON-LD body
-    private java.net.http.HttpResponse createErrorResponse(ShapeTreeException exception, ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest) {
-        // java.net.http.ResourceAttributes headers = new java.net.http.ResourceAttributes();
-        // headers.set("Content-type", "text/plain");
+    private java.net.http.HttpResponse createErrorResponse(ShapeTreeException exception, java.net.http.HttpRequest nativeRequest) {
         return new MyHttpResponse(exception.getStatusCode(), nativeRequest, java.net.http.HttpHeaders.of(Collections.emptyMap(), (a, v) -> true), exception.getMessage());
     }
 
     @SneakyThrows
-    private java.net.http.HttpResponse createResponse(ShapeTreeRequest request, java.net.http.HttpRequest nativeRequest, DocumentResponse response) {
+    private java.net.http.HttpResponse createResponse(java.net.http.HttpRequest nativeRequest, DocumentResponse response) {
         java.net.http.HttpHeaders headers = java.net.http.HttpHeaders.of(response.getResourceAttributes().toMultimap(), (a, v) -> true);
         return new MyHttpResponse(response.getStatusCode(), nativeRequest, headers, response.getBody());
     }
@@ -163,20 +160,19 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
     @AllArgsConstructor
     private class MyHttpResponse implements java.net.http.HttpResponse {
-        // private URL _uri;
-        private int _statusCode;
-        private java.net.http.HttpRequest _request;
-        private java.net.http.HttpHeaders _headers;
-        private String _body;
+        private int statusCode;
+        private java.net.http.HttpRequest request;
+        private java.net.http.HttpHeaders headers;
+        private String body;
 
         @Override
         public int statusCode() {
-            return this._statusCode;
+            return this.statusCode;
         }
 
         @Override
         public java.net.http.HttpRequest request() {
-            return this._request;
+            return this.request;
         }
 
         @Override
@@ -186,12 +182,12 @@ public class JavaHttpValidatingShapeTreeInterceptor {
 
         @Override
         public java.net.http.HttpHeaders headers() {
-            return this._headers;
+            return this.headers;
         }
 
         @Override
         public String body() {
-            return this._body;
+            return this.body;
         }
 
         @Override

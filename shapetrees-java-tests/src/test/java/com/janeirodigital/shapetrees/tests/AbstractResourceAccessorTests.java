@@ -286,7 +286,7 @@ public class AbstractResourceAccessorTests {
     @DisplayName("Get a missing resource")
     void getMissingResource() throws MalformedURLException, ShapeTreeException {
         InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/notpresent"));
-        Assertions.assertEquals(resource.getBody(), "");
+        Assertions.assertEquals("", resource.getBody());
         // TODO - what other tests and assertions should be included here? isExists()?
     }
 

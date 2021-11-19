@@ -127,7 +127,7 @@ public class ShapeTreeManager {
 
         for (ShapeTreeAssignment assignment : this.assignments) {
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
-            if (shapeTree.getContains() != null && !shapeTree.getContains().isEmpty()) {
+            if (!shapeTree.getContains().isEmpty()) {
                 assignments.add(assignment);
             }
         }

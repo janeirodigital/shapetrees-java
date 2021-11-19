@@ -5,15 +5,19 @@ import com.janeirodigital.shapetrees.client.http.HttpRequest;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 
-import javax.net.ssl.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * okhttp implementation of HttpClient
@@ -131,12 +135,10 @@ public class OkHttpClient implements HttpClient {
 
                 case HttpClient.GET:
                     requestBuilder.method(request.method, null);
-//                    requestBuilder.get();
                     break;
 
                 case HttpClient.DELETE:
                     requestBuilder.method(request.method, okhttp3.RequestBody.create(null, new byte[0])); // apparently needed 'cause delete CAN have a body
-//                    requestBuilder.delete();
                     break;
 
                 case HttpClient.PUT:

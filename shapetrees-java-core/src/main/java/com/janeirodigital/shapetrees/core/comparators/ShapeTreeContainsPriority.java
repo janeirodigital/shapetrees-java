@@ -27,17 +27,13 @@ ShapeTreeContainsPriority implements Comparator<URL>, Serializable {
         if (st1.getLabel() != null) {
             st1Priority++;
         }
-        if (st1.getExpectedResourceType() != null) {
-            st1Priority++;
-        }
+
+        // st:expectsType is required so it doesn't affect score priority
 
         if (st2.getShape() != null) {
             st2Priority += 2;
         }
         if (st2.getLabel() != null) {
-            st2Priority++;
-        }
-        if (st2.getExpectedResourceType() != null) {
             st2Priority++;
         }
 

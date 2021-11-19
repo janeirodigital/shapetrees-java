@@ -56,23 +56,23 @@ public class SchemaCacheTests {
         Throwable containsException = Assertions.assertThrows(ShapeTreeException.class, () ->
                 SchemaCache.containsSchema(new URL("http://schema.example"))
         );
-        Assertions.assertEquals(containsException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+        Assertions.assertEquals(SchemaCache.CACHE_IS_NOT_INITIALIZED, containsException.getMessage());
 
         // getSchema
         Throwable getException = Assertions.assertThrows(ShapeTreeException.class, () ->
                 SchemaCache.getSchema(new URL("http://schema.example"))
         );
-        Assertions.assertEquals(getException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+        Assertions.assertEquals(SchemaCache.CACHE_IS_NOT_INITIALIZED, getException.getMessage());
 
         // putSchema
         Throwable putException = Assertions.assertThrows(ShapeTreeException.class, () ->
                 SchemaCache.putSchema(new URL("http://schema.example"), null)
         );
-        Assertions.assertEquals(putException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+        Assertions.assertEquals(SchemaCache.CACHE_IS_NOT_INITIALIZED, putException.getMessage());
 
         // clearSchema
         Throwable clearException = Assertions.assertThrows(ShapeTreeException.class, () -> SchemaCache.clearCache());
-        Assertions.assertEquals(clearException.getMessage(), SchemaCache.CACHE_IS_NOT_INITIALIZED);
+        Assertions.assertEquals(SchemaCache.CACHE_IS_NOT_INITIALIZED, clearException.getMessage());
 
     }
 
