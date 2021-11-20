@@ -21,6 +21,15 @@ import java.util.*;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.readStringIntoGraph;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
+/**
+ * Allows the {@link com.janeirodigital.shapetrees.core shapetrees-core} to access
+ * {@link ManageableInstance}s and {@link InstanceResource}s over the network via HTTP. This is
+ * particularly effective when employing client-side shape-tree validation in a
+ * <a href="https://shapetrees.org/TR/specification/index.html#shapetree-support-from-proxy-or-client-side-library">proxy scenario</a>.
+ *
+ * <p>Given the fact that resources are accessed via HTTP, some inferences must be made on
+ * resource state based on responses to HTTP requests.</p>
+ */
 @NoArgsConstructor
 @Slf4j
 public class HttpResourceAccessor implements ResourceAccessor {
@@ -28,14 +37,15 @@ public class HttpResourceAccessor implements ResourceAccessor {
     private static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
     /**
-     * Return a ManageableInstance constructed based on the provided <code>resourceUrl</code>,
-     * which could target either a ManageableResource, or a ManagerResource.
-     * Both the ManageableResource and ManagerResource are retrieved and loaded as specifically
+     * Return a {@link ManageableInstance} constructed based on the provided <code>resourceUrl</code>,
+     * which could target either a {@link ManageableResource} or a {@link ManagerResource}.
+     * Both are retrieved via HTTP and loaded as specifically
      * typed sub-classes that indicate whether they exist, or (in the case of manageable resource)
      * whether they are managed.
-     * @param context Shape tree context
+     *
+     * @param context {@link ShapeTreeContext}
      * @param resourceUrl URL of the target resource
-     * @return ManageableInstance with ManageableResource and ManagerResource
+     * @return {@link ManageableInstance} including {@link ManageableResource} and {@link ManagerResource}
      */
     @Override
     public ManageableInstance
@@ -62,12 +72,12 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Gets a ManageableInstance given a MissingManageableResource, which means that
-     * a corresponding ManagerResource cannot exist, so a MissingManagerResource is
+     * Gets a {@link ManageableInstance} given a {@link MissingManageableResource}, which means that
+     * a corresponding {@link ManagerResource} cannot exist, so a {@link MissingManagerResource} is
      * constructed and included as part of instance construction.
-     * @param context Shape tree context
-     * @param missing Missing manageable resource
-     * @return ManageableInstance with MissingManageableResource and MissingManagerResource
+     * @param context {@link ShapeTreeContext}
+     * @param missing {@link MissingManageableResource}
+     * @return {@link ManageableInstance} including {@link MissingManageableResource} and {@link MissingManagerResource}
      */
     private ManageableInstance
     getInstanceFromMissingManageableResource(ShapeTreeContext context, MissingManageableResource missing) {
@@ -78,13 +88,13 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Gets a ManageableInstance given a MissingManagerResource, which means that
-     * a ManagerResource doesn't exist, but an UnmanagedResource that would be associated
-     * with it may, so it is looked up populated with the appropriate resulting type
+     * Gets a {@link ManageableInstance} given a {@link MissingManagerResource}, which means that
+     * a {@link ManagerResource} doesn't exist, but an {@link UnmanagedResource} that would be associated
+     * with it may, so it is looked up over HTTP and populated with the appropriate resulting type
      * based on its existence.
-     * @param context Shape tree context
-     * @param missing Missing manager resource
-     * @return ManageableInstance with UnmanagedResource|MissingManageableResource and MissingManagerResource
+     * @param context {@link ShapeTreeContext}
+     * @param missing {@link MissingManagerResource}
+     * @return {@link ManageableInstance} including {@link UnmanagedResource}|{@link MissingManageableResource} and {@link MissingManagerResource}
      * @throws ShapeTreeException
      */
     private ManageableInstance
@@ -101,13 +111,13 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Gets a ManageableInstance given a ManageableResource, which could be a
-     * ManagedResource or an UnmanagedResource. Which type is determined by
-     * the presence of the ManagerResource, which is looked up and the instance is
+     * Gets a {@link ManageableInstance} given a {@link ManageableResource}, which could be a
+     * {@link ManagedResource} or an {@link UnmanagedResource}. Which type is determined by
+     * the presence of the {@link ManagerResource}, which is looked up and the instance is
      * populated with the appropriate resulting types.*
-     * @param context Shape tree context
-     * @param manageable Managed or unmanaged resource
-     * @return ManageableInstance with UnmanagedResource|ManagedResource and ManagerResource|MissingManagerResource
+     * @param context {@link ShapeTreeContext}
+     * @param manageable {@link ManagedResource} or {@link UnmanagedResource}
+     * @return {@link ManageableInstance} including {@link UnmanagedResource}|{@link ManagedResource} and {@link ManagerResource}|{@link MissingManagerResource}
      * @throws ShapeTreeException
      */
     private ManageableInstance
@@ -132,11 +142,11 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Gets a ManageableInstance given a ManagerResource. The corresponding
-     * ManagedResource is looked up and the instance is populated with it.
-     * @param context Shape tree context
-     * @param manager Existing shape tre manager resource
-     * @return ManageableInstance with ManagerResource and ManagedResource
+     * Gets a {@link ManageableInstance} given a {@link ManagerResource}. The corresponding
+     * {@link ManagedResource} is looked up and the instance is populated with it.
+     * @param context {@link ShapeTreeContext}
+     * @param manager Existing {@link ManagerResource}
+     * @return {@link ManageableInstance} including {@link ManagerResource} and {@link ManagedResource}
      * @throws ShapeTreeException
      */
     private ManageableInstance
@@ -150,19 +160,19 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Gets a ManageableInstance by first creating the provided <code>resourceUrl</code>, which could
-     * mean creating either a ManageableResource or a ManagerResource. The newly created resource
-     * is loaded into the instance, and the corresponding Manageable or Manager resource is
+     * Gets a {@link ManageableInstance} by first creating the provided <code>resourceUrl</code>, which could
+     * mean creating either a {@link ManageableResource} or a {@link ManagerResource}. The newly created resource
+     * is loaded into the instance, and the corresponding {@link ManageableResource} or {@link ManagerResource} is
      * looked up and loaded into the instance alongside it. They are loaded as specifically
-     * typed sub-classes that indicate whether they exist, or (in the case of manageable resource),
+     * typed sub-classes that indicate whether they exist, or (in the case of a {@link ManageableResource}),
      * whether they are managed.
-     * @param context Shape tree context
+     * @param context {@link ShapeTreeContext}
      * @param method HTTP method used for creation
      * @param resourceUrl URL of the resource to create
      * @param headers HTTP headers used for creation
      * @param body Body of the created resource
      * @param contentType Content-type of the created resource
-     * @return ManageableInstance with ManageableResource and ManagerResource
+     * @return {@link ManageableInstance} with {@link ManageableResource} and {@link ManagerResource}
      * @throws ShapeTreeException
      */
     @Override
@@ -184,12 +194,12 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Gets a ManageableInstance given a newly created ManageableResource. A corresponding
-     * ManagerResource is looked up. If it exists, a ManagedResource is initialized and loaded
-     * into the instance. If it doesn't, an Unmanaged resource is initialized and loaded instead.
-     * @param context Shape tree context
-     * @param manageable Newly created manageable resource
-     * @return ManageableInstance with ManagedResource|UnmanagedResource and ManagerResource|MissingManagerResource
+     * Gets a {@link ManageableInstance} given a newly created {@link ManageableResource}. A corresponding
+     * {@link ManagerResource} is looked up. If it exists, a {@link ManagedResource} is initialized and loaded
+     * into the instance. If it doesn't, an {@link UnmanagedResource} is initialized and loaded instead.
+     * @param context {@link ShapeTreeContext}
+     * @param manageable Newly created {@link ManageableResource}
+     * @return {@link ManageableInstance} including {@link ManagedResource}|{@link UnmanagedResource} and {@link ManagerResource}|{@link MissingManagerResource}
      * @throws ShapeTreeException
      */
     private ManageableInstance
@@ -214,12 +224,12 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Gets a ManageableInstance given a newly created ManagerResource. A corresponding
-     * ManagedResource is looked up (and which must exist and be associated with this
+     * Gets a {@link ManageableInstance} given a newly created {@link ManagerResource}. A corresponding
+     * {@link ManagedResource} is looked up (and which must exist and be associated with this
      * manager).
-     * @param context Shape tree context
-     * @param manager Newly created manager resource
-     * @return ManageableInstance with ManagerResource and ManagedResource
+     * @param context {@link ShapeTreeContext}
+     * @param manager Newly created {@link ManagerResource}
+     * @return {@link ManageableInstance} including {@link ManagerResource} and {@link ManagedResource}
      * @throws ShapeTreeException
      */
     private ManageableInstance
@@ -241,12 +251,12 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Get a InstanceResource (Manageable or Manager) at the provided <code>url</code>, which may or may not exist.
+     * Get a {@link InstanceResource} at the provided <code>url</code>, which may or may not exist.
      * Most of the work happens in {@link #generateResource(URL, DocumentResponse)}, which
      * processes the response and returns the corresponding typed resource.
-     * @param context Shape tree context
+     * @param context {@link ShapeTreeContext}
      * @param url Url of the resource to get
-     * @return
+     * @return {@link InstanceResource}
      * @throws ShapeTreeException
      */
     @Override
@@ -263,16 +273,16 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Create a resource (Mangeable or Manager) at the provided <code>url</code> via the provided HTTP
+     * Create a {@link InstanceResource} at the provided <code>url</code> via the provided HTTP
      * <code>method</code>. Most of the work happens in {@link #generateResource(URL, DocumentResponse)},
      * which processes the response and returns the corresponding typed resource.
-     * @param context Shape tree context
+     * @param context {@link ShapeTreeContext}
      * @param method HTTP method to use for resource creation
      * @param url Url of the resource to create
      * @param headers HTTP headers to use for resource creation
      * @param body Body of resource to create
      * @param contentType HTTP content-type
-     * @return
+     * @return {@link InstanceResource}
      * @throws ShapeTreeException
      */
     @Override
@@ -290,12 +300,12 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Generates a typed InstanceResource based on the response from {@link #getResource(ShapeTreeContext, URL)} or
+     * Generates a typed {@link InstanceResource} based on the response from {@link #getResource(ShapeTreeContext, URL)} or
      * {@link #createResource(ShapeTreeContext, String, URL, ResourceAttributes, String, String)}.
-     * Determines whether the resource is an existing ManageableResource or ManagerResource.
+     * Determines whether the resource is an existing {@link ManageableResource} or {@link ManagerResource}.
      * @param url Url of the resource to generate
      * @param response Response from a create or update of <code>url</code>
-     * @return Generated instance resource, either ManageableResource or ManagerResource
+     * @return Generated {@link InstanceResource}, either {@link ManageableResource} or {@link ManagerResource}
      * @throws ShapeTreeException
      */
     private InstanceResource
@@ -337,7 +347,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
         if (Boolean.TRUE.equals(isManager)) {
             final URL managedResourceUrl = calculateManagedUrl(url, parsedLinkHeaders);
             if (exists) {
-                return new ManagerResource(url, resourceType, attributes, body, name, exists, managedResourceUrl);
+                return new ManagerResource(url, resourceType, attributes, body, name, true, managedResourceUrl);
             } else {
                 return new MissingManagerResource(url, resourceType, attributes, body, name, managedResourceUrl);
             }
@@ -345,7 +355,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
             // Look for presence of st:managedBy in link headers from response and get the target manager URL
             final Optional<URL> managerUrl = calculateManagerUrl(url, parsedLinkHeaders);
             if (exists) {
-                return new ManageableResource(url, resourceType, attributes, body, name, exists, managerUrl, container);
+                return new ManageableResource(url, resourceType, attributes, body, name, true, managerUrl, container);
             } else {
                 return new MissingManageableResource(url, resourceType, attributes, body, name, managerUrl, container);
             }
@@ -353,10 +363,10 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Gets a List of contained ManagedInstances from a given container specified by <code>containerUrl</code>
-     * @param context Shape tree context
+     * Gets a List of contained {@link ManageableInstance}s from a given container specified by <code>containerUrl</code>
+     * @param context {@link ShapeTreeContext}
      * @param containerUrl URL of target container resource
-     * @return List of ManageableInstances from the target container
+     * @return List of {@link ManageableInstance}s from the target container
      * @throws ShapeTreeException
      */
     @Override
@@ -397,13 +407,13 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Updates the provided <code>updateResource</code> with <code>body</code> via the supplied
+     * Updates the provided {@link InstanceResource} <code>updateResource</code> with <code>body</code> via the supplied
      * <code>method</code>
      * @param context Shape tree context
      * @param method HTTP method to use for update
-     * @param updateResource Instance resource to update
+     * @param updateResource {@link InstanceResource} to update
      * @param body Body to use for update
-     * @return Document response of the result
+     * @return {@link DocumentResponse} of the result
      * @throws ShapeTreeException
      */
     @Override
@@ -419,10 +429,10 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Deletes the provided <code>deleteResource</code>
-     * @param context Shape tree context
-     * @param deleteResource InstanceResource to delete
-     * @return Document response of the result
+     * Deletes the provided {@link InstanceResource }<code>deleteResource</code>
+     * @param context {@link ShapeTreeContext}
+     * @param deleteResource {@link InstanceResource} to delete
+     * @return {@link DocumentResponse} of the result
      * @throws ShapeTreeException
      */
     @Override
@@ -491,7 +501,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
 
     /**
      * Looks for the presence of the http://www.w3.org/ns/shapetrees#managedBy HTTP Link Relation in the
-     * provided <code>parsedLinkHeaders</code>, with a valid target URL of a Shape Tree Manager associated
+     * provided <code>parsedLinkHeaders</code>, with a valid target URL of a {@link ShapeTreeManager} associated
      * with the provided <code>url</code>.
      * @param url URL of the (potentially) managed resource
      * @param parsedLinkHeaders Parsed HTTP Link headers to evaluate
@@ -515,11 +525,11 @@ public class HttpResourceAccessor implements ResourceAccessor {
 
     /**
      * Looks for the presence of the http://www.w3.org/ns/shapetrees#manages HTTP Link Relation in the
-     * provided <code>parsedLinkHeaders</code>, with a valid target URL of a managed resource. Falls
+     * provided <code>parsedLinkHeaders</code>, with a valid target URL of a {@link ManagedResource}. Falls
      * back to a relatively crude inference when the more reliable header isn't available
-     * @param managerUrl URL of the shape tree manager
-     * @param parsedLinkHeaders Parsed link headers from shape tree manager response
-     * @return
+     * @param managerUrl URL of the {@link ShapeTreeManager}
+     * @param parsedLinkHeaders Parsed link headers from {@link ManagerResource} response
+     * @return URL of {@link ManagedResource}
      * @throws ShapeTreeException
      */
     private URL
@@ -550,8 +560,8 @@ public class HttpResourceAccessor implements ResourceAccessor {
     /**
      * Calculates the name of the resource itself, removing any leading path and any trailing slash. In
      * the event that the resource is '/', then '/' will be returned.
-     * @param url
-     * @return
+     * @param url URL of the resource to evaluate
+     * @return Name of resource
      */
     private String
     calculateName(URL url) {
@@ -575,14 +585,14 @@ public class HttpResourceAccessor implements ResourceAccessor {
     }
 
     /**
-     * Determine whether <code>url</code> is a Shape Tree Manager. Since this is a completely HTTP based
+     * Determine whether <code>url</code> is a {@link ManagerResource}. Since this is a completely HTTP based
      * resource processor, this determination can't be made with special server-side knowledge about
      * the nature of the resources it serves. Instead, this must be derived based on information
      * present in the HTTP response from the server.
      * @param url URL of the resource that is being evaluated
      * @param exists whether the resource at <code>url</code> exists
      * @param parsedLinkHeaders Parsed HTTP Link headers from the response for <code>url</code>
-     * @return
+     * @return True if {@link ManagerResource}
      */
     private boolean
     calculateIsManager(URL url, boolean exists, ResourceAttributes parsedLinkHeaders) {

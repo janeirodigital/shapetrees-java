@@ -17,7 +17,6 @@ public abstract class AbstractValidatingMethodHandler {
         this.resourceAccessor = resourceAccessor;
         this.requestHandler = new ShapeTreeRequestHandler(resourceAccessor);
     }
-
 }
 
 
