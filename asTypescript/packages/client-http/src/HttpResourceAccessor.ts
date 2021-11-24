@@ -1,11 +1,22 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.client.http
-import * as core from 'com/janeirodigital/shapetrees';
-import { HttpHeaders } from '@shapetrees/nums/HttpHeaders';
-import { LinkRelations } from '@shapetrees/nums/LinkRelations';
-import { ShapeTreeResourceType } from '@shapetrees/nums/ShapeTreeResourceType';
-import { ShapeTreeException } from '@shapetrees/xceptions/ShapeTreeException';
-import { ShapeTreeContext } from '@shapetrees/hapeTreeContext';
-import { LdpVocabulary } from '@shapetrees/ocabularies/LdpVocabulary';
+import { ShapeTreeManager } from '@shapetrees/ShapeTreeManager';
+import { ShapeTreeContext } from '@shapetrees/ShapeTreeContext';
+import { ManageableInstance } from '@shapetrees/ManageableInstance';
+import { ManageableResource } from '@shapetrees/ManageableResource';
+import { DocumentResponse } from '@shapetrees/DocumentResponse';
+import { ResourceAttributes } from '@shapetrees/ResourceAttributes';
+import { InstanceResource } from '@shapetrees/InstanceResource';
+import { ResourceAccessor } from '@shapetrees/ResourceAccessor';
+import { ManagerResource } from '@shapetrees/ManagerResource';
+import { MissingManageableResource } from '@shapetrees/MissingManageableResource';
+import { MissingManagerResource } from '@shapetrees/MissingManagerResource';
+import { UnmanagedResource } from '@shapetrees/UnmanagedResource';
+import { ManagedResource } from '@shapetrees/ManagedResource';
+import { HttpHeaders } from '@shapetrees/enums/HttpHeaders';
+import { LinkRelations } from '@shapetrees/enums/LinkRelations';
+import { ShapeTreeResourceType } from '@shapetrees/enums/ShapeTreeResourceType';
+import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
+import { LdpVocabulary } from '@shapetrees/vocabularies/LdpVocabulary';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as Graph from 'org/apache/jena/graph';
 import * as Node from 'org/apache/jena/graph';
@@ -13,9 +24,12 @@ import * as NodeFactory from 'org/apache/jena/graph';
 import * as Triple from 'org/apache/jena/graph';
 import * as MalformedURLException from 'java/net';
 import * as URL from 'java/net';
-import * as util from 'java';
-import { readStringIntoGraph } from '@shapetrees/elpers/GraphHelper/readStringIntoGraph';
-import { urlToUri } from '@shapetrees/elpers/GraphHelper/urlToUri';
+import * as Set from 'java/util';
+import * as Optional from 'java/util';
+import * as Collections from 'java/util';
+import * as ArrayList from 'java/util';
+import { readStringIntoGraph } from '@shapetrees/helpers/GraphHelper/readStringIntoGraph';
+import { urlToUri } from '@shapetrees/helpers/GraphHelper/urlToUri';
 import { HttpRequest } from './HttpRequest';
 import { HttpClient } from './HttpClient';
 
@@ -287,7 +301,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
       log.error("Could not retrieve the body string from response for " + url);
     }
     // Parse Link headers from response and populate ResourceAttributes
-    const linkHeaders: List<string> = attributes.allValues(HttpHeaders.LINK.getValue());
+    const linkHeaders: Array<string> = attributes.allValues(HttpHeaders.LINK.getValue());
     let parsedLinkHeaders: ResourceAttributes = // !!
     linkHeaders.isEmpty() ? new ResourceAttributes() : ResourceAttributes.parseLinkHeaders(linkHeaders);
     // Determine if the resource is a shape tree manager based on the response
@@ -317,7 +331,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
    * @return List of {@link ManageableInstance}s from the target container
    * @throws ShapeTreeException
    */
-  override public getContainedInstances(context: ShapeTreeContext, containerUrl: URL): List<ManageableInstance> /* throws ShapeTreeException */ {
+  override public getContainedInstances(context: ShapeTreeContext, containerUrl: URL): Array<ManageableInstance> /* throws ShapeTreeException */ {
     try {
       let resource: InstanceResource = this.getResource(context, containerUrl);
       if (!(resource instanceof ManageableResource)) {
@@ -331,7 +345,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
       if (containerGraph.isEmpty()) {
         return Collections.emptyList();
       }
-      let containerTriples: List<Triple> = containerGraph.find(NodeFactory.createURI(containerUrl.toString()), NodeFactory.createURI(LdpVocabulary.CONTAINS), Node.ANY).toList();
+      let containerTriples: Array<Triple> = containerGraph.find(NodeFactory.createURI(containerUrl.toString()), NodeFactory.createURI(LdpVocabulary.CONTAINS), Node.ANY).toList();
       if (containerTriples.isEmpty()) {
         return Collections.emptyList();
       }
@@ -390,12 +404,12 @@ export class HttpResourceAccessor implements ResourceAccessor {
    * @return True if headers indicating a container are found
    */
   private isContainerFromHeaders(headers: ResourceAttributes, url: URL): boolean {
-    let linkHeaders: List<string> = headers.allValues(HttpHeaders.LINK.getValue());
+    let linkHeaders: Array<string> = headers.allValues(HttpHeaders.LINK.getValue());
     if (linkHeaders.isEmpty()) {
       return url.getPath().endsWith("/");
     }
     let parsedLinkHeaders: ResourceAttributes = ResourceAttributes.parseLinkHeaders(linkHeaders);
-    let typeLinks: List<string> = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
+    let typeLinks: Array<string> = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
     if (!typeLinks.isEmpty()) {
       return typeLinks.contains(LdpVocabulary.CONTAINER) || typeLinks.contains(LdpVocabulary.BASIC_CONTAINER);
     }
@@ -408,12 +422,12 @@ export class HttpResourceAccessor implements ResourceAccessor {
    * @return Type of resource
    */
   private getResourceTypeFromHeaders(headers: ResourceAttributes): ShapeTreeResourceType {
-    let linkHeaders: List<string> = headers.allValues(HttpHeaders.LINK.getValue());
+    let linkHeaders: Array<string> = headers.allValues(HttpHeaders.LINK.getValue());
     if (linkHeaders === null) {
       return null;
     }
     let parsedLinkHeaders: ResourceAttributes = ResourceAttributes.parseLinkHeaders(linkHeaders);
-    let typeLinks: List<string> = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
+    let typeLinks: Array<string> = parsedLinkHeaders.allValues(LinkRelations.TYPE.getValue());
     if (typeLinks != null && (typeLinks.contains(LdpVocabulary.CONTAINER) || typeLinks.contains(LdpVocabulary.BASIC_CONTAINER))) {
       return ShapeTreeResourceType.CONTAINER;
     }

@@ -1,9 +1,12 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core.methodhandlers
-import * as core from 'com/janeirodigital/shapetrees';
-import { HttpHeaders } from '../enums/HttpHeaders';
+import { ShapeTreeRequest } from '../ShapeTreeRequest';
+import { ShapeTreeContext } from '../ShapeTreeContext';
+import { ManageableInstance } from '../ManageableInstance';
+import { DocumentResponse } from '../DocumentResponse';
+import { ResourceAccessor } from '../ResourceAccessor';
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import { RequestHelper } from '../helpers/RequestHelper';
-import { ShapeTreeContext } from '../ShapeTreeContext';
+import { HttpHeaders } from '../enums/HttpHeaders';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as Optional from 'java/util';
 import * as UUID from 'java/util';

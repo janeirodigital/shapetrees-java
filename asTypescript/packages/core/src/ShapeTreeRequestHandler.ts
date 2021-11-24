@@ -6,7 +6,12 @@ import { RequestHelper } from './helpers/RequestHelper';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as Graph from 'org/apache/jena/graph';
 import * as URL from 'java/net';
-import * as util from 'java';
+import * as HashMap from 'java/util';
+import * as Optional from 'java/util';
+import * as Collections from 'java/util';
+import * as ArrayList from 'java/util';
+import * as Collection from 'java/util';
+import * as Arrays from 'java/util';
 import { TEXT_TURTLE } from './ManageableInstance/TEXT_TURTLE';
 import { ResourceAccessor } from './ResourceAccessor';
 import { ShapeTreeAssignment } from './ShapeTreeAssignment';
@@ -110,13 +115,13 @@ export class ShapeTreeRequestHandler {
     let containerManager: ShapeTreeManager = containerResource.getManagerResource().getManager();
     ensureShapeTreeManagerExists(containerManager, "Cannot have a shape tree manager resource without a shape tree manager containing at least one shape tree assignment");
     // Get the shape tree associated that specifies what resources can be contained by the target container (st:contains)
-    let containingAssignments: List<ShapeTreeAssignment> = containerManager.getContainingAssignments();
+    let containingAssignments: Array<ShapeTreeAssignment> = containerManager.getContainingAssignments();
     // If there are no containing shape trees for the target container, request is valid and can be passed through
     if (containingAssignments.isEmpty()) {
       return Optional.empty();
     }
-    let targetShapeTrees: List<URL> = RequestHelper.getIncomingTargetShapeTrees(shapeTreeRequest, targetResourceUrl);
-    let incomingFocusNodes: List<URL> = RequestHelper.getIncomingFocusNodes(shapeTreeRequest, targetResourceUrl);
+    let targetShapeTrees: Array<URL> = RequestHelper.getIncomingTargetShapeTrees(shapeTreeRequest, targetResourceUrl);
+    let incomingFocusNodes: Array<URL> = RequestHelper.getIncomingFocusNodes(shapeTreeRequest, targetResourceUrl);
     let incomingBodyGraph: Graph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, targetResourceUrl, null);
     let validationResults: HashMap<ShapeTreeAssignment, ValidationResult> = new HashMap<>();
     for (let containingAssignment: ShapeTreeAssignment : containingAssignments) {
@@ -129,7 +134,7 @@ export class ShapeTreeRequestHandler {
       validationResults.put(containingAssignment, validationResult);
     }
     // if any of the provided focus nodes weren't matched validation must fail
-    let unmatchedNodes: List<URL> = getUnmatchedFocusNodes(validationResults.values(), incomingFocusNodes);
+    let unmatchedNodes: Array<URL> = getUnmatchedFocusNodes(validationResults.values(), incomingFocusNodes);
     if (!unmatchedNodes.isEmpty()) {
       return failValidation(new ValidationResult(false, "Failed to match target focus nodes: " + unmatchedNodes));
     }
@@ -221,7 +226,7 @@ export class ShapeTreeRequestHandler {
       // If the container is not empty, perform a recursive, depth first validation and assignment for each
       // contained resource by recursively calling this method (assignShapeTreeToResource)
       // TODO - Provide a configurable maximum limit on contained resources for a recursive plant, generate ShapeTreeException
-      let containedResources: List<ManageableInstance> = this.resourceAccessor.getContainedInstances(shapeTreeContext, manageableInstance.getManageableResource().getUrl());
+      let containedResources: Array<ManageableInstance> = this.resourceAccessor.getContainedInstances(shapeTreeContext, manageableInstance.getManageableResource().getUrl());
       if (!containedResources.isEmpty()) {
         // Evaluate containers, then resources
         Collections.sort(containedResources, new ResourceTypeAssignmentPriority());
@@ -256,7 +261,7 @@ export class ShapeTreeRequestHandler {
     // Recursively traverse the hierarchy and perform shape tree unassignment
     if (manageableInstance.getManageableResource().isContainer() && !assignedShapeTree.getContains().isEmpty()) {
       // TODO - Should there also be a configurable maximum limit on unplanting?
-      let containedResources: List<ManageableInstance> = this.resourceAccessor.getContainedInstances(shapeTreeContext, manageableInstance.getManageableResource().getUrl());
+      let containedResources: Array<ManageableInstance> = this.resourceAccessor.getContainedInstances(shapeTreeContext, manageableInstance.getManageableResource().getUrl());
       // If the container is not empty
       if (!containedResources.isEmpty()) {
         // Sort contained resources so that containers are evaluated first, then resources
@@ -341,8 +346,8 @@ export class ShapeTreeRequestHandler {
     return null;
   }
 
-  private getUnmatchedFocusNodes(validationResults: Collection<ValidationResult>, focusNodes: List<URL>): List<URL> {
-    let unmatchedNodes: List<URL> = new ArrayList<>();
+  private getUnmatchedFocusNodes(validationResults: Collection<ValidationResult>, focusNodes: Array<URL>): Array<URL> {
+    let unmatchedNodes: Array<URL> = new ArrayList<>();
     for (let focusNode: URL : focusNodes) {
       // Determine if each target focus node was matched
       let matched: boolean = false;
@@ -421,7 +426,7 @@ export class ShapeTreeRequestHandler {
   }
 
   private ensureDeleteIsSuccessful(response: DocumentResponse): void /* throws ShapeTreeException */ {
-    let successCodes: List<number> = Arrays.asList(202, 204, 200);
+    let successCodes: Array<number> = Arrays.asList(202, 204, 200);
     if (!successCodes.contains(response.getStatusCode())) {
       throw new ShapeTreeException(500, "Failed to delete manager resource. Received " + response.getStatusCode() + ": " + response.getBody());
     }

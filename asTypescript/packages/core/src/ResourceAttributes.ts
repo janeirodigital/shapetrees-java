@@ -1,7 +1,10 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as Slf4j from 'lombok/extern/slf4j';
-import * as util from 'java';
+import * as TreeMap from 'java/util';
+import * as Optional from 'java/util';
+import * as ArrayList from 'java/util';
+import * as Arrays from 'java/util';
 import * as Matcher from 'java/util/regex';
 import * as Pattern from 'java/util/regex';
 import * as requireNonNull from 'java/util/Objects';
@@ -14,7 +17,7 @@ import * as requireNonNull from 'java/util/Objects';
 @Slf4j
 export class ResourceAttributes {
 
-   myMapOfLists: Map<string, List<string>>;
+   myMapOfLists: Map<string, Array<string>>;
 
   /**
    * construct a case-insensitive ResourceAttributes container
@@ -37,14 +40,14 @@ export class ResourceAttributes {
    * Construct ResourceAttributes with passed map, which may be case-sensitive.
    * @param newMap replacement for myMapOfLists
    */
-  public constructor(newMap: Map<string, List<string>>) {
+  public constructor(newMap: Map<string, Array<string>>) {
     this.myMapOfLists = newMap;
   }
 
   // copy constructor
   private copy(): ResourceAttributes {
     let ret: ResourceAttributes = new ResourceAttributes();
-    for (let entry: Map.Entry<string, List<string>> : this.myMapOfLists.entrySet()) {
+    for (let entry: Map.Entry<string, Array<string>> : this.myMapOfLists.entrySet()) {
       ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
     }
     return ret;
@@ -56,7 +59,7 @@ export class ResourceAttributes {
    * @param headerValues Header values for Link headers
    * @return subset of this matching the pattern
    */
-  public static parseLinkHeaders(headerValues: List<string>): ResourceAttributes {
+  public static parseLinkHeaders(headerValues: Array<string>): ResourceAttributes {
     let linkHeaderMap: ResourceAttributes = new ResourceAttributes();
     for (let headerValue: string : headerValues) {
       let matcher: Matcher = LINK_HEADER_PATTERN.matcher(headerValue);
@@ -99,7 +102,7 @@ export class ResourceAttributes {
       return;
     }
     if (this.myMapOfLists.containsKey(attr)) {
-      let existingValues: List<string> = this.myMapOfLists.get(attr);
+      let existingValues: Array<string> = this.myMapOfLists.get(attr);
       let alreadySet: boolean = existingValues.stream().anyMatch(s -> s === value);
       if (!alreadySet) {
         existingValues.add(value);
@@ -119,14 +122,14 @@ export class ResourceAttributes {
    * @param attr attribute (header) name to set
    * @param values String values to assign to attr
    */
-  public setAll(attr: string, values: List<string>): void {
+  public setAll(attr: string, values: Array<string>): void {
     this.myMapOfLists.put(attr, values);
   }
 
   /**
    * Returns a map of attributes to lists of values
    */
-  public toMultimap(): Map<string, List<string>> {
+  public toMultimap(): Map<string, Array<string>> {
     return this.myMapOfLists;
   }
 
@@ -136,8 +139,8 @@ export class ResourceAttributes {
    *                   (This is useful for HttpRequest.Builder().)
    */
   public toList(...exclusions: string): string[] {
-    let ret: List<string> = new ArrayList<>();
-    for (let entry: Map.Entry<string, List<string>> : this.myMapOfLists.entrySet()) {
+    let ret: Array<string> = new ArrayList<>();
+    for (let entry: Map.Entry<string, Array<string>> : this.myMapOfLists.entrySet()) {
       let attr: string = entry.getKey();
       if (!Arrays.stream(exclusions).anyMatch(s -> s === attr)) {
         for (let value: string : entry.getValue()) {
@@ -170,9 +173,9 @@ export class ResourceAttributes {
    * @param name the header name
    * @return a List of headers string values
    */
-  public allValues(name: string): List<string> {
+  public allValues(name: string): Array<string> {
     requireNonNull(name);
-    let values: List<string> = toMultimap().get(name);
+    let values: Array<string> = toMultimap().get(name);
     // Making unmodifiable list out of empty in order to make a list which
     // throws UOE unconditionally
     return values != null ? values : List.of();
@@ -180,7 +183,7 @@ export class ResourceAttributes {
 
   public toString(): string {
     let sb: StringBuilder = new StringBuilder();
-    for (let entry: Map.Entry<string, List<string>> : this.myMapOfLists.entrySet()) {
+    for (let entry: Map.Entry<string, Array<string>> : this.myMapOfLists.entrySet()) {
       for (let value: string : entry.getValue()) {
         if (sb.length() != 0) {
           sb.append(",");

@@ -1,9 +1,17 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.client.http
-import { ShapeTreeClient } from '@shapetrees/hapeTreeClient';
-import * as core from 'com/janeirodigital/shapetrees';
-import { HttpHeaders } from '@shapetrees/nums/HttpHeaders';
-import { LinkRelations } from '@shapetrees/nums/LinkRelations';
-import { ShapeTreeException } from '@shapetrees/xceptions/ShapeTreeException';
+import { ShapeTreeClient } from '@shapetrees/ShapeTreeClient';
+import { ShapeTreeManager } from '@shapetrees/ShapeTreeManager';
+import { ShapeTreeContext } from '@shapetrees/ShapeTreeContext';
+import { ManageableInstance } from '@shapetrees/ManageableInstance';
+import { ManageableResource } from '@shapetrees/ManageableResource';
+import { DocumentResponse } from '@shapetrees/DocumentResponse';
+import { ShapeTree } from '@shapetrees/ShapeTree';
+import { ShapeTreeFactory } from '@shapetrees/ShapeTreeFactory';
+import { ShapeTreeAssignment } from '@shapetrees/ShapeTreeAssignment';
+import { ResourceAttributes } from '@shapetrees/ResourceAttributes';
+import { HttpHeaders } from '@shapetrees/enums/HttpHeaders';
+import { LinkRelations } from '@shapetrees/enums/LinkRelations';
+import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as Lang from 'org/apache/jena/riot';
 import * as RDFDataMgr from 'org/apache/jena/riot';

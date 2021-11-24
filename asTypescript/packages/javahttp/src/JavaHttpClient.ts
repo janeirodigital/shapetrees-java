@@ -1,11 +1,20 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.javahttp
-import { HttpClient } from '@shapetrees/ttpClient';
-import { HttpRequest } from '@shapetrees/ttpRequest';
-import { DocumentResponse } from '@shapetrees/ocumentResponse';
-import { ResourceAttributes } from '@shapetrees/esourceAttributes';
-import { ShapeTreeException } from '@shapetrees/xceptions/ShapeTreeException';
+import { HttpClient } from '@shapetrees/HttpClient';
+import { HttpRequest } from '@shapetrees/HttpRequest';
+import { DocumentResponse } from '@shapetrees/DocumentResponse';
+import { ResourceAttributes } from '@shapetrees/ResourceAttributes';
+import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
 import * as Slf4j from 'lombok/extern/slf4j';
-import * as ssl from 'javax/net';
+import * as TrustManager from 'javax/net/ssl';
+import * as X509TrustManager from 'javax/net/ssl';
+import * as SSLContext from 'javax/net/ssl';
+import * as HttpsURLConnection from 'javax/net/ssl';
+import * as HostnameVerifier from 'javax/net/ssl';
+import * as SSLSession from 'javax/net/ssl';
+import * as X509TrustManager from 'javax/net/ssl';
+import * as X509TrustManager from 'javax/net/ssl';
+import * as X509TrustManager from 'javax/net/ssl';
+import * as X509TrustManager from 'javax/net/ssl';
 import * as URISyntaxException from 'java/net';
 import * as KeyManagementException from 'java/security';
 import * as NoSuchAlgorithmException from 'java/security';

@@ -1,10 +1,17 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.javahttp
-import { HttpResourceAccessor } from '@shapetrees/ttpResourceAccessor';
-import * as core from 'com/janeirodigital/shapetrees';
-import { HttpHeaders } from '@shapetrees/nums/HttpHeaders';
-import { ShapeTreeResourceType } from '@shapetrees/nums/ShapeTreeResourceType';
-import { ShapeTreeException } from '@shapetrees/xceptions/ShapeTreeException';
-import * as methodhandlers from '@shapetrees/ethodhandlers';
+import { HttpResourceAccessor } from '@shapetrees/HttpResourceAccessor';
+import { DocumentResponse } from '@shapetrees/DocumentResponse';
+import { ResourceAttributes } from '@shapetrees/ResourceAttributes';
+import { ResourceAccessor } from '@shapetrees/ResourceAccessor';
+import { ShapeTreeRequest } from '@shapetrees/ShapeTreeRequest';
+import { HttpHeaders } from '@shapetrees/enums/HttpHeaders';
+import { ShapeTreeResourceType } from '@shapetrees/enums/ShapeTreeResourceType';
+import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
+import { ValidatingMethodHandler } from '@shapetrees/methodhandlers/ValidatingMethodHandler';
+import { ValidatingDeleteMethodHandler } from '@shapetrees/methodhandlers/ValidatingDeleteMethodHandler';
+import { ValidatingPutMethodHandler } from '@shapetrees/methodhandlers/ValidatingPutMethodHandler';
+import { ValidatingPatchMethodHandler } from '@shapetrees/methodhandlers/ValidatingPatchMethodHandler';
+import { ValidatingPostMethodHandler } from '@shapetrees/methodhandlers/ValidatingPostMethodHandler';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as NotNull from 'org/jetbrains/annotations';
 import * as SSLSession from 'javax/net/ssl';
@@ -12,7 +19,9 @@ import * as MalformedURLException from 'java/net';
 import * as URI from 'java/net';
 import * as URL from 'java/net';
 import * as HttpResponse from 'java/net/http';
-import * as util from 'java';
+import * as Optional from 'java/util';
+import * as Collections from 'java/util';
+import * as TreeMap from 'java/util';
 
 /**
  * Wrapper used for client-side validation
@@ -96,9 +105,9 @@ export class JavaHttpValidatingShapeTreeInterceptor {
       this.request = request;
       this.body = body;
       this.contentType = contentType;
-      let tm: TreeMap<string, List<string>> = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-      let headerMap: Map<string, List<string>> = this.request.headers().map();
-      for (let entry: Map.Entry<string, List<string>> : headerMap.entrySet()) {
+      let tm: TreeMap<string, Array<string>> = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+      let headerMap: Map<string, Array<string>> = this.request.headers().map();
+      for (let entry: Map.Entry<string, Array<string>> : headerMap.entrySet()) {
         tm.put(entry.getKey(), entry.getValue());
       }
       this.headers = new ResourceAttributes(tm);
@@ -124,7 +133,7 @@ export class JavaHttpValidatingShapeTreeInterceptor {
       return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
     }
 
-    override public getHeaderValues(header: string): List<string> {
+    override public getHeaderValues(header: string): Array<string> {
       return this.request.headers().allValues(header);
     }
 

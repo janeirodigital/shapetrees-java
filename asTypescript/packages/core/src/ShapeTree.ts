@@ -22,7 +22,11 @@ import * as NotNull from 'org/jetbrains/annotations';
 import * as MalformedURLException from 'java/net';
 import * as URL from 'java/net';
 import * as StandardCharsets from 'java/nio/charset';
-import * as util from 'java';
+import * as Iterator from 'java/util';
+import * as Collections from 'java/util';
+import * as ArrayList from 'java/util';
+import * as Queue from 'java/util';
+import * as LinkedList from 'java/util';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';
 import { ShapeTreeReference } from './ShapeTreeReference';
 import { DocumentResponse } from './DocumentResponse';
@@ -43,12 +47,12 @@ export class ShapeTree {
    private readonly label: string;
 
   @NotNull
-   private readonly contains: List<URL>;
+   private readonly contains: Array<URL>;
 
   @NotNull
-   private readonly references: List<ShapeTreeReference>;
+   private readonly references: Array<ShapeTreeReference>;
 
-  public constructor(@NotNull id: URL, @NotNull expectedResourceType: URL, label: string, shape: URL, @NotNull references: List<ShapeTreeReference>, @NotNull contains: List<URL>) {
+  public constructor(@NotNull id: URL, @NotNull expectedResourceType: URL, label: string, shape: URL, @NotNull references: Array<ShapeTreeReference>, @NotNull contains: Array<URL>) {
     this.id = id;
     this.expectedResourceType = expectedResourceType;
     this.label = label;
@@ -61,7 +65,7 @@ export class ShapeTree {
     return validateResource(targetResource, null);
   }
 
-  public validateResource(targetResource: ManageableResource, focusNodeUrls: List<URL>): ValidationResult /* throws ShapeTreeException */ {
+  public validateResource(targetResource: ManageableResource, focusNodeUrls: Array<URL>): ValidationResult /* throws ShapeTreeException */ {
     let bodyGraph: Graph = null;
     if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
       bodyGraph = GraphHelper.readStringIntoGraph(urlToUri(targetResource.getUrl()), targetResource.getBody(), targetResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
@@ -69,7 +73,7 @@ export class ShapeTree {
     return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeUrls);
   }
 
-  public validateResource(requestedName: string, resourceType: ShapeTreeResourceType, bodyGraph: Graph, focusNodeUrls: List<URL>): ValidationResult /* throws ShapeTreeException */ {
+  public validateResource(requestedName: string, resourceType: ShapeTreeResourceType, bodyGraph: Graph, focusNodeUrls: Array<URL>): ValidationResult /* throws ShapeTreeException */ {
     // Check whether the proposed resource is the same type as what is expected by the shape tree
     if (!this.expectedResourceType.toString() === resourceType.getValue()) {
       return new ValidationResult(false, this, "Resource type " + resourceType + " is invalid. Expected " + this.expectedResourceType);
@@ -89,7 +93,7 @@ export class ShapeTree {
     return new ValidationResult(true, this, this, null);
   }
 
-  public validateGraph(graph: Graph, focusNodeUrls: List<URL>): ValidationResult /* throws ShapeTreeException */ {
+  public validateGraph(graph: Graph, focusNodeUrls: Array<URL>): ValidationResult /* throws ShapeTreeException */ {
     // if (true) return new ValidationResult(true, this, this, focusNodeUrl); // [debug] ShExC parser brings debugger to its knees
     if (this.shape === null) {
       throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
@@ -137,7 +141,7 @@ export class ShapeTree {
       return new ValidationResult(false, this, "Failed to validate: " + shapeLabel.toPrettyString());
     } else {
       // No focus nodes were provided for validation, so all subject nodes will be evaluated
-      let evaluateNodes: List<Node> = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
+      let evaluateNodes: Array<Node> = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
       for (let evaluateNode: Node : evaluateNodes) {
         const focusUriString: string = evaluateNode.getURI();
         let node: IRI = GlobalFactory.RDFFactory.createIRI(focusUriString);
@@ -166,7 +170,7 @@ export class ShapeTree {
     return validateContainedResource(containedResource, Collections.emptyList(), Collections.emptyList());
   }
 
-  public validateContainedResource(containedResource: ManageableResource, targetShapeTreeUrls: List<URL>, focusNodeUrls: List<URL>): ValidationResult /* throws ShapeTreeException */ {
+  public validateContainedResource(containedResource: ManageableResource, targetShapeTreeUrls: Array<URL>, focusNodeUrls: Array<URL>): ValidationResult /* throws ShapeTreeException */ {
     let containedResourceGraph: Graph = null;
     if (containedResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
       containedResourceGraph = GraphHelper.readStringIntoGraph(urlToUri(containedResource.getUrl()), containedResource.getBody(), containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
@@ -174,7 +178,7 @@ export class ShapeTree {
     return validateContainedResource(containedResource.getName(), containedResource.getResourceType(), targetShapeTreeUrls, containedResourceGraph, focusNodeUrls);
   }
 
-  public validateContainedResource(requestedName: string, resourceType: ShapeTreeResourceType, targetShapeTreeUrls: List<URL>, bodyGraph: Graph, focusNodeUrls: List<URL>): ValidationResult /* throws ShapeTreeException */ {
+  public validateContainedResource(requestedName: string, resourceType: ShapeTreeResourceType, targetShapeTreeUrls: Array<URL>, bodyGraph: Graph, focusNodeUrls: Array<URL>): ValidationResult /* throws ShapeTreeException */ {
     if (this.contains === null || this.contains.isEmpty()) {
       // The contained resource is permitted because this shape tree has no restrictions on what it contains
       return new ValidationResult(true, this, this, null);
@@ -226,30 +230,30 @@ export class ShapeTree {
   }
 
   // Return the list of shape tree contains by priority from most to least strict
-  public getPrioritizedContains(): List<URL> {
-    let prioritized: List<URL> = new ArrayList<>(this.contains);
+  public getPrioritizedContains(): Array<URL> {
+    let prioritized: Array<URL> = new ArrayList<>(this.contains);
     Collections.sort(prioritized, new ShapeTreeContainsPriority());
     return prioritized;
   }
 
-  private getReferencedShapeTreesList(recursionMethods: RecursionMethods): List<ShapeTreeReference> /* throws ShapeTreeException */ {
+  private getReferencedShapeTreesList(recursionMethods: RecursionMethods): Array<ShapeTreeReference> /* throws ShapeTreeException */ {
     if (recursionMethods === RecursionMethods.BREADTH_FIRST) {
       return getReferencedShapeTreesListBreadthFirst();
     } else {
-      let referencedShapeTrees: List<ShapeTreeReference> = new ArrayList<>();
+      let referencedShapeTrees: Array<ShapeTreeReference> = new ArrayList<>();
       return getReferencedShapeTreesListDepthFirst(this.getReferences(), referencedShapeTrees);
     }
   }
 
-  private getReferencedShapeTreesListBreadthFirst(): List<ShapeTreeReference> /* throws ShapeTreeException */ {
-    let referencedShapeTrees: List<ShapeTreeReference> = new ArrayList<>();
+  private getReferencedShapeTreesListBreadthFirst(): Array<ShapeTreeReference> /* throws ShapeTreeException */ {
+    let referencedShapeTrees: Array<ShapeTreeReference> = new ArrayList<>();
     let queue: Queue<ShapeTreeReference> = new LinkedList<>(this.getReferences());
     while (!queue.isEmpty()) {
       let currentShapeTree: ShapeTreeReference = queue.poll();
       referencedShapeTrees.add(currentShapeTree);
       let shapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(currentShapeTree.getReferenceUrl());
       if (shapeTree != null) {
-        let currentReferencedShapeTrees: List<ShapeTreeReference> = shapeTree.getReferences();
+        let currentReferencedShapeTrees: Array<ShapeTreeReference> = shapeTree.getReferences();
         if (currentReferencedShapeTrees != null) {
           queue.addAll(currentReferencedShapeTrees);
         }
@@ -258,7 +262,7 @@ export class ShapeTree {
     return referencedShapeTrees;
   }
 
-  private getReferencedShapeTreesListDepthFirst(currentReferencedShapeTrees: List<ShapeTreeReference>, referencedShapeTrees: List<ShapeTreeReference>): List<ShapeTreeReference> /* throws ShapeTreeException */ {
+  private getReferencedShapeTreesListDepthFirst(currentReferencedShapeTrees: Array<ShapeTreeReference>, referencedShapeTrees: Array<ShapeTreeReference>): Array<ShapeTreeReference> /* throws ShapeTreeException */ {
     for (let currentShapeTreeReference: ShapeTreeReference : currentReferencedShapeTrees) {
       referencedShapeTrees.add(currentShapeTreeReference);
       let currentReferencedShapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(currentShapeTreeReference.getReferenceUrl());
@@ -285,11 +289,11 @@ export class ShapeTree {
     return this.label;
   }
 
-  public getContains(): List<URL> {
+  public getContains(): Array<URL> {
     return this.contains;
   }
 
-  public getReferences(): List<ShapeTreeReference> {
+  public getReferences(): Array<ShapeTreeReference> {
     return this.references;
   }
 }

@@ -1,8 +1,8 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.client.core
-import { DocumentResponse } from '@shapetrees/ocumentResponse';
-import { ShapeTreeContext } from '@shapetrees/hapeTreeContext';
-import { ShapeTreeManager } from '@shapetrees/hapeTreeManager';
-import { ShapeTreeException } from '@shapetrees/xceptions/ShapeTreeException';
+import { DocumentResponse } from '@shapetrees/DocumentResponse';
+import { ShapeTreeContext } from '@shapetrees/ShapeTreeContext';
+import { ShapeTreeManager } from '@shapetrees/ShapeTreeManager';
+import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
 import * as URL from 'java/net';
 import * as Optional from 'java/util';
 

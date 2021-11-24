@@ -1,5 +1,10 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core.helpers
-import * as core from 'com/janeirodigital/shapetrees';
+import { ShapeTreeManager } from '../ShapeTreeManager';
+import { ShapeTreeContext } from '../ShapeTreeContext';
+import { ManageableInstance } from '../ManageableInstance';
+import { InstanceResource } from '../InstanceResource';
+import { ManagerResource } from '../ManagerResource';
+import { ShapeTreeRequest } from '../ShapeTreeRequest';
 import { HttpHeaders } from '../enums/HttpHeaders';
 import { LinkRelations } from '../enums/LinkRelations';
 import { ShapeTreeResourceType } from '../enums/ShapeTreeResourceType';

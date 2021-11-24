@@ -2,7 +2,11 @@
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as XSDDatatype from 'org/apache/jena/datatypes/xsd';
-import * as graph from 'org/apache/jena';
+import * as Graph from 'org/apache/jena/graph';
+import * as Triple from 'org/apache/jena/graph';
+import * as NodeFactory from 'org/apache/jena/graph';
+import * as Node from 'org/apache/jena/graph';
+import * as Node_Blank from 'org/apache/jena/graph';
 import * as Model from 'org/apache/jena/rdf/model';
 import * as ModelFactory from 'org/apache/jena/rdf/model';
 import * as Lang from 'org/apache/jena/riot';
