@@ -2,7 +2,12 @@ package com.janeirodigital.shapetrees.core;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.TreeMap;
+import java.util.Optional;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

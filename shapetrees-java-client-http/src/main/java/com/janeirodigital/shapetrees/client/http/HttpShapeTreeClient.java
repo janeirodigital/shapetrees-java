@@ -1,7 +1,15 @@
 package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.ShapeTreeManager;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.ManageableInstance;
+import com.janeirodigital.shapetrees.core.ManageableResource;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ShapeTree;
+import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.ShapeTreeAssignment;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;

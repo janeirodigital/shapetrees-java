@@ -1,11 +1,22 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.ShapeTreeManager;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.ManageableInstance;
+import com.janeirodigital.shapetrees.core.ManageableResource;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.InstanceResource;
+import com.janeirodigital.shapetrees.core.ResourceAccessor;
+import com.janeirodigital.shapetrees.core.ManagerResource;
+import com.janeirodigital.shapetrees.core.MissingManageableResource;
+import com.janeirodigital.shapetrees.core.MissingManagerResource;
+import com.janeirodigital.shapetrees.core.UnmanagedResource;
+import com.janeirodigital.shapetrees.core.ManagedResource;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +27,11 @@ import org.apache.jena.graph.Triple;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Set;
+import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
 
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.readStringIntoGraph;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;

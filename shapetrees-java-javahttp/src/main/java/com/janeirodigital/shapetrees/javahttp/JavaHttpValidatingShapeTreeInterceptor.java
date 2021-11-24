@@ -1,11 +1,18 @@
 package com.janeirodigital.shapetrees.javahttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpResourceAccessor;
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.ResourceAccessor;
+import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.methodhandlers.*;
+import com.janeirodigital.shapetrees.core.methodhandlers.ValidatingMethodHandler;
+import com.janeirodigital.shapetrees.core.methodhandlers.ValidatingDeleteMethodHandler;
+import com.janeirodigital.shapetrees.core.methodhandlers.ValidatingPutMethodHandler;
+import com.janeirodigital.shapetrees.core.methodhandlers.ValidatingPatchMethodHandler;
+import com.janeirodigital.shapetrees.core.methodhandlers.ValidatingPostMethodHandler;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +24,11 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
+import java.util.TreeMap;
 
 /**
  * Wrapper used for client-side validation

@@ -8,7 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 
 import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Arrays;
 
 import static com.janeirodigital.shapetrees.core.ManageableInstance.TEXT_TURTLE;
 
