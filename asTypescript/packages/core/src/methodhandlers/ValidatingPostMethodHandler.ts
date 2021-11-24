@@ -7,12 +7,10 @@ import { ResourceAccessor } from '../ResourceAccessor';
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import { RequestHelper } from '../helpers/RequestHelper';
 import { HttpHeaders } from '../enums/HttpHeaders';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as UUID from 'java/util';
 import { AbstractValidatingMethodHandler } from './AbstractValidatingMethodHandler';
 import { ValidatingMethodHandler } from './ValidatingMethodHandler';
 
-@Slf4j
 export class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
   public constructor(resourceAccessor: ResourceAccessor) {

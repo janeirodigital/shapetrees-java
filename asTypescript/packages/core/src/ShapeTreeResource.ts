@@ -2,7 +2,6 @@
 import { DocumentLoaderManager } from './contentloaders/DocumentLoaderManager';
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import { GraphHelper } from './helpers/GraphHelper';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as Model from 'org/apache/jena/rdf/model';
 import * as URI from 'java/net';
 import * as HashMap from 'java/util';
@@ -14,7 +13,6 @@ import { DocumentResponse } from './DocumentResponse';
  * Represents a resource that contains one or more shape tree definitions. Provides
  * a factory to lookup, initialize, and cache them.
  */
-@Slf4j
 export class ShapeTreeResource {
 
    readonly url: URL;

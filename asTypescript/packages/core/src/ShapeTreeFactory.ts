@@ -1,7 +1,6 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import { ShapeTreeVocabulary } from './vocabularies/ShapeTreeVocabulary';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as Node from 'org/apache/jena/graph';
 import * as Node_URI from 'org/apache/jena/graph';
 import * as Model from 'org/apache/jena/rdf/model';
@@ -23,7 +22,6 @@ import { ShapeTreeResource } from './ShapeTreeResource';
  * Includes a simple in-memory local cache to avoid repeated fetching of
  * remote shape tree resources.
  */
-@Slf4j
 export class ShapeTreeFactory {
 
   private constructor() {

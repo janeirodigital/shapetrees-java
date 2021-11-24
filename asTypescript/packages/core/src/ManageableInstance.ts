@@ -1,5 +1,4 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as Objects from 'java/util';
 import { ResourceAccessor } from './ResourceAccessor';
 import { ShapeTreeContext } from './ShapeTreeContext';
@@ -25,7 +24,6 @@ import { MissingManagerResource } from './MissingManagerResource';
  * through a ResourceAccessor. Once constructed, the ManageableInstance
  * is immutable.
  */
-@Slf4j
 export class ManageableInstance {
 
    public static readonly TEXT_TURTLE: string = "text/turtle";

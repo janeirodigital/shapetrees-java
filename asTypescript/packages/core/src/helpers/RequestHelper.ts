@@ -10,7 +10,6 @@ import { LinkRelations } from '../enums/LinkRelations';
 import { ShapeTreeResourceType } from '../enums/ShapeTreeResourceType';
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import { LdpVocabulary } from '../vocabularies/LdpVocabulary';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as Graph from 'org/apache/jena/graph';
 import * as ModelFactory from 'org/apache/jena/rdf/model';
 import * as UpdateAction from 'org/apache/jena/update';
@@ -21,7 +20,6 @@ import * as ArrayList from 'java/util';
 import * as Set from 'java/util';
 import { urlToUri } from './GraphHelper/urlToUri';
 
-@Slf4j
 export class RequestHelper {
 
    private static readonly PUT: string = "PUT";

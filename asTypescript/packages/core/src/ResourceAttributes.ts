@@ -1,6 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as TreeMap from 'java/util';
 import * as ArrayList from 'java/util';
 import * as Arrays from 'java/util';
@@ -13,7 +12,6 @@ import * as requireNonNull from 'java/util/Objects';
  * shapetrees-java libraries. The only behavior that's at all HTTP-specific is the
  * parseLinkHeaders factory which includes logic for HTTP Link headers.
  */
-@Slf4j
 export class ResourceAttributes {
 
    myMapOfLists: Map<string, Array<string>>;

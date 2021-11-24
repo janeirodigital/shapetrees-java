@@ -1,13 +1,11 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as ShexSchema from 'fr/inria/lille/shexjava/schema';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as HashMap from 'java/util';
 
 /**
  * Optional, static cache for pre-compiled ShEx schemas
  */
-@Slf4j
 export class SchemaCache {
 
   private constructor() {

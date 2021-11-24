@@ -3,7 +3,6 @@ import { ResourceTypeAssignmentPriority } from './comparators/ResourceTypeAssign
 import { HttpHeaders } from './enums/HttpHeaders';
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import { RequestHelper } from './helpers/RequestHelper';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as Graph from 'org/apache/jena/graph';
 import * as HashMap from 'java/util';
 import * as Collections from 'java/util';
@@ -26,7 +25,6 @@ import { ManageableResource } from './ManageableResource';
 import { ShapeTreeManager } from './ShapeTreeManager';
 import { ManagerResource } from './ManagerResource';
 
-@Slf4j
 export class ShapeTreeRequestHandler {
 
    private static readonly DELETE: string = "DELETE";

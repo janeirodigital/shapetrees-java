@@ -12,7 +12,6 @@ import * as ShexSchema from 'fr/inria/lille/shexjava/schema';
 import * as ShExCParser from 'fr/inria/lille/shexjava/schema/parsing';
 import * as RecursiveValidation from 'fr/inria/lille/shexjava/validation';
 import * as ValidationAlgorithm from 'fr/inria/lille/shexjava/validation';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as IRI from 'org/apache/commons/rdf/api';
 import * as JenaRDF from 'org/apache/commons/rdf/jena';
 import * as Graph from 'org/apache/jena/graph';
@@ -32,7 +31,6 @@ import { DocumentResponse } from './DocumentResponse';
 import { ManageableResource } from './ManageableResource';
 import { ValidationResult } from './ValidationResult';
 
-@Slf4j
 export class ShapeTree {
 
   @NotNull

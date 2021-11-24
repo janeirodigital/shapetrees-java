@@ -4,17 +4,12 @@ import { HttpRequest } from '@shapetrees/HttpRequest';
 import { DocumentResponse } from '@shapetrees/DocumentResponse';
 import { ResourceAttributes } from '@shapetrees/ResourceAttributes';
 import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as TrustManager from 'javax/net/ssl';
 import * as X509TrustManager from 'javax/net/ssl';
 import * as SSLContext from 'javax/net/ssl';
 import * as HttpsURLConnection from 'javax/net/ssl';
 import * as HostnameVerifier from 'javax/net/ssl';
 import * as SSLSession from 'javax/net/ssl';
-import * as X509TrustManager from 'javax/net/ssl';
-import * as X509TrustManager from 'javax/net/ssl';
-import * as X509TrustManager from 'javax/net/ssl';
-import * as X509TrustManager from 'javax/net/ssl';
 import * as URISyntaxException from 'java/net';
 import * as KeyManagementException from 'java/security';
 import * as NoSuchAlgorithmException from 'java/security';
@@ -26,7 +21,6 @@ import { JavaHttpValidatingShapeTreeInterceptor } from './JavaHttpValidatingShap
 /**
  * java.net.http implementation of HttpClient
  */
-@Slf4j
 export class JavaHttpClient implements HttpClient {
 
    private readonly httpClient: java.net.http.HttpClient;

@@ -17,7 +17,6 @@ import { LinkRelations } from '@shapetrees/enums/LinkRelations';
 import { ShapeTreeResourceType } from '@shapetrees/enums/ShapeTreeResourceType';
 import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
 import { LdpVocabulary } from '@shapetrees/vocabularies/LdpVocabulary';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as Graph from 'org/apache/jena/graph';
 import * as Node from 'org/apache/jena/graph';
 import * as NodeFactory from 'org/apache/jena/graph';
@@ -40,7 +39,6 @@ import { HttpClient } from './HttpClient';
  * <p>Given the fact that resources are accessed via HTTP, some inferences must be made on
  * resource state based on responses to HTTP requests.</p>
  */
-@Slf4j
 export class HttpResourceAccessor implements ResourceAccessor {
 
    private static readonly supportedRDFContentTypes: Set<string> = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");

@@ -12,7 +12,6 @@ import { ValidatingDeleteMethodHandler } from '@shapetrees/methodhandlers/Valida
 import { ValidatingPutMethodHandler } from '@shapetrees/methodhandlers/ValidatingPutMethodHandler';
 import { ValidatingPatchMethodHandler } from '@shapetrees/methodhandlers/ValidatingPatchMethodHandler';
 import { ValidatingPostMethodHandler } from '@shapetrees/methodhandlers/ValidatingPostMethodHandler';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as NotNull from 'org/jetbrains/annotations';
 import * as SSLSession from 'javax/net/ssl';
 import * as MalformedURLException from 'java/net';
@@ -24,7 +23,6 @@ import * as TreeMap from 'java/util';
 /**
  * Wrapper used for client-side validation
  */
-@Slf4j
 export class JavaHttpValidatingShapeTreeInterceptor {
 
    private static readonly POST: string = "POST";

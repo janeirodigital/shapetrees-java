@@ -1,6 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core.helpers
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as XSDDatatype from 'org/apache/jena/datatypes/xsd';
 import * as Graph from 'org/apache/jena/graph';
 import * as Triple from 'org/apache/jena/graph';
@@ -21,7 +20,6 @@ import * as OffsetDateTime from 'java/time';
 /**
  * Assorted helper methods related to RDF Graphs
  */
-@Slf4j
 export class GraphHelper {
 
   private constructor() {

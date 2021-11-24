@@ -12,7 +12,6 @@ import { ResourceAttributes } from '@shapetrees/ResourceAttributes';
 import { HttpHeaders } from '@shapetrees/enums/HttpHeaders';
 import { LinkRelations } from '@shapetrees/enums/LinkRelations';
 import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
-import * as Slf4j from 'lombok/extern/slf4j';
 import * as Lang from 'org/apache/jena/riot';
 import * as RDFDataMgr from 'org/apache/jena/riot';
 import { Writable } from 'stream';
@@ -20,7 +19,6 @@ import { HttpRequest } from './HttpRequest';
 import { HttpResourceAccessor } from './HttpResourceAccessor';
 import { HttpClient } from './HttpClient';
 
-@Slf4j
 export class HttpShapeTreeClient implements ShapeTreeClient {
 
    private useClientShapeTreeValidation: boolean = true;
