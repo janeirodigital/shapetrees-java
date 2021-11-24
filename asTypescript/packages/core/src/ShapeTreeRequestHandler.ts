@@ -4,9 +4,7 @@ import { HttpHeaders } from './enums/HttpHeaders';
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import { RequestHelper } from './helpers/RequestHelper';
 import * as Graph from 'org/apache/jena/graph';
-import * as HashMap from 'java/util';
 import * as Collections from 'java/util';
-import * as ArrayList from 'java/util';
 import * as Collection from 'java/util';
 import * as Arrays from 'java/util';
 import { TEXT_TURTLE } from './ManageableInstance/TEXT_TURTLE';
@@ -119,7 +117,7 @@ export class ShapeTreeRequestHandler {
     let targetShapeTrees: Array<URL> = RequestHelper.getIncomingTargetShapeTrees(shapeTreeRequest, targetResourceUrl);
     let incomingFocusNodes: Array<URL> = RequestHelper.getIncomingFocusNodes(shapeTreeRequest, targetResourceUrl);
     let incomingBodyGraph: Graph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, targetResourceUrl, null);
-    let validationResults: HashMap<ShapeTreeAssignment, ValidationResult> = new HashMap<>();
+    let validationResults: Map<ShapeTreeAssignment, ValidationResult> = new Map<>();
     for (let containingAssignment: ShapeTreeAssignment : containingAssignments) {
       let containerShapeTreeUrl: URL = containingAssignment.getShapeTree();
       let containerShapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(containerShapeTreeUrl);
@@ -343,7 +341,7 @@ export class ShapeTreeRequestHandler {
   }
 
   private getUnmatchedFocusNodes(validationResults: Collection<ValidationResult>, focusNodes: Array<URL>): Array<URL> {
-    let unmatchedNodes: Array<URL> = new ArrayList<>();
+    let unmatchedNodes: Array<URL> = new Array<>();
     for (let focusNode: URL : focusNodes) {
       // Determine if each target focus node was matched
       let matched: boolean = false;

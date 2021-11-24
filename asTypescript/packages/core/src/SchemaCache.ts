@@ -1,7 +1,6 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as ShexSchema from 'fr/inria/lille/shexjava/schema';
-import * as HashMap from 'java/util';
 
 /**
  * Optional, static cache for pre-compiled ShEx schemas
@@ -16,7 +15,7 @@ export class SchemaCache {
    private static cache: Map<URL, ShexSchema> = null;
 
   public static initializeCache(): void {
-    cache = new HashMap<>();
+    cache = new Map<>();
   }
 
   public static initializeCache(existingCache: Map<URL, ShexSchema>): void {

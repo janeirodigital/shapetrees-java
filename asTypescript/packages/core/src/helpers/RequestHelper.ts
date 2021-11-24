@@ -16,7 +16,6 @@ import * as UpdateAction from 'org/apache/jena/update';
 import * as UpdateFactory from 'org/apache/jena/update';
 import * as UpdateRequest from 'org/apache/jena/update';
 import * as MalformedURLException from 'java/net';
-import * as ArrayList from 'java/util';
 import * as Set from 'java/util';
 import { urlToUri } from './GraphHelper/urlToUri';
 
@@ -92,7 +91,7 @@ export class RequestHelper {
 
   public static getIncomingFocusNodes(shapeTreeRequest: ShapeTreeRequest, baseUrl: URL): Array<URL> /* throws ShapeTreeException */ {
     const focusNodeStrings: Array<string> = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.FOCUS_NODE.getValue());
-    const focusNodeUrls: Array<URL> = new ArrayList<>();
+    const focusNodeUrls: Array<URL> = new Array<>();
     if (!focusNodeStrings.isEmpty()) {
       for (let focusNodeUrlString: string : focusNodeStrings) {
         try {
@@ -114,7 +113,7 @@ export class RequestHelper {
    */
   public static getIncomingTargetShapeTrees(shapeTreeRequest: ShapeTreeRequest, baseUrl: URL): Array<URL> /* throws ShapeTreeException */ {
     const targetShapeTreeStrings: Array<string> = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TARGET_SHAPETREE.getValue());
-    const targetShapeTreeUrls: Array<URL> = new ArrayList<>();
+    const targetShapeTreeUrls: Array<URL> = new Array<>();
     if (!targetShapeTreeStrings.isEmpty()) {
       for (let targetShapeTreeUrlString: string : targetShapeTreeStrings) {
         try {

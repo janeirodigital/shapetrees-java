@@ -24,7 +24,6 @@ import * as Triple from 'org/apache/jena/graph';
 import * as MalformedURLException from 'java/net';
 import * as Set from 'java/util';
 import * as Collections from 'java/util';
-import * as ArrayList from 'java/util';
 import { readStringIntoGraph } from '@shapetrees/helpers/GraphHelper/readStringIntoGraph';
 import { urlToUri } from '@shapetrees/helpers/GraphHelper/urlToUri';
 import { HttpRequest } from './HttpRequest';
@@ -345,7 +344,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
       if (containerTriples.isEmpty()) {
         return Collections.emptyList();
       }
-      let containedInstances: ArrayList<ManageableInstance> = new ArrayList<>();
+      let containedInstances: Array<ManageableInstance> = new Array<>();
       for (let containerTriple: Triple : containerTriples) {
         let containedInstance: ManageableInstance = this.getInstance(context, new URL(containerTriple.getObject().getURI()));
         containedInstances.add(containedInstance);

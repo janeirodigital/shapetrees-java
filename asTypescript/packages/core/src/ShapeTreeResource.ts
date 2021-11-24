@@ -4,7 +4,6 @@ import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import { GraphHelper } from './helpers/GraphHelper';
 import * as Model from 'org/apache/jena/rdf/model';
 import * as URI from 'java/net';
-import * as HashMap from 'java/util';
 import { removeUrlFragment } from './helpers/GraphHelper/removeUrlFragment';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';
 import { DocumentResponse } from './DocumentResponse';
@@ -24,7 +23,7 @@ export class ShapeTreeResource {
    readonly model: Model;
 
   @Getter
-   private static readonly localResourceCache: Map<URI, ShapeTreeResource> = new HashMap<>();
+   private static readonly localResourceCache: Map<URI, ShapeTreeResource> = new Map<>();
 
   /**
    * Looks up and caches the shape tree resource at <code>resourceUrl</code>. Will used cached

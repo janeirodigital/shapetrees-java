@@ -10,8 +10,6 @@ import * as Property from 'org/apache/jena/rdf/model';
 import * as RDFNode from 'org/apache/jena/rdf/model';
 import * as MalformedURLException from 'java/net';
 import * as URI from 'java/net';
-import * as ArrayList from 'java/util';
-import * as HashMap from 'java/util';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';
 import { ShapeTreeReference } from './ShapeTreeReference';
 import { ShapeTree } from './ShapeTree';
@@ -30,7 +28,7 @@ export class ShapeTreeFactory {
    private static readonly RDFS_LABEL: string = "http://www.w3.org/2000/01/rdf-schema#label";
 
   @Getter
-   private static readonly localShapeTreeCache: Map<URI, ShapeTree> = new HashMap<>();
+   private static readonly localShapeTreeCache: Map<URI, ShapeTree> = new Map<>();
 
   /**
    * Looks up and parses the shape tree at <code>shapeTreeUrl</code>.
@@ -104,7 +102,7 @@ export class ShapeTreeFactory {
    * @throws ShapeTreeException
    */
   private static getReferences(resourceModel: Model, shapeTreeNode: Resource, shapeTreeUrl: URL): Array<ShapeTreeReference> /* throws ShapeTreeException */ {
-    let references: ArrayList<ShapeTreeReference> = new ArrayList<>();
+    let references: Array<ShapeTreeReference> = new Array<>();
     let referencesProperty: Property = resourceModel.createProperty(ShapeTreeVocabulary.REFERENCES);
     if (shapeTreeNode.hasProperty(referencesProperty)) {
       let referenceStatements: Array<Statement> = shapeTreeNode.listProperties(referencesProperty).toList();
@@ -187,7 +185,7 @@ export class ShapeTreeFactory {
    * @throws ShapeTreeException
    */
   private static getURLListValue(model: Model, resource: Resource, predicate: string): Array<URL> /* throws MalformedURLException, ShapeTreeException */ {
-    let urls: Array<URL> = new ArrayList<>();
+    let urls: Array<URL> = new Array<>();
     let property: Property = model.createProperty(predicate);
     if (resource.hasProperty(property)) {
       let propertyStatements: Array<Statement> = resource.listProperties(property).toList();

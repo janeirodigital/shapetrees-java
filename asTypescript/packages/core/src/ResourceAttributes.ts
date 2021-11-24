@@ -1,7 +1,6 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as TreeMap from 'java/util';
-import * as ArrayList from 'java/util';
 import * as Arrays from 'java/util';
 import * as Matcher from 'java/util/regex';
 import * as Pattern from 'java/util/regex';
@@ -45,7 +44,7 @@ export class ResourceAttributes {
   private copy(): ResourceAttributes {
     let ret: ResourceAttributes = new ResourceAttributes();
     for (let entry: Map.Entry<string, Array<string>> : this.myMapOfLists.entrySet()) {
-      ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+      ret.myMapOfLists.put(entry.getKey(), new Array<>(entry.getValue()));
     }
     return ret;
   }
@@ -64,7 +63,7 @@ export class ResourceAttributes {
       if (matcher.matches()) {
         let uri: string = matcher.group(1);
         let rel: string = matcher.group(2);
-        linkHeaderMap.myMapOfLists.computeIfAbsent(rel, k -> new ArrayList<>());
+        linkHeaderMap.myMapOfLists.computeIfAbsent(rel, k -> new Array<>());
         linkHeaderMap.myMapOfLists.get(rel).add(uri);
       } else {
         log.warn("Unable to parse link header: [{}]", headerValue);
@@ -108,7 +107,7 @@ export class ResourceAttributes {
                 throw new Exception(attr + ": " + value + " already set.");
             }*/
     } else {
-      let list: ArrayList<string> = new ArrayList<string>();
+      let list: Array<string> = new Array<string>();
       list.add(value);
       this.myMapOfLists.put(attr, list);
     }
@@ -136,7 +135,7 @@ export class ResourceAttributes {
    *                   (This is useful for HttpRequest.Builder().)
    */
   public toList(...exclusions: string): string[] {
-    let ret: Array<string> = new ArrayList<>();
+    let ret: Array<string> = new Array<>();
     for (let entry: Map.Entry<string, Array<string>> : this.myMapOfLists.entrySet()) {
       let attr: string = entry.getKey();
       if (!Arrays.stream(exclusions).anyMatch(s -> s === attr)) {

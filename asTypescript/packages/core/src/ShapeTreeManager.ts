@@ -11,7 +11,6 @@ import * as Triple from 'org/apache/jena/graph';
 import * as RDF from 'org/apache/jena/vocabulary';
 import * as MalformedURLException from 'java/net';
 import * as URI from 'java/net';
-import * as ArrayList from 'java/util';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';
 import { ShapeTreeAssignment } from './ShapeTreeAssignment';
 import { ShapeTree } from './ShapeTree';
@@ -29,7 +28,7 @@ export class ShapeTreeManager {
    private readonly id: URL;
 
   // Each ShapeTreeManager has one or more ShapeTreeAssignments
-   private readonly assignments: Array<ShapeTreeAssignment> = new ArrayList<>();
+   private readonly assignments: Array<ShapeTreeAssignment> = new Array<>();
 
   /**
    * Constructor for a new ShapeTreeManager
@@ -127,7 +126,7 @@ export class ShapeTreeManager {
   }
 
   public getContainingAssignments(): Array<ShapeTreeAssignment> /* throws ShapeTreeException */ {
-    let containingAssignments: ArrayList<ShapeTreeAssignment> = new ArrayList<>();
+    let containingAssignments: Array<ShapeTreeAssignment> = new Array<>();
     for (let assignment: ShapeTreeAssignment : this.assignments) {
       let shapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
       if (!shapeTree.getContains().isEmpty()) {

@@ -22,7 +22,6 @@ import * as MalformedURLException from 'java/net';
 import * as StandardCharsets from 'java/nio/charset';
 import * as Iterator from 'java/util';
 import * as Collections from 'java/util';
-import * as ArrayList from 'java/util';
 import * as Queue from 'java/util';
 import * as LinkedList from 'java/util';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';
@@ -228,7 +227,7 @@ export class ShapeTree {
 
   // Return the list of shape tree contains by priority from most to least strict
   public getPrioritizedContains(): Array<URL> {
-    let prioritized: Array<URL> = new ArrayList<>(this.contains);
+    let prioritized: Array<URL> = new Array<>(this.contains);
     Collections.sort(prioritized, new ShapeTreeContainsPriority());
     return prioritized;
   }
@@ -237,13 +236,13 @@ export class ShapeTree {
     if (recursionMethods === RecursionMethods.BREADTH_FIRST) {
       return getReferencedShapeTreesListBreadthFirst();
     } else {
-      let referencedShapeTrees: Array<ShapeTreeReference> = new ArrayList<>();
+      let referencedShapeTrees: Array<ShapeTreeReference> = new Array<>();
       return getReferencedShapeTreesListDepthFirst(this.getReferences(), referencedShapeTrees);
     }
   }
 
   private getReferencedShapeTreesListBreadthFirst(): Array<ShapeTreeReference> /* throws ShapeTreeException */ {
-    let referencedShapeTrees: Array<ShapeTreeReference> = new ArrayList<>();
+    let referencedShapeTrees: Array<ShapeTreeReference> = new Array<>();
     let queue: Queue<ShapeTreeReference> = new LinkedList<>(this.getReferences());
     while (!queue.isEmpty()) {
       let currentShapeTree: ShapeTreeReference = queue.poll();

@@ -2,7 +2,6 @@
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as URI from 'java/net';
 import * as URISyntaxException from 'java/net';
-import * as ArrayList from 'java/util';
 import { ShapeTreeAssignment } from './ShapeTreeAssignment';
 import { ShapeTreeManager } from './ShapeTreeManager';
 
@@ -30,8 +29,8 @@ export class ShapeTreeManagerDelta {
     let delta: ShapeTreeManagerDelta = new ShapeTreeManagerDelta();
     delta.existingManager = existingManager;
     delta.updatedManager = updatedManager;
-    delta.updatedAssignments = new ArrayList<>();
-    delta.removedAssignments = new ArrayList<>();
+    delta.updatedAssignments = new Array<>();
+    delta.removedAssignments = new Array<>();
     if (updatedManager === null || updatedManager.getAssignments().isEmpty()) {
       // All assignments have been removed in the updated manager, so any existing assignments should
       // similarly be removed. No need for further comparison.
