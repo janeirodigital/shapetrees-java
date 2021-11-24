@@ -43,7 +43,7 @@ export class ResourceAttributes {
   // copy constructor
   private copy(): ResourceAttributes {
     let ret: ResourceAttributes = new ResourceAttributes();
-    for (let entry: Map.Entry<string, Array<string>> : this.myMapOfLists.entrySet()) {
+    for (const entry of this.myMapOfLists.entrySet()) {
       ret.myMapOfLists.put(entry.getKey(), new Array<>(entry.getValue()));
     }
     return ret;
@@ -57,7 +57,7 @@ export class ResourceAttributes {
    */
   public static parseLinkHeaders(headerValues: Array<string>): ResourceAttributes {
     let linkHeaderMap: ResourceAttributes = new ResourceAttributes();
-    for (let headerValue: string : headerValues) {
+    for (const headerValue of headerValues) {
       let matcher: Matcher = LINK_HEADER_PATTERN.matcher(headerValue);
       // if (matcher.matches() && matcher.groupCount() >= 2) {
       if (matcher.matches()) {
@@ -136,10 +136,10 @@ export class ResourceAttributes {
    */
   public toList(...exclusions: string): string[] {
     let ret: Array<string> = new Array<>();
-    for (let entry: Map.Entry<string, Array<string>> : this.myMapOfLists.entrySet()) {
+    for (const entry of this.myMapOfLists.entrySet()) {
       let attr: string = entry.getKey();
       if (!Arrays.stream(exclusions).anyMatch(s -> s === attr)) {
-        for (let value: string : entry.getValue()) {
+        for (const value of entry.getValue()) {
           ret.add(attr);
           ret.add(value);
         }
@@ -179,8 +179,8 @@ export class ResourceAttributes {
 
   public toString(): string {
     let sb: StringBuilder = new StringBuilder();
-    for (let entry: Map.Entry<string, Array<string>> : this.myMapOfLists.entrySet()) {
-      for (let value: string : entry.getValue()) {
+    for (const entry of this.myMapOfLists.entrySet()) {
+      for (const value of entry.getValue()) {
         if (sb.length() != 0) {
           sb.append(",");
         }

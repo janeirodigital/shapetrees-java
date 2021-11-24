@@ -123,7 +123,7 @@ export class ShapeTree {
     let shapeLabel: Label = new Label(GlobalFactory.RDFFactory.createIRI(this.shape.toString()));
     if (!focusNodeUrls.isEmpty()) {
       // One or more focus nodes were provided for validation
-      for (let focusNodeUrl: URL : focusNodeUrls) {
+      for (const focusNodeUrl of focusNodeUrls) {
         // Evaluate each provided focus node
         let focusNode: IRI = GlobalFactory.RDFFactory.createIRI(focusNodeUrl.toString());
         log.debug("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
@@ -138,7 +138,7 @@ export class ShapeTree {
     } else {
       // No focus nodes were provided for validation, so all subject nodes will be evaluated
       let evaluateNodes: Array<Node> = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
-      for (let evaluateNode: Node : evaluateNodes) {
+      for (const evaluateNode of evaluateNodes) {
         const focusUriString: string = evaluateNode.getURI();
         let node: IRI = GlobalFactory.RDFFactory.createIRI(focusUriString);
         validation.validate(node, shapeLabel);
@@ -182,7 +182,7 @@ export class ShapeTree {
     // If one or more target shape trees have been supplied
     if (!targetShapeTreeUrls.isEmpty()) {
       // Test each supplied target shape tree
-      for (let targetShapeTreeUrl: URL : targetShapeTreeUrls) {
+      for (const targetShapeTreeUrl of targetShapeTreeUrls) {
         // Check if it exists in st:contains
         if (this.contains.contains(targetShapeTreeUrl)) {
           let targetShapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(targetShapeTreeUrl);
@@ -198,7 +198,7 @@ export class ShapeTree {
       return new ValidationResult(false, null, "Failed to validate " + targetShapeTreeUrls);
     } else {
       // For each shape tree in st:contains
-      for (let containsShapeTreeUrl: URL : getPrioritizedContains()) {
+      for (const containsShapeTreeUrl of getPrioritizedContains()) {
         let containsShapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(containsShapeTreeUrl);
         // Continue if the shape tree isn't gettable
         if (containsShapeTree === null) {
@@ -259,7 +259,7 @@ export class ShapeTree {
   }
 
   private getReferencedShapeTreesListDepthFirst(currentReferencedShapeTrees: Array<ShapeTreeReference>, referencedShapeTrees: Array<ShapeTreeReference>): Array<ShapeTreeReference> /* throws ShapeTreeException */ {
-    for (let currentShapeTreeReference: ShapeTreeReference : currentReferencedShapeTrees) {
+    for (const currentShapeTreeReference of currentReferencedShapeTrees) {
       referencedShapeTrees.add(currentShapeTreeReference);
       let currentReferencedShapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(currentShapeTreeReference.getReferenceUrl());
       if (currentReferencedShapeTree != null) {

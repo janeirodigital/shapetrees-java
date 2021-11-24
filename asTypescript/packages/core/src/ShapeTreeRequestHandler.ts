@@ -75,7 +75,7 @@ export class ShapeTreeRequestHandler {
     // Cannot directly update assignments that are not root locations
     ensureUpdatedAssignmentIsRoot(delta);
     // Run recursive assignment for each updated assignment in the root manager
-    for (let rootAssignment: ShapeTreeAssignment : delta.getUpdatedAssignments()) {
+    for (const rootAssignment of delta.getUpdatedAssignments()) {
       let validationResponse: DocumentResponse | null = assignShapeTreeToResource(manageableInstance, shapeTreeContext, updatedRootManager, rootAssignment, rootAssignment, null);
       if (validationResponse.isPresent()) {
         return validationResponse;
@@ -88,7 +88,7 @@ export class ShapeTreeRequestHandler {
     // Cannot unplant a non-root location
     ensureRemovedAssignmentsAreRoot(delta);
     // Run recursive unassignment for each removed assignment in the updated root manager
-    for (let rootAssignment: ShapeTreeAssignment : delta.getRemovedAssignments()) {
+    for (const rootAssignment of delta.getRemovedAssignments()) {
       let validationResponse: DocumentResponse | null = unassignShapeTreeFromResource(manageableInstance, shapeTreeContext, rootAssignment);
       if (validationResponse.isPresent()) {
         return validationResponse;
@@ -118,7 +118,7 @@ export class ShapeTreeRequestHandler {
     let incomingFocusNodes: Array<URL> = RequestHelper.getIncomingFocusNodes(shapeTreeRequest, targetResourceUrl);
     let incomingBodyGraph: Graph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, targetResourceUrl, null);
     let validationResults: Map<ShapeTreeAssignment, ValidationResult> = new Map<>();
-    for (let containingAssignment: ShapeTreeAssignment : containingAssignments) {
+    for (const containingAssignment of containingAssignments) {
       let containerShapeTreeUrl: URL = containingAssignment.getShapeTree();
       let containerShapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(containerShapeTreeUrl);
       let validationResult: ValidationResult = containerShapeTree.validateContainedResource(proposedName, shapeTreeRequest.getResourceType(), targetShapeTrees, incomingBodyGraph, incomingFocusNodes);
@@ -134,7 +134,7 @@ export class ShapeTreeRequestHandler {
     }
     log.debug("Creating shape tree instance at {}", targetResourceUrl);
     let createdInstance: ManageableInstance = this.resourceAccessor.createInstance(manageableInstance.getShapeTreeContext(), shapeTreeRequest.getMethod(), targetResourceUrl, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
-    for (let containingAssignment: ShapeTreeAssignment : containingAssignments) {
+    for (const containingAssignment of containingAssignments) {
       let rootShapeTreeAssignment: ShapeTreeAssignment = getRootAssignment(manageableInstance.getShapeTreeContext(), containingAssignment);
       ensureAssignmentExists(rootShapeTreeAssignment, "Unable to find root shape tree assignment at " + containingAssignment.getRootAssignment());
       log.debug("Assigning shape tree to created resource: {}", createdInstance.getManagerResource().getUrl());
@@ -153,7 +153,7 @@ export class ShapeTreeRequestHandler {
     ensureInstanceResourceExists(targetResource.getManagerResource(), "Should not be updating an unmanaged resource as a shape tree instance");
     let manager: ShapeTreeManager = targetResource.getManagerResource().getManager();
     ensureShapeTreeManagerExists(manager, "Cannot have a shape tree manager resource without a shape tree manager with at least one shape tree assignment");
-    for (let assignment: ShapeTreeAssignment : manager.getAssignments()) {
+    for (const assignment of manager.getAssignments()) {
       // Evaluate the update against each ShapeTreeAssignment managing the resource.
       // All must pass for the update to validate
       let shapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
@@ -224,7 +224,7 @@ export class ShapeTreeRequestHandler {
       if (!containedResources.isEmpty()) {
         // Evaluate containers, then resources
         Collections.sort(containedResources, new ResourceTypeAssignmentPriority());
-        for (let containedResource: ManageableInstance : containedResources) {
+        for (const containedResource of containedResources) {
           validationResponse = assignShapeTreeToResource(containedResource, shapeTreeContext, null, rootAssignment, managingAssignment, null);
           if (validationResponse.isPresent()) {
             return validationResponse;
@@ -261,7 +261,7 @@ export class ShapeTreeRequestHandler {
         // Sort contained resources so that containers are evaluated first, then resources
         Collections.sort(containedResources, new ResourceTypeAssignmentPriority());
         // Perform a depth first unassignment for each contained resource
-        for (let containedResource: ManageableInstance : containedResources) {
+        for (const containedResource of containedResources) {
           // Recursively call this function on the contained resource
           validationResponse = unassignShapeTreeFromResource(containedResource, shapeTreeContext, rootAssignment);
           if (validationResponse.isPresent()) {
@@ -332,7 +332,7 @@ export class ShapeTreeRequestHandler {
   // Return a root shape tree manager associated with a given shape tree assignment
   private getRootAssignment(shapeTreeContext: ShapeTreeContext, assignment: ShapeTreeAssignment): ShapeTreeAssignment /* throws ShapeTreeException */ {
     let rootManager: ShapeTreeManager = getRootManager(shapeTreeContext, assignment);
-    for (let rootAssignment: ShapeTreeAssignment : rootManager.getAssignments()) {
+    for (const rootAssignment of rootManager.getAssignments()) {
       if (rootAssignment.getUrl() != null && rootAssignment.getUrl() === assignment.getRootAssignment()) {
         return rootAssignment;
       }
@@ -342,10 +342,10 @@ export class ShapeTreeRequestHandler {
 
   private getUnmatchedFocusNodes(validationResults: Collection<ValidationResult>, focusNodes: Array<URL>): Array<URL> {
     let unmatchedNodes: Array<URL> = new Array<>();
-    for (let focusNode: URL : focusNodes) {
+    for (const focusNode of focusNodes) {
       // Determine if each target focus node was matched
       let matched: boolean = false;
-      for (let validationResult: ValidationResult : validationResults) {
+      for (const validationResult of validationResults) {
         if (validationResult.getMatchingShapeTree().getShape() != null) {
           if (validationResult.getMatchingFocusNode() === focusNode) {
             matched = true;
@@ -404,7 +404,7 @@ export class ShapeTreeRequestHandler {
   }
 
   private ensureRemovedAssignmentsAreRoot(delta: ShapeTreeManagerDelta): void /* throws ShapeTreeException */ {
-    for (let assignment: ShapeTreeAssignment : delta.getRemovedAssignments()) {
+    for (const assignment of delta.getRemovedAssignments()) {
       if (!assignment.isRootAssignment()) {
         throw new ShapeTreeException(500, "Cannot remove non-root assignment: " + assignment.getUrl().toString() + ". Must unplant root assignment at: " + assignment.getRootAssignment().toString());
       }
@@ -412,7 +412,7 @@ export class ShapeTreeRequestHandler {
   }
 
   private ensureUpdatedAssignmentIsRoot(delta: ShapeTreeManagerDelta): void /* throws ShapeTreeException */ {
-    for (let updatedAssignment: ShapeTreeAssignment : delta.getUpdatedAssignments()) {
+    for (const updatedAssignment of delta.getUpdatedAssignments()) {
       if (!updatedAssignment.isRootAssignment()) {
         throw new ShapeTreeException(500, "Cannot update non-root assignment: " + updatedAssignment.getUrl().toString() + ". Must update root assignment at: " + updatedAssignment.getRootAssignment().toString());
       }

@@ -345,7 +345,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
         return Collections.emptyList();
       }
       let containedInstances: Array<ManageableInstance> = new Array<>();
-      for (let containerTriple: Triple : containerTriples) {
+      for (const containerTriple of containerTriples) {
         let containedInstance: ManageableInstance = this.getInstance(context, new URL(containerTriple.getObject().getURI()));
         containedInstances.add(containedInstance);
       }

@@ -93,7 +93,7 @@ export class RequestHelper {
     const focusNodeStrings: Array<string> = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.FOCUS_NODE.getValue());
     const focusNodeUrls: Array<URL> = new Array<>();
     if (!focusNodeStrings.isEmpty()) {
-      for (let focusNodeUrlString: string : focusNodeStrings) {
+      for (const focusNodeUrlString of focusNodeStrings) {
         try {
           const focusNodeUrl: URL = new URL(baseUrl, focusNodeUrlString);
           focusNodeUrls.add(focusNodeUrl);
@@ -115,7 +115,7 @@ export class RequestHelper {
     const targetShapeTreeStrings: Array<string> = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TARGET_SHAPETREE.getValue());
     const targetShapeTreeUrls: Array<URL> = new Array<>();
     if (!targetShapeTreeStrings.isEmpty()) {
-      for (let targetShapeTreeUrlString: string : targetShapeTreeStrings) {
+      for (const targetShapeTreeUrlString of targetShapeTreeStrings) {
         try {
           const targetShapeTreeUrl: URL = new URL(targetShapeTreeUrlString);
           targetShapeTreeUrls.add(targetShapeTreeUrl);

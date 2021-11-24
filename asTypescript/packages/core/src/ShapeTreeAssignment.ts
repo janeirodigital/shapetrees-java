@@ -71,7 +71,7 @@ export class ShapeTreeAssignment {
       throw new IllegalStateException("Incomplete shape tree assignment, Only " + assignmentTriples.size() + " attributes found");
     }
     // Lookup and assign each triple in the nested ShapeTreeAssignment
-    for (let assignmentTriple: Triple : assignmentTriples) {
+    for (const assignmentTriple of assignmentTriples) {
       switch(assignmentTriple.getPredicate().getURI()) {
         case RdfVocabulary.TYPE:
           if (!assignmentTriple.getObject().isURI() || !assignmentTriple.getObject().getURI() === ShapeTreeVocabulary.SHAPETREE_ASSIGNMENT) {

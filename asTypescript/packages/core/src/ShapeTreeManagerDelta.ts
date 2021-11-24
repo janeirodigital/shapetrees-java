@@ -43,7 +43,7 @@ export class ShapeTreeManagerDelta {
       delta.updatedAssignments = updatedManager.getAssignments();
       return delta;
     }
-    for (let existingAssignment: ShapeTreeAssignment : existingManager.getAssignments()) {
+    for (const existingAssignment of existingManager.getAssignments()) {
       // Assignments match, and are unchanged, so continue
       if (updatedManager.getAssignments().contains(existingAssignment)) {
         continue;
@@ -57,7 +57,7 @@ export class ShapeTreeManagerDelta {
       // existing assignment isn't in the updated assignment, so remove
       delta.removedAssignments.add(existingAssignment);
     }
-    for (let updatedAssignment: ShapeTreeAssignment : updatedManager.getAssignments()) {
+    for (const updatedAssignment of updatedManager.getAssignments()) {
       // Assignments match, and are unchanged, so continue
       if (existingManager.getAssignments().contains(updatedAssignment)) {
         continue;
@@ -73,7 +73,7 @@ export class ShapeTreeManagerDelta {
   }
 
   public static containsSameUrl(assignment: ShapeTreeAssignment, targetAssignments: Array<ShapeTreeAssignment>): ShapeTreeAssignment /* throws ShapeTreeException */ {
-    for (let targetAssignment: ShapeTreeAssignment : targetAssignments) {
+    for (const targetAssignment of targetAssignments) {
       let assignmentUri: URI;
       let targetAssignmentUri: URI;
       try {

@@ -57,7 +57,7 @@ export class ShapeTreeManager {
     // <> a st:Manager
     managerGraph.add(GraphHelper.newTriple(managerSubject, RDF.type.toString(), GraphHelper.knownUrl(ShapeTreeVocabulary.SHAPETREE_MANAGER)));
     // For each assignment create a blank node and populate
-    for (let assignment: ShapeTreeAssignment : this.assignments) {
+    for (const assignment of this.assignments) {
       // <> st:hasAssignment <assignment1>, <assignment2>
       managerGraph.add(GraphHelper.newTriple(managerSubject, ShapeTreeVocabulary.HAS_ASSIGNMENT, assignment.getUrl()));
       const subject: URI = urlToUri(assignment.getUrl());
@@ -84,7 +84,7 @@ export class ShapeTreeManager {
       throw new ShapeTreeException(500, "Must provide a non-null assignment to an initialized List of assignments");
     }
     if (!this.assignments.isEmpty()) {
-      for (let existingAssignment: ShapeTreeAssignment : this.assignments) {
+      for (const existingAssignment of this.assignments) {
         if (existingAssignment === assignment) {
           throw new ShapeTreeException(422, "Identical shape tree assignment cannot be added to Shape Tree Manager: " + this.id);
         }
@@ -116,7 +116,7 @@ export class ShapeTreeManager {
    * @return Minted URL for a new shape tree assignment
    */
   public mintAssignmentUrl(proposedAssignmentUrl: URL): URL {
-    for (let assignment: ShapeTreeAssignment : this.assignments) {
+    for (const assignment of this.assignments) {
       if (assignment.getUrl() === proposedAssignmentUrl) {
         // If we somehow managed to randomly generate a location URL that already exists, generate another
         return mintAssignmentUrl();
@@ -127,7 +127,7 @@ export class ShapeTreeManager {
 
   public getContainingAssignments(): Array<ShapeTreeAssignment> /* throws ShapeTreeException */ {
     let containingAssignments: Array<ShapeTreeAssignment> = new Array<>();
-    for (let assignment: ShapeTreeAssignment : this.assignments) {
+    for (const assignment of this.assignments) {
       let shapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
       if (!shapeTree.getContains().isEmpty()) {
         containingAssignments.add(assignment);
@@ -159,7 +159,7 @@ export class ShapeTreeManager {
     const stAssignment: Node = NodeFactory.createURI(ShapeTreeVocabulary.HAS_ASSIGNMENT);
     let assignmentNodes: Array<Triple> = managerGraph.find(s, stAssignment, Node.ANY).toList();
     // For each st:hasAssignment node, extract a new ShapeTreeAssignment
-    for (let assignmentNode: Triple : assignmentNodes) {
+    for (const assignmentNode of assignmentNodes) {
       let assignment: ShapeTreeAssignment = null;
       try {
         assignment = ShapeTreeAssignment.getFromGraph(new URL(assignmentNode.getObject().getURI()), managerGraph);
@@ -175,7 +175,7 @@ export class ShapeTreeManager {
     if (this.assignments.isEmpty()) {
       return null;
     }
-    for (let assignment: ShapeTreeAssignment : this.assignments) {
+    for (const assignment of this.assignments) {
       if (assignment.getShapeTree() === shapeTreeUrl) {
         return assignment;
       }
@@ -188,7 +188,7 @@ export class ShapeTreeManager {
     if (this.getAssignments() === null || this.getAssignments().isEmpty()) {
       return null;
     }
-    for (let assignment: ShapeTreeAssignment : this.getAssignments()) {
+    for (const assignment of this.getAssignments()) {
       if (rootAssignment.getUrl() === assignment.getRootAssignment()) {
         return assignment;
       }

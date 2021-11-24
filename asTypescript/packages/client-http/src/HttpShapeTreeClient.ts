@@ -233,12 +233,12 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
       ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + resourceTypeUrl + ">; rel=\"type\"");
     }
     if (focusNodes != null && !focusNodes.isEmpty()) {
-      for (let focusNode: URL : focusNodes) {
+      for (const focusNode of focusNodes) {
         ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
       }
     }
     if (targetShapeTrees != null && !targetShapeTrees.isEmpty()) {
-      for (let targetShapeTree: URL : targetShapeTrees) {
+      for (const targetShapeTree of targetShapeTrees) {
         ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
       }
     }

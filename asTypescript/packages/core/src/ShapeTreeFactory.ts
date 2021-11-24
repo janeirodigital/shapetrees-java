@@ -67,11 +67,11 @@ export class ShapeTreeFactory {
     let shapeTree: ShapeTree = new ShapeTree(shapeTreeUrl, expectsType, label, shape, references, contains);
     localShapeTreeCache.put(urlToUri(shapeTreeUrl), shapeTree);
     // Recursively parse contained shape trees
-    for (let containedUrl: URL : contains) {
+    for (const containedUrl of contains) {
       getShapeTree(containedUrl);
     }
     // Recursively parse referenced shape trees
-    for (let reference: ShapeTreeReference : references) {
+    for (const reference of references) {
       getShapeTree(reference.getReferenceUrl());
     }
     return shapeTree;
@@ -106,7 +106,7 @@ export class ShapeTreeFactory {
     let referencesProperty: Property = resourceModel.createProperty(ShapeTreeVocabulary.REFERENCES);
     if (shapeTreeNode.hasProperty(referencesProperty)) {
       let referenceStatements: Array<Statement> = shapeTreeNode.listProperties(referencesProperty).toList();
-      for (let referenceStatement: Statement : referenceStatements) {
+      for (const referenceStatement of referenceStatements) {
         let referenceResource: Resource = referenceStatement.getObject().asResource();
         const referencedShapeTreeUrlString: string = getStringValue(resourceModel, referenceResource, ShapeTreeVocabulary.REFERENCES_SHAPE_TREE);
         const referencedShapeTreeUrl: URL;
@@ -189,7 +189,7 @@ export class ShapeTreeFactory {
     let property: Property = model.createProperty(predicate);
     if (resource.hasProperty(property)) {
       let propertyStatements: Array<Statement> = resource.listProperties(property).toList();
-      for (let propertyStatement: Statement : propertyStatements) {
+      for (const propertyStatement of propertyStatements) {
         let propertyNode: Node = propertyStatement.getObject().asNode();
         if (propertyNode instanceof Node_URI) {
           let contentUrl: URL = new URL(propertyNode.getURI());

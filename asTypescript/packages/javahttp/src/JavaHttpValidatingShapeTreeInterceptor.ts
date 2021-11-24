@@ -103,7 +103,7 @@ export class JavaHttpValidatingShapeTreeInterceptor {
       this.contentType = contentType;
       let tm: TreeMap<string, Array<string>> = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
       let headerMap: Map<string, Array<string>> = this.request.headers().map();
-      for (let entry: Map.Entry<string, Array<string>> : headerMap.entrySet()) {
+      for (const entry of headerMap.entrySet()) {
         tm.put(entry.getKey(), entry.getValue());
       }
       this.headers = new ResourceAttributes(tm);
