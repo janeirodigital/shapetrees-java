@@ -2,7 +2,6 @@
 import { ShapeTreeResourceType } from './enums/ShapeTreeResourceType';
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as Graph from 'org/apache/jena/graph';
-import * as URL from 'java/net';
 import { InstanceResource } from './InstanceResource';
 import { ShapeTreeManager } from './ShapeTreeManager';
 import { ResourceAttributes } from './ResourceAttributes';

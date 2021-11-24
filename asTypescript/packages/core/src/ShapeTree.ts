@@ -20,7 +20,6 @@ import * as GraphUtil from 'org/apache/jena/graph';
 import * as Node from 'org/apache/jena/graph';
 import * as NotNull from 'org/jetbrains/annotations';
 import * as MalformedURLException from 'java/net';
-import * as URL from 'java/net';
 import * as StandardCharsets from 'java/nio/charset';
 import * as Iterator from 'java/util';
 import * as Collections from 'java/util';

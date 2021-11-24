@@ -1,6 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import * as Slf4j from 'lombok/extern/slf4j';
-import * as URL from 'java/net';
 import * as Objects from 'java/util';
 import { ResourceAccessor } from './ResourceAccessor';
 import { ShapeTreeContext } from './ShapeTreeContext';

@@ -5,7 +5,6 @@ import { GraphHelper } from './helpers/GraphHelper';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as Model from 'org/apache/jena/rdf/model';
 import * as URI from 'java/net';
-import * as URL from 'java/net';
 import * as HashMap from 'java/util';
 import { removeUrlFragment } from './helpers/GraphHelper/removeUrlFragment';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';

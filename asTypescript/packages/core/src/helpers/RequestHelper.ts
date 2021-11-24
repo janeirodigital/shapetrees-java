@@ -17,7 +17,6 @@ import * as UpdateAction from 'org/apache/jena/update';
 import * as UpdateFactory from 'org/apache/jena/update';
 import * as UpdateRequest from 'org/apache/jena/update';
 import * as MalformedURLException from 'java/net';
-import * as URL from 'java/net';
 import * as ArrayList from 'java/util';
 import * as Set from 'java/util';
 import { urlToUri } from './GraphHelper/urlToUri';
@@ -213,7 +212,7 @@ export class RequestHelper {
    * @param shapeTreeRequest Request
    * @return Is the resource a container?
    */
-  private static getIsContainerFromRequest(shapeTreeRequest: ShapeTreeRequest): Boolean {
+  private static getIsContainerFromRequest(shapeTreeRequest: ShapeTreeRequest): boolean {
     // First try to determine based on link headers
     if (shapeTreeRequest.getLinkHeaders() != null) {
       const typeLinks: Array<string> = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TYPE.getValue());

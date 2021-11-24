@@ -2,8 +2,6 @@
 import { ShapeTreeResourceType } from './enums/ShapeTreeResourceType';
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as MalformedURLException from 'java/net';
-import * as URL from 'java/net';
-import * as Optional from 'java/util';
 import { InstanceResource } from './InstanceResource';
 import { ResourceAttributes } from './ResourceAttributes';
 
@@ -16,7 +14,7 @@ import { ResourceAttributes } from './ResourceAttributes';
  */
 export class ManageableResource extends InstanceResource {
 
-   private readonly managerResourceUrl: Optional<URL>;
+   private readonly managerResourceUrl: URL | null;
 
    private readonly isContainer: boolean;
 
@@ -31,7 +29,7 @@ export class ManageableResource extends InstanceResource {
    * @param managerResourceUrl URL of the shape tree manager resource
    * @param isContainer Whether the resource is a container
    */
-  public constructor(url: URL, resourceType: ShapeTreeResourceType, attributes: ResourceAttributes, body: string, name: string, exists: boolean, managerResourceUrl: Optional<URL>, isContainer: boolean) {
+  public constructor(url: URL, resourceType: ShapeTreeResourceType, attributes: ResourceAttributes, body: string, name: string, exists: boolean, managerResourceUrl: URL | null, isContainer: boolean) {
     super(url, resourceType, attributes, body, name, exists);
     this.managerResourceUrl = managerResourceUrl;
     this.isContainer = isContainer;
@@ -51,7 +49,7 @@ export class ManageableResource extends InstanceResource {
     }
   }
 
-  public getManagerResourceUrl(): Optional<URL> {
+  public getManagerResourceUrl(): URL | null {
     return this.managerResourceUrl;
   }
 

@@ -3,8 +3,6 @@ import { DocumentResponse } from '@shapetrees/DocumentResponse';
 import { ShapeTreeContext } from '@shapetrees/ShapeTreeContext';
 import { ShapeTreeManager } from '@shapetrees/ShapeTreeManager';
 import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
-import * as URL from 'java/net';
-import * as Optional from 'java/util';
 
 /**
  * This interface defines a proposed API to be used for any client-side implementations of
@@ -23,7 +21,7 @@ export interface ShapeTreeClient {
    * @return A ShapeTreeManager associated with targetResource
    * @throws ShapeTreeException ShapeTreeException
    */
-  discoverShapeTree(context: ShapeTreeContext, targetResource: URL): Optional<ShapeTreeManager> /* throws ShapeTreeException */;
+  discoverShapeTree(context: ShapeTreeContext, targetResource: URL): ShapeTreeManager | null /* throws ShapeTreeException */;
 
   /**
    * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,
@@ -74,7 +72,7 @@ export interface ShapeTreeClient {
    * @return DocumentResponse containing status and response headers/attributes
    * @throws ShapeTreeException ShapeTreeException
    */
-  postManagedInstance(context: ShapeTreeContext, parentContainer: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, proposedName: string, isContainer: Boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */;
+  postManagedInstance(context: ShapeTreeContext, parentContainer: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, proposedName: string, isContainer: boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */;
 
   /**
    * Creates a resource via HTTP PUT that has been validated against the provided target shape tree
@@ -88,7 +86,7 @@ export interface ShapeTreeClient {
    * @return DocumentResponse containing status and response header / attributes
    * @throws ShapeTreeException
    */
-  putManagedInstance(context: ShapeTreeContext, targetResource: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, isContainer: Boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */;
+  putManagedInstance(context: ShapeTreeContext, targetResource: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, isContainer: boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */;
 
   /**
    * Updates a resource via HTTP PUT that has been validated against an associated shape tree

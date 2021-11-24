@@ -17,9 +17,7 @@ import * as NotNull from 'org/jetbrains/annotations';
 import * as SSLSession from 'javax/net/ssl';
 import * as MalformedURLException from 'java/net';
 import * as URI from 'java/net';
-import * as URL from 'java/net';
 import * as HttpResponse from 'java/net/http';
-import * as Optional from 'java/util';
 import * as Collections from 'java/util';
 import * as TreeMap from 'java/util';
 
@@ -45,7 +43,7 @@ export class JavaHttpValidatingShapeTreeInterceptor {
     let handler: ValidatingMethodHandler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
     if (handler != null) {
       try {
-        let shapeTreeResponse: Optional<DocumentResponse> = handler.validateRequest(shapeTreeRequest);
+        let shapeTreeResponse: DocumentResponse | null = handler.validateRequest(shapeTreeRequest);
         if (!shapeTreeResponse.isPresent()) {
           return JavaHttpClient.check(httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString()));
         } else {
@@ -176,7 +174,7 @@ export class JavaHttpValidatingShapeTreeInterceptor {
       return this.request;
     }
 
-    override public previousResponse(): Optional<HttpResponse<string>> {
+    override public previousResponse(): HttpResponse<string> | null {
       return Optional.empty();
     }
 
@@ -188,7 +186,7 @@ export class JavaHttpValidatingShapeTreeInterceptor {
       return this.body;
     }
 
-    override public sslSession(): Optional<SSLSession> {
+    override public sslSession(): SSLSession | null {
       return Optional.empty();
     }
 

@@ -6,7 +6,6 @@ import { ShapeTreeRequest } from '../ShapeTreeRequest';
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import { RequestHelper } from '../helpers/RequestHelper';
 import { ShapeTreeContext } from '../ShapeTreeContext';
-import * as Optional from 'java/util';
 import { AbstractValidatingMethodHandler } from './AbstractValidatingMethodHandler';
 import { ValidatingMethodHandler } from './ValidatingMethodHandler';
 
@@ -16,7 +15,7 @@ export class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
     super(resourceAccessor);
   }
 
-  override public validateRequest(shapeTreeRequest: ShapeTreeRequest): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  override public validateRequest(shapeTreeRequest: ShapeTreeRequest): DocumentResponse | null /* throws ShapeTreeException */ {
     let shapeTreeContext: ShapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
     let targetInstance: ManageableInstance = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
     if (targetInstance.wasRequestForManager() && targetInstance.getManagerResource().isExists()) {

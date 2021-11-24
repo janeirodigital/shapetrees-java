@@ -2,7 +2,6 @@
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as ShexSchema from 'fr/inria/lille/shexjava/schema';
 import * as Slf4j from 'lombok/extern/slf4j';
-import * as URL from 'java/net';
 import * as HashMap from 'java/util';
 
 /**

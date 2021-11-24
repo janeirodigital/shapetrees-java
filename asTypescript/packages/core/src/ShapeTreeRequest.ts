@@ -1,6 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeResourceType } from './enums/ShapeTreeResourceType';
-import * as URL from 'java/net';
 import { ResourceAttributes } from './ResourceAttributes';
 
 export interface ShapeTreeRequest {

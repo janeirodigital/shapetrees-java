@@ -16,8 +16,6 @@ import * as Slf4j from 'lombok/extern/slf4j';
 import * as Lang from 'org/apache/jena/riot';
 import * as RDFDataMgr from 'org/apache/jena/riot';
 import { Writable } from 'stream';
-import * as URL from 'java/net';
-import * as Optional from 'java/util';
 import { HttpRequest } from './HttpRequest';
 import { HttpResourceAccessor } from './HttpResourceAccessor';
 import { HttpClient } from './HttpClient';
@@ -48,7 +46,7 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
    * @return
    * @throws ShapeTreeException
    */
-  override public discoverShapeTree(context: ShapeTreeContext, targetResource: URL): Optional<ShapeTreeManager> /* throws ShapeTreeException */ {
+  override public discoverShapeTree(context: ShapeTreeContext, targetResource: URL): ShapeTreeManager | null /* throws ShapeTreeException */ {
     if (targetResource === null) {
       throw new ShapeTreeException(500, "Must provide a value target resource for discovery");
     }
@@ -127,7 +125,7 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
     return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", managerResourceUrl, headers, sw.toString(), "text/turtle"));
   }
 
-  override public postManagedInstance(context: ShapeTreeContext, parentContainer: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, proposedResourceName: string, isContainer: Boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */ {
+  override public postManagedInstance(context: ShapeTreeContext, parentContainer: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, proposedResourceName: string, isContainer: boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */ {
     if (context === null || parentContainer === null) {
       throw new ShapeTreeException(500, "Must provide a valid context and parent container to post shape tree instance");
     }
@@ -141,7 +139,7 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
   }
 
   // Create via HTTP PUT
-  override public putManagedInstance(context: ShapeTreeContext, resourceUrl: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, isContainer: Boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */ {
+  override public putManagedInstance(context: ShapeTreeContext, resourceUrl: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, isContainer: boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */ {
     if (context === null || resourceUrl === null) {
       throw new ShapeTreeException(500, "Must provide a valid context and target resource to create shape tree instance via PUT");
     }
@@ -227,7 +225,7 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
     null, body, contentType));
   }
 
-  private getCommonHeaders(context: ShapeTreeContext, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, isContainer: Boolean, proposedResourceName: string, contentType: string): ResourceAttributes {
+  private getCommonHeaders(context: ShapeTreeContext, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, isContainer: boolean, proposedResourceName: string, contentType: string): ResourceAttributes {
     let ret: ResourceAttributes = new ResourceAttributes();
     if (context.getAuthorizationHeaderValue() != null) {
       ret.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());

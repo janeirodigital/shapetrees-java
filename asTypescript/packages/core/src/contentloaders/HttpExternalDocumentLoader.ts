@@ -3,7 +3,6 @@ import { DocumentResponse } from '../DocumentResponse';
 import { ResourceAttributes } from '../ResourceAttributes';
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import * as URISyntaxException from 'java/net';
-import * as URL from 'java/net';
 import * as HttpClient from 'java/net/http';
 import * as HttpRequest from 'java/net/http';
 import * as HttpResponse from 'java/net/http';

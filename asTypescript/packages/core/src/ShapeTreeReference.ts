@@ -1,6 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
-import * as URL from 'java/net';
 import * as Objects from 'java/util';
 
 export class ShapeTreeReference {

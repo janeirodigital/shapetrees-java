@@ -4,7 +4,6 @@ import { HttpRequest } from '@shapetrees/HttpRequest';
 import { DocumentResponse } from '@shapetrees/DocumentResponse';
 import { ExternalDocumentLoader } from '@shapetrees/contentloaders/ExternalDocumentLoader';
 import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
-import * as URL from 'java/net';
 import { JavaHttpClient } from './JavaHttpClient';
 
 /**

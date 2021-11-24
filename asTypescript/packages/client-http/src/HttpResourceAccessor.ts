@@ -23,9 +23,7 @@ import * as Node from 'org/apache/jena/graph';
 import * as NodeFactory from 'org/apache/jena/graph';
 import * as Triple from 'org/apache/jena/graph';
 import * as MalformedURLException from 'java/net';
-import * as URL from 'java/net';
 import * as Set from 'java/util';
-import * as Optional from 'java/util';
 import * as Collections from 'java/util';
 import * as ArrayList from 'java/util';
 import { readStringIntoGraph } from '@shapetrees/helpers/GraphHelper/readStringIntoGraph';
@@ -280,7 +278,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
    */
   private generateResource(url: URL, response: DocumentResponse): InstanceResource /* throws ShapeTreeException */ {
     // If a resource was created, ensure the URL returned in the Location header is valid
-    let location: Optional<string> = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
+    let location: string | null = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
     if (location.isPresent()) {
       try {
         url = new URL(location.get());
@@ -315,7 +313,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
       }
     } else {
       // Look for presence of st:managedBy in link headers from response and get the target manager URL
-      const managerUrl: Optional<URL> = calculateManagerUrl(url, parsedLinkHeaders);
+      const managerUrl: URL | null = calculateManagerUrl(url, parsedLinkHeaders);
       if (exists) {
         return new ManageableResource(url, resourceType, attributes, body, name, true, managerUrl, container);
       } else {
@@ -447,8 +445,8 @@ export class HttpResourceAccessor implements ResourceAccessor {
    * @return
    * @throws ShapeTreeException
    */
-  private calculateManagerUrl(url: URL, parsedLinkHeaders: ResourceAttributes): Optional<URL> /* throws ShapeTreeException */ {
-    const optManagerString: Optional<string> = parsedLinkHeaders.firstValue(LinkRelations.MANAGED_BY.getValue());
+  private calculateManagerUrl(url: URL, parsedLinkHeaders: ResourceAttributes): URL | null /* throws ShapeTreeException */ {
+    const optManagerString: string | null = parsedLinkHeaders.firstValue(LinkRelations.MANAGED_BY.getValue());
     if (optManagerString.isEmpty()) {
       log.info("The resource {} does not contain a link header of {}", url, LinkRelations.MANAGED_BY.getValue());
       return Optional.empty();
@@ -473,7 +471,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
   private calculateManagedUrl(managerUrl: URL, parsedLinkHeaders: ResourceAttributes): URL /* throws ShapeTreeException */ {
     let managedUrlString: string;
     let managedResourceUrl: URL;
-    const optManagedString: Optional<string> = parsedLinkHeaders.firstValue(LinkRelations.MANAGES.getValue());
+    const optManagedString: string | null = parsedLinkHeaders.firstValue(LinkRelations.MANAGES.getValue());
     if (!optManagedString.isEmpty()) {
       managedUrlString = optManagedString.get();
     } else {

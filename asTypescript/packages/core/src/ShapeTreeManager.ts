@@ -11,7 +11,6 @@ import * as Triple from 'org/apache/jena/graph';
 import * as RDF from 'org/apache/jena/vocabulary';
 import * as MalformedURLException from 'java/net';
 import * as URI from 'java/net';
-import * as URL from 'java/net';
 import * as ArrayList from 'java/util';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';
 import { ShapeTreeAssignment } from './ShapeTreeAssignment';

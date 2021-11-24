@@ -1,6 +1,4 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
-import * as URL from 'java/net';
-import * as Optional from 'java/util';
 import { ManageableResource } from './ManageableResource';
 
 /**
@@ -16,7 +14,7 @@ export class UnmanagedResource extends ManageableResource {
    * @param manageable ManageableResource to construct the UnmanagedResource from
    * @param managerUrl URL of the associated shape tree manager resource
    */
-  public constructor(manageable: ManageableResource, managerUrl: Optional<URL>) {
+  public constructor(manageable: ManageableResource, managerUrl: URL | null) {
     super(manageable.getUrl(), manageable.getResourceType(), manageable.getAttributes(), manageable.getBody(), manageable.getName(), manageable.isExists(), managerUrl, manageable.isContainer());
   }
 }

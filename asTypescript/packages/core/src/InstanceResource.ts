@@ -5,7 +5,6 @@ import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import { GraphHelper } from './helpers/GraphHelper';
 import * as Graph from 'org/apache/jena/graph';
 import * as URI from 'java/net';
-import * as URL from 'java/net';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';
 import { ResourceAttributes } from './ResourceAttributes';
 

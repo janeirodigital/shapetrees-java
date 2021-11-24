@@ -1,7 +1,6 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core.contentloaders
 import { DocumentResponse } from '../DocumentResponse';
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
-import * as URL from 'java/net';
 
 /**
  * Interface defining how a remote document can be loaded and its contents extracted.

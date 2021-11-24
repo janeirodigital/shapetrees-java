@@ -5,9 +5,7 @@ import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import { RequestHelper } from './helpers/RequestHelper';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as Graph from 'org/apache/jena/graph';
-import * as URL from 'java/net';
 import * as HashMap from 'java/util';
-import * as Optional from 'java/util';
 import * as Collections from 'java/util';
 import * as ArrayList from 'java/util';
 import * as Collection from 'java/util';
@@ -40,7 +38,7 @@ export class ShapeTreeRequestHandler {
   }
 
   public manageShapeTree(manageableInstance: ManageableInstance, shapeTreeRequest: ShapeTreeRequest): DocumentResponse /* throws ShapeTreeException */ {
-    let validationResponse: Optional<DocumentResponse>;
+    let validationResponse: DocumentResponse | null;
     let updatedRootManager: ShapeTreeManager = RequestHelper.getIncomingShapeTreeManager(shapeTreeRequest, manageableInstance.getManagerResource());
     let existingRootManager: ShapeTreeManager = manageableInstance.getManagerResource().getManager();
     // Determine assignments that have been removed, added, and/or updated
@@ -77,12 +75,12 @@ export class ShapeTreeRequestHandler {
    * @return DocumentResponse
    * @throws ShapeTreeException
    */
-  public plantShapeTree(manageableInstance: ManageableInstance, shapeTreeContext: ShapeTreeContext, updatedRootManager: ShapeTreeManager, delta: ShapeTreeManagerDelta): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  public plantShapeTree(manageableInstance: ManageableInstance, shapeTreeContext: ShapeTreeContext, updatedRootManager: ShapeTreeManager, delta: ShapeTreeManagerDelta): DocumentResponse | null /* throws ShapeTreeException */ {
     // Cannot directly update assignments that are not root locations
     ensureUpdatedAssignmentIsRoot(delta);
     // Run recursive assignment for each updated assignment in the root manager
     for (let rootAssignment: ShapeTreeAssignment : delta.getUpdatedAssignments()) {
-      let validationResponse: Optional<DocumentResponse> = assignShapeTreeToResource(manageableInstance, shapeTreeContext, updatedRootManager, rootAssignment, rootAssignment, null);
+      let validationResponse: DocumentResponse | null = assignShapeTreeToResource(manageableInstance, shapeTreeContext, updatedRootManager, rootAssignment, rootAssignment, null);
       if (validationResponse.isPresent()) {
         return validationResponse;
       }
@@ -90,12 +88,12 @@ export class ShapeTreeRequestHandler {
     return Optional.empty();
   }
 
-  public unplantShapeTree(manageableInstance: ManageableInstance, shapeTreeContext: ShapeTreeContext, delta: ShapeTreeManagerDelta): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  public unplantShapeTree(manageableInstance: ManageableInstance, shapeTreeContext: ShapeTreeContext, delta: ShapeTreeManagerDelta): DocumentResponse | null /* throws ShapeTreeException */ {
     // Cannot unplant a non-root location
     ensureRemovedAssignmentsAreRoot(delta);
     // Run recursive unassignment for each removed assignment in the updated root manager
     for (let rootAssignment: ShapeTreeAssignment : delta.getRemovedAssignments()) {
-      let validationResponse: Optional<DocumentResponse> = unassignShapeTreeFromResource(manageableInstance, shapeTreeContext, rootAssignment);
+      let validationResponse: DocumentResponse | null = unassignShapeTreeFromResource(manageableInstance, shapeTreeContext, rootAssignment);
       if (validationResponse.isPresent()) {
         return validationResponse;
       }
@@ -104,7 +102,7 @@ export class ShapeTreeRequestHandler {
   }
 
   // TODO: #87: do sanity checks on meta of meta, c.f. @see https://github.com/xformativ/shapetrees-java/issues/87
-  public createShapeTreeInstance(manageableInstance: ManageableInstance, containerResource: ManageableInstance, shapeTreeRequest: ShapeTreeRequest, proposedName: string): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  public createShapeTreeInstance(manageableInstance: ManageableInstance, containerResource: ManageableInstance, shapeTreeRequest: ShapeTreeRequest, proposedName: string): DocumentResponse | null /* throws ShapeTreeException */ {
     // Sanity check user-owned resource @@ delete 'cause type checks
     ensureInstanceResourceExists(containerResource.getManageableResource(), "Target container for resource creation not found");
     ensureRequestResourceIsContainer(containerResource.getManageableResource(), "Cannot create a shape tree instance in a non-container resource");
@@ -146,7 +144,7 @@ export class ShapeTreeRequestHandler {
       log.debug("Assigning shape tree to created resource: {}", createdInstance.getManagerResource().getUrl());
       // Note: By providing the positive advance validationResult, we let the assignment operation know that validation
       // has already been performed with a positive result, and avoid having it perform the validation a second time
-      let assignResult: Optional<DocumentResponse> = assignShapeTreeToResource(createdInstance, manageableInstance.getShapeTreeContext(), null, rootShapeTreeAssignment, containingAssignment, validationResults.get(containingAssignment));
+      let assignResult: DocumentResponse | null = assignShapeTreeToResource(createdInstance, manageableInstance.getShapeTreeContext(), null, rootShapeTreeAssignment, containingAssignment, validationResults.get(containingAssignment));
       if (assignResult.isPresent()) {
         return assignResult;
       }
@@ -154,7 +152,7 @@ export class ShapeTreeRequestHandler {
     return Optional.of(successfulValidation());
   }
 
-  public updateShapeTreeInstance(targetResource: ManageableInstance, shapeTreeContext: ShapeTreeContext, shapeTreeRequest: ShapeTreeRequest): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  public updateShapeTreeInstance(targetResource: ManageableInstance, shapeTreeContext: ShapeTreeContext, shapeTreeRequest: ShapeTreeRequest): DocumentResponse | null /* throws ShapeTreeException */ {
     ensureInstanceResourceExists(targetResource.getManageableResource(), "Target resource to update not found");
     ensureInstanceResourceExists(targetResource.getManagerResource(), "Should not be updating an unmanaged resource as a shape tree instance");
     let manager: ShapeTreeManager = targetResource.getManagerResource().getManager();
@@ -173,17 +171,17 @@ export class ShapeTreeRequestHandler {
     return Optional.empty();
   }
 
-  public deleteShapeTreeInstance(): Optional<DocumentResponse> {
+  public deleteShapeTreeInstance(): DocumentResponse | null {
     // Nothing to validate in a delete request, so the request is passed along
     return Optional.empty();
   }
 
-  protected assignShapeTreeToResource(manageableInstance: ManageableInstance, shapeTreeContext: ShapeTreeContext, rootManager: ShapeTreeManager, rootAssignment: ShapeTreeAssignment, parentAssignment: ShapeTreeAssignment, advanceValidationResult: ValidationResult): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  protected assignShapeTreeToResource(manageableInstance: ManageableInstance, shapeTreeContext: ShapeTreeContext, rootManager: ShapeTreeManager, rootAssignment: ShapeTreeAssignment, parentAssignment: ShapeTreeAssignment, advanceValidationResult: ValidationResult): DocumentResponse | null /* throws ShapeTreeException */ {
     let managingShapeTree: ShapeTree = null;
     let shapeTreeManager: ShapeTreeManager = null;
     let matchingFocusNode: URL = null;
     let managingAssignment: ShapeTreeAssignment = null;
-    let validationResponse: Optional<DocumentResponse>;
+    let validationResponse: DocumentResponse | null;
     ensureValidationResultIsUsableForAssignment(advanceValidationResult, "Invalid advance validation result provided for resource assignment");
     if (advanceValidationResult != null) {
       managingShapeTree = advanceValidationResult.getMatchingShapeTree();
@@ -250,13 +248,13 @@ export class ShapeTreeRequestHandler {
     return Optional.empty();
   }
 
-  protected unassignShapeTreeFromResource(manageableInstance: ManageableInstance, shapeTreeContext: ShapeTreeContext, rootAssignment: ShapeTreeAssignment): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  protected unassignShapeTreeFromResource(manageableInstance: ManageableInstance, shapeTreeContext: ShapeTreeContext, rootAssignment: ShapeTreeAssignment): DocumentResponse | null /* throws ShapeTreeException */ {
     ensureInstanceResourceExists(manageableInstance.getManageableResource(), "Cannot remove assignment from non-existent managed resource");
     ensureInstanceResourceExists(manageableInstance.getManagerResource(), "Cannot remove assignment from non-existent manager resource");
     let shapeTreeManager: ShapeTreeManager = manageableInstance.getManagerResource().getManager();
     let assignmentToRemove: ShapeTreeAssignment = shapeTreeManager.getAssignmentForRoot(rootAssignment);
     let assignedShapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(assignmentToRemove.getShapeTree());
-    let validationResponse: Optional<DocumentResponse>;
+    let validationResponse: DocumentResponse | null;
     // If the managed resource is a container, and its shape tree specifies its contents with st:contains
     // Recursively traverse the hierarchy and perform shape tree unassignment
     if (manageableInstance.getManageableResource().isContainer() && !assignedShapeTree.getContains().isEmpty()) {
@@ -436,7 +434,7 @@ export class ShapeTreeRequestHandler {
     return new DocumentResponse(new ResourceAttributes(), "OK", 201);
   }
 
-  private failValidation(validationResult: ValidationResult): Optional<DocumentResponse> {
+  private failValidation(validationResult: ValidationResult): DocumentResponse | null {
     return Optional.of(new DocumentResponse(new ResourceAttributes(), validationResult.getMessage(), 422));
   }
 }

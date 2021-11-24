@@ -1,11 +1,10 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
-import * as URL from 'java/net';
 import { ShapeTreeAssignment } from './ShapeTreeAssignment';
 import { ShapeTree } from './ShapeTree';
 
 export class ValidationResult {
 
-   private valid: Boolean;
+   private valid: boolean;
 
    private validatingShapeTree: ShapeTree;
 
@@ -17,11 +16,11 @@ export class ValidationResult {
 
    private message: string;
 
-  public isValid(): Boolean {
+  public isValid(): boolean {
     return (this.valid != null && this.valid);
   }
 
-  public constructor(valid: Boolean, message: string) {
+  public constructor(valid: boolean, message: string) {
     this.valid = valid;
     this.message = message;
     this.validatingShapeTree = null;
@@ -30,7 +29,7 @@ export class ValidationResult {
     this.matchingFocusNode = null;
   }
 
-  public constructor(valid: Boolean, validatingShapeTree: ShapeTree) {
+  public constructor(valid: boolean, validatingShapeTree: ShapeTree) {
     this.valid = valid;
     this.message = null;
     this.validatingShapeTree = validatingShapeTree;
@@ -39,7 +38,7 @@ export class ValidationResult {
     this.matchingFocusNode = null;
   }
 
-  public constructor(valid: Boolean, validatingShapeTree: ShapeTree, message: string) {
+  public constructor(valid: boolean, validatingShapeTree: ShapeTree, message: string) {
     this.valid = valid;
     this.message = message;
     this.validatingShapeTree = validatingShapeTree;
@@ -48,7 +47,7 @@ export class ValidationResult {
     this.matchingFocusNode = null;
   }
 
-  public constructor(valid: Boolean, validatingShapeTree: ShapeTree, matchingFocusNode: URL) {
+  public constructor(valid: boolean, validatingShapeTree: ShapeTree, matchingFocusNode: URL) {
     this.valid = valid;
     this.message = null;
     this.validatingShapeTree = validatingShapeTree;
@@ -57,7 +56,7 @@ export class ValidationResult {
     this.matchingFocusNode = matchingFocusNode;
   }
 
-  public constructor(valid: Boolean, validatingShapeTree: ShapeTree, matchingShapeTree: ShapeTree, matchingFocusNode: URL) {
+  public constructor(valid: boolean, validatingShapeTree: ShapeTree, matchingShapeTree: ShapeTree, matchingFocusNode: URL) {
     this.valid = valid;
     this.message = null;
     this.validatingShapeTree = validatingShapeTree;
@@ -66,7 +65,7 @@ export class ValidationResult {
     this.matchingFocusNode = matchingFocusNode;
   }
 
-  public constructor(valid: Boolean, validatingShapeTree: ShapeTree, matchingShapeTree: ShapeTree, managingAssignment: ShapeTreeAssignment, matchingFocusNode: URL, message: string) {
+  public constructor(valid: boolean, validatingShapeTree: ShapeTree, matchingShapeTree: ShapeTree, managingAssignment: ShapeTreeAssignment, matchingFocusNode: URL, message: string) {
     this.valid = valid;
     this.validatingShapeTree = validatingShapeTree;
     this.matchingShapeTree = matchingShapeTree;
@@ -75,7 +74,7 @@ export class ValidationResult {
     this.message = message;
   }
 
-  public getValid(): Boolean {
+  public getValid(): boolean {
     return this.valid;
   }
 

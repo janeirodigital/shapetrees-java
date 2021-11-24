@@ -2,7 +2,6 @@
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
 import * as Slf4j from 'lombok/extern/slf4j';
 import * as TreeMap from 'java/util';
-import * as Optional from 'java/util';
 import * as ArrayList from 'java/util';
 import * as Arrays from 'java/util';
 import * as Matcher from 'java/util/regex';
@@ -161,7 +160,7 @@ export class ResourceAttributes {
    * @return an {@code Optional<String>} containing the first named header
    *         string value, if present
    */
-  public firstValue(name: string): Optional<string> {
+  public firstValue(name: string): string | null {
     return allValues(name).stream().findFirst();
   }
 

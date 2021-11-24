@@ -16,7 +16,6 @@ import { Writable } from 'stream';
 import * as MalformedURLException from 'java/net';
 import * as URI from 'java/net';
 import * as URISyntaxException from 'java/net';
-import * as URL from 'java/net';
 import * as OffsetDateTime from 'java/time';
 
 /**

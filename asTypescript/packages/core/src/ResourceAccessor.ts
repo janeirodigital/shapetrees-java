@@ -1,6 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeException } from './exceptions/ShapeTreeException';
-import * as URL from 'java/net';
 import { ManageableInstance } from './ManageableInstance';
 import { InstanceResource } from './InstanceResource';
 import { ShapeTreeContext } from './ShapeTreeContext';

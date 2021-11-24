@@ -1,7 +1,6 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core.comparators
 import { ShapeTree } from '../ShapeTree';
 import { ShapeTreeFactory } from '../ShapeTreeFactory';
-import * as URL from 'java/net';
 import * as Comparator from 'java/util';
 
 export class ShapeTreeContainsPriority implements Comparator<URL>, Serializable {

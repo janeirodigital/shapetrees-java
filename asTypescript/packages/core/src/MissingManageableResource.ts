@@ -1,7 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { ShapeTreeResourceType } from './enums/ShapeTreeResourceType';
-import * as URL from 'java/net';
-import * as Optional from 'java/util';
 import { ManageableResource } from './ManageableResource';
 import { ResourceAttributes } from './ResourceAttributes';
 
@@ -21,7 +19,7 @@ export class MissingManageableResource extends ManageableResource {
    * @param managerResourceUrl URL of the shape tree manager resource
    * @param isContainer Whether the resource is a container
    */
-  public constructor(url: URL, resourceType: ShapeTreeResourceType, attributes: ResourceAttributes, body: string, name: string, managerResourceUrl: Optional<URL>, isContainer: boolean) {
+  public constructor(url: URL, resourceType: ShapeTreeResourceType, attributes: ResourceAttributes, body: string, name: string, managerResourceUrl: URL | null, isContainer: boolean) {
     super(url, resourceType, attributes, body, name, false, managerResourceUrl, isContainer);
   }
 }

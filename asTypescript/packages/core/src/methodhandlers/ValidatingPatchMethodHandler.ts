@@ -8,7 +8,6 @@ import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import { RequestHelper } from '../helpers/RequestHelper';
 import { ManageableResource } from '../ManageableResource';
 import * as Slf4j from 'lombok/extern/slf4j';
-import * as Optional from 'java/util';
 import { AbstractValidatingMethodHandler } from './AbstractValidatingMethodHandler';
 import { ValidatingMethodHandler } from './ValidatingMethodHandler';
 
@@ -19,7 +18,7 @@ export class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
     super(resourceAccessor);
   }
 
-  override public validateRequest(shapeTreeRequest: ShapeTreeRequest): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  override public validateRequest(shapeTreeRequest: ShapeTreeRequest): DocumentResponse | null /* throws ShapeTreeException */ {
     if (shapeTreeRequest.getContentType() === null || !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update")) {
       log.error("Received a patch without a content type of application/sparql-update");
       throw new ShapeTreeException(415, "PATCH verb expects a content type of application/sparql-update");

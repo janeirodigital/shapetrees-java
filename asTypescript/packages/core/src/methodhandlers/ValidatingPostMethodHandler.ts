@@ -8,7 +8,6 @@ import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import { RequestHelper } from '../helpers/RequestHelper';
 import { HttpHeaders } from '../enums/HttpHeaders';
 import * as Slf4j from 'lombok/extern/slf4j';
-import * as Optional from 'java/util';
 import * as UUID from 'java/util';
 import { AbstractValidatingMethodHandler } from './AbstractValidatingMethodHandler';
 import { ValidatingMethodHandler } from './ValidatingMethodHandler';
@@ -20,7 +19,7 @@ export class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
     super(resourceAccessor);
   }
 
-  override public validateRequest(shapeTreeRequest: ShapeTreeRequest): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  override public validateRequest(shapeTreeRequest: ShapeTreeRequest): DocumentResponse | null /* throws ShapeTreeException */ {
     let shapeTreeContext: ShapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
     // Look up the target container for the POST. Error if it doesn't exist, or is a manager resource
     let targetContainer: ManageableInstance = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());

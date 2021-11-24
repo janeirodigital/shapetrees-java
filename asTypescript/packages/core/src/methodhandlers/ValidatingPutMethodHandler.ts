@@ -7,7 +7,6 @@ import { DocumentResponse } from '../DocumentResponse';
 import { ResourceAccessor } from '../ResourceAccessor';
 import { ShapeTreeException } from '../exceptions/ShapeTreeException';
 import { RequestHelper } from '../helpers/RequestHelper';
-import * as Optional from 'java/util';
 import { AbstractValidatingMethodHandler } from './AbstractValidatingMethodHandler';
 import { ValidatingMethodHandler } from './ValidatingMethodHandler';
 
@@ -17,7 +16,7 @@ export class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
     super(resourceAccessor);
   }
 
-  override public validateRequest(shapeTreeRequest: ShapeTreeRequest): Optional<DocumentResponse> /* throws ShapeTreeException */ {
+  override public validateRequest(shapeTreeRequest: ShapeTreeRequest): DocumentResponse | null /* throws ShapeTreeException */ {
     let shapeTreeContext: ShapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
     let targetInstance: ManageableInstance = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
     if (targetInstance.wasRequestForManager()) {

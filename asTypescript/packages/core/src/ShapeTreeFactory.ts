@@ -11,7 +11,6 @@ import * as Property from 'org/apache/jena/rdf/model';
 import * as RDFNode from 'org/apache/jena/rdf/model';
 import * as MalformedURLException from 'java/net';
 import * as URI from 'java/net';
-import * as URL from 'java/net';
 import * as ArrayList from 'java/util';
 import * as HashMap from 'java/util';
 import { urlToUri } from './helpers/GraphHelper/urlToUri';

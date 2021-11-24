@@ -7,7 +7,6 @@ import * as Node from 'org/apache/jena/graph';
 import * as NodeFactory from 'org/apache/jena/graph';
 import * as Triple from 'org/apache/jena/graph';
 import * as MalformedURLException from 'java/net';
-import * as URL from 'java/net';
 import * as Objects from 'java/util';
 
 /**

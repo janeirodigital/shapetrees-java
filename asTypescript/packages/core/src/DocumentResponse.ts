@@ -1,6 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.core
 import { HttpHeaders } from './enums/HttpHeaders';
-import * as Optional from 'java/util';
 import { ResourceAttributes } from './ResourceAttributes';
 
 export class DocumentResponse {
@@ -11,7 +10,7 @@ export class DocumentResponse {
 
    private readonly statusCode: number;
 
-  public getContentType(): Optional<string> {
+  public getContentType(): string | null {
     return this.resourceAttributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue());
   }
 
