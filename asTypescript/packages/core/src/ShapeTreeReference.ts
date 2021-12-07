@@ -10,7 +10,7 @@ export class ShapeTreeReference {
 
    readonly predicate: URL;
 
-  public constructor(referenceUrl: URL, shapePath: string, predicate: URL) throws ShapeTreeException {
+  public constructor(referenceUrl: URL, shapePath: string, predicate: URL) /* throws ShapeTreeException */ {
     this.referenceUrl = Objects.requireNonNull(referenceUrl);
     if (shapePath === null && predicate === null) {
       throw new ShapeTreeException(500, "Shape tree reference must have either a shape path or a predicate");

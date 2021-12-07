@@ -88,9 +88,10 @@ export class ShapeTreeFactory {
   private static getContains(resourceModel: Model, shapeTreeNode: Resource, shapeTreeUrl: URL): Array<URL> /* throws ShapeTreeException */ {
     try {
       return getURLListValue(resourceModel, shapeTreeNode, ShapeTreeVocabulary.CONTAINS);
-    } catch (ex: MalformedURLException | ShapeTreeException) {
-      throw new ShapeTreeException(500, "List <" + shapeTreeUrl + "> contains malformed URL: " + ex.getMessage());
-    }
+    } catch (ex) {
+ if (ex instanceof MalformedURLException || ex instanceof ShapeTreeException) {
+       throw new ShapeTreeException(500, "List <" + shapeTreeUrl + "> contains malformed URL: " + ex.getMessage());
+     }
   }
 
   /**
@@ -113,9 +114,10 @@ export class ShapeTreeFactory {
         let referencedShapeTree: ShapeTreeReference;
         try {
           referencedShapeTreeUrl = new URL(referencedShapeTreeUrlString);
-        } catch (ex: MalformedURLException) {
-          throw new ShapeTreeException(500, "ShapeTree <" + shapeTreeUrl + "> references malformed URL <" + referencedShapeTreeUrlString + ">: " + ex.getMessage());
-        }
+        } catch (ex) {
+ if (ex instanceof MalformedURLException) {
+           throw new ShapeTreeException(500, "ShapeTree <" + shapeTreeUrl + "> references malformed URL <" + referencedShapeTreeUrlString + ">: " + ex.getMessage());
+         }
         let viaShapePath: string = getStringValue(resourceModel, referenceResource, ShapeTreeVocabulary.VIA_SHAPE_PATH);
         let viaPredicate: URL = getUrlValue(resourceModel, referenceResource, ShapeTreeVocabulary.VIA_PREDICATE, shapeTreeUrl);
         referencedShapeTree = new ShapeTreeReference(referencedShapeTreeUrl, viaShapePath, viaPredicate);
@@ -142,9 +144,10 @@ export class ShapeTreeFactory {
       if (object.isURIResource()) {
         try {
           return new URL(object.asResource().getURI());
-        } catch (ex: MalformedURLException) {
-          throw new IllegalStateException("Malformed ShapeTree <" + shapeTreeUrl + ">: Jena URIResource <" + object + "> didn't parse as URL - " + ex.getMessage());
-        }
+        } catch (ex) {
+ if (ex instanceof MalformedURLException) {
+           throw new IllegalStateException("Malformed ShapeTree <" + shapeTreeUrl + ">: Jena URIResource <" + object + "> didn't parse as URL - " + ex.getMessage());
+         }
       } else {
         throw new ShapeTreeException(500, "Malformed ShapeTree <" + shapeTreeUrl + ">: expected " + object + " to be a URL");
       }

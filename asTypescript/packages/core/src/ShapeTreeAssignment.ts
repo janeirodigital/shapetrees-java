@@ -37,7 +37,7 @@ export class ShapeTreeAssignment {
 
    private readonly url: URL;
 
-  public constructor(shapeTree: URL, managedResource: URL, rootAssignment: URL, focusNode: URL, shape: URL, url: URL) throws ShapeTreeException {
+  public constructor(shapeTree: URL, managedResource: URL, rootAssignment: URL, focusNode: URL, shape: URL, url: URL) /* throws ShapeTreeException */ {
     try {
       this.shapeTree = Objects.requireNonNull(shapeTree, "Must provide an assigned shape tree");
       this.managedResource = Objects.requireNonNull(managedResource, "Must provide a shape tree context");
@@ -53,9 +53,10 @@ export class ShapeTreeAssignment {
         }
         this.focusNode = null;
       }
-    } catch (ex: NullPointerException | IllegalStateException) {
-      throw new ShapeTreeException(500, "Failed to initialize shape tree assignment: " + ex.getMessage());
-    }
+    } catch (ex) {
+ if (ex instanceof NullPointerException || ex instanceof IllegalStateException) {
+       throw new ShapeTreeException(500, "Failed to initialize shape tree assignment: " + ex.getMessage());
+     }
   }
 
   public static getFromGraph(url: URL, managerGraph: Graph): ShapeTreeAssignment /* throws MalformedURLException, ShapeTreeException */ {

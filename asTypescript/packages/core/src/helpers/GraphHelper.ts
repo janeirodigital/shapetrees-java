@@ -77,9 +77,10 @@ export class GraphHelper {
       let reader: StringReader = new StringReader(rawContent);
       RDFDataMgr.read(model.getGraph(), reader, baseURI.toString(), GraphHelper.getLangForContentType(contentType));
       return model;
-    } catch (rex: RiotException) {
-      throw new ShapeTreeException(422, "Error processing input - " + rex.getMessage());
-    }
+    } catch (ex) {
+ if (ex instanceof RiotException) {
+       throw new ShapeTreeException(422, "Error processing input - " + rex.getMessage());
+     }
   }
 
   /**
@@ -160,9 +161,10 @@ export class GraphHelper {
   public static urlToUri(url: URL): URI {
     try {
       return url.toURI();
-    } catch (ex: URISyntaxException) {
-      throw new IllegalStateException("can't convert URL <" + url + "> to IRI: " + ex);
-    }
+    } catch (ex) {
+ if (ex instanceof URISyntaxException) {
+       throw new IllegalStateException("can't convert URL <" + url + "> to IRI: " + ex);
+     }
   }
 
   /**
@@ -178,16 +180,18 @@ export class GraphHelper {
     try {
       let noFragment: URI = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
       return noFragment.toURL();
-    } catch (ex: MalformedURLException | URISyntaxException) {
-      throw new IllegalStateException("Unable to remove fragment from URL: " + ex.getMessage());
-    }
+    } catch (ex) {
+ if (ex instanceof MalformedURLException || ex instanceof URISyntaxException) {
+       throw new IllegalStateException("Unable to remove fragment from URL: " + ex.getMessage());
+     }
   }
 
   public static knownUrl(urlString: string): URL {
     try {
       return new URL(urlString);
-    } catch (ex: MalformedURLException) {
-      throw new IllegalStateException("Expected known URL <" + urlString + "> to parse as valid URL - " + ex.toString());
-    }
+    } catch (ex) {
+ if (ex instanceof MalformedURLException) {
+       throw new IllegalStateException("Expected known URL <" + urlString + "> to parse as valid URL - " + ex.toString());
+     }
   }
 }

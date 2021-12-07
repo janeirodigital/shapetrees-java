@@ -36,9 +36,10 @@ export class JavaHttpClientFactory implements HttpClientFactory, ExternalDocumen
   public get(useShapeTreeValidation: boolean): JavaHttpClient /* throws ShapeTreeException */ {
     try {
       return new JavaHttpClient(this.useSslValidation, useShapeTreeValidation);
-    } catch (ex: Exception) {
-      throw new ShapeTreeException(500, ex.getMessage());
-    }
+    } catch (ex) {
+ if (ex instanceof Exception) {
+       throw new ShapeTreeException(500, ex.getMessage());
+     }
   }
 
   /**

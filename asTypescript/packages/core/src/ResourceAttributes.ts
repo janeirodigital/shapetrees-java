@@ -27,7 +27,7 @@ export class ResourceAttributes {
    * @param attr attribute (header) name to set
    * @param value String value to assign to attr
    */
-  public constructor(attr: string, value: string) throws ShapeTreeException {
+  public constructor(attr: string, value: string) /* throws ShapeTreeException */ {
     this.myMapOfLists = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     this.maybeSet(attr, value);
   }

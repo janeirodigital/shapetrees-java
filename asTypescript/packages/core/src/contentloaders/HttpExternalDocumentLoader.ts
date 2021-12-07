@@ -25,13 +25,14 @@ export class HttpExternalDocumentLoader implements ExternalDocumentLoader {
       }
       let attributes: ResourceAttributes = new ResourceAttributes(response.headers().map());
       return new DocumentResponse(attributes, response.body(), response.statusCode());
-    } catch (ex: IOException) {
-      throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
-    } catch (ex: InterruptedException) {
-      Thread.currentThread().interrupt();
-      throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
-    } catch (ex: URISyntaxException) {
-      throw new ShapeTreeException(500, "Malformed URL <" + resourceUrl + ">: " + ex.getMessage());
-    }
+    } catch (ex) {
+ if (ex instanceof IOException) {
+       throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
+     } else if (ex instanceof InterruptedException) {
+       Thread.currentThread().interrupt();
+       throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
+     } else if (ex instanceof URISyntaxException) {
+       throw new ShapeTreeException(500, "Malformed URL <" + resourceUrl + ">: " + ex.getMessage());
+     }
   }
 }
