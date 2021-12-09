@@ -1,0 +1,20 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX pm: <${SERVER_BASE}/static/shex/project/shex#>
+
+  <#DataRepositoryTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pm:DataRepositoryShape ;
+    # Invalid to have a blank node as an object of st:contains
+    st:contains <#DataCollectionTree> ,
+                [ st:shape pm:ProjectShape ] .
+
+  <#DataCollectionTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pm:DataCollectionShape .

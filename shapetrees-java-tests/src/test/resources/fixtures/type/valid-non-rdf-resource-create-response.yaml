@@ -1,0 +1,6 @@
+statusCode : 201
+delay: 0
+headers:
+  - 'Content-type:application/octet-stream'
+  - 'Link:</non-rdf-resources/valid-non-rdf-resource.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
+body: >

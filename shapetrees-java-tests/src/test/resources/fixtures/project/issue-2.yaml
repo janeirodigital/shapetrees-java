@@ -1,0 +1,22 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+  - 'Link:<http://www.w3.org/ns/ldp#BasicResource>; rel="type"'
+  - 'Link:</data/projects/project-1/milestone-3/issue-2.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
+body: >
+
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX xml: <http://www.w3.org/XML/1998/namespace>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  PREFIX ldp: <http://www.w3.org/ns/ldp#>
+  PREFIX ex: <http://www.example.com/ns/ex#>
+
+  <#issue>
+    ex:uri </data/projects/project-1/milestone-3/issue-2#issue> ;
+    ex:id 5 ;
+    ex:name "A serious issue" ;
+    ex:severity "critical" ;
+    ex:description "This is extremely problematic." ;
+    ex:created_at "2021-04-04T20:15:47.000Z"^^xsd:dateTime .

@@ -6,25 +6,36 @@
 
     <groupId>com.janeirodigital</groupId>
     <artifactId>shapetrees-java</artifactId>
-    <version>0.5.10</version>
+    <version>1.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
     <properties>
-        <jena.version>3.16.0</jena.version>
+        <jena.version>3.17.0</jena.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <lombok.version>1.18.16</lombok.version>
-        <slf4j.version>1.7.30</slf4j.version>
-        <okhttp.version>4.9.0</okhttp.version>
+        <lombok.version>1.18.22</lombok.version>
+        <slf4j.version>1.7.32</slf4j.version>
+        <okhttp.version>4.9.2</okhttp.version>
         <shexjava.version>1.3beta</shexjava.version>
-        <junit.version>5.7.0</junit.version>
+        <junit.version>5.8.1</junit.version>
         <jersey-core.version>1.19.4</jersey-core.version>
         <commons-rdf.version>0.5.0</commons-rdf.version>
         <commons-codec.version>1.15</commons-codec.version>
-        <snakeyaml.version>1.27</snakeyaml.version>
-        <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
+        <snakeyaml.version>1.29</snakeyaml.version>
+        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
-
+        <maven-javadoc.version>3.3.1</maven-javadoc.version>
+        <maven-site-plugin.version>3.9.0</maven-site-plugin.version>
+        <maven-project-info-reports-plugin.version>3.1.2</maven-project-info-reports-plugin.version>
+        <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <sonar.organization>xformativ</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.language>java</sonar.language>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <aggregate.report.dir>shapetrees-java-coverage/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencyManagement>
@@ -53,13 +64,6 @@
                 <artifactId>jena-osgi</artifactId>
                 <version>${jena.version}</version>
             </dependency>
-            <!--
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-rdf-api</artifactId>
-                <version>${commons-rdf.version}</version>
-            </dependency>
-            -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
@@ -74,7 +78,13 @@
     </dependencyManagement>
 
     <modules>
-        <module>shapetrees</module>
+        <module>shapetrees-java-core</module>
+        <module>shapetrees-java-client-core</module>
+        <module>shapetrees-java-client-http</module>
+        <module>shapetrees-java-okhttp</module>
+        <module>shapetrees-java-javahttp</module>
+        <module>shapetrees-java-coverage</module>
+        <module>shapetrees-java-tests</module>
     </modules>
 
     <build>
@@ -94,8 +104,70 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${maven-site-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-project-info-reports-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc.version}</version>
+            </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc.version}</version>
+                <configuration>
+                    <sourcepath>
+                        shapetrees-java-client-core/target/delombok;
+                        shapetrees-java-client-http/target/delombok;
+                        shapetrees-java-core/target/delombok;
+                        shapetrees-java-javahttp/target/delombok;
+                        shapetrees-java-okhttp/target/delombok
+                    </sourcepath>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <inherited>false</inherited>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <id>default</id>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+
     <repositories>
         <repository>
             <id>xformativ-nexus</id>
@@ -115,6 +187,5 @@
             <url>https://repo.janeirodigital.com/repository/xformativ-maven/</url>
         </repository>
     </distributionManagement>
-
 
 </project>

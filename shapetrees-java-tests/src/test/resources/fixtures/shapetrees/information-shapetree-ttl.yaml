@@ -1,0 +1,18 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX in: <${SERVER_BASE}/static/shex/information/shex#>
+
+  <#InformationStorageTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape in:InformationStorageShape ;
+    st:contains <#InformationSetTree> .
+
+  <#InformationSetTree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape in:InformationSetShape .

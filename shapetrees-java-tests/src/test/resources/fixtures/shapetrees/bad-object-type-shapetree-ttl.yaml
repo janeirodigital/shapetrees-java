@@ -1,0 +1,13 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  PREFIX pm: <${SERVER_BASE}/static/shex/project/shex#>
+
+  <#DataRepositoryTree>
+    a st:ShapeTree ;
+    # Invalid shape tree where it st:contains but isn't a container
+    st:expectsType [ st:shape pm:ProjectShape ] .

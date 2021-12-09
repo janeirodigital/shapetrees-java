@@ -1,0 +1,6 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:image/png'
+  - 'Link:</data/projects/project-1/milestone-3/task-48/random.png.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
+body: >

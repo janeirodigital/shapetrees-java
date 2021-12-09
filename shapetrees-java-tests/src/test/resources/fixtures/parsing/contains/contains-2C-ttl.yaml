@@ -1,0 +1,25 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX pr: <${SERVER_BASE}/static/shex/parsing/shex#>
+  PREFIX c2c2: <${SERVER_BASE}/static/shapetrees/parsing/contains-2C2#>
+
+  <#2C1Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pr:FooShape .
+
+  <#2C2Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Container ;
+    st:shape pr:FooShape ;
+    st:contains
+      c2c2:2C2ATree .
+
+  <#2C3Tree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pr:FooShape .

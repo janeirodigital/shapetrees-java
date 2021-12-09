@@ -1,0 +1,65 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:text/plain'
+body: >
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX xml: <http://www.w3.org/XML/1998/namespace>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  PREFIX shx: <http://www.w3.org/ns/shex#>
+  PREFIX ex: <http://www.example.com/ns/ex#>
+
+  BASE <${SERVER_BASE}/static/shex/project/shex>
+
+  <#DataRepositoryShape> {
+    ex:uri IRI ;
+    ex:id xsd:integer ;
+    ex:name xsd:string ;
+    ex:created_at xsd:dateTime ;
+    ex:hasDataCollection IRI*
+  }
+
+  <#DataCollectionShape> {
+      ex:uri IRI ;
+      ex:id xsd:integer ;
+      ex:name xsd:string ;
+      ex:created_at xsd:dateTime
+  }
+
+  <#ProjectShape> {
+    ex:uri IRI ;
+    ex:id xsd:integer ;
+    ex:name xsd:string ;
+    ex:created_at xsd:dateTime ;
+    ex:hasMilestone IRI*
+  }
+
+  <#MilestoneShape> {
+    ex:uri IRI ;
+    ex:id xsd:integer ;
+    ex:name xsd:string ;
+    ex:created_at xsd:dateTime ;
+    ex:target xsd:dateTime ;
+    ex:inProject IRI ;
+    ex:hasTask IRI* ;
+    ex:hasIssue IRI*
+  }
+
+  <#TaskShape> {
+    ex:uri IRI ;
+    ex:id xsd:integer ;
+    ex:name xsd:string ;
+    ex:description xsd:string ;
+    ex:created_at xsd:dateTime ;
+    ex:hasAttachment IRI*
+  }
+
+  <#IssueShape> {
+    ex:uri IRI ;
+    ex:id xsd:integer ;
+    ex:name xsd:string ;
+    ex:severity xsd:string;
+    ex:description xsd:string ;
+    ex:created_at xsd:dateTime
+  }

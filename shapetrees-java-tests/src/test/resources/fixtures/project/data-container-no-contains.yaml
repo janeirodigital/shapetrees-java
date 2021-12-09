@@ -1,0 +1,21 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+  - 'Link:<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
+  - 'Link:</data/.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
+body: >
+
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX xml: <http://www.w3.org/XML/1998/namespace>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  PREFIX ldp: <http://www.w3.org/ns/ldp#>
+  PREFIX ex: <http://www.example.com/ns/ex#>
+
+  <#repository>
+    ex:uri </data/#repository> ;
+    ex:id 1 ;
+    ex:name "Data Repository" ;
+    ex:created_at "2021-04-04T20:15:47.000Z"^^xsd:dateTime ;
+    ex:hasDataCollection </data/projects/#collection> .

@@ -1,0 +1,39 @@
+statusCode: 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+body: >
+  PREFIX st: <http://www.w3.org/ns/shapetrees#>
+  PREFIX pm: <${SERVER_BASE}/static/shex/project/shex#>
+
+  <#ProjectTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pm:ProjectShape ;
+    st:references [
+      st:referencesShapeTree <#MilestoneTree> ;
+      st:viaShapePath "@pm:ProjectShape~pm:hasMilestone"
+    ] .
+
+  <#MilestoneTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pm:MilestoneShape ;
+    st:references [
+      st:referencesShapeTree <#TaskTree> ;
+      st:viaShapePath "@pm:MilestoneShape~pm:hasTask"
+    ] ,
+    [
+      st:referencesShapeTree <#IssueTree> ;
+      st:viaShapePath "@pm:MilestoneShape~pm:hasIssue"
+    ] .
+
+  <#TaskTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pm:TaskShape .
+
+  <#IssueTree>
+    a st:ShapeTree ;
+    st:expectsType st:Resource ;
+    st:shape pm:IssueShape .

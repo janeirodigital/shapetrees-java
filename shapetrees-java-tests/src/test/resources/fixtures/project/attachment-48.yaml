@@ -1,0 +1,6 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:application/octet-stream'
+  - 'Link:</data/projects/project-1/milestone-3/task-48/attachment-48.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
+body: >
