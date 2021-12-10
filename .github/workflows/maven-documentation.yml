@@ -11,7 +11,7 @@ jobs:
 
     steps:
       ###############################################################
-      # Checkout repo
+      # Checkout main repo
       ###############################################################
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -22,6 +22,7 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
           settings-path: ${{ github.workspace }} # location for the settings.xml file
+          fetch-depth: 0
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
