@@ -2,7 +2,7 @@ name: Publish Documentation
 
 on:
   release:
-    types: [published]
+    types: [published, created, edited]
   workflow_dispatch:
 
 jobs:
@@ -10,6 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      ###############################################################
+      # Lookup the previous tag
+      ###############################################################
+      - name: Get previous tag
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      ###############################################################
+      # Checkout repo from previous tag
+      ###############################################################
       - uses: actions/checkout@v2
       - name: Set up JDK 11
         uses: actions/setup-java@v1
@@ -19,6 +28,7 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
           settings-path: ${{ github.workspace }} # location for the settings.xml file
+          ref: ${{ steps.previoustag.outputs.tag }}
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
@@ -32,7 +42,7 @@ jobs:
       # Generate JavaDocs via maven
       ###############################################################
       - name: Generate JavaDocs
-        run: mvn -B site --file pom.xml -s ${{ github.workspace }}/settings.xml
+        run: mvn -B deploy site --file pom.xml -s ${{ github.workspace }}/settings.xml
         env:
           MAVEN_USERNAME: ${{ secrets.XFORMATIV_MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.XFORMATIV_MAVEN_PASSWORD }}
