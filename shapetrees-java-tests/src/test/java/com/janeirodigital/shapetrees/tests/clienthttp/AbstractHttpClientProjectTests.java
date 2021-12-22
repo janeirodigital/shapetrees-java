@@ -259,7 +259,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // Update the project-1 container as a shape tree instance.
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
         // 2. Will have a manager/assignment created for it as an instance of ProjectTree
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.updateManagedInstance(context, targetResource, focusNodes, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
         Assertions.assertEquals(200, response.getStatusCode());
 
     }
@@ -284,7 +284,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Create the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, targetShapeTrees, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, getProjectOneMalformedBodyGraph(), TEXT_TURTLE, targetShapeTrees, true);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -313,7 +313,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
         // Update the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.updateManagedInstance(context, targetResource, focusNodes, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -346,7 +346,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         // Create the milestone-3 container in /projects/project-1/ as a shape tree instance using PUT to create
         // 1. Will be validated by the parent ProjectTree planted on /data/projects/project-1/
         // 2. Will have a manager/assignment created for it as an instance of MilestoneTree
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, targetShapeTrees, true, getMilestoneThreeBodyGraph(), TEXT_TURTLE);
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, focusNodes, getMilestoneThreeBodyGraph(), TEXT_TURTLE, targetShapeTrees, true);
         Assertions.assertEquals(201, response.getStatusCode());
     }
 
@@ -540,7 +540,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-48/attachment-48");
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree"));
 
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, targetShapeTrees, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, null, "application/octet-stream", targetShapeTrees, false);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -575,7 +575,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-48/random.png");
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree"));
 
-        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, targetShapeTrees, false, null, "application/octet-stream");
+        DocumentResponse response = shapeTreeClient.putManagedInstance(context, targetResource, null, null, "application/octet-stream", targetShapeTrees, false);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }

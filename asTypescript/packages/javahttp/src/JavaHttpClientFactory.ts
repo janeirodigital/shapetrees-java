@@ -39,7 +39,8 @@ export class JavaHttpClientFactory implements HttpClientFactory, ExternalDocumen
     } catch (ex) {
  if (ex instanceof Exception) {
        throw new ShapeTreeException(500, ex.getMessage());
-     }
+     }}
+
   }
 
   /**

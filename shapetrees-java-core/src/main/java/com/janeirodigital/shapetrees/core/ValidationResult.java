@@ -19,24 +19,6 @@ public class ValidationResult {
         return (this.valid != null && this.valid);
     }
 
-    public ValidationResult(Boolean valid, String message) {
-        this.valid = valid;
-        this.message = message;
-        this.validatingShapeTree = null;
-        this.matchingShapeTree = null;
-        this.managingAssignment = null;
-        this.matchingFocusNode = null;
-    }
-
-    public ValidationResult(Boolean valid, ShapeTree validatingShapeTree) {
-        this.valid = valid;
-        this.message = null;
-        this.validatingShapeTree = validatingShapeTree;
-        this.matchingShapeTree = null;
-        this.managingAssignment = null;
-        this.matchingFocusNode = null;
-    }
-
     public ValidationResult(Boolean valid, ShapeTree validatingShapeTree, String message) {
         this.valid = valid;
         this.message = message;
@@ -44,15 +26,6 @@ public class ValidationResult {
         this.matchingShapeTree = null;
         this.managingAssignment = null;
         this.matchingFocusNode = null;
-    }
-
-    public ValidationResult(Boolean valid, ShapeTree validatingShapeTree, URL matchingFocusNode) {
-        this.valid = valid;
-        this.message = null;
-        this.validatingShapeTree = validatingShapeTree;
-        this.matchingShapeTree = null;
-        this.managingAssignment = null;
-        this.matchingFocusNode = matchingFocusNode;
     }
 
     public ValidationResult(Boolean valid, ShapeTree validatingShapeTree, ShapeTree matchingShapeTree, URL matchingFocusNode) {

@@ -34,7 +34,7 @@ public class ShapeTreeManager {
 
     private final URL id;
     // Each ShapeTreeManager has one or more ShapeTreeAssignments
-    private final List<ShapeTreeAssignment> assignments = new ArrayList<>();
+    private final List<ShapeTreeAssignment> assignments = new ArrayList<>(); // TODO: try Map<URL, ShapeTreeAssignment>, makes getContainingAssignments() redundant against getAssignments()
 
     /**
      * Constructor for a new ShapeTreeManager
@@ -185,7 +185,7 @@ public class ShapeTreeManager {
         } else if (managerTriples.isEmpty()) {
             // Given the fact that a manager resource exists, there should never be a case where the manager resource
             // exists but no manager is found inside of it.
-            throw new IllegalStateException("No ShapeTreeManager instances found: " + managerTriples.size());
+            throw new IllegalStateException("No ShapeTreeManager instances found: " + managerTriples.size()); // TODO: isn't that always 0?
         }
 
         // Get the URL of the ShapeTreeManager subject node
@@ -214,7 +214,7 @@ public class ShapeTreeManager {
 
     }
 
-    public ShapeTreeAssignment getAssignmentForShapeTree(URL shapeTreeUrl) {
+    public ShapeTreeAssignment getAssignmentForShapeTree(URL shapeTreeUrl) { // TODO: return list of assignments with same ST but different roots
 
         if (this.assignments.isEmpty()) { return null; }
 

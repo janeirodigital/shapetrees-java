@@ -77,10 +77,10 @@ public class ShapeTree {
                     targetResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
         }
         
-        return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeUrls);
+        return validateResource(targetResource.getName(), focusNodeUrls, targetResource.getResourceType(), bodyGraph);
     }
 
-    public ValidationResult validateResource(String requestedName, ShapeTreeResourceType resourceType, Graph bodyGraph, List<URL> focusNodeUrls) throws ShapeTreeException {
+    public ValidationResult validateResource(String requestedName, List<URL> focusNodeUrls, ShapeTreeResourceType resourceType, Graph bodyGraph) throws ShapeTreeException {
 
         // Check whether the proposed resource is the same type as what is expected by the shape tree
         if (!this.expectedResourceType.toString().equals(resourceType.getValue())) {
@@ -122,7 +122,7 @@ public class ShapeTree {
 
             String shapeBody = shexShapeContents.getBody();
             InputStream stream = new ByteArrayInputStream(shapeBody.getBytes(StandardCharsets.UTF_8));
-            ShExCParser shexCParser = new ShExCParser();
+            ShExCParser shexCParser = new ShExCParser(); // TODO: set base URL to this.shape
             try {
                 schema = new ShexSchema(GlobalFactory.RDFFactory,shexCParser.getRules(stream),shexCParser.getStart());
                 if (SchemaCache.isInitialized()) {
@@ -137,24 +137,24 @@ public class ShapeTree {
         JenaRDF jenaRDF = new org.apache.commons.rdf.jena.JenaRDF();
         GlobalFactory.RDFFactory = jenaRDF;
 
-        ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
+        ValidationAlgorithm validator = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
         Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.shape.toString()));
 
-        if (!focusNodeUrls.isEmpty()) {  // One or more focus nodes were provided for validation
+        if (!focusNodeUrls.isEmpty()) {  // One or more focus nodes were provided for validator
 
             for (URL focusNodeUrl : focusNodeUrls) {
                 // Evaluate each provided focus node
                 IRI focusNode = GlobalFactory.RDFFactory.createIRI(focusNodeUrl.toString());
                 log.debug("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
-                validation.validate(focusNode, shapeLabel);
-                boolean valid = validation.getTyping().isConformant(focusNode, shapeLabel);
+                validator.validate(focusNode, shapeLabel);
+                boolean valid = validator.getTyping().isConformant(focusNode, shapeLabel);
                 if (valid) { return new ValidationResult(valid, this, this, focusNodeUrl); }
             }
 
             // None of the provided focus nodes were valid - this will return the last failure
             return new ValidationResult(false, this, "Failed to validate: " + shapeLabel.toPrettyString());
 
-        } else {  // No focus nodes were provided for validation, so all subject nodes will be evaluated
+        } else {  // No focus nodes were provided for validator, so all subject nodes will be evaluated
 
             List<Node> evaluateNodes = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
 
@@ -162,17 +162,15 @@ public class ShapeTree {
 
                 final String focusUriString = evaluateNode.getURI();
                 IRI node = GlobalFactory.RDFFactory.createIRI(focusUriString);
-                validation.validate(node, shapeLabel);
-                boolean valid = validation.getTyping().isConformant(node, shapeLabel);
+                validator.validate(node, shapeLabel);
+                boolean valid = validator.getTyping().isConformant(node, shapeLabel);
 
                 if (valid) {
-                    final URL matchingFocusNode;
                     try {
-                        matchingFocusNode = new URL(focusUriString);
+                        return new ValidationResult(valid, this, this, new URL(focusUriString));
                     } catch (MalformedURLException ex) {
-                        throw new ShapeTreeException(500, "Error reporting validation success on malformed URL <" + focusUriString + ">: " + ex.getMessage());
+                        throw new ShapeTreeException(500, "Error reporting validator success on malformed URL <" + focusUriString + ">: " + ex.getMessage());
                     }
-                    return new ValidationResult(valid, this, this, matchingFocusNode);
                 }
 
             }
@@ -183,28 +181,25 @@ public class ShapeTree {
     }
 
     public ValidationResult validateContainedResource(ManageableResource containedResource) throws ShapeTreeException {
-
+        // TODO: this same test gets performed in the call to the 2nd valdateContainedResource (after potentially parsing the graph)
         if (this.contains == null || this.contains.isEmpty()) { // TODO: say it can't be null?
             // The contained resource is permitted because this shape tree has no restrictions on what it contains
             return new ValidationResult(true, this, this, null);
         }
 
-        return validateContainedResource(containedResource, Collections.emptyList(), Collections.emptyList());
-
-    }
-
-    public ValidationResult validateContainedResource(ManageableResource containedResource, List<URL> targetShapeTreeUrls, List<URL> focusNodeUrls) throws ShapeTreeException {
-
         Graph containedResourceGraph = null;
 
-        if (containedResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
+        ShapeTreeResourceType resourceType = containedResource.getResourceType();
+        if (resourceType != ShapeTreeResourceType.NON_RDF) {
             containedResourceGraph = GraphHelper.readStringIntoGraph(urlToUri(containedResource.getUrl()),
                     containedResource.getBody(),
                     containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
         }
 
-        return validateContainedResource(containedResource.getName(), containedResource.getResourceType(), targetShapeTreeUrls, containedResourceGraph, focusNodeUrls);
-
+        List<URL> targetShapeTreeUrls = Collections.emptyList();
+        List<URL> focusNodeUrls = Collections.emptyList();
+        String requestedName = containedResource.getName();
+        return validateContainedResource(requestedName, resourceType, targetShapeTreeUrls, containedResourceGraph, focusNodeUrls);
     }
 
     public ValidationResult validateContainedResource(String requestedName, ShapeTreeResourceType resourceType, List<URL> targetShapeTreeUrls, Graph bodyGraph, List<URL> focusNodeUrls) throws ShapeTreeException {
@@ -222,7 +217,7 @@ public class ShapeTree {
                 if (this.contains.contains(targetShapeTreeUrl)) {
                     ShapeTree targetShapeTree = ShapeTreeFactory.getShapeTree(targetShapeTreeUrl);
                     // Evaluate the shape tree against the attributes of the proposed resources
-                    ValidationResult result = targetShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeUrls);
+                    ValidationResult result = targetShapeTree.validateResource(requestedName, focusNodeUrls, resourceType, bodyGraph);
                     if (Boolean.TRUE.equals(result.getValid())) {
                         // Return a successful validation result, including the matching shape tree
                         return new ValidationResult(true, this, targetShapeTree, result.getMatchingFocusNode());
@@ -239,7 +234,7 @@ public class ShapeTree {
                 if (containsShapeTree == null) { continue; } // Continue if the shape tree isn't gettable
 
                 // Evaluate the shape tree against the attributes of the proposed resources
-                ValidationResult result = containsShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeUrls);
+                ValidationResult result = containsShapeTree.validateResource(requestedName, focusNodeUrls, resourceType, bodyGraph);
                 // Continue if the proposed attributes were not a match
                 if (Boolean.FALSE.equals(result.getValid())) { continue; }
                 // Return the successful validation result
@@ -251,14 +246,6 @@ public class ShapeTree {
 
     }
 
-    public Iterator<ShapeTreeReference> getReferencedShapeTrees() throws ShapeTreeException {
-        return getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
-    }
-
-    public Iterator<ShapeTreeReference> getReferencedShapeTrees(RecursionMethods recursionMethods) throws ShapeTreeException {
-        return getReferencedShapeTreesList(recursionMethods).iterator();
-    }
-
     // Return the list of shape tree contains by priority from most to least strict
     public List<URL> getPrioritizedContains() {
 
@@ -266,6 +253,14 @@ public class ShapeTree {
         Collections.sort(prioritized, new ShapeTreeContainsPriority());
         return prioritized;
 
+    }
+
+    public Iterator<ShapeTreeReference> getReferencedShapeTrees() throws ShapeTreeException {
+        return getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
+    }
+
+    public Iterator<ShapeTreeReference> getReferencedShapeTrees(RecursionMethods recursionMethods) throws ShapeTreeException {
+        return getReferencedShapeTreesList(recursionMethods).iterator();
     }
 
     private List<ShapeTreeReference> getReferencedShapeTreesList(RecursionMethods recursionMethods) throws ShapeTreeException {

@@ -179,7 +179,7 @@ public class ResourceAttributes {
         List<String> values = toMultimap().get(name);
         // Making unmodifiable list out of empty in order to make a list which
         // throws UOE unconditionally
-        return values != null ? values : List.of();
+        return values != null ? values : List.of(); // TODO: some callers, e.g. HttpResourceAccessor.getResourceTypeFromHeaders, expect null
     }
 
     public String toString() {

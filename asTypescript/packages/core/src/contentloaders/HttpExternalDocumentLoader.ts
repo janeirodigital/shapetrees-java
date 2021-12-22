@@ -33,6 +33,7 @@ export class HttpExternalDocumentLoader implements ExternalDocumentLoader {
        throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
      } else if (ex instanceof URISyntaxException) {
        throw new ShapeTreeException(500, "Malformed URL <" + resourceUrl + ">: " + ex.getMessage());
-     }
+     }}
+
   }
 }

@@ -106,7 +106,8 @@ export class ShapeTreeManager {
     } catch (ex) {
  if (ex instanceof MalformedURLException) {
        throw new IllegalStateException("Minted illegal URL <" + assignmentString + "> - " + ex.getMessage());
-     }
+     }}
+
     return assignmentUrl;
   }
 
@@ -164,10 +165,11 @@ export class ShapeTreeManager {
       let assignment: ShapeTreeAssignment = null;
       try {
         assignment = ShapeTreeAssignment.getFromGraph(new URL(assignmentNode.getObject().getURI()), managerGraph);
-      } catch (ex) {
- if (ex instanceof MalformedURLException) {
+      } catch (e) {
+ if (e instanceof MalformedURLException) {
          throw new ShapeTreeException(500, "Object of { " + s + " " + stAssignment + " " + assignmentNode.getObject() + " } must be a URL.");
-       }
+       }}
+
       manager.assignments.add(assignment);
     }
     return manager;

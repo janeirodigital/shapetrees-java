@@ -115,7 +115,8 @@ export class ShapeTree {
       } catch (ex) {
  if (ex instanceof Exception) {
          throw new ShapeTreeException(500, "Error parsing ShEx schema - " + ex.getMessage());
-       }
+       }}
+
     }
     // Tell ShExJava we want to use Jena as our graph library
     let jenaRDF: JenaRDF = new org.apache.commons.rdf.jena.JenaRDF();
@@ -151,7 +152,8 @@ export class ShapeTree {
           } catch (ex) {
  if (ex instanceof MalformedURLException) {
              throw new ShapeTreeException(500, "Error reporting validation success on malformed URL <" + focusUriString + ">: " + ex.getMessage());
-           }
+           }}
+
           return new ValidationResult(valid, this, this, matchingFocusNode);
         }
       }

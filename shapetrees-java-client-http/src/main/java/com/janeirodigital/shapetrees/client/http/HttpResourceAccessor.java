@@ -97,7 +97,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
     private ManageableInstance
     getInstanceFromMissingManageableResource(ShapeTreeContext context, MissingManageableResource missing) {
 
-        MissingManagerResource missingManager = new MissingManagerResource(missing, null);
+        MissingManagerResource missingManager = new MissingManagerResource(missing.getUrl(), missing);
         return new ManageableInstance(context, this, false, missing, missingManager);
 
     }
@@ -327,7 +327,9 @@ public class HttpResourceAccessor implements ResourceAccessor {
     generateResource(URL url, DocumentResponse response) throws ShapeTreeException {
 
         // If a resource was created, ensure the URL returned in the Location header is valid
-        Optional<String> location = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
+        Optional<String> location = response.getResourceAttributes() == null
+                ? Optional.empty()
+                : response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
         if (location.isPresent()) {
             try {
                 url = new URL(location.get());
@@ -341,13 +343,14 @@ public class HttpResourceAccessor implements ResourceAccessor {
         // typed resource with adequate context to the caller
         final boolean exists = response.isExists();
         final boolean container = isContainerFromHeaders(response.getResourceAttributes(), url);
-        final ResourceAttributes attributes = response.getResourceAttributes();
+        final ResourceAttributes attributes = response.getResourceAttributes(); // TODO: could be null
         final ShapeTreeResourceType resourceType = getResourceTypeFromHeaders(response.getResourceAttributes());
 
         final String name = calculateName(url);
-        final String body = response.getBody();
+        final String body = response.getBody(); // TODO: could be null. readStringIntoModel not set up for `rawContent=null`
         if (response.getBody() == null) {
             log.error("Could not retrieve the body string from response for " + url);
+            throw new IllegalStateException("Could not retrieve the body string from response for <" + url + ">"); // TODO: remove when TODO above is resolved.
         }
 
         //  Parse Link headers from response and populate ResourceAttributes
@@ -364,7 +367,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
             if (exists) {
                 return new ManagerResource(url, resourceType, attributes, body, name, true, managedResourceUrl);
             } else {
-                return new MissingManagerResource(url, resourceType, attributes, body, name, managedResourceUrl);
+                return new MissingManagerResource(managedResourceUrl, url, resourceType, attributes, body, name);
             }
         } else {
             // Look for presence of st:managedBy in link headers from response and get the target manager URL
@@ -473,7 +476,9 @@ public class HttpResourceAccessor implements ResourceAccessor {
     private boolean
     isContainerFromHeaders(ResourceAttributes headers, URL url) {
 
-        List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = headers == null
+           ? Collections.emptyList()
+           : headers.allValues(HttpHeaders.LINK.getValue());
 
         if (linkHeaders.isEmpty()) { return url.getPath().endsWith("/"); }
 
@@ -495,7 +500,9 @@ public class HttpResourceAccessor implements ResourceAccessor {
     private ShapeTreeResourceType
     getResourceTypeFromHeaders(ResourceAttributes headers) {
 
-        List<String> linkHeaders = headers.allValues(HttpHeaders.LINK.getValue());
+        List<String> linkHeaders = headers == null
+                ? null
+                : headers.allValues(HttpHeaders.LINK.getValue());
 
         if (linkHeaders == null) { return null; }
 

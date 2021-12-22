@@ -77,10 +77,11 @@ export class GraphHelper {
       let reader: StringReader = new StringReader(rawContent);
       RDFDataMgr.read(model.getGraph(), reader, baseURI.toString(), GraphHelper.getLangForContentType(contentType));
       return model;
-    } catch (ex) {
- if (ex instanceof RiotException) {
+    } catch (rex) {
+ if (rex instanceof RiotException) {
        throw new ShapeTreeException(422, "Error processing input - " + rex.getMessage());
-     }
+     }}
+
   }
 
   /**
@@ -164,7 +165,8 @@ export class GraphHelper {
     } catch (ex) {
  if (ex instanceof URISyntaxException) {
        throw new IllegalStateException("can't convert URL <" + url + "> to IRI: " + ex);
-     }
+     }}
+
   }
 
   /**
@@ -183,7 +185,8 @@ export class GraphHelper {
     } catch (ex) {
  if (ex instanceof MalformedURLException || ex instanceof URISyntaxException) {
        throw new IllegalStateException("Unable to remove fragment from URL: " + ex.getMessage());
-     }
+     }}
+
   }
 
   public static knownUrl(urlString: string): URL {
@@ -192,6 +195,7 @@ export class GraphHelper {
     } catch (ex) {
  if (ex instanceof MalformedURLException) {
        throw new IllegalStateException("Expected known URL <" + urlString + "> to parse as valid URL - " + ex.toString());
-     }
+     }}
+
   }
 }

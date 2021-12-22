@@ -91,7 +91,8 @@ export class ShapeTreeFactory {
     } catch (ex) {
  if (ex instanceof MalformedURLException || ex instanceof ShapeTreeException) {
        throw new ShapeTreeException(500, "List <" + shapeTreeUrl + "> contains malformed URL: " + ex.getMessage());
-     }
+     }}
+
   }
 
   /**
@@ -117,7 +118,8 @@ export class ShapeTreeFactory {
         } catch (ex) {
  if (ex instanceof MalformedURLException) {
            throw new ShapeTreeException(500, "ShapeTree <" + shapeTreeUrl + "> references malformed URL <" + referencedShapeTreeUrlString + ">: " + ex.getMessage());
-         }
+         }}
+
         let viaShapePath: string = getStringValue(resourceModel, referenceResource, ShapeTreeVocabulary.VIA_SHAPE_PATH);
         let viaPredicate: URL = getUrlValue(resourceModel, referenceResource, ShapeTreeVocabulary.VIA_PREDICATE, shapeTreeUrl);
         referencedShapeTree = new ShapeTreeReference(referencedShapeTreeUrl, viaShapePath, viaPredicate);
@@ -147,7 +149,8 @@ export class ShapeTreeFactory {
         } catch (ex) {
  if (ex instanceof MalformedURLException) {
            throw new IllegalStateException("Malformed ShapeTree <" + shapeTreeUrl + ">: Jena URIResource <" + object + "> didn't parse as URL - " + ex.getMessage());
-         }
+         }}
+
       } else {
         throw new ShapeTreeException(500, "Malformed ShapeTree <" + shapeTreeUrl + ">: expected " + object + " to be a URL");
       }

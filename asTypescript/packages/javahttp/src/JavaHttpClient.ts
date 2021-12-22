@@ -42,7 +42,8 @@ export class JavaHttpClient implements HttpClient {
     } catch (ex) {
  if (ex instanceof NullPointerException) {
        log.error("Exception retrieving body string");
-     }
+     }}
+
     return new DocumentResponse(new ResourceAttributes(response.headers().map()), body, response.statusCode());
   }
 
@@ -75,16 +76,18 @@ export class JavaHttpClient implements HttpClient {
       let sc: SSLContext = null;
       try {
         sc = SSLContext.getInstance("TLSv1.2");
-      } catch (ex) {
- if (ex instanceof NoSuchAlgorithmException) {
+      } catch (e) {
+ if (e instanceof NoSuchAlgorithmException) {
          e.printStackTrace();
-       }
+       }}
+
       try {
         sc.init(null, trustAllCerts, new java.security.SecureRandom());
-      } catch (ex) {
- if (ex instanceof KeyManagementException) {
+      } catch (e) {
+ if (e instanceof KeyManagementException) {
          e.printStackTrace();
-       }
+       }}
+
       HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
       // Create all-trusting host name verifier
       let validHosts: HostnameVerifier = new HostnameVerifier() {
@@ -142,7 +145,8 @@ export class JavaHttpClient implements HttpClient {
        throw new ShapeTreeException(500, ex.getMessage());
      } else if (ex instanceof URISyntaxException) {
        throw new ShapeTreeException(500, "Malformed URL <" + request.resourceURL + ">: " + ex.getMessage());
-     }
+     }}
+
   }
 
   protected static check(resp: java.net.http.HttpResponse): java.net.http.HttpResponse {

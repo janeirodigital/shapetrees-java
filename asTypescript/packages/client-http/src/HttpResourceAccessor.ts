@@ -279,10 +279,11 @@ export class HttpResourceAccessor implements ResourceAccessor {
     if (location.isPresent()) {
       try {
         url = new URL(location.get());
-      } catch (ex) {
- if (ex instanceof MalformedURLException) {
+      } catch (e) {
+ if (e instanceof MalformedURLException) {
          throw new ShapeTreeException(500, "Retrieving <" + url + "> yielded a Location header \"" + location.get() + "\" which doesn't parse as a URL: " + e.getMessage());
-       }
+       }}
+
     }
     // Determine whether the resource exists based on the response. Even if the resource
     // doesn't exist, additional context and processing is done to provide the appropriate
@@ -354,7 +355,8 @@ export class HttpResourceAccessor implements ResourceAccessor {
     } catch (ex) {
  if (ex instanceof Exception) {
        throw new ShapeTreeException(500, ex.getMessage());
-     }
+     }}
+
   }
 
   /**
@@ -453,10 +455,11 @@ export class HttpResourceAccessor implements ResourceAccessor {
     let managerUrlString: string = optManagerString.get();
     try {
       return Optional.of(new URL(url, managerUrlString));
-    } catch (ex) {
- if (ex instanceof MalformedURLException) {
+    } catch (e) {
+ if (e instanceof MalformedURLException) {
        throw new ShapeTreeException(500, "Malformed relative URL <" + managerUrlString + "> (resolved from <" + url + ">)");
-     }
+     }}
+
   }
 
   /**
@@ -482,10 +485,11 @@ export class HttpResourceAccessor implements ResourceAccessor {
     }
     try {
       managedResourceUrl = new URL(managerUrl, managedUrlString);
-    } catch (ex) {
- if (ex instanceof MalformedURLException) {
+    } catch (e) {
+ if (e instanceof MalformedURLException) {
        throw new ShapeTreeException(500, "Can't calculate managed resource for shape tree manager <" + managerUrl + ">");
-     }
+     }}
+
     return managedResourceUrl;
   }
 

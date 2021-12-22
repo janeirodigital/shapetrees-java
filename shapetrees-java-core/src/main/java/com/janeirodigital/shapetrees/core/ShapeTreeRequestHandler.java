@@ -31,8 +31,8 @@ public class ShapeTreeRequestHandler {
     public DocumentResponse manageShapeTree(ManageableInstance manageableInstance, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
 
         Optional<DocumentResponse> validationResponse;
-        ShapeTreeManager updatedRootManager = RequestHelper.getIncomingShapeTreeManager(shapeTreeRequest, manageableInstance.getManagerResource());
-        ShapeTreeManager existingRootManager = manageableInstance.getManagerResource().getManager();
+        ShapeTreeManager updatedRootManager = RequestHelper.getIncomingShapeTreeManager(shapeTreeRequest, manageableInstance.getManagerResource()); // TODO: could be null
+        ShapeTreeManager existingRootManager = manageableInstance.getManagerResource().getManager(); // TODO: could be null
 
         // Determine assignments that have been removed, added, and/or updated
         ShapeTreeManagerDelta delta = ShapeTreeManagerDelta.evaluate(existingRootManager, updatedRootManager);
@@ -131,7 +131,7 @@ public class ShapeTreeRequestHandler {
 
         // if any of the provided focus nodes weren't matched validation must fail
         List<URL> unmatchedNodes  = getUnmatchedFocusNodes(validationResults.values(), incomingFocusNodes);
-        if (!unmatchedNodes.isEmpty()) { return failValidation(new ValidationResult(false, "Failed to match target focus nodes: " + unmatchedNodes)); }
+        if (!unmatchedNodes.isEmpty()) { return failValidation(new ValidationResult(false, null,"Failed to match target focus nodes: " + unmatchedNodes)); }
 
         log.debug("Creating shape tree instance at {}", targetResourceUrl);
 
@@ -168,7 +168,8 @@ public class ShapeTreeRequestHandler {
             // All must pass for the update to validate
             ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
             URL managedResourceUrl = targetResource.getManageableResource().getUrl();
-            ValidationResult validationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), RequestHelper.getIncomingBodyGraph(shapeTreeRequest, managedResourceUrl, targetResource.getManageableResource()), RequestHelper.getIncomingFocusNodes(shapeTreeRequest, managedResourceUrl));
+            Graph bodyGraph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, managedResourceUrl, targetResource.getManageableResource()); // TODO: could be null
+            ValidationResult validationResult = shapeTree.validateResource(null, RequestHelper.getIncomingFocusNodes(shapeTreeRequest, managedResourceUrl), shapeTreeRequest.getResourceType(), bodyGraph);
             if (Boolean.FALSE.equals(validationResult.isValid())) { return failValidation(validationResult); }
 
         }
@@ -323,6 +324,7 @@ public class ShapeTreeRequestHandler {
         URL managerResourceUrl = manageableInstance.getManagerResource().getUrl();
 
         // When at the top of the plant hierarchy, use the root manager from the initial plant request body
+        // TODO: rootManager can be null so method could return null (does not in any test)
         if (atRootOfPlantHierarchy(rootAssignment, manageableInstance.getManageableResource())) { return rootManager; }
 
         if (!manageableInstance.getManagerResource().isExists()) {
@@ -383,7 +385,7 @@ public class ShapeTreeRequestHandler {
     // Return a root shape tree manager associated with a given shape tree assignment
     private ShapeTreeAssignment getRootAssignment(ShapeTreeContext shapeTreeContext, ShapeTreeAssignment assignment) throws ShapeTreeException {
 
-        ShapeTreeManager rootManager = getRootManager(shapeTreeContext, assignment);
+        ShapeTreeManager rootManager = getRootManager(shapeTreeContext, assignment); // TODO: could be null
 
         for (ShapeTreeAssignment rootAssignment : rootManager.getAssignments()) {
             if (rootAssignment.getUrl() != null && rootAssignment.getUrl().equals(assignment.getRootAssignment())) {
@@ -485,7 +487,8 @@ public class ShapeTreeRequestHandler {
     }
 
     private Optional<DocumentResponse> failValidation(ValidationResult validationResult) {
-        return Optional.of(new DocumentResponse(new ResourceAttributes(), validationResult.getMessage(),422));
+        String message = validationResult.getMessage() != null ? validationResult.getMessage() : "Unspecified validation failure";
+        return Optional.of(new DocumentResponse(new ResourceAttributes(), message,422));
     }
 
 }

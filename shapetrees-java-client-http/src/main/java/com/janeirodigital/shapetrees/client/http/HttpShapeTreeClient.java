@@ -16,9 +16,13 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFWriter;
+import org.apache.jena.riot.RIOT;
 
+import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -117,13 +121,13 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         ManageableResource manageableResource = instance.getManageableResource();
 
         if (!manageableResource.isExists()) {
-            return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
+            return new DocumentResponse(new ResourceAttributes(), "Cannot find target resource to plant: " + targetResource, 404);
         }
 
         ShapeTreeManager manager;
         URL managerResourceUrl = instance.getManagerResource().getUrl();
         if (instance.isManaged()) {
-            manager = instance.getManagerResource().getManager();
+            manager = instance.getManagerResource().getManager(); // TODO: could be null
         } else {
             manager = new ShapeTreeManager(managerResourceUrl);
         }
@@ -141,14 +145,22 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         manager.addAssignment(assignment);
 
         // Get an RDF version of the manager stored in a turtle string
-        StringWriter sw = new StringWriter();
-        RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
+
+        ByteArrayOutputStream asBytes = new ByteArrayOutputStream();
+        RDFWriter.create()
+                .base(targetShapeTree.toString())
+                .set(RIOT.symTurtleOmitBase, false)
+                .set(RIOT.symTurtleDirectiveStyle, "rdf11")
+                .lang(Lang.TTL)
+                .source(manager.getGraph())
+                .output(asBytes);
+        String asString = new String(asBytes.toByteArray(), StandardCharsets.UTF_8);
 
         // Build an HTTP PUT request with the manager graph in turtle as the content body + link header
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", managerResourceUrl, headers, sw.toString(), "text/turtle"));
+        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", managerResourceUrl, headers, asString, "text/turtle"));
     }
 
     @Override
@@ -170,7 +182,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     // Create via HTTP PUT
     @Override
-    public DocumentResponse putManagedInstance(ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, List<URL> targetShapeTrees, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse putManagedInstance(ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, String bodyString, String contentType, List<URL> targetShapeTrees, Boolean isContainer) throws ShapeTreeException {
 
         if (context == null || resourceUrl == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to create shape tree instance via PUT");
@@ -187,7 +199,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
     // Update via HTTP PUT
     @Override
-    public DocumentResponse putManagedInstance(ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse updateManagedInstance(ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, String bodyString, String contentType) throws ShapeTreeException {
 
         if (context == null || resourceUrl == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and target resource to update shape tree instance via PUT");
@@ -256,7 +268,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         // Remove assignment from manager that corresponds with the provided shape tree
-        ShapeTreeManager manager = instance.getManagerResource().getManager();
+        ShapeTreeManager manager = instance.getManagerResource().getManager(); // TODO: could be null
         manager.removeAssignmentForShapeTree(targetShapeTree);
 
         String method;

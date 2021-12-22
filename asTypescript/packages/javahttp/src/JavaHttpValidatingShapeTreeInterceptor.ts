@@ -54,7 +54,8 @@ export class JavaHttpValidatingShapeTreeInterceptor {
        } else if (ex instanceof Exception) {
          log.error("Error processing shape tree request: ", ex);
          return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), clientRequest);
-       }
+       }}
+
     } else {
       log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
       return JavaHttpClient.check(httpClient.send(clientRequest, java.net.http.HttpResponse.BodyHandlers.ofString()));
@@ -120,7 +121,8 @@ export class JavaHttpValidatingShapeTreeInterceptor {
       } catch (ex) {
  if (ex instanceof MalformedURLException) {
          throw new IllegalStateException("request has a malformed URL <" + request.uri() + ">: " + ex.getMessage());
-       }
+       }}
+
     }
 
     override public getHeaders(): ResourceAttributes {

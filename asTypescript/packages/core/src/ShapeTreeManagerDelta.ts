@@ -82,7 +82,8 @@ export class ShapeTreeManagerDelta {
       } catch (ex) {
  if (ex instanceof URISyntaxException) {
          throw new ShapeTreeException(500, "Unable to convert assignment URLs for comparison: " + ex.getMessage());
-       }
+       }}
+
       if (assignmentUri === targetAssignmentUri) {
         return targetAssignment;
       }
