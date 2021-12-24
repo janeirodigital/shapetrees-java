@@ -55,9 +55,9 @@ export class ShapeTreeAssignment {
       }
     } catch (ex) {
  if (ex instanceof NullPointerException || ex instanceof IllegalStateException) {
-       throw new ShapeTreeException(500, "Failed to initialize shape tree assignment: " + ex.getMessage());
-     }}
-
+      throw new ShapeTreeException(500, "Failed to initialize shape tree assignment: " + ex.getMessage());
+    }
+}
   }
 
   public static getFromGraph(url: URL, managerGraph: Graph): ShapeTreeAssignment /* throws MalformedURLException, ShapeTreeException */ {

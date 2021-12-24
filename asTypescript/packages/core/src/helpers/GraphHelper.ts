@@ -79,9 +79,9 @@ export class GraphHelper {
       return model;
     } catch (rex) {
  if (rex instanceof RiotException) {
-       throw new ShapeTreeException(422, "Error processing input - " + rex.getMessage());
-     }}
-
+      throw new ShapeTreeException(422, "Error processing input - " + rex.getMessage());
+    }
+}
   }
 
   /**
@@ -164,9 +164,9 @@ export class GraphHelper {
       return url.toURI();
     } catch (ex) {
  if (ex instanceof URISyntaxException) {
-       throw new IllegalStateException("can't convert URL <" + url + "> to IRI: " + ex);
-     }}
-
+      throw new IllegalStateException("can't convert URL <" + url + "> to IRI: " + ex);
+    }
+}
   }
 
   /**
@@ -184,9 +184,9 @@ export class GraphHelper {
       return noFragment.toURL();
     } catch (ex) {
  if (ex instanceof MalformedURLException || ex instanceof URISyntaxException) {
-       throw new IllegalStateException("Unable to remove fragment from URL: " + ex.getMessage());
-     }}
-
+      throw new IllegalStateException("Unable to remove fragment from URL: " + ex.getMessage());
+    }
+}
   }
 
   public static knownUrl(urlString: string): URL {
@@ -194,8 +194,8 @@ export class GraphHelper {
       return new URL(urlString);
     } catch (ex) {
  if (ex instanceof MalformedURLException) {
-       throw new IllegalStateException("Expected known URL <" + urlString + "> to parse as valid URL - " + ex.toString());
-     }}
-
+      throw new IllegalStateException("Expected known URL <" + urlString + "> to parse as valid URL - " + ex.toString());
+    }
+}
   }
 }

@@ -20,24 +20,6 @@ export class ValidationResult {
     return (this.valid != null && this.valid);
   }
 
-  public constructor(valid: boolean, message: string) {
-    this.valid = valid;
-    this.message = message;
-    this.validatingShapeTree = null;
-    this.matchingShapeTree = null;
-    this.managingAssignment = null;
-    this.matchingFocusNode = null;
-  }
-
-  public constructor(valid: boolean, validatingShapeTree: ShapeTree) {
-    this.valid = valid;
-    this.message = null;
-    this.validatingShapeTree = validatingShapeTree;
-    this.matchingShapeTree = null;
-    this.managingAssignment = null;
-    this.matchingFocusNode = null;
-  }
-
   public constructor(valid: boolean, validatingShapeTree: ShapeTree, message: string) {
     this.valid = valid;
     this.message = message;
@@ -45,15 +27,6 @@ export class ValidationResult {
     this.matchingShapeTree = null;
     this.managingAssignment = null;
     this.matchingFocusNode = null;
-  }
-
-  public constructor(valid: boolean, validatingShapeTree: ShapeTree, matchingFocusNode: URL) {
-    this.valid = valid;
-    this.message = null;
-    this.validatingShapeTree = validatingShapeTree;
-    this.matchingShapeTree = null;
-    this.managingAssignment = null;
-    this.matchingFocusNode = matchingFocusNode;
   }
 
   public constructor(valid: boolean, validatingShapeTree: ShapeTree, matchingShapeTree: ShapeTree, matchingFocusNode: URL) {

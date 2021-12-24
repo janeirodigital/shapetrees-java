@@ -46,9 +46,9 @@ export class ManageableResource extends InstanceResource {
       return new URL(this.getUrl(), rel);
     } catch (e) {
  if (e instanceof MalformedURLException) {
-       throw new ShapeTreeException(500, "Malformed focus node when resolving <" + rel + "> against <" + this.getUrl() + ">");
-     }}
-
+      throw new ShapeTreeException(500, "Malformed focus node when resolving <" + rel + "> against <" + this.getUrl() + ">");
+    }
+}
   }
 
   public getManagerResourceUrl(): URL | null {

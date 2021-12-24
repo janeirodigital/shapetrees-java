@@ -99,9 +99,9 @@ export class RequestHelper {
           focusNodeUrls.add(focusNodeUrl);
         } catch (e) {
  if (e instanceof MalformedURLException) {
-           throw new ShapeTreeException(500, "Malformed focus node when resolving <" + focusNodeUrlString + "> against <" + baseUrl + ">");
-         }}
-
+          throw new ShapeTreeException(500, "Malformed focus node when resolving <" + focusNodeUrlString + "> against <" + baseUrl + ">");
+        }
+}
       }
     }
     return focusNodeUrls;
@@ -123,9 +123,9 @@ export class RequestHelper {
           targetShapeTreeUrls.add(targetShapeTreeUrl);
         } catch (e) {
  if (e instanceof MalformedURLException) {
-           throw new ShapeTreeException(500, "Malformed focus node when resolving <" + targetShapeTreeUrlString + "> against <" + baseUrl + ">");
-         }}
-
+          throw new ShapeTreeException(500, "Malformed focus node when resolving <" + targetShapeTreeUrlString + "> against <" + baseUrl + ">");
+        }
+}
       }
     }
     return targetShapeTreeUrls;
@@ -159,9 +159,9 @@ export class RequestHelper {
       return new URL(urlString);
     } catch (ex) {
  if (ex instanceof MalformedURLException) {
-       throw new ShapeTreeException(500, "normalized to malformed URL <" + urlString + "> - " + ex.getMessage());
-     }}
-
+      throw new ShapeTreeException(500, "normalized to malformed URL <" + urlString + "> - " + ex.getMessage());
+    }
+}
   }
 
   /**

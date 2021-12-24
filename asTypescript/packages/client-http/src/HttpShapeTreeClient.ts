@@ -14,7 +14,10 @@ import { LinkRelations } from '@shapetrees/enums/LinkRelations';
 import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
 import * as Lang from 'org/apache/jena/riot';
 import * as RDFDataMgr from 'org/apache/jena/riot';
+import * as RDFWriter from 'org/apache/jena/riot';
+import * as RIOT from 'org/apache/jena/riot';
 import { Writable } from 'stream';
+import * as StandardCharsets from 'java/nio/charset';
 import { HttpRequest } from './HttpRequest';
 import { HttpResourceAccessor } from './HttpResourceAccessor';
 import { HttpClient } from './HttpClient';
@@ -99,11 +102,12 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
     let instance: ManageableInstance = resourceAccessor.getInstance(context, targetResource);
     let manageableResource: ManageableResource = instance.getManageableResource();
     if (!manageableResource.isExists()) {
-      return new DocumentResponse(null, "Cannot find target resource to plant: " + targetResource, 404);
+      return new DocumentResponse(new ResourceAttributes(), "Cannot find target resource to plant: " + targetResource, 404);
     }
     let manager: ShapeTreeManager;
     let managerResourceUrl: URL = instance.getManagerResource().getUrl();
     if (instance.isManaged()) {
+      // TODO: could be null
       manager = instance.getManagerResource().getManager();
     } else {
       manager = new ShapeTreeManager(managerResourceUrl);
@@ -114,13 +118,14 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
     // Add the assignment to the manager
     manager.addAssignment(assignment);
     // Get an RDF version of the manager stored in a turtle string
-    let sw: Writable = new Writable();
-    RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
+    let asBytes: ByteArrayOutputStream = new ByteArrayOutputStream();
+    RDFWriter.create().base(targetShapeTree.toString()).set(RIOT.symTurtleOmitBase, false).set(RIOT.symTurtleDirectiveStyle, "rdf11").lang(Lang.TTL).source(manager.getGraph()).output(asBytes);
+    let asString: string = new string(asBytes.toByteArray(), StandardCharsets.UTF_8);
     // Build an HTTP PUT request with the manager graph in turtle as the content body + link header
     let fetcher: HttpClient = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
     let headers: ResourceAttributes = new ResourceAttributes();
     headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-    return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", managerResourceUrl, headers, sw.toString(), "text/turtle"));
+    return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", managerResourceUrl, headers, asString, "text/turtle"));
   }
 
   override public postManagedInstance(context: ShapeTreeContext, parentContainer: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, proposedResourceName: string, isContainer: boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */ {
@@ -137,7 +142,7 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
   }
 
   // Create via HTTP PUT
-  override public putManagedInstance(context: ShapeTreeContext, resourceUrl: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, isContainer: boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */ {
+  override public putManagedInstance(context: ShapeTreeContext, resourceUrl: URL, focusNodes: Array<URL>, bodyString: string, contentType: string, targetShapeTrees: Array<URL>, isContainer: boolean): DocumentResponse /* throws ShapeTreeException */ {
     if (context === null || resourceUrl === null) {
       throw new ShapeTreeException(500, "Must provide a valid context and target resource to create shape tree instance via PUT");
     }
@@ -150,7 +155,7 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
   }
 
   // Update via HTTP PUT
-  override public putManagedInstance(context: ShapeTreeContext, resourceUrl: URL, focusNodes: Array<URL>, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */ {
+  override public updateManagedInstance(context: ShapeTreeContext, resourceUrl: URL, focusNodes: Array<URL>, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */ {
     if (context === null || resourceUrl === null) {
       throw new ShapeTreeException(500, "Must provide a valid context and target resource to update shape tree instance via PUT");
     }
@@ -200,6 +205,7 @@ export class HttpShapeTreeClient implements ShapeTreeClient {
       return new DocumentResponse(null, "Cannot unplant target resource that is not managed by a shapetree: " + targetResource, 500);
     }
     // Remove assignment from manager that corresponds with the provided shape tree
+    // TODO: could be null
     let manager: ShapeTreeManager = instance.getManagerResource().getManager();
     manager.removeAssignmentForShapeTree(targetShapeTree);
     let method: string;

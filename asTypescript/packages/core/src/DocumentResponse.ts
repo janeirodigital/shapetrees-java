@@ -11,7 +11,7 @@ export class DocumentResponse {
    private readonly statusCode: number;
 
   public getContentType(): string | null {
-    return this.resourceAttributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue());
+    return this.resourceAttributes === null ? Optional.empty() : this.resourceAttributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue());
   }
 
   // TODO: lots of choices re non-404, not >= 4xx, not 3xx. not 201 (meaning there's no body)

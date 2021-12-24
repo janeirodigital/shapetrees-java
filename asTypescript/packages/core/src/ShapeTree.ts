@@ -66,10 +66,10 @@ export class ShapeTree {
     if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
       bodyGraph = GraphHelper.readStringIntoGraph(urlToUri(targetResource.getUrl()), targetResource.getBody(), targetResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
     }
-    return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeUrls);
+    return validateResource(targetResource.getName(), focusNodeUrls, targetResource.getResourceType(), bodyGraph);
   }
 
-  public validateResource(requestedName: string, resourceType: ShapeTreeResourceType, bodyGraph: Graph, focusNodeUrls: Array<URL>): ValidationResult /* throws ShapeTreeException */ {
+  public validateResource(requestedName: string, focusNodeUrls: Array<URL>, resourceType: ShapeTreeResourceType, bodyGraph: Graph): ValidationResult /* throws ShapeTreeException */ {
     // Check whether the proposed resource is the same type as what is expected by the shape tree
     if (!this.expectedResourceType.toString() === resourceType.getValue()) {
       return new ValidationResult(false, this, "Resource type " + resourceType + " is invalid. Expected " + this.expectedResourceType);
@@ -106,6 +106,7 @@ export class ShapeTree {
       }
       let shapeBody: string = shexShapeContents.getBody();
       let stream: InputStream = new ByteArrayInputStream(shapeBody.getBytes(StandardCharsets.UTF_8));
+      // TODO: set base URL to this.shape
       let shexCParser: ShExCParser = new ShExCParser();
       try {
         schema = new ShexSchema(GlobalFactory.RDFFactory, shexCParser.getRules(stream), shexCParser.getStart());
@@ -114,23 +115,23 @@ export class ShapeTree {
         }
       } catch (ex) {
  if (ex instanceof Exception) {
-         throw new ShapeTreeException(500, "Error parsing ShEx schema - " + ex.getMessage());
-       }}
-
+        throw new ShapeTreeException(500, "Error parsing ShEx schema - " + ex.getMessage());
+      }
+}
     }
     // Tell ShExJava we want to use Jena as our graph library
     let jenaRDF: JenaRDF = new org.apache.commons.rdf.jena.JenaRDF();
     GlobalFactory.RDFFactory = jenaRDF;
-    let validation: ValidationAlgorithm = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
+    let validator: ValidationAlgorithm = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
     let shapeLabel: Label = new Label(GlobalFactory.RDFFactory.createIRI(this.shape.toString()));
     if (!focusNodeUrls.isEmpty()) {
-      // One or more focus nodes were provided for validation
+      // One or more focus nodes were provided for validator
       for (const focusNodeUrl of focusNodeUrls) {
         // Evaluate each provided focus node
         let focusNode: IRI = GlobalFactory.RDFFactory.createIRI(focusNodeUrl.toString());
         log.debug("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
-        validation.validate(focusNode, shapeLabel);
-        let valid: boolean = validation.getTyping().isConformant(focusNode, shapeLabel);
+        validator.validate(focusNode, shapeLabel);
+        let valid: boolean = validator.getTyping().isConformant(focusNode, shapeLabel);
         if (valid) {
           return new ValidationResult(valid, this, this, focusNodeUrl);
         }
@@ -138,23 +139,21 @@ export class ShapeTree {
       // None of the provided focus nodes were valid - this will return the last failure
       return new ValidationResult(false, this, "Failed to validate: " + shapeLabel.toPrettyString());
     } else {
-      // No focus nodes were provided for validation, so all subject nodes will be evaluated
+      // No focus nodes were provided for validator, so all subject nodes will be evaluated
       let evaluateNodes: Array<Node> = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
       for (const evaluateNode of evaluateNodes) {
         const focusUriString: string = evaluateNode.getURI();
         let node: IRI = GlobalFactory.RDFFactory.createIRI(focusUriString);
-        validation.validate(node, shapeLabel);
-        let valid: boolean = validation.getTyping().isConformant(node, shapeLabel);
+        validator.validate(node, shapeLabel);
+        let valid: boolean = validator.getTyping().isConformant(node, shapeLabel);
         if (valid) {
-          const matchingFocusNode: URL;
           try {
-            matchingFocusNode = new URL(focusUriString);
+            return new ValidationResult(valid, this, this, new URL(focusUriString));
           } catch (ex) {
  if (ex instanceof MalformedURLException) {
-             throw new ShapeTreeException(500, "Error reporting validation success on malformed URL <" + focusUriString + ">: " + ex.getMessage());
-           }}
-
-          return new ValidationResult(valid, this, this, matchingFocusNode);
+            throw new ShapeTreeException(500, "Error reporting validator success on malformed URL <" + focusUriString + ">: " + ex.getMessage());
+          }
+}
         }
       }
       return new ValidationResult(false, this, "Failed to validate: " + shapeLabel.toPrettyString());
@@ -162,20 +161,21 @@ export class ShapeTree {
   }
 
   public validateContainedResource(containedResource: ManageableResource): ValidationResult /* throws ShapeTreeException */ {
+    // TODO: this same test gets performed in the call to the 2nd valdateContainedResource (after potentially parsing the graph)
     if (this.contains === null || this.contains.isEmpty()) {
       // TODO: say it can't be null?
       // The contained resource is permitted because this shape tree has no restrictions on what it contains
       return new ValidationResult(true, this, this, null);
     }
-    return validateContainedResource(containedResource, Collections.emptyList(), Collections.emptyList());
-  }
-
-  public validateContainedResource(containedResource: ManageableResource, targetShapeTreeUrls: Array<URL>, focusNodeUrls: Array<URL>): ValidationResult /* throws ShapeTreeException */ {
     let containedResourceGraph: Graph = null;
-    if (containedResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
+    let resourceType: ShapeTreeResourceType = containedResource.getResourceType();
+    if (resourceType != ShapeTreeResourceType.NON_RDF) {
       containedResourceGraph = GraphHelper.readStringIntoGraph(urlToUri(containedResource.getUrl()), containedResource.getBody(), containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
     }
-    return validateContainedResource(containedResource.getName(), containedResource.getResourceType(), targetShapeTreeUrls, containedResourceGraph, focusNodeUrls);
+    let targetShapeTreeUrls: Array<URL> = Collections.emptyList();
+    let focusNodeUrls: Array<URL> = Collections.emptyList();
+    let requestedName: string = containedResource.getName();
+    return validateContainedResource(requestedName, resourceType, targetShapeTreeUrls, containedResourceGraph, focusNodeUrls);
   }
 
   public validateContainedResource(requestedName: string, resourceType: ShapeTreeResourceType, targetShapeTreeUrls: Array<URL>, bodyGraph: Graph, focusNodeUrls: Array<URL>): ValidationResult /* throws ShapeTreeException */ {
@@ -191,7 +191,7 @@ export class ShapeTree {
         if (this.contains.contains(targetShapeTreeUrl)) {
           let targetShapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(targetShapeTreeUrl);
           // Evaluate the shape tree against the attributes of the proposed resources
-          let result: ValidationResult = targetShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeUrls);
+          let result: ValidationResult = targetShapeTree.validateResource(requestedName, focusNodeUrls, resourceType, bodyGraph);
           if (Boolean.TRUE === result.getValid()) {
             // Return a successful validation result, including the matching shape tree
             return new ValidationResult(true, this, targetShapeTree, result.getMatchingFocusNode());
@@ -209,7 +209,7 @@ export class ShapeTree {
           continue;
         }
         // Evaluate the shape tree against the attributes of the proposed resources
-        let result: ValidationResult = containsShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeUrls);
+        let result: ValidationResult = containsShapeTree.validateResource(requestedName, focusNodeUrls, resourceType, bodyGraph);
         // Continue if the proposed attributes were not a match
         if (Boolean.FALSE === result.getValid()) {
           continue;
@@ -221,19 +221,19 @@ export class ShapeTree {
     return new ValidationResult(false, null, "Failed to validate shape tree: " + this.id);
   }
 
+  // Return the list of shape tree contains by priority from most to least strict
+  public getPrioritizedContains(): Array<URL> {
+    let prioritized: Array<URL> = new Array<>(this.contains);
+    Collections.sort(prioritized, new ShapeTreeContainsPriority());
+    return prioritized;
+  }
+
   public getReferencedShapeTrees(): Iterator<ShapeTreeReference> /* throws ShapeTreeException */ {
     return getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
   }
 
   public getReferencedShapeTrees(recursionMethods: RecursionMethods): Iterator<ShapeTreeReference> /* throws ShapeTreeException */ {
     return getReferencedShapeTreesList(recursionMethods).iterator();
-  }
-
-  // Return the list of shape tree contains by priority from most to least strict
-  public getPrioritizedContains(): Array<URL> {
-    let prioritized: Array<URL> = new Array<>(this.contains);
-    Collections.sort(prioritized, new ShapeTreeContainsPriority());
-    return prioritized;
   }
 
   private getReferencedShapeTreesList(recursionMethods: RecursionMethods): Array<ShapeTreeReference> /* throws ShapeTreeException */ {

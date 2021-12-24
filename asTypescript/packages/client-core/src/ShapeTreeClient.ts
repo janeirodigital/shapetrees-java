@@ -79,14 +79,14 @@ export interface ShapeTreeClient {
    * @param context ShapeTreeContext that would be used for authentication purposes
    * @param targetResource The target resource to be created or updated
    * @param focusNodes One or more nodes/subjects to use as the focus for shape validation
-   * @param targetShapeTrees The shape trees that a proposed resource to be created should be validated against
-   * @param isContainer Specifies whether a newly created resource should be created as a container or not
    * @param bodyString String representation of the body of the resource to create or update
    * @param contentType Content type to parse the bodyString parameter as
+   * @param targetShapeTrees The shape trees that a proposed resource to be created should be validated against
+   * @param isContainer Specifies whether a newly created resource should be created as a container or not
    * @return DocumentResponse containing status and response header / attributes
    * @throws ShapeTreeException
    */
-  putManagedInstance(context: ShapeTreeContext, targetResource: URL, focusNodes: Array<URL>, targetShapeTrees: Array<URL>, isContainer: boolean, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */;
+  putManagedInstance(context: ShapeTreeContext, targetResource: URL, focusNodes: Array<URL>, bodyString: string, contentType: string, targetShapeTrees: Array<URL>, isContainer: boolean): DocumentResponse /* throws ShapeTreeException */;
 
   /**
    * Updates a resource via HTTP PUT that has been validated against an associated shape tree
@@ -98,7 +98,7 @@ export interface ShapeTreeClient {
    * @return DocumentResponse containing status and response header / attributes
    * @throws ShapeTreeException
    */
-  putManagedInstance(context: ShapeTreeContext, targetResource: URL, focusNodes: Array<URL>, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */;
+  updateManagedInstance(context: ShapeTreeContext, targetResource: URL, focusNodes: Array<URL>, bodyString: string, contentType: string): DocumentResponse /* throws ShapeTreeException */;
 
   /**
    * Updates a resource via HTTP PATCH that has been validated against an associated shape tree

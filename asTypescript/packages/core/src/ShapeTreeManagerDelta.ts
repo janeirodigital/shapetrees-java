@@ -81,9 +81,9 @@ export class ShapeTreeManagerDelta {
         targetAssignmentUri = targetAssignment.getUrl().toURI();
       } catch (ex) {
  if (ex instanceof URISyntaxException) {
-         throw new ShapeTreeException(500, "Unable to convert assignment URLs for comparison: " + ex.getMessage());
-       }}
-
+        throw new ShapeTreeException(500, "Unable to convert assignment URLs for comparison: " + ex.getMessage());
+      }
+}
       if (assignmentUri === targetAssignmentUri) {
         return targetAssignment;
       }
@@ -92,7 +92,7 @@ export class ShapeTreeManagerDelta {
   }
 
   public allRemoved(): boolean {
-    return (!this.isUpdated() && this.removedAssignments.size() === this.existingManager.getAssignments().size());
+    return (!this.isUpdated() && this.removedAssignments != null && this.removedAssignments.size() === this.existingManager.getAssignments().size());
   }
 
   public isUpdated(): boolean {

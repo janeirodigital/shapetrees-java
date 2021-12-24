@@ -28,6 +28,7 @@ export class ShapeTreeManager {
    private readonly id: URL;
 
   // Each ShapeTreeManager has one or more ShapeTreeAssignments
+  // TODO: try Map<URL, ShapeTreeAssignment>, makes getContainingAssignments() redundant against getAssignments()
    private readonly assignments: Array<ShapeTreeAssignment> = new Array<>();
 
   /**
@@ -105,9 +106,9 @@ export class ShapeTreeManager {
       assignmentUrl = new URL(assignmentString);
     } catch (ex) {
  if (ex instanceof MalformedURLException) {
-       throw new IllegalStateException("Minted illegal URL <" + assignmentString + "> - " + ex.getMessage());
-     }}
-
+      throw new IllegalStateException("Minted illegal URL <" + assignmentString + "> - " + ex.getMessage());
+    }
+}
     return assignmentUrl;
   }
 
@@ -149,6 +150,7 @@ export class ShapeTreeManager {
     } else if (managerTriples.isEmpty()) {
       // Given the fact that a manager resource exists, there should never be a case where the manager resource
       // exists but no manager is found inside of it.
+      // TODO: isn't that always 0?
       throw new IllegalStateException("No ShapeTreeManager instances found: " + managerTriples.size());
     }
     // Get the URL of the ShapeTreeManager subject node
@@ -167,15 +169,16 @@ export class ShapeTreeManager {
         assignment = ShapeTreeAssignment.getFromGraph(new URL(assignmentNode.getObject().getURI()), managerGraph);
       } catch (e) {
  if (e instanceof MalformedURLException) {
-         throw new ShapeTreeException(500, "Object of { " + s + " " + stAssignment + " " + assignmentNode.getObject() + " } must be a URL.");
-       }}
-
+        throw new ShapeTreeException(500, "Object of { " + s + " " + stAssignment + " " + assignmentNode.getObject() + " } must be a URL.");
+      }
+}
       manager.assignments.add(assignment);
     }
     return manager;
   }
 
   public getAssignmentForShapeTree(shapeTreeUrl: URL): ShapeTreeAssignment {
+    // TODO: return list of assignments with same ST but different roots
     if (this.assignments.isEmpty()) {
       return null;
     }

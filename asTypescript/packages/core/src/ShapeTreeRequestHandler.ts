@@ -35,7 +35,9 @@ export class ShapeTreeRequestHandler {
 
   public manageShapeTree(manageableInstance: ManageableInstance, shapeTreeRequest: ShapeTreeRequest): DocumentResponse /* throws ShapeTreeException */ {
     let validationResponse: DocumentResponse | null;
+    // TODO: could be null
     let updatedRootManager: ShapeTreeManager = RequestHelper.getIncomingShapeTreeManager(shapeTreeRequest, manageableInstance.getManagerResource());
+    // TODO: could be null
     let existingRootManager: ShapeTreeManager = manageableInstance.getManagerResource().getManager();
     // Determine assignments that have been removed, added, and/or updated
     let delta: ShapeTreeManagerDelta = ShapeTreeManagerDelta.evaluate(existingRootManager, updatedRootManager);
@@ -130,7 +132,7 @@ export class ShapeTreeRequestHandler {
     // if any of the provided focus nodes weren't matched validation must fail
     let unmatchedNodes: Array<URL> = getUnmatchedFocusNodes(validationResults.values(), incomingFocusNodes);
     if (!unmatchedNodes.isEmpty()) {
-      return failValidation(new ValidationResult(false, "Failed to match target focus nodes: " + unmatchedNodes));
+      return failValidation(new ValidationResult(false, null, "Failed to match target focus nodes: " + unmatchedNodes));
     }
     log.debug("Creating shape tree instance at {}", targetResourceUrl);
     let createdInstance: ManageableInstance = this.resourceAccessor.createInstance(manageableInstance.getShapeTreeContext(), shapeTreeRequest.getMethod(), targetResourceUrl, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
@@ -158,7 +160,9 @@ export class ShapeTreeRequestHandler {
       // All must pass for the update to validate
       let shapeTree: ShapeTree = ShapeTreeFactory.getShapeTree(assignment.getShapeTree());
       let managedResourceUrl: URL = targetResource.getManageableResource().getUrl();
-      let validationResult: ValidationResult = shapeTree.validateResource(null, shapeTreeRequest.getResourceType(), RequestHelper.getIncomingBodyGraph(shapeTreeRequest, managedResourceUrl, targetResource.getManageableResource()), RequestHelper.getIncomingFocusNodes(shapeTreeRequest, managedResourceUrl));
+      // TODO: could be null
+      let bodyGraph: Graph = RequestHelper.getIncomingBodyGraph(shapeTreeRequest, managedResourceUrl, targetResource.getManageableResource());
+      let validationResult: ValidationResult = shapeTree.validateResource(null, RequestHelper.getIncomingFocusNodes(shapeTreeRequest, managedResourceUrl), shapeTreeRequest.getResourceType(), bodyGraph);
       if (Boolean.FALSE === validationResult.isValid()) {
         return failValidation(validationResult);
       }
@@ -289,6 +293,7 @@ export class ShapeTreeRequestHandler {
     let shapeTreeManager: ShapeTreeManager = null;
     let managerResourceUrl: URL = manageableInstance.getManagerResource().getUrl();
     // When at the top of the plant hierarchy, use the root manager from the initial plant request body
+    // TODO: rootManager can be null so method could return null (does not in any test)
     if (atRootOfPlantHierarchy(rootAssignment, manageableInstance.getManageableResource())) {
       return rootManager;
     }
@@ -331,6 +336,7 @@ export class ShapeTreeRequestHandler {
 
   // Return a root shape tree manager associated with a given shape tree assignment
   private getRootAssignment(shapeTreeContext: ShapeTreeContext, assignment: ShapeTreeAssignment): ShapeTreeAssignment /* throws ShapeTreeException */ {
+    // TODO: could be null
     let rootManager: ShapeTreeManager = getRootManager(shapeTreeContext, assignment);
     for (const rootAssignment of rootManager.getAssignments()) {
       if (rootAssignment.getUrl() != null && rootAssignment.getUrl() === assignment.getRootAssignment()) {
@@ -431,6 +437,7 @@ export class ShapeTreeRequestHandler {
   }
 
   private failValidation(validationResult: ValidationResult): DocumentResponse | null {
-    return Optional.of(new DocumentResponse(new ResourceAttributes(), validationResult.getMessage(), 422));
+    let message: string = validationResult.getMessage() != null ? validationResult.getMessage() : "Unspecified validation failure";
+    return Optional.of(new DocumentResponse(new ResourceAttributes(), message, 422));
   }
 }

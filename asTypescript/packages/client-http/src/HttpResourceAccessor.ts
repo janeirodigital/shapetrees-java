@@ -80,7 +80,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
    * @return {@link ManageableInstance} including {@link MissingManageableResource} and {@link MissingManagerResource}
    */
   private getInstanceFromMissingManageableResource(context: ShapeTreeContext, missing: MissingManageableResource): ManageableInstance {
-    let missingManager: MissingManagerResource = new MissingManagerResource(missing, null);
+    let missingManager: MissingManagerResource = new MissingManagerResource(missing.getUrl(), missing);
     return new ManageableInstance(context, this, false, missing, missingManager);
   }
 
@@ -275,27 +275,31 @@ export class HttpResourceAccessor implements ResourceAccessor {
    */
   private generateResource(url: URL, response: DocumentResponse): InstanceResource /* throws ShapeTreeException */ {
     // If a resource was created, ensure the URL returned in the Location header is valid
-    let location: string | null = response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
+    let location: string | null = response.getResourceAttributes() === null ? Optional.empty() : response.getResourceAttributes().firstValue(HttpHeaders.LOCATION.getValue());
     if (location.isPresent()) {
       try {
         url = new URL(location.get());
       } catch (e) {
  if (e instanceof MalformedURLException) {
-         throw new ShapeTreeException(500, "Retrieving <" + url + "> yielded a Location header \"" + location.get() + "\" which doesn't parse as a URL: " + e.getMessage());
-       }}
-
+        throw new ShapeTreeException(500, "Retrieving <" + url + "> yielded a Location header \"" + location.get() + "\" which doesn't parse as a URL: " + e.getMessage());
+      }
+}
     }
     // Determine whether the resource exists based on the response. Even if the resource
     // doesn't exist, additional context and processing is done to provide the appropriate
     // typed resource with adequate context to the caller
     const exists: boolean = response.isExists();
     const container: boolean = isContainerFromHeaders(response.getResourceAttributes(), url);
+    // TODO: could be null
     const attributes: ResourceAttributes = response.getResourceAttributes();
     const resourceType: ShapeTreeResourceType = getResourceTypeFromHeaders(response.getResourceAttributes());
     const name: string = calculateName(url);
+    // TODO: could be null. readStringIntoModel not set up for `rawContent=null`
     const body: string = response.getBody();
     if (response.getBody() === null) {
       log.error("Could not retrieve the body string from response for " + url);
+      // TODO: remove when TODO above is resolved.
+      throw new IllegalStateException("Could not retrieve the body string from response for <" + url + ">");
     }
     // Parse Link headers from response and populate ResourceAttributes
     const linkHeaders: Array<string> = attributes.allValues(HttpHeaders.LINK.getValue());
@@ -308,7 +312,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
       if (exists) {
         return new ManagerResource(url, resourceType, attributes, body, name, true, managedResourceUrl);
       } else {
-        return new MissingManagerResource(url, resourceType, attributes, body, name, managedResourceUrl);
+        return new MissingManagerResource(managedResourceUrl, url, resourceType, attributes, body, name);
       }
     } else {
       // Look for presence of st:managedBy in link headers from response and get the target manager URL
@@ -354,9 +358,9 @@ export class HttpResourceAccessor implements ResourceAccessor {
       return containedInstances;
     } catch (ex) {
  if (ex instanceof Exception) {
-       throw new ShapeTreeException(500, ex.getMessage());
-     }}
-
+      throw new ShapeTreeException(500, ex.getMessage());
+    }
+}
   }
 
   /**
@@ -403,7 +407,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
    * @return True if headers indicating a container are found
    */
   private isContainerFromHeaders(headers: ResourceAttributes, url: URL): boolean {
-    let linkHeaders: Array<string> = headers.allValues(HttpHeaders.LINK.getValue());
+    let linkHeaders: Array<string> = headers === null ? Collections.emptyList() : headers.allValues(HttpHeaders.LINK.getValue());
     if (linkHeaders.isEmpty()) {
       return url.getPath().endsWith("/");
     }
@@ -421,7 +425,7 @@ export class HttpResourceAccessor implements ResourceAccessor {
    * @return Type of resource
    */
   private getResourceTypeFromHeaders(headers: ResourceAttributes): ShapeTreeResourceType {
-    let linkHeaders: Array<string> = headers.allValues(HttpHeaders.LINK.getValue());
+    let linkHeaders: Array<string> = headers === null ? null : headers.allValues(HttpHeaders.LINK.getValue());
     if (linkHeaders === null) {
       return null;
     }
@@ -457,9 +461,9 @@ export class HttpResourceAccessor implements ResourceAccessor {
       return Optional.of(new URL(url, managerUrlString));
     } catch (e) {
  if (e instanceof MalformedURLException) {
-       throw new ShapeTreeException(500, "Malformed relative URL <" + managerUrlString + "> (resolved from <" + url + ">)");
-     }}
-
+      throw new ShapeTreeException(500, "Malformed relative URL <" + managerUrlString + "> (resolved from <" + url + ">)");
+    }
+}
   }
 
   /**
@@ -487,9 +491,9 @@ export class HttpResourceAccessor implements ResourceAccessor {
       managedResourceUrl = new URL(managerUrl, managedUrlString);
     } catch (e) {
  if (e instanceof MalformedURLException) {
-       throw new ShapeTreeException(500, "Can't calculate managed resource for shape tree manager <" + managerUrl + ">");
-     }}
-
+      throw new ShapeTreeException(500, "Can't calculate managed resource for shape tree manager <" + managerUrl + ">");
+    }
+}
     return managedResourceUrl;
   }
 

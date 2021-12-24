@@ -27,13 +27,13 @@ export class HttpExternalDocumentLoader implements ExternalDocumentLoader {
       return new DocumentResponse(attributes, response.body(), response.statusCode());
     } catch (ex) {
  if (ex instanceof IOException) {
-       throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
-     } else if (ex instanceof InterruptedException) {
-       Thread.currentThread().interrupt();
-       throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
-     } else if (ex instanceof URISyntaxException) {
-       throw new ShapeTreeException(500, "Malformed URL <" + resourceUrl + ">: " + ex.getMessage());
-     }}
-
+      throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
+    } else if (ex instanceof InterruptedException) {
+      Thread.currentThread().interrupt();
+      throw new ShapeTreeException(500, "Error retrieving <" + resourceUrl + ">: " + ex.getMessage());
+    } else if (ex instanceof URISyntaxException) {
+      throw new ShapeTreeException(500, "Malformed URL <" + resourceUrl + ">: " + ex.getMessage());
+    }
+}
   }
 }

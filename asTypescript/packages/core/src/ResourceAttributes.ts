@@ -174,6 +174,7 @@ export class ResourceAttributes {
     let values: Array<string> = toMultimap().get(name);
     // Making unmodifiable list out of empty in order to make a list which
     // throws UOE unconditionally
+    // TODO: some callers, e.g. HttpResourceAccessor.getResourceTypeFromHeaders, expect null
     return values != null ? values : List.of();
   }
 
