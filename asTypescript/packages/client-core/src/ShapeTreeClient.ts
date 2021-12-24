@@ -1,8 +1,8 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.client.core
-import { DocumentResponse } from '@shapetrees/DocumentResponse';
-import { ShapeTreeContext } from '@shapetrees/ShapeTreeContext';
-import { ShapeTreeManager } from '@shapetrees/ShapeTreeManager';
-import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
+import { DocumentResponse } from '@shapetrees/core/src/DocumentResponse';
+import { ShapeTreeContext } from '@shapetrees/core/src/ShapeTreeContext';
+import { ShapeTreeManager } from '@shapetrees/core/src/ShapeTreeManager';
+import { ShapeTreeException } from '@shapetrees/core/src/exceptions/ShapeTreeException';
 
 /**
  * This interface defines a proposed API to be used for any client-side implementations of

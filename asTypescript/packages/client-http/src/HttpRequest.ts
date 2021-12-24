@@ -1,5 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.client.http
-import { ResourceAttributes } from '@shapetrees/ResourceAttributes';
+import { ResourceAttributes } from '@shapetrees/core/src/ResourceAttributes';
 
 export class HttpRequest {
 

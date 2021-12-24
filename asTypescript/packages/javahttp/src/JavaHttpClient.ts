@@ -1,9 +1,9 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.javahttp
-import { HttpClient } from '@shapetrees/HttpClient';
-import { HttpRequest } from '@shapetrees/HttpRequest';
-import { DocumentResponse } from '@shapetrees/DocumentResponse';
-import { ResourceAttributes } from '@shapetrees/ResourceAttributes';
-import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
+import { HttpClient } from '@shapetrees/clienthttp/src/HttpClient';
+import { HttpRequest } from '@shapetrees/clienthttp/src/HttpRequest';
+import { DocumentResponse } from '@shapetrees/core/src/DocumentResponse';
+import { ResourceAttributes } from '@shapetrees/core/src/ResourceAttributes';
+import { ShapeTreeException } from '@shapetrees/core/src/exceptions/ShapeTreeException';
 import * as TrustManager from 'javax/net/ssl';
 import * as X509TrustManager from 'javax/net/ssl';
 import * as SSLContext from 'javax/net/ssl';

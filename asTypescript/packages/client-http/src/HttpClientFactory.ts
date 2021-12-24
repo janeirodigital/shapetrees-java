@@ -1,5 +1,5 @@
 // Corresponding shapetrees-java package: com.janeirodigital.shapetrees.client.http
-import { ShapeTreeException } from '@shapetrees/exceptions/ShapeTreeException';
+import { ShapeTreeException } from '@shapetrees/core/src/exceptions/ShapeTreeException';
 import { HttpClient } from './HttpClient';
 
 /**
