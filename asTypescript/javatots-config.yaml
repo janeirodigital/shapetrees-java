@@ -35,3 +35,10 @@ moduleMaps:
     packageMaps:
       - pkg: com.janeirodigital.shapetrees.javahttp
         destPath:
+  shapetrees-java-tests:
+    srcRoot: src/test/java
+    outputPath: packages/tests/src
+    tsModule: '@shapetrees/tests'
+    packageMaps:
+      - pkg: com.janeirodigital.shapetrees.tests
+        destPath:
