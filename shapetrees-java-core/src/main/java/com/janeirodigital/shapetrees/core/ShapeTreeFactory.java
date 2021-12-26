@@ -6,7 +6,11 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_URI;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -117,27 +121,20 @@ public class ShapeTreeFactory {
         ArrayList<ShapeTreeReference> references = new ArrayList<>();
         Property referencesProperty = resourceModel.createProperty(ShapeTreeVocabulary.REFERENCES);
 
-        if (shapeTreeNode.hasProperty(referencesProperty)) {
-            List<Statement> referenceStatements = shapeTreeNode.listProperties(referencesProperty).toList();
+        if (shapeTreeNode.hasProperty(referencesProperty)) { // TODO: arbitrarily pics from n objects where 1 expected
+            List<Statement> referenceStatements = shapeTreeNode.listProperties(referencesProperty).toList(); // TODO: test coverage (never hit)
             for (Statement referenceStatement : referenceStatements) {
 
                 Resource referenceResource = referenceStatement.getObject().asResource();
 
-                final String referencedShapeTreeUrlString = getStringValue(resourceModel, referenceResource, ShapeTreeVocabulary.REFERENCES_SHAPE_TREE);
-                final URL referencedShapeTreeUrl;
-                ShapeTreeReference referencedShapeTree;
-
-                try {
-                    referencedShapeTreeUrl = new URL(referencedShapeTreeUrlString);
-                } catch (MalformedURLException ex) {
-                    throw new ShapeTreeException(500, "ShapeTree <" + shapeTreeUrl + "> references malformed URL <" + referencedShapeTreeUrlString + ">: " + ex.getMessage());
+                final URL referencedShapeTreeUrl = getUrlValue(resourceModel, referenceResource, ShapeTreeVocabulary.REFERENCES_SHAPE_TREE, shapeTreeUrl);
+                if (referencedShapeTreeUrl == null) {
+                    throw new ShapeTreeException(400, "expected <" + shapeTreeUrl + "> reference " + referenceResource.toString() + " to have one <" + ShapeTreeVocabulary.REFERENCES_SHAPE_TREE + "> property");
                 }
 
                 String viaShapePath = getStringValue(resourceModel, referenceResource, ShapeTreeVocabulary.VIA_SHAPE_PATH);
                 URL viaPredicate = getUrlValue(resourceModel, referenceResource, ShapeTreeVocabulary.VIA_PREDICATE, shapeTreeUrl);
-                referencedShapeTree = new ShapeTreeReference(referencedShapeTreeUrl, viaShapePath, viaPredicate);
-
-                references.add(referencedShapeTree);
+                references.add(new ShapeTreeReference(referencedShapeTreeUrl, viaShapePath, viaPredicate));
             }
         }
         return references;

@@ -1,9 +1,13 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
-import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.ManageableInstance;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ResourceAccessor;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
-import com.janeirodigital.shapetrees.core.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.ManageableResource;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;

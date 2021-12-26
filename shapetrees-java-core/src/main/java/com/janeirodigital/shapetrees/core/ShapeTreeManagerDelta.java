@@ -101,7 +101,7 @@ public class ShapeTreeManagerDelta {
     }
 
     public boolean allRemoved() {
-        return (!this.isUpdated() && this.removedAssignments.size() == this.existingManager.getAssignments().size());
+        return (!this.isUpdated() && this.removedAssignments != null && this.removedAssignments.size() == this.existingManager.getAssignments().size());
     }
 
     public boolean isUpdated() {
