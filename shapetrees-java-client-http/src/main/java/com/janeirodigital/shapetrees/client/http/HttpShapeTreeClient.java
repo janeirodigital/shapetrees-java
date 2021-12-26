@@ -164,7 +164,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     }
 
     @Override
-    public DocumentResponse postManagedInstance(ShapeTreeContext context, URL parentContainer, List<URL> focusNodes, List<URL> targetShapeTrees, String proposedResourceName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException {
+    public DocumentResponse postManagedInstance(ShapeTreeContext context, URL parentContainer, List<URL> focusNodes, String bodyString, String contentType, List<URL> targetShapeTrees, String proposedResourceName, Boolean isContainer) throws ShapeTreeException {
 
         if (context == null || parentContainer == null) {
             throw new ShapeTreeException(500, "Must provide a valid context and parent container to post shape tree instance");
