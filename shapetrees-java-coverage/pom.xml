@@ -60,12 +60,6 @@
         </dependency>
         <dependency>
             <groupId>com.janeirodigital</groupId>
-            <artifactId>shapetrees-java-javahttp</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.janeirodigital</groupId>
             <artifactId>shapetrees-java-tests</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
