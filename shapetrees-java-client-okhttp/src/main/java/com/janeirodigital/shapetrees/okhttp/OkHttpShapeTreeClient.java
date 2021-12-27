@@ -23,7 +23,8 @@ import java.util.Objects;
  * okhttp implementation of HttpClient
  */
 @Slf4j
-public class OkHttpClient implements HttpClient {
+public class OkHttpShapeTreeClient implements HttpClient {
+    
     private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
 
     private final okhttp3.OkHttpClient httpClient;
@@ -71,7 +72,7 @@ public class OkHttpClient implements HttpClient {
      * @throws NoSuchAlgorithmException potentially thrown while disabling SSL validation
      * @throws KeyManagementException potentially thrown while disabling SSL validation
      */
-    protected OkHttpClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
+    protected OkHttpShapeTreeClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
         okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
         if (Boolean.TRUE.equals(useShapeTreeValidation)) {
             clientBuilder.interceptors().add(new OkHttpValidatingShapeTreeInterceptor());
@@ -153,7 +154,7 @@ public class OkHttpClient implements HttpClient {
 
             }
 
-            return OkHttpClient.check(this.httpClient.newCall(requestBuilder.build()).execute());
+            return OkHttpShapeTreeClient.check(this.httpClient.newCall(requestBuilder.build()).execute());
         } catch (IOException ex) {
             throw new ShapeTreeException(500, ex.getMessage());
         }

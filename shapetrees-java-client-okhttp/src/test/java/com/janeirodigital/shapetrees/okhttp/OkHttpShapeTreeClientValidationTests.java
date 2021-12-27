@@ -1,28 +1,52 @@
-package com.janeirodigital.shapetrees.tests.clienthttp;
+package com.janeirodigital.shapetrees.okhttp;
 
-
+import com.janeirodigital.shapetrees.client.http.HttpClient;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
+import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
+import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
+
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class OkHttpShapeTreeClientValidationTests {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
+    private HttpClientFactory factory;
+    private HttpClient fetcher;
+    private HttpShapeTreeClient shapeTreeClient = new HttpShapeTreeClient();
+    private final ShapeTreeContext context;
 
-    public AbstractHttpClientValidationTests() {
-        // Call AbstractHttpClient constructor
-        super();
+    public OkHttpShapeTreeClientValidationTests() {
+
+        this.context = new ShapeTreeContext(null);
+        this.factory = new OkHttpShapeTreeClientFactory(false, new BlackWhiteList(null, null));
+        HttpClientFactoryManager.setFactory(this.factory);
+        DocumentLoaderManager.setLoader((ExternalDocumentLoader) this.factory);
+
+        this.skipShapeTreeValidation(false);  // Get an OkHttpShapeTreeClient from the HttpClientFactory set above
+    }
+
+    private void skipShapeTreeValidation(boolean b) {
+        try {
+            this.fetcher = this.factory.get(!b);
+        } catch (ShapeTreeException e) {
+            throw new Error(e);
+        }
     }
 
     @BeforeEach
@@ -55,9 +79,9 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
 
         URL targetResource = toUrl(server, "/data/container-1/");
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#AttributeTree"),
-                                                   toUrl(server, "/static/shapetrees/validation/shapetree#ElementTree"));
+                toUrl(server, "/static/shapetrees/validation/shapetree#ElementTree"));
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/container-1/resource-1#resource"),
-                                             toUrl(server, "/data/container-1/resource-1#element"));
+                toUrl(server, "/data/container-1/resource-1#element"));
 
         // Plant the data repository on newly created data container
         DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
@@ -112,8 +136,8 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
 
         // Multiple non-matching target focus nodes are provided
         focusNodes = Arrays.asList(toUrl(server, "/super/bad#node"),
-                                   toUrl(server, "/data/container-1/resource-1#badnode"),
-                                   toUrl(server, "/data/container-1/#badnode"));
+                toUrl(server, "/data/container-1/resource-1#badnode"),
+                toUrl(server, "/data/container-1/#badnode"));
         response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
         Assertions.assertEquals(422, response.getStatusCode());
 
@@ -162,7 +186,7 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
 
         URL targetResource = toUrl(server, "/data/container-1/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/container-1/resource-1#resource"),
-                                             toUrl(server, "/data/container-1/resource-1#element"));
+                toUrl(server, "/data/container-1/resource-1#element"));
 
         // Only one matching target shape tree is provided
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#AttributeTree"));
@@ -171,13 +195,13 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
 
         // Multiple non-matching target focus nodes are provided
         targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#OtherAttributeTree"),
-                                         toUrl(server, "/static/shapetrees/validation/shapetree#OtherElementTree"));
+                toUrl(server, "/static/shapetrees/validation/shapetree#OtherElementTree"));
         response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
         Assertions.assertEquals(422, response.getStatusCode());
 
         // One tree provided that isn't in either st:contains lists
         targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#AttributeTree"),
-                                        toUrl(server, "/static/shapetrees/validation/shapetree#StandaloneTree"));
+                toUrl(server, "/static/shapetrees/validation/shapetree#StandaloneTree"));
         response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
         Assertions.assertEquals(422, response.getStatusCode());
     }
@@ -203,5 +227,3 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
     }
 
 }
-
-

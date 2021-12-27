@@ -53,7 +53,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             try {
                 Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (!shapeTreeResponse.isPresent()) {
-                    return OkHttpClient.check(chain.proceed(chain.request()));
+                    return OkHttpShapeTreeClient.check(chain.proceed(chain.request()));
                 } else {
                     return createResponse(chain.request(), shapeTreeResponse.get());
                 }
@@ -66,7 +66,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
-            return OkHttpClient.check(chain.proceed(chain.request()));
+            return OkHttpShapeTreeClient.check(chain.proceed(chain.request()));
         }
     }
 
@@ -99,7 +99,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
         ResourceAttributes responseHeaders = response.getResourceAttributes();
-        builder.headers(OkHttpClient.toNativeHeaders(responseHeaders));
+        builder.headers(OkHttpShapeTreeClient.toNativeHeaders(responseHeaders));
         String contentType = responseHeaders.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle");
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))

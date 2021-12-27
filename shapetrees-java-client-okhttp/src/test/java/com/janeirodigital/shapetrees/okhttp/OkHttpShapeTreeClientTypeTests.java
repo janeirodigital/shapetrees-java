@@ -1,6 +1,14 @@
-package com.janeirodigital.shapetrees.tests.clienthttp;
+package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.client.http.HttpClient;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
+import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
+import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
+import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import jdk.jfr.Label;
@@ -12,14 +20,35 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
+class OkHttpShapeTreeClientTypeTests {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
+    private HttpClientFactory factory;
+    private HttpClient fetcher;
+    private HttpShapeTreeClient shapeTreeClient = new HttpShapeTreeClient();
+    private final ShapeTreeContext context;
+    private static final String TEXT_TURTLE = "text/turtle";
 
-    public AbstractHttpClientTypeTests() {
-        // Call AbstractHttpClientTests constructor
-        super();
+    public OkHttpShapeTreeClientTypeTests() {
+
+        this.context = new ShapeTreeContext(null);
+        this.factory = new OkHttpShapeTreeClientFactory(false, new BlackWhiteList(null, null));
+        HttpClientFactoryManager.setFactory(this.factory);
+        DocumentLoaderManager.setLoader((ExternalDocumentLoader) this.factory);
+
+        this.skipShapeTreeValidation(false);  // Get an OkHttpShapeTreeClient from the HttpClientFactory set above
+
+    }
+
+    private void skipShapeTreeValidation(boolean b) {
+        try {
+            this.fetcher = this.factory.get(!b);
+        } catch (ShapeTreeException e) {
+            throw new Error(e);
+        }
     }
 
     @BeforeEach

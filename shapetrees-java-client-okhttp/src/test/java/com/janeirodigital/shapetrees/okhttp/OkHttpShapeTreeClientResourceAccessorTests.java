@@ -1,7 +1,8 @@
-package com.janeirodigital.shapetrees.tests.clienthttp;
+package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
 import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
 import com.janeirodigital.shapetrees.client.http.HttpResourceAccessor;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.tests.AbstractResourceAccessorTests;
@@ -9,18 +10,22 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AbstractHttpClientResourceAccessorTests extends AbstractResourceAccessorTests {
+class OkHttpShapeTreeClientResourceAccessorTests extends AbstractResourceAccessorTests {
 
     protected HttpResourceAccessor httpResourceAccessor = null;
     protected HttpClient fetcher = null;
     protected HttpClientFactory factory = null;
 
+    public OkHttpShapeTreeClientResourceAccessorTests() {
 
-    public AbstractHttpClientResourceAccessorTests() {
-
+        // Call AbstractHttpClientResourceAccessorTests constructor
+        // Which in turn calls the AbstractResourceAccessor constructor
         super();
 
         this.resourceAccessor = new HttpResourceAccessor();
+        this.factory = new OkHttpShapeTreeClientFactory(false, new BlackWhiteList(null, null));
+        HttpClientFactoryManager.setFactory(this.factory);
+        this.skipShapeTreeValidation(false);  // Get an OkHttpShapeTreeClient from the HttpClientFactory set above
 
     }
 

@@ -1,7 +1,14 @@
-package com.janeirodigital.shapetrees.tests.clienthttp;
+package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.client.http.HttpClient;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
+import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
 import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.ShapeTreeManager;
+import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
+import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
@@ -15,14 +22,34 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
+class OkHttpShapeTreeClientProjectTests {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
+    private HttpClientFactory factory;
+    private HttpClient fetcher;
+    private HttpShapeTreeClient shapeTreeClient = new HttpShapeTreeClient();
+    private final ShapeTreeContext context;
+    private static final String TEXT_TURTLE = "text/turtle";
 
-    public AbstractHttpClientProjectTests() {
-        // Call AbstractHttpClient constructor
-        super();
+    public OkHttpShapeTreeClientProjectTests() {
+
+        this.context = new ShapeTreeContext(null);
+        this.factory = new OkHttpShapeTreeClientFactory(false, new BlackWhiteList(null, null));
+        HttpClientFactoryManager.setFactory(this.factory);
+        DocumentLoaderManager.setLoader((ExternalDocumentLoader) this.factory);
+
+        this.skipShapeTreeValidation(false);  // Get an OkHttpShapeTreeClient from the HttpClientFactory set above
+    }
+
+    private void skipShapeTreeValidation(boolean b) {
+        try {
+            this.fetcher = this.factory.get(!b);
+        } catch (ShapeTreeException e) {
+            throw new Error(e);
+        }
     }
 
     @BeforeEach
@@ -136,7 +163,7 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
         URL parentContainer = toUrl(server, "/data/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/#collection"));
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#DataCollectionTree"),
-                                                   toUrl(server, "/static/shapetrees/information/shapetree#InformationSetTree"));
+                toUrl(server, "/static/shapetrees/information/shapetree#InformationSetTree"));
 
         // Create the projects container as a managed instance.
         // 1. Will be validated by the parent DataRepositoryTree and the InformationSetTree both planted on /data (multiple contains)
@@ -816,14 +843,14 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
 
     private String getTaskSixSparqlPatch() {
         return "PREFIX ex: <http://www.example.com/ns/ex#> \n" +
-               "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> \n" +
-               "INSERT DATA { \n" +
-               "    <#task> ex:uri </data/projects/project-1/milestone-3/task-6#task> . \n" +
-               "    <#task> ex:id 6 . \n" +
-               "    <#task> ex:name \"Somewhat urgent but not critical task\" . \n" +
-               "    <#task> ex:description \"Not particularly worried about this but it should get done\" . \n" +
-               "    <#task> ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime . \n" +
-               "} \n" ;
+                "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> \n" +
+                "INSERT DATA { \n" +
+                "    <#task> ex:uri </data/projects/project-1/milestone-3/task-6#task> . \n" +
+                "    <#task> ex:id 6 . \n" +
+                "    <#task> ex:name \"Somewhat urgent but not critical task\" . \n" +
+                "    <#task> ex:description \"Not particularly worried about this but it should get done\" . \n" +
+                "    <#task> ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime . \n" +
+                "} \n" ;
     }
 
     private String getTaskFortyEightBodyGraph() {
@@ -873,4 +900,5 @@ public class AbstractHttpClientProjectTests extends AbstractHttpClientTests {
                 "   <#ln2> st:shape <" + toUrl(server, "/static/shex/project/shex#ProjectCollectionShape") + "> . \n" +
                 "} \n" ;
     }
+
 }

@@ -10,18 +10,18 @@ import java.net.URL;
 
 /**
  * The ShapeTree library uses a generic interface (`HttpClient`) to execute HTTP queries on the POD and for external documents.
- * The OkHttpClient uses the okhttp library to implement `HttpClient`.
+ * The OkHttpShapeTreeClient uses the okhttp library to implement `HttpClient`.
  * This factory generates variations of okhttp those clients depending on the need for SSL validation and ShapeTree validation.
  *
  * okhttp documentation (https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#okhttpclients-should-be-shared)
- * recommends that instance of the client be shared/reused.  OkHttpClientFactory's get() provides an
- * instance of the OkHttpClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
+ * recommends that instance of the client be shared/reused.  OkHttpShapeTreeClientFactory's get() provides an
+ * instance of the OkHttpShapeTreeClient which can be re-used for multiple configurations (validation on/off, https verification on/off).
  */
-public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentLoader {
+public class OkHttpShapeTreeClientFactory implements HttpClientFactory, ExternalDocumentLoader {
     boolean useSslValidation;
     static final int NON_VALIDATING = 0;
     static final int VALIDATING = 1;
-    private static final OkHttpClient[][] okHttpClients = {{null, null}, {null, null}};
+    private static final OkHttpShapeTreeClient[][] okHttpClients = {{null, null}, {null, null}};
     private final BlackWhiteList blackWhiteList;
 
     /**
@@ -30,7 +30,7 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
      * @param useSslValidation
      * @param blackWhiteList
      */
-    OkHttpClientFactory(boolean useSslValidation, BlackWhiteList blackWhiteList) {
+    OkHttpShapeTreeClientFactory(boolean useSslValidation, BlackWhiteList blackWhiteList) {
         this.useSslValidation = useSslValidation;
         this.blackWhiteList = blackWhiteList;
     }
@@ -38,14 +38,14 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
     /**
      * Create or re-use okhttp HttpClient.
      * This fulfils the HttpClientFactory interface, so this factory can be use in
-     *   HttpClientFactoryManager.setFactory(new OkHttpClientFactory(...));
+     *   HttpClientFactoryManager.setFactory(new OkHttpShapeTreeClientFactory(...));
      *
      * @param useClientShapeTreeValidation
      * @return a new or existing okhttp HttpClient
-     * @throws ShapeTreeException if the OkHttpClient constructor threw one
+     * @throws ShapeTreeException if the OkHttpShapeTreeClient constructor threw one
      */
     @Override
-    public OkHttpClient get(boolean useClientShapeTreeValidation) throws ShapeTreeException {
+    public OkHttpShapeTreeClient get(boolean useClientShapeTreeValidation) throws ShapeTreeException {
         return getForOptions(this.useSslValidation, useClientShapeTreeValidation);
     }
 
@@ -55,9 +55,9 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
      * @param useSslValidation
      * @param useClientShapeTreeValidation
      * @return a new or existing okhttp HttpClient
-     * @throws ShapeTreeException if the OkHttpClient constructor threw one
+     * @throws ShapeTreeException if the OkHttpShapeTreeClient constructor threw one
      */
-    private static synchronized OkHttpClient getForOptions(boolean useSslValidation, boolean useClientShapeTreeValidation) throws ShapeTreeException {
+    private static synchronized OkHttpShapeTreeClient getForOptions(boolean useSslValidation, boolean useClientShapeTreeValidation) throws ShapeTreeException {
 
         int ssl = useSslValidation ? VALIDATING : NON_VALIDATING;
         int shapeTrees = useClientShapeTreeValidation ? VALIDATING : NON_VALIDATING;
@@ -66,7 +66,7 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
             return okHttpClients[ssl][shapeTrees];
         }
         try {
-            OkHttpClient client = new OkHttpClient(useSslValidation, useClientShapeTreeValidation);
+            OkHttpShapeTreeClient client = new OkHttpShapeTreeClient(useSslValidation, useClientShapeTreeValidation);
             okHttpClients[ssl][shapeTrees] = client;
             return client;
         } catch (Exception ex) {
@@ -78,7 +78,7 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
     /**
      * Load a non-POD document
      * This fulfils the ExternalDocumentLoader interface, so this factory can be use in
-     *   DocumentLoaderManager.setLoader(new OkHttpClientFactory(...));
+     *   DocumentLoaderManager.setLoader(new OkHttpShapeTreeClientFactory(...));
      *
      * @param resourceUrl URL of resource to be retrieved
      * @return a DocumentResponse with the results of a successful GET
@@ -93,4 +93,5 @@ public class OkHttpClientFactory implements HttpClientFactory, ExternalDocumentL
         if (response.getStatusCode() != 200) { throw new ShapeTreeException(500, "Failed to load contents of document: " + resourceUrl); }
         return response;
     }
+
 }
