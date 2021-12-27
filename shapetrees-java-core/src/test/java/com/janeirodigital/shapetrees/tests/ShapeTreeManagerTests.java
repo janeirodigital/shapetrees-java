@@ -7,6 +7,7 @@ import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoa
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
+import com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
-
-import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 @Slf4j
 class ShapeTreeManagerTests {
@@ -72,28 +71,28 @@ class ShapeTreeManagerTests {
                 new URL("https://site.example/resource.shapetree#ln3"));
 
         nonContainingAssignment1 = new ShapeTreeAssignment(
-                toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree"),
-                toUrl(server, "/data/container/"),
-                toUrl(server, "/data/container/.shapetree#ln1"),
+                MockWebServerHelper.toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree"),
+                MockWebServerHelper.toUrl(server, "/data/container/"),
+                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln1"),
                 null,
                 null,
-                toUrl(server, "/data/container/.shapetree#ln1"));
+                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln1"));
 
         containingAssignment1 = new ShapeTreeAssignment(
-                toUrl(server, "/static/shapetrees/managers/shapetree#ContainingTree"),
-                toUrl(server, "/data/container/"),
-                toUrl(server, "/data/container/.shapetree#ln2"),
+                MockWebServerHelper.toUrl(server, "/static/shapetrees/managers/shapetree#ContainingTree"),
+                MockWebServerHelper.toUrl(server, "/data/container/"),
+                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln2"),
                 null,
                 null,
-                toUrl(server, "/data/container/.shapetree#ln2"));
+                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln2"));
 
         nonContainingAssignment2 = new ShapeTreeAssignment(
-                toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree2"),
-                toUrl(server, "/data/container/"),
-                toUrl(server, "/data/container/.shapetree#ln3"),
+                MockWebServerHelper.toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree2"),
+                MockWebServerHelper.toUrl(server, "/data/container/"),
+                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln3"),
                 null,
                 null,
-                toUrl(server, "/data/container/.shapetree#ln3"));
+                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln3"));
 
     }
 

@@ -10,6 +10,7 @@ import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
+import com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import fr.inria.lille.shexjava.schema.ShexSchema;
 import jdk.jfr.Label;
@@ -28,8 +29,6 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-
-import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 class ShapeTreeValidationTests {
 
@@ -66,7 +65,7 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#ExpectsContainerTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#ExpectsContainerTree"));
         result = shapeTree.validateResource(null, ShapeTreeResourceType.CONTAINER, null, null);
         Assertions.assertTrue(result.isValid());
 
@@ -85,7 +84,7 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#ExpectsResourceTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#ExpectsResourceTree"));
         result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, null, null);
         Assertions.assertTrue(result.isValid());
 
@@ -104,7 +103,7 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#ExpectsNonRDFResourceTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#ExpectsNonRDFResourceTree"));
         result = shapeTree.validateResource(null, ShapeTreeResourceType.NON_RDF, null, null);
         Assertions.assertTrue(result.isValid());
 
@@ -123,7 +122,7 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#LabelTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#LabelTree"));
         result = shapeTree.validateResource("resource-name", ShapeTreeResourceType.RESOURCE, null, null);
         Assertions.assertTrue(result.isValid());
 
@@ -139,15 +138,15 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
 
         // Validate shape with focus node
-        List<URL> focusNodeUrls = List.of(toUrl(server, "/validation/valid-resource#foo"));
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), focusNodeUrls);
+        List<URL> focusNodeUrls = List.of(MockWebServerHelper.toUrl(server, "/validation/valid-resource#foo"));
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(MockWebServerHelper.toUrl(server, "/validation/valid-resource")), focusNodeUrls);
         Assertions.assertTrue(result.isValid());
 
         // Validate shape without focus node
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), null);
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(MockWebServerHelper.toUrl(server, "/validation/valid-resource")), null);
         Assertions.assertTrue(result.isValid());
 
     }
@@ -160,11 +159,11 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
 
         // Pass in body content that will fail validation of the shape associated with FooTree
-        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getInvalidFooBodyGraph(toUrl(server, "/validation/valid-resource")), focusNodeUrls);
+        List<URL> focusNodeUrls = List.of(MockWebServerHelper.toUrl(server,"/validation/valid-resource#foo"));
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getInvalidFooBodyGraph(MockWebServerHelper.toUrl(server, "/validation/valid-resource")), focusNodeUrls);
         Assertions.assertFalse(result.isValid());
 
     }
@@ -177,12 +176,12 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#MissingShapeSchemaTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#MissingShapeSchemaTree"));
 
-        Graph fooBodyGraph = getFooBodyGraph(toUrl(server, "/validation/valid-resource"));
+        Graph fooBodyGraph = getFooBodyGraph(MockWebServerHelper.toUrl(server, "/validation/valid-resource"));
 
         // Catch exception thrown when a shape in a shape tree cannot be found
-        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
+        List<URL> focusNodeUrls = List.of(MockWebServerHelper.toUrl(server,"/validation/valid-resource#foo"));
         Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, fooBodyGraph, focusNodeUrls));
 
     }
@@ -195,12 +194,12 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#InvalidShapeSchemaTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#InvalidShapeSchemaTree"));
 
-        Graph fooBodyGraph = getFooBodyGraph(toUrl(server, "/validation/valid-resource"));
+        Graph fooBodyGraph = getFooBodyGraph(MockWebServerHelper.toUrl(server, "/validation/valid-resource"));
 
         // Catch exception thrown when a shape in a shape tree is invalid
-        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
+        List<URL> focusNodeUrls = List.of(MockWebServerHelper.toUrl(server,"/validation/valid-resource#foo"));
         Assertions.assertThrows(ShapeTreeException.class, () -> shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, fooBodyGraph, focusNodeUrls));
 
     }
@@ -214,9 +213,9 @@ class ShapeTreeValidationTests {
 
         // Get the NoShapeValidationTree shape tree. This shape tree doesn't enforce shape validation,
         // so it should return an error when using to validate
-        ShapeTree noShapeValidationTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#NoShapeValidationTree"));
+        ShapeTree noShapeValidationTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#NoShapeValidationTree"));
         String graphTtl = "<#a> <#b> <#c> .";
-        List<URL> focusNodeUrls = List.of(toUrl(server,"http://a.example/b/c.d#a"));
+        List<URL> focusNodeUrls = List.of(MockWebServerHelper.toUrl(server,"http://a.example/b/c.d#a"));
         StringReader sr = new StringReader(graphTtl);
         Model model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, sr, "http://example.com/", Lang.TTL);
@@ -234,11 +233,11 @@ class ShapeTreeValidationTests {
 
         SchemaCache.initializeCache();
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
 
         // Validate shape with focus node
-        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), focusNodeUrls);
+        List<URL> focusNodeUrls = List.of(MockWebServerHelper.toUrl(server,"/validation/valid-resource#foo"));
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(MockWebServerHelper.toUrl(server, "/validation/valid-resource")), focusNodeUrls);
         Assertions.assertTrue(result.isValid());
 
     }
@@ -251,14 +250,14 @@ class ShapeTreeValidationTests {
         server.setDispatcher(dispatcher);
         ValidationResult result;
 
-        Map<URL, ShexSchema> schemas = SchemaCacheTests.buildSchemaCache(List.of(toUrl(server, "/static/shex/validation").toString()));
+        Map<URL, ShexSchema> schemas = SchemaCacheTests.buildSchemaCache(List.of(MockWebServerHelper.toUrl(server, "/static/shex/validation").toString()));
         SchemaCache.initializeCache(schemas);
 
-        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(MockWebServerHelper.toUrl(server, "/static/shapetrees/validation/shapetree#FooTree"));
 
         // Validate shape with focus node
-        List<URL> focusNodeUrls = List.of(toUrl(server,"/validation/valid-resource#foo"));
-        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(toUrl(server, "/validation/valid-resource")), focusNodeUrls);
+        List<URL> focusNodeUrls = List.of(MockWebServerHelper.toUrl(server,"/validation/valid-resource#foo"));
+        result = shapeTree.validateResource(null, ShapeTreeResourceType.RESOURCE, getFooBodyGraph(MockWebServerHelper.toUrl(server, "/validation/valid-resource")), focusNodeUrls);
         Assertions.assertTrue(result.isValid());
 
     }

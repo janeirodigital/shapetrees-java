@@ -88,7 +88,6 @@
         <module>shapetrees-java-client-http</module>
         <module>shapetrees-java-client-okhttp</module>
         <module>shapetrees-java-coverage</module>
-        <module>shapetrees-java-tests</module>
     </modules>
 
     <build>
