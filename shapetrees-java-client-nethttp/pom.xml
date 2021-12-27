@@ -23,11 +23,6 @@
         </dependency>
         <dependency>
             <groupId>com.janeirodigital</groupId>
-            <artifactId>shapetrees-java-client-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.janeirodigital</groupId>
             <artifactId>shapetrees-java-client-http</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>

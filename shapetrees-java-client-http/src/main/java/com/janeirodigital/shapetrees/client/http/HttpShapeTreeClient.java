@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.client.http;
 
-import com.janeirodigital.shapetrees.client.core.ShapeTreeClient;
+import com.janeirodigital.shapetrees.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
 import com.janeirodigital.shapetrees.core.enums.LinkRelations;

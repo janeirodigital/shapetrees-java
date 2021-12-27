@@ -4,7 +4,7 @@ shapetrees-java-client-http is an (abstract) implementation of `ShapeTreeClient`
 
 The HTTP driver provides two modes of operation:
  1. Client-side validation - (_default_) in this mode all requests from the client are intercepted
-    by an OkHttp Interceptor which apply validation through method handlers in [shapetrees-java-core](../shapetrees-java-client-core/README.md)
+    by an OkHttp Interceptor which apply validation through method handlers in [shapetrees-java-core](../shapetrees-java-core/README.md)
     
  1. Pass-through - in this mode no client-side validation is performed, assuming that the server will perform that
     validation.
@@ -33,7 +33,7 @@ to set the global HttpClient factory. After that,
 ## Client-side Validation
 Client-side validation is accomplished by intercepting requests from `HttpShapeTreeClient`. For example the <a href="{@docRoot}/shapetrees-java-okhttp/README">shapetrees-java-okhttp</a> uses a native <a href="https://square.github.io/okhttp/interceptors/">OkHttp interceptor</a>. 
 
-## implemententations of [shapetrees-java-core](../shapetrees-java-client-core/README.md) interfaces:
+## implemententations of [shapetrees-java-core](../shapetrees-java-core/README.md) interfaces:
 
  * [`HttpShapeTreeClient`](src/main/java/com/janeirodigital/shapetrees/client/http/HttpShapeTreeClient.java)
    implements [`ShapeTreeRequest`](../shapetrees-java-core/src/main/java/com/janeirodigital/shapetrees/core/ShapeTreeRequest.java)
