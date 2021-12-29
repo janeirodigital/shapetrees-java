@@ -19,6 +19,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
+import static com.janeirodigital.shapetrees.core.enums.ContentType.OCTET_STREAM;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.readStringIntoGraph;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
@@ -310,6 +311,7 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
 
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(url);
+        if (contentType == null) { contentType = OCTET_STREAM.getValue(); }
         RequestBody requestBody = RequestBody.create(body, MediaType.get(contentType));
         requestBuilder.method(method, requestBody);
 
@@ -455,6 +457,7 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
         OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
 
         String contentType = updateResource.getAttributes().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null);
+        if (contentType == null) { contentType = OCTET_STREAM.getValue(); }
 
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(updateResource.getUrl());
