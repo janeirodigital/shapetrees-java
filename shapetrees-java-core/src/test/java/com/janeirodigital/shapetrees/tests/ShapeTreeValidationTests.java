@@ -13,7 +13,6 @@ import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import fr.inria.lille.shexjava.schema.ShexSchema;
-import jdk.jfr.Label;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.jena.graph.Graph;
@@ -23,6 +22,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
@@ -59,7 +59,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Validate expectsType of Container")
+    @DisplayName("Validate expectsType of Container")
     void validateExpectsContainerType() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -78,7 +78,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Validate expectsType of Resource")
+    @DisplayName("Validate expectsType of Resource")
     void validateExpectsResourceType() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -97,7 +97,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Validate expectsType of NonRDFResource")
+    @DisplayName("Validate expectsType of NonRDFResource")
     void validateExpectsNonRDFResourceType() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -116,7 +116,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Validate label")
+    @DisplayName("Validate label")
     void validateLabel() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -132,7 +132,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Validate shape")
+    @DisplayName("Validate shape")
     void validateShape() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -153,7 +153,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Fail to validate shape")
+    @DisplayName("Fail to validate shape")
     void failToValidateShape() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -170,7 +170,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Fail to validate shape when the shape resource cannot be found")
+    @DisplayName("Fail to validate shape when the shape resource cannot be found")
     void failToValidateMissingShape() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -188,7 +188,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Fail to validate shape when the shape resource is malformed")
+    @DisplayName("Fail to validate shape when the shape resource is malformed")
     void failToValidateMalformedShape() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -206,7 +206,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Fail shape validation when shape tree doesn't validate a shape")
+    @DisplayName("Fail shape validation when shape tree doesn't validate a shape")
     void failToValidateWhenNoShapeInShapeTree() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -225,7 +225,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Validate shape before it is cached in schema cache")
+    @DisplayName("Validate shape before it is cached in schema cache")
     void validateShapeBeforeCaching() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
@@ -244,7 +244,7 @@ class ShapeTreeValidationTests {
 
     @SneakyThrows
     @Test
-    @Label("Validate shape after it is cached in schema cache")
+    @DisplayName("Validate shape after it is cached in schema cache")
     void validateShapeAfterCaching() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);

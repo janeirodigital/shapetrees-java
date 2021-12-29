@@ -1,72 +1,44 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
-import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
-import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
-import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.Assertions;
+import okhttp3.OkHttpClient;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OkHttpShapeTreeClientInitializeTests {
 
-    private HttpClientFactory factory;
-    private HttpClient fetcher;
+    // Confirm that we get whatever is set by the client manager
+    // Confirm that the validating factory is a derivative of the main factory
 
-    public OkHttpShapeTreeClientInitializeTests() {
+    @Test
+    @DisplayName("Initialize basic client factory")
+    void initializeBasicClientFactory() throws ShapeTreeException {
+        OkHttpClientFactory factory = OkHttpClientFactoryManager.getFactory();
+        assertNotNull(factory);
+        assertTrue(factory instanceof OkHttpBasicClientFactory);
 
-        this.factory = new OkHttpShapeTreeClientFactory(false, new BlackWhiteList(null, null));
-        HttpClientFactoryManager.setFactory(this.factory);
-        DocumentLoaderManager.setLoader((ExternalDocumentLoader) this.factory);
-
-        this.skipShapeTreeValidation(false);  // Get an OkHttpShapeTreeClient from the HttpClientFactory set above
-
-    }
-
-    private void skipShapeTreeValidation(boolean b) {
-        try {
-            this.fetcher = this.factory.get(!b);
-        } catch (ShapeTreeException e) {
-            throw new Error(e);
-        }
+        OkHttpClient okHttpClient = factory.get();
+        assertNotNull(okHttpClient);
     }
 
     @Test
-    @SneakyThrows
-    void testInsecureClientHandler() {
-        OkHttpShapeTreeClient client = new OkHttpShapeTreeClientFactory(false, null).get(true);
-        Assertions.assertNotNull(client);
-    }
+    @DisplayName("Confirm alternative factory can be assigned and used")
+    void useAlternativeClientFactory() { }
 
     @Test
-    @SneakyThrows
-    void testReusingClientsSameConfigInstance() {
-        OkHttpShapeTreeClient client1 = new OkHttpShapeTreeClientFactory(true, null).get(false);
-        OkHttpShapeTreeClient client2 = new OkHttpShapeTreeClientFactory(true, null).get(false);
-
-        Assertions.assertEquals(client1, client2);
-    }
+    @DisplayName("Confirm subsequent gets are the same client factory")
+    void confirmClientReuseFromBasicFactory() { }
 
     @Test
-    @SneakyThrows
-    void testReusingClientsSameConfigDifferenceInstances() {
-
-        // TODO - double-check the accuracy of this test setup
-        OkHttpShapeTreeClient client1 = new OkHttpShapeTreeClientFactory(true, null).get(true);
-        OkHttpShapeTreeClient client2 = new OkHttpShapeTreeClientFactory(true, null).get(true);
-
-        Assertions.assertEquals(client1, client2);
-    }
+    @DisplayName("Initialize validating factory")
+    void initializeValidatingClientFactory() { }
 
     @Test
-    @SneakyThrows
-    void testReusingClientsDifferentConfigurations() {
-        OkHttpShapeTreeClient client1 = new OkHttpShapeTreeClientFactory(true, null).get(true);
-        OkHttpShapeTreeClient client2 = new OkHttpShapeTreeClientFactory(false, null).get(true);
+    @DisplayName("Confirm subsequent gets are the same client factory")
+    void confirmClientReuseFromValidatingFactory() { }
 
-        Assertions.assertNotEquals(client1, client2);
-    }
 
 }

@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.comparators.ResourceTypeAssignmentPriority;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -247,7 +247,7 @@ public class ShapeTreeRequestHandler {
         } else {
             // create manager resource
             ResourceAttributes headers = new ResourceAttributes();
-            headers.setAll(HttpHeaders.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
+            headers.setAll(HttpHeader.CONTENT_TYPE.getValue(), Collections.singletonList(TEXT_TURTLE));
             this.resourceAccessor.createResource(shapeTreeContext, "POST", manageableInstance.getManagerResource().getUrl(), headers, shapeTreeManager.getGraph().toString(), TEXT_TURTLE);
         }
 

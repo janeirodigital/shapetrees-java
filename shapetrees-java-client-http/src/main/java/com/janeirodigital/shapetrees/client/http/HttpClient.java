@@ -20,6 +20,6 @@ public interface HttpClient {
      * @return new DocumentResponse with response headers and contents
      * @throws ShapeTreeException
      */
-    DocumentResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException;
+    DocumentResponse fetchShapeTreeResponse(ShapeTreeHttpRequest request) throws ShapeTreeException;
 
 }

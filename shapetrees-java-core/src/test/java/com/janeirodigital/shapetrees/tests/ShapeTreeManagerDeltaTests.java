@@ -76,7 +76,7 @@ class ShapeTreeManagerDeltaTests {
 
     @SneakyThrows
     @Test
-    @Label("Delete all existing assignments")
+    @DisplayName("Delete all existing assignments")
     void deleteAllExistingAssignments() {
 
         // Compare an existing manager with multiple assignments with an empty updated manager
@@ -97,7 +97,7 @@ class ShapeTreeManagerDeltaTests {
 
     @SneakyThrows
     @Test
-    @Label("Delete existing assignments and add new ones")
+    @DisplayName("Delete existing assignments and add new ones")
     void deleteAllExistingAssignmentsAndAddNew() {
 
         existingManager.addAssignment(assignmentOne);
@@ -120,7 +120,7 @@ class ShapeTreeManagerDeltaTests {
 
     @SneakyThrows
     @Test
-    @Label("Delete an assignment, update another, and add one")
+    @DisplayName("Delete an assignment, update another, and add one")
     void deleteUpdateAndAddAssignments() {
 
         // remove assignment one
@@ -152,7 +152,7 @@ class ShapeTreeManagerDeltaTests {
 
     @SneakyThrows
     @Test
-    @Label("Update assignment and add another")
+    @DisplayName("Update assignment and add another")
     void updateAssignmentAndAddAnother() {
 
         ShapeTreeAssignment assignmentThreeUpdated = duplicateAssignment(assignmentThree, new URL("http://shapetrees.pub/appleTree"), null);
@@ -176,7 +176,7 @@ class ShapeTreeManagerDeltaTests {
 
     @SneakyThrows
     @Test
-    @Label("Delete assignment and update another")
+    @DisplayName("Delete assignment and update another")
     void DeleteAssignmentAndUpdateAnother() {
 
         ShapeTreeAssignment assignmentThreeUpdated = duplicateAssignment(assignmentThree, new URL("http://shapetrees.pub/appleTree"), null);
@@ -200,7 +200,7 @@ class ShapeTreeManagerDeltaTests {
 
     @SneakyThrows
     @Test
-    @Label("Add a new assignments to an empty set")
+    @DisplayName("Add a new assignments to an empty set")
     void AddNewAssignmentToEmptySet() {
 
         updatedManager.addAssignment(assignmentOne);
@@ -220,7 +220,7 @@ class ShapeTreeManagerDeltaTests {
 
     @SneakyThrows
     @Test
-    @Label("Update existing assignments")
+    @DisplayName("Update existing assignments")
     void UpdateExistingAssignment() {
 
         ShapeTreeAssignment assignmentOneUpdated = duplicateAssignment(assignmentOne, null, new URL("http://data.example/resourceOne#Otherfocus"));
@@ -246,14 +246,14 @@ class ShapeTreeManagerDeltaTests {
     }
 
     @Test
-    @Label("Compare two null managers")
+    @DisplayName("Compare two null managers")
     void compareTwoNullManagers() {
         Assertions.assertThrows(ShapeTreeException.class, () -> ShapeTreeManagerDelta.evaluate(null, null));
     }
 
     @SneakyThrows
     @Test
-    @Label("Check null values on updated manager")
+    @DisplayName("Check null values on updated manager")
     void checkNullsOnUpdatedManager() {
 
         existingManager.addAssignment(assignmentOne);
@@ -269,7 +269,7 @@ class ShapeTreeManagerDeltaTests {
 
     @SneakyThrows
     @Test
-    @Label("Check null values on existing manager")
+    @DisplayName("Check null values on existing manager")
     void checkNullsOnExistingManager() {
 
         updatedManager.addAssignment(assignmentOne);

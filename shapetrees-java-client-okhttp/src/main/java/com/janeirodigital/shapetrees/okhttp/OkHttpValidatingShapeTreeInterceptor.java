@@ -1,8 +1,10 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpResourceAccessor;
-import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.ResourceAccessor;
+import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.methodhandlers.*;
@@ -16,6 +18,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.attributesToHeaders;
 
 /**
  * Interceptor used for client-side validation
@@ -45,7 +49,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     public Response intercept(@NotNull Chain chain) throws IOException {
 
         ShapeTreeRequest shapeTreeRequest = new OkHttpShapeTreeRequest(chain.request());
-        ResourceAccessor resourceAccessor = new HttpResourceAccessor();
+        ResourceAccessor resourceAccessor = new OkHttpResourceAccessor();
 
         // Get the handler
         ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
@@ -53,7 +57,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             try {
                 Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (!shapeTreeResponse.isPresent()) {
-                    return OkHttpShapeTreeClient.check(chain.proceed(chain.request()));
+                    return check(chain.proceed(chain.request()));
                 } else {
                     return createResponse(chain.request(), shapeTreeResponse.get());
                 }
@@ -66,7 +70,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             }
         } else {
             log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
-            return OkHttpShapeTreeClient.check(chain.proceed(chain.request()));
+            return check(chain.proceed(chain.request()));
         }
     }
 
@@ -99,8 +103,8 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         Response.Builder builder = new Response.Builder();
         builder.code(response.getStatusCode());
         ResourceAttributes responseHeaders = response.getResourceAttributes();
-        builder.headers(OkHttpShapeTreeClient.toNativeHeaders(responseHeaders));
-        String contentType = responseHeaders.firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse("text/turtle");
+        builder.headers(attributesToHeaders(responseHeaders));
+        String contentType = responseHeaders.firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse("text/turtle");
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
@@ -108,6 +112,13 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
                 .request(nativeRequest);
 
         return builder.build();
+    }
+
+    private Response check(Response response) throws IOException {
+        if (response.code() > 599) {
+            throw new IOException("Invalid HTTP response: " + response + (response.body() == null ? "" : "\n" + response.body()));
+        }
+        return response;
     }
 
     private class OkHttpShapeTreeRequest implements ShapeTreeRequest {
@@ -135,7 +146,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
 
         @Override
         public ResourceAttributes getLinkHeaders() {
-            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeaders.LINK.getValue()));
+            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeader.LINK.getValue()));
         }
 
         @Override
@@ -150,7 +161,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
 
         @Override
         public String getContentType() {
-            return this.getHeaders().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
+            return this.getHeaders().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null);
         }
 
         @Override

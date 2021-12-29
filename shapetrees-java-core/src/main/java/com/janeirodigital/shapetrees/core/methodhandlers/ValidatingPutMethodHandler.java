@@ -25,7 +25,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
                 return Optional.of(this.requestHandler.manageShapeTree(targetInstance, shapeTreeRequest));
             } else {
                 ManageableResource targetResource = targetInstance.getManageableResource();
-                shapeTreeRequest.setResourceType(RequestHelper.determineResourceType(shapeTreeRequest, targetInstance));
+                shapeTreeRequest.setResourceType(RequestHelper.getIncomingResourceType(shapeTreeRequest));
                 if (targetResource.isExists()) {
                     // The target resource already exists
                     if (targetInstance.isManaged()) {

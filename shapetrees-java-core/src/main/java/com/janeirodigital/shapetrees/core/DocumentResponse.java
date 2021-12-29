@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.core;
 
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,7 +13,7 @@ public class DocumentResponse {
     private final int statusCode;
 
     public Optional<String> getContentType() {
-        return this.resourceAttributes.firstValue(HttpHeaders.CONTENT_TYPE.getValue());
+        return this.resourceAttributes.firstValue(HttpHeader.CONTENT_TYPE.getValue());
     }
 
     // TODO: lots of choices re non-404, not >= 4xx, not 3xx. not 201 (meaning there's no body)

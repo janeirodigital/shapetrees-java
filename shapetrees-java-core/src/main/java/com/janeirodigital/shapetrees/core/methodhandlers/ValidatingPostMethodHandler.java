@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.core.methodhandlers;
 
 import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
@@ -25,12 +25,12 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ManageableInstance targetContainer = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
 
             // Get resource name from the slug or default to UUID
-            String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeaders.SLUG.getValue()).orElse(UUID.randomUUID().toString());
+            String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeader.SLUG.getValue()).orElse(UUID.randomUUID().toString());
 
             // If the parent container is managed by a shape tree, the proposed resource being posted must be
             // validated against the parent tree.
             if (targetContainer.isManaged()) {
-                shapeTreeRequest.setResourceType(RequestHelper.determineResourceType(shapeTreeRequest, targetContainer));
+                shapeTreeRequest.setResourceType(RequestHelper.getIncomingResourceType(shapeTreeRequest));
                 return this.requestHandler.createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }
 

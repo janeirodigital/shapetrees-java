@@ -2,7 +2,7 @@ package com.janeirodigital.shapetrees.core;
 
 import com.janeirodigital.shapetrees.core.comparators.ShapeTreeContainsPriority;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -69,7 +69,7 @@ public class ShapeTree {
         if (targetResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
             bodyGraph = GraphHelper.readStringIntoGraph(urlToUri(targetResource.getUrl()),
                     targetResource.getBody(),
-                    targetResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+                    targetResource.getAttributes().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null));
         }
         
         return validateResource(targetResource.getName(), targetResource.getResourceType(), bodyGraph, focusNodeUrls);
@@ -195,7 +195,7 @@ public class ShapeTree {
         if (containedResource.getResourceType() != ShapeTreeResourceType.NON_RDF) {
             containedResourceGraph = GraphHelper.readStringIntoGraph(urlToUri(containedResource.getUrl()),
                     containedResource.getBody(),
-                    containedResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+                    containedResource.getAttributes().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null));
         }
 
         return validateContainedResource(containedResource.getName(), containedResource.getResourceType(), targetShapeTreeUrls, containedResourceGraph, focusNodeUrls);

@@ -1,18 +1,11 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
-import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
-import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
-import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
-import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
-import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
-import jdk.jfr.Label;
-import lombok.SneakyThrows;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
@@ -20,39 +13,26 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.plant;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class OkHttpShapeTreeClientProjectRecursiveTests {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
-
-    private HttpClientFactory factory;
-    private HttpClient fetcher;
-    private HttpShapeTreeClient shapeTreeClient = new HttpShapeTreeClient();
-    private final ShapeTreeContext context;
-
-    public OkHttpShapeTreeClientProjectRecursiveTests() {
-
-        this.context = new ShapeTreeContext(null);
-        this.factory = new OkHttpShapeTreeClientFactory(false, new BlackWhiteList(null, null));
-        HttpClientFactoryManager.setFactory(this.factory);
-        DocumentLoaderManager.setLoader((ExternalDocumentLoader) this.factory);
-
-        this.skipShapeTreeValidation(false);  // Get an OkHttpShapeTreeClient from the HttpClientFactory set above
-
-    }
-
-    private void skipShapeTreeValidation(boolean b) {
-        try {
-            this.fetcher = this.factory.get(!b);
-        } catch (ShapeTreeException e) {
-            throw new Error(e);
-        }
-    }
+    private static MockWebServer server;
+    private static ShapeTreeContext context;
+    private static OkHttpClient okHttpClient;
 
     @BeforeAll
-    static void beforeAll() {
+    static void beforeAll() throws ShapeTreeException {
+        context = new ShapeTreeContext(null);
+        okHttpClient = OkHttpValidatingClientFactory.get();
+    }
+
+    @BeforeEach
+    void beforeEach() {
 
         List dispatcherList = new ArrayList();
 
@@ -69,17 +49,14 @@ class OkHttpShapeTreeClientProjectRecursiveTests {
         dispatcherList.add(new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project/shex", null));
 
+        server = new MockWebServer();
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
+        server.setDispatcher(dispatcher);
     }
 
-    @Order(1)
-    @SneakyThrows
     @Test
-    @Label("Recursively Plant Data Set")
-    void plantDataRecursively() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
+    @DisplayName("Recursively Plant Data Set")
+    void plantDataRecursively() throws ShapeTreeException {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
 
@@ -88,19 +65,13 @@ class OkHttpShapeTreeClientProjectRecursiveTests {
         URL focusNode = toUrl(server, "/data/#repository");
 
         // Plant the data collection recursively on already existing hierarchy
-        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, focusNode);
-        Assertions.assertEquals(201, response.getStatusCode());
-
+        Response response = plant(okHttpClient, context, targetResource, targetShapeTree, focusNode);
+        assertEquals(201, response.code());
     }
 
-    @Order(2)
-    @SneakyThrows
     @Test
-    @Label("Recursively Plant Projects Collection")
-    void plantProjectsRecursively() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
+    @DisplayName("Recursively Plant Projects Collection")
+    void plantProjectsRecursively() throws ShapeTreeException {
         // Add planted data set
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager"), "GET", "/data/projects/.shapetree", null));
@@ -117,9 +88,8 @@ class OkHttpShapeTreeClientProjectRecursiveTests {
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
 
         // Plant the projects collection recursively on already existing hierarchy
-        DocumentResponse response = this.shapeTreeClient.plantShapeTree(this.context, targetResource, targetShapeTree, null);
-        Assertions.assertEquals(201, response.getStatusCode());
-
+        Response response = plant(okHttpClient, context, targetResource, targetShapeTree, null);
+        assertEquals(201, response.code());
     }
 
 }

@@ -1,17 +1,12 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
-import com.janeirodigital.shapetrees.client.http.HttpClientFactoryManager;
-import com.janeirodigital.shapetrees.client.http.HttpShapeTreeClient;
-import com.janeirodigital.shapetrees.core.DocumentResponse;
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
-import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
-import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import lombok.SneakyThrows;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
@@ -20,33 +15,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
+import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.post;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class OkHttpShapeTreeClientValidationTests {
 
     private static RequestMatchingFixtureDispatcher dispatcher = null;
-    private HttpClientFactory factory;
-    private HttpClient fetcher;
-    private HttpShapeTreeClient shapeTreeClient = new HttpShapeTreeClient();
-    private final ShapeTreeContext context;
+    private static MockWebServer server;
+    private static ShapeTreeContext context;
+    private static OkHttpClient okHttpClient;
 
-    public OkHttpShapeTreeClientValidationTests() {
-
-        this.context = new ShapeTreeContext(null);
-        this.factory = new OkHttpShapeTreeClientFactory(false, new BlackWhiteList(null, null));
-        HttpClientFactoryManager.setFactory(this.factory);
-        DocumentLoaderManager.setLoader((ExternalDocumentLoader) this.factory);
-
-        this.skipShapeTreeValidation(false);  // Get an OkHttpShapeTreeClient from the HttpClientFactory set above
-    }
-
-    private void skipShapeTreeValidation(boolean b) {
-        try {
-            this.fetcher = this.factory.get(!b);
-        } catch (ShapeTreeException e) {
-            throw new Error(e);
-        }
+    @BeforeAll
+    static void beforeAll() throws ShapeTreeException {
+        context = new ShapeTreeContext(null);
+        okHttpClient = OkHttpValidatingClientFactory.get();
     }
 
     @BeforeEach
@@ -62,15 +47,14 @@ class OkHttpShapeTreeClientValidationTests {
         dispatcherList.add(new DispatcherEntry(List.of("shapetrees/containment-shapetree-ttl"), "GET", "/static/shapetrees/validation/shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("schemas/containment-shex"), "GET", "/static/shex/validation/shex", null));
 
+        server = new MockWebServer();
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
+        server.setDispatcher(dispatcher);
     }
 
-    @SneakyThrows
     @Test
     @DisplayName("Create resource - two containing trees, two shapes, two nodes")
-    void validateTwoContainsTwoShapesTwoNodes() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
+    void validateTwoContainsTwoShapesTwoNodes() throws ShapeTreeException {
 
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/container-1-twocontains-manager"), "GET", "/data/container-1/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/resource-1-create-response"), "POST", "/data/container-1/resource-1", null));
@@ -84,42 +68,33 @@ class OkHttpShapeTreeClientValidationTests {
                 toUrl(server, "/data/container-1/resource-1#element"));
 
         // Plant the data repository on newly created data container
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(201, response.getStatusCode());
+        Response response = post(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(201, response.code());
 
     }
 
-    @SneakyThrows
     @Test
     @DisplayName("Create resource - two containing trees of same tree")
-    void validateTwoContainsSameContainingTree() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
+    void validateTwoContainsSameContainingTree() throws ShapeTreeException {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/container-1-samecontains-manager"), "GET", "/data/container-1/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/resource-1-create-response"), "POST", "/data/container-1/resource-1", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-1/", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-1/resource-1.shapetree", null));
 
         // Validate multiple contains, same shape tree, same node
-
         URL targetResource = toUrl(server, "/data/container-1/");
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#ChildTree"));
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/container-1/resource-1#resource"));
 
         // Plant the data repository on newly created data container
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(201, response.getStatusCode());
+        Response response = post(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(201, response.code());
 
     }
 
-    @SneakyThrows
     @Test
     @DisplayName("Fail to create - two containing trees and focus node issues")
-    void failToValidateTwoContainsWithBadFocusNodes() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
+    void failToValidateTwoContainsWithBadFocusNodes() throws ShapeTreeException {
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/container-1-twocontains-manager"), "GET", "/data/container-1/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/resource-1-create-response"), "POST", "/data/container-1/resource-1", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-1/", null));
@@ -131,20 +106,20 @@ class OkHttpShapeTreeClientValidationTests {
 
         // Only one matching target focus node is provided
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/super/bad#node"));
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(422, response.getStatusCode());
+        Response response = post(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(422, response.code());
 
         // Multiple non-matching target focus nodes are provided
         focusNodes = Arrays.asList(toUrl(server, "/super/bad#node"),
                 toUrl(server, "/data/container-1/resource-1#badnode"),
                 toUrl(server, "/data/container-1/#badnode"));
-        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(422, response.getStatusCode());
+        response = post(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(422, response.code());
 
         // Only one matching target focus node is provided when two are needed
         focusNodes = Arrays.asList(toUrl(server, "/data/container-1/resource-1#resource"));
-        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(422, response.getStatusCode());
+        response = post(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(422, response.code());
     }
 
     /* TODO - Cannot execute this test predicatably as constituted when passing focus nodes from client. Need to test closer to shape tree validation
@@ -152,9 +127,6 @@ class OkHttpShapeTreeClientValidationTests {
     @Test
     @DisplayName("Fail to validate created resource - two containing trees, target node unused")
     void failToValidateTwoContainsTargetNodeUnused() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/container-1-twocontains-onenode-manager"), "GET", "/data/container-1/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/resource-1-create-response"), "POST", "/data/container-1/resource-1", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-1/", null));
@@ -166,8 +138,8 @@ class OkHttpShapeTreeClientValidationTests {
         // Two target nodes are provided, but one of the nodes is matched twice, and the other isn't matched at all
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/container-1/resource-1#resource"));
 
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(422, response.getStatusCode());
+        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(422, response.code());
 
     }
     */
@@ -176,9 +148,6 @@ class OkHttpShapeTreeClientValidationTests {
     @Test
     @DisplayName("Fail to create - two containing trees, bad target shape trees")
     void failToValidateTwoContainsWithBadTargetShapeTrees() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/container-1-twocontains-manager"), "GET", "/data/container-1/.shapetree", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/resource-1-create-response"), "POST", "/data/container-1/resource-1", null));
         dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-1/", null));
@@ -190,20 +159,20 @@ class OkHttpShapeTreeClientValidationTests {
 
         // Only one matching target shape tree is provided
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#AttributeTree"));
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(422, response.getStatusCode());
+        Response response = post(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(422, response.code());
 
         // Multiple non-matching target focus nodes are provided
         targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#OtherAttributeTree"),
                 toUrl(server, "/static/shapetrees/validation/shapetree#OtherElementTree"));
-        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(422, response.getStatusCode());
+        response = post(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(422, response.code());
 
         // One tree provided that isn't in either st:contains lists
         targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#AttributeTree"),
                 toUrl(server, "/static/shapetrees/validation/shapetree#StandaloneTree"));
-        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
-        Assertions.assertEquals(422, response.getStatusCode());
+        response = post(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), TEXT_TURTLE);
+        assertEquals(422, response.code());
     }
 
     private String

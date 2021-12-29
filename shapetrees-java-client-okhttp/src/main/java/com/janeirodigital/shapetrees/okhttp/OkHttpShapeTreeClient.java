@@ -1,169 +1,270 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.client.http.HttpRequest;
-import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.*;
+import com.janeirodigital.shapetrees.core.enums.ContentType;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Headers;
+import okhttp3.*;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.io.StringWriter;
+import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
-/**
- * okhttp implementation of HttpClient
- */
+import static com.janeirodigital.shapetrees.core.enums.ContentType.SPARQL_UPDATE;
+import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
+import static com.janeirodigital.shapetrees.core.enums.HttpHeader.*;
+import static com.janeirodigital.shapetrees.core.enums.LinkRelation.*;
+import static com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary.BASIC_CONTAINER;
+import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
+
 @Slf4j
-public class OkHttpShapeTreeClient implements HttpClient {
-    
-    private static final okhttp3.OkHttpClient baseClient = new okhttp3.OkHttpClient();
-
-    private final okhttp3.OkHttpClient httpClient;
+public class OkHttpShapeTreeClient {
 
     /**
-     * Execute an HTTP request to create a DocumentResponse object
-     * Implements `HttpClient` interface
-     * @param request an HTTP request with appropriate headers for ShapeTree interactions
-     * @return new DocumentResponse with response headers and contents
+     * Discover the ShapeTreeManager associated with a given target resource.
+     * @param okHttpClient OkHttp client to use for requests
+     * @param context ShapeTreeContext used for authorization
+     * @param resourceUrl URL of the target resource for shape tree discovery
+     * @return ShapeTreeManager if it is a managed resource, or null if it is not managed
      * @throws ShapeTreeException
      */
-    @Override
-    public DocumentResponse fetchShapeTreeResponse(HttpRequest request) throws ShapeTreeException {
-        okhttp3.Response response = fetch(request);
+    public static ShapeTreeManager discover(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl) throws ShapeTreeException {
+        Objects.requireNonNull(okHttpClient, "Must provide a valid HTTP client for shape tree discovery");
+        Objects.requireNonNull(resourceUrl, "Must provide a resource target for shape tree discovery");
+        Objects.requireNonNull(context, "Must provide a valid shape tree context for shape tree discovery");
+        log.debug("Discovering shape tree manager managing {}", resourceUrl);
+        final OkHttpResourceAccessor accessor = new OkHttpResourceAccessor();
+        ManageableInstance instance = accessor.getInstance(context, resourceUrl);
+        ManageableResource manageableResource = instance.getManageableResource();
 
-        String body = null;
-        try {
-            body = Objects.requireNonNull(response.body()).string();
-        } catch (IOException | NullPointerException ex) {
-            log.error("Exception retrieving body string");
+        if  (!manageableResource.isExists()) {
+            log.debug("Target resource for discovery {} does not exist", resourceUrl);
+            return null;
         }
-        return new DocumentResponse(new ResourceAttributes(response.headers().toMultimap()), body, response.code());
+
+        if (instance.wasRequestForManager()) {
+            throw new ShapeTreeException(500, "Discovery target must not be a shape tree manager resource");
+        }
+
+        if (instance.isUnmanaged()) { return null; }
+
+        return instance.getManagerResource().getManager();
     }
 
     /**
-     * Converts "multi map" representation of headers to the OkHttp Headers class
-     * public for OkHttpValidatingShapeTreeInterceptor.createResponse
-     * @param headers Multi-map representation of headers
-     * @return OkHttp Headers object
-     */
-    public static Headers toNativeHeaders(ResourceAttributes headers) {
-        Headers.Builder okHttpHeaders = new Headers.Builder();
-        for (Map.Entry<String, List<String>> entry : headers.toMultimap().entrySet()){
-            for (String value : entry.getValue()) {
-                okHttpHeaders.add(entry.getKey(), value);
-            }
-        }
-        return okHttpHeaders.build();
-    }
-
-    /**
-     * Construct an OkHttpClient with switches to enable or disable SSL and ShapeTree validation
-     * @param useSslValidation
-     * @param useShapeTreeValidation
-     * @throws NoSuchAlgorithmException potentially thrown while disabling SSL validation
-     * @throws KeyManagementException potentially thrown while disabling SSL validation
-     */
-    protected OkHttpShapeTreeClient(boolean useSslValidation, boolean useShapeTreeValidation) throws NoSuchAlgorithmException, KeyManagementException {
-        okhttp3.OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
-        if (Boolean.TRUE.equals(useShapeTreeValidation)) {
-            clientBuilder.interceptors().add(new OkHttpValidatingShapeTreeInterceptor());
-        }
-        if (Boolean.FALSE.equals(useSslValidation)) {
-            // Install the all-trusting trust manager
-            final SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-            TrustManager[] trustAllCerts = getTrustAllCertsManager();
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-            // Create an ssl socket factory with our all-trusting manager
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-            clientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
-                    .hostnameVerifier((hostname, session) -> true);
-        }
-        this.httpClient = clientBuilder.build();
-    }
-
-    // permissive SSL trust manager
-    private static TrustManager[] getTrustAllCertsManager() {
-        // Create a trust manager that does not validate certificate chains
-        return new TrustManager[] {
-                new X509TrustManager() {
-                    @Override
-                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-                        // All clients are trusted when SSL validation is skipped
-                    }
-
-                    @Override
-                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-                        // All servers are trusted when SSL validation is skipped
-                    }
-
-                    @Override
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return new java.security.cert.X509Certificate[]{};
-                    }
-                }
-        };
-    }
-
-    /**
-     * Internal function to execute HTTP request and return okhttp response
-     * @param request
-     * @return
+     * Shape Trees, §4.2: This operation marks an existing resource as being managed by one or more shape trees,
+     * by associating a shape tree manager with the resource, and turning it into a managed resource.
+     *
+     * If the resource is already managed, the associated shape tree manager will be updated with another
+     * shape tree assignment for the planted shape tree.
+     *
+     * If the resource is a container that already contains existing resources, and a recursive plant is requested,
+     * this operation will perform a depth first traversal through the containment hierarchy, validating
+     * and assigning as it works its way back up to the target root resource of this operation.
+     *
+     *  https://shapetrees.org/TR/specification/#plant-shapetree
+     * @param okHttpClient OkHttp client to use for requests
+     * @param context ShapeTreeContext used for authorization
+     * @param resourceUrl URL of the target resource to assign a shape tree to
+     * @param shapeTreeUrl URL of the shape tree to assign
+     * @param focusNodeUrl Optional URL of the focus node for shape validation
+     * @return OkHttp Response
      * @throws ShapeTreeException
      */
-    private okhttp3.Response fetch(HttpRequest request) throws ShapeTreeException {
-        if (request.body == null)
-            request.body = "";
+    public static Response plant(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, URL shapeTreeUrl, URL focusNodeUrl) throws ShapeTreeException {
+        Objects.requireNonNull(okHttpClient, "Must provide a valid HTTP client to plant the shape tree with");
+        Objects.requireNonNull(context, "Must provide a valid shape tree context to plant the shape tree with");
+        Objects.requireNonNull(resourceUrl, "Must provide a target resource to plant the shape tree on");
+        Objects.requireNonNull(shapeTreeUrl, "Must provide a shape tree to plant");
 
-        try {
-            okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder();
-            requestBuilder.url(request.resourceURL);
+        log.debug("Planting shape tree {} on {}: ", shapeTreeUrl, resourceUrl);
+        log.debug("Focus node: {}", focusNodeUrl == null ? "None provided" : focusNodeUrl);
 
-            if (request.headers != null) {
-                requestBuilder.headers(toNativeHeaders(request.headers));
-            }
+        final OkHttpResourceAccessor accessor = new OkHttpResourceAccessor();
+        // Lookup the shape tree
+        ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(shapeTreeUrl);
+        // Lookup the target resource
+        ManageableInstance instance = accessor.getInstance(context, resourceUrl);
+        ManageableResource manageableResource = instance.getManageableResource();
 
-            switch (request.method) {
+        if (!manageableResource.isExists()) {
+            log.error("Cannot find target resource to plant: " + resourceUrl);
+            return getErrorResponse(manageableResource.getUrl(), "GET", 404, "Not Found");
+        }
 
-                case HttpClient.GET:
-                    requestBuilder.method(request.method, null);
-                    break;
+        ShapeTreeManager manager;
+        URL managerResourceUrl = instance.getManagerResource().getUrl();
+        if (instance.isManaged()) {
+            manager = instance.getManagerResource().getManager();
+        } else {
+            manager = new ShapeTreeManager(managerResourceUrl);
+        }
 
-                case HttpClient.DELETE:
-                    requestBuilder.method(request.method, okhttp3.RequestBody.create(null, new byte[0])); // apparently needed 'cause delete CAN have a body
-                    break;
+        // Initialize a shape tree assignment based on the supplied parameters
+        URL assignmentUrl = manager.mintAssignmentUrl();
+        ShapeTreeAssignment assignment = new ShapeTreeAssignment(shapeTreeUrl,
+                resourceUrl,
+                assignmentUrl,
+                focusNodeUrl,
+                shapeTree.getShape(),
+                assignmentUrl);
 
-                case HttpClient.PUT:
-                case HttpClient.POST:
-                case HttpClient.PATCH:
-                    requestBuilder.method(request.method, okhttp3.RequestBody.create(request.body, okhttp3.MediaType.get(request.contentType)));
-                    requestBuilder.addHeader("Content-Type", request.contentType);
-                    break;
+        // Add the assignment to the manager
+        manager.addAssignment(assignment);
 
-                default:
-                    throw new ShapeTreeException(500, "Unsupported HTTP method for resource creation");
+        // Get an RDF version of the manager stored in a turtle string
+        StringWriter sw = new StringWriter();
+        RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
 
-            }
+        Request.Builder requestBuilder = new Request.Builder();
+        requestBuilder.url(managerResourceUrl);
+        RequestBody requestBody = RequestBody.create(sw.toString(), MediaType.get("text/turtle"));
+        requestBuilder.method("PUT", requestBody);
+        if (context.hasCredentials()) {
+            Headers headers = setHttpHeader(HttpHeader.AUTHORIZATION, context.getCredentials());
+            requestBuilder.headers(headers);
+        }
 
-            return OkHttpShapeTreeClient.check(this.httpClient.newCall(requestBuilder.build()).execute());
+        try (Response response = okHttpClient.newCall(requestBuilder.build()).execute()) {
+            // wrapping the call in try-with-resources automatically closes the response
+            return checkResponse(response);
         } catch (IOException ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
+            throw new ShapeTreeException(500, "Failed to put remote resource: " + ex.getMessage());
         }
+
     }
 
-    protected static okhttp3.Response check(okhttp3.Response resp) {
-        if (resp.code() > 599) {
-            throw new Error("invalid HTTP response: " + resp + (resp.body() == null ? "" : "\n" + resp.body()));
+    public static Response unplant(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, URL shapeTreeUrl) throws ShapeTreeException {
+
+        Objects.requireNonNull(okHttpClient, "Must provide a valid HTTP client to plant the shape tree with");
+        Objects.requireNonNull(context, "Must provide a valid shape tree context to plant the shape tree with");
+        Objects.requireNonNull(resourceUrl, "Must provide a target resource to plant the shape tree on");
+        Objects.requireNonNull(shapeTreeUrl, "Must provide a shape tree to plant");
+
+        log.debug("Unplanting shape tree {} managing {}: ", shapeTreeUrl, resourceUrl);
+
+        // Lookup the target resource
+        final OkHttpResourceAccessor accessor = new OkHttpResourceAccessor();
+        ManageableInstance instance = accessor.getInstance(context, resourceUrl);
+        ManageableResource manageableResource = instance.getManageableResource();
+
+        if (!manageableResource.isExists()) {
+            log.error("Cannot find target resource to plant: " + resourceUrl);
+            return getErrorResponse(manageableResource.getUrl(), "GET", 404, "Not Found");
         }
-        return resp;
+
+        if (instance.isUnmanaged()) {
+            throw new ShapeTreeException(500, "Cannot unplant target resource that is not managed by a shapetree: " + resourceUrl);
+        }
+
+        // Remove assignment from manager that corresponds with the provided shape tree
+        ShapeTreeManager manager = instance.getManagerResource().getManager();
+        manager.removeAssignmentForShapeTree(shapeTreeUrl);
+
+        Response response;
+        if (manager.getAssignments().isEmpty()) {
+            response = deleteResource(okHttpClient, manager.getId());
+        } else {
+            StringWriter sw = new StringWriter();
+            RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
+            String body = sw.toString();
+            response = putResource(okHttpClient, manager.getId(), null, body, TEXT_TURTLE);
+        }
+        return response;
     }
+
+    public static Response post(OkHttpClient okHttpClient, ShapeTreeContext context, URL parentContainer, List<URL> focusNodes, List<URL> targetShapeTrees, String slug, boolean isContainer, String body, ContentType contentType) throws ShapeTreeException {
+        Objects.requireNonNull(okHttpClient, "Must provide a valid HTTP client to POST with");
+        Objects.requireNonNull(context, "Must provide a valid shape tree context to POST with");
+        Objects.requireNonNull(parentContainer, "Must provide a parent container to POST into");
+
+        log.debug("POST-ing shape tree instance to {}", parentContainer);
+        log.debug ("Proposed name: {}", slug == null ? "None provided" : slug);
+        log.debug ("Target Shape Tree: {}", targetShapeTrees == null || targetShapeTrees.isEmpty()  ? "None provided" : targetShapeTrees.toString());
+        log.debug("Focus Node: {}", focusNodes == null || focusNodes.isEmpty() ? "None provided" : focusNodes.toString());
+
+        Headers headers = setRequestHeaders(context, focusNodes, targetShapeTrees, isContainer, slug, contentType);
+
+        return postResource(okHttpClient, parentContainer, headers, body, contentType);
+    }
+
+    public static Response put(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, List<URL> targetShapeTrees, Boolean isContainer, String body, ContentType contentType) throws ShapeTreeException {
+        Objects.requireNonNull(okHttpClient, "Must provide a valid HTTP client to PUT with");
+        Objects.requireNonNull(context, "Must provide a valid shape tree context to PUT with");
+        Objects.requireNonNull(resourceUrl, "Must provide a resource URL to PUT to");
+
+        log.debug("Creating shape tree instance via PUT at {}", resourceUrl);
+        log.debug ("Target Shape Tree: {}", targetShapeTrees == null || targetShapeTrees.isEmpty()  ? "None provided" : targetShapeTrees.toString());
+        log.debug("Focus Node: {}", focusNodes == null || focusNodes.isEmpty() ? "None provided" : focusNodes.toString());
+
+        Headers headers = setRequestHeaders(context, focusNodes, targetShapeTrees, isContainer, null, contentType);
+
+        return putResource(okHttpClient, resourceUrl, headers, body, contentType);
+    }
+
+    public static Response put(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, String body, ContentType contentType) throws ShapeTreeException {
+
+        Objects.requireNonNull(okHttpClient, "Must provide a valid HTTP client to PUT with");
+        Objects.requireNonNull(context, "Must provide a valid shape tree context to PUT with");
+        Objects.requireNonNull(resourceUrl, "Must provide a resource URL to PUT to");
+
+        log.debug("Updating shape tree instance via PUT at {}", resourceUrl);
+        log.debug("Focus Node: {}", focusNodes == null || focusNodes.isEmpty() ? "None provided" : focusNodes.toString());
+
+        Headers headers = setRequestHeaders(context, focusNodes, null, false, null, contentType);
+
+        return putResource(okHttpClient, resourceUrl, headers, body, contentType);
+    }
+
+    public static Response patch(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, String body) throws ShapeTreeException {
+
+        Objects.requireNonNull(okHttpClient, "Must provide a valid HTTP client to PATCH with");
+        Objects.requireNonNull(context, "Must provide a valid shape tree context to PATCH with");
+        Objects.requireNonNull(resourceUrl, "Must provide a resource URL to PATCH to");
+        Objects.requireNonNull(body, "Must provide a PATCH body");
+
+        log.debug("PATCH-ing shape tree instance at {}", resourceUrl);
+        log.debug("PATCH String: {}", body);
+        log.debug("Focus Node: {}", focusNodes == null || focusNodes.isEmpty() ? "None provided" : focusNodes.toString());
+
+        Headers headers = setRequestHeaders(context, focusNodes, null, false, null, SPARQL_UPDATE);
+
+        return patchResource(okHttpClient, resourceUrl, headers, body, SPARQL_UPDATE);
+
+    }
+
+    private static Headers setRequestHeaders(ShapeTreeContext context, List<URL> focusNodes, List<URL> targetShapeTrees, boolean isContainer, String slug, ContentType contentType) {
+        Headers headers = null;
+        if (contentType != null) { headers = addHttpHeader(CONTENT_TYPE, contentType.getValue(), headers); }
+        if (targetShapeTrees != null) {
+            for (URL shapeTreeUrl : targetShapeTrees) {
+                headers = addLinkRelationHeader(TARGET_SHAPETREE, shapeTreeUrl.toString(), headers);
+            }
+        }
+        if (focusNodes != null) {
+            for (URL focusNodeUrl : focusNodes) {
+                headers = addLinkRelationHeader(FOCUS_NODE, focusNodeUrl.toString(), headers);
+            }
+        }
+
+        if (isContainer) { headers = addLinkRelationHeader(TYPE, BASIC_CONTAINER, headers); }
+        if (slug != null) { headers = addHttpHeader(SLUG, slug, headers); }
+        if (context.hasCredentials()) { headers = addHttpHeader(AUTHORIZATION, context.getCredentials(), headers); }
+        return headers;
+    }
+
+    private static Response getErrorResponse(URL resourceUrl, String method, int code, String message) {
+        // first build a stub request
+        Request.Builder requestBuilder = new Request.Builder();
+        Request request = requestBuilder.url(resourceUrl).method(method, null).build();
+        // build fabricated error response
+        Response.Builder builder = new Response.Builder();
+        return builder.request(request).code(code).message(message).protocol(Protocol.HTTP_1_1).build();
+    }
+
 }

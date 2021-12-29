@@ -17,6 +17,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,10 +30,6 @@ public class AbstractResourceAccessorTests {
 
     public AbstractResourceAccessorTests() {
         this.context = new ShapeTreeContext(null);
-    }
-
-    public URL toUrl(MockWebServer server, String path) throws MalformedURLException { // TODO: duplicates com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.getURL;
-        return new URL(server.url(path).toString());
     }
 
     @BeforeAll

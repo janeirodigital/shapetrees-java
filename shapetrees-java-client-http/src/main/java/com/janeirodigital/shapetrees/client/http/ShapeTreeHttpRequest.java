@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import java.net.URL;
 
 @AllArgsConstructor
-public class HttpRequest {
+public class ShapeTreeHttpRequest {
     public String method;
     public URL resourceURL;
     public ResourceAttributes headers;

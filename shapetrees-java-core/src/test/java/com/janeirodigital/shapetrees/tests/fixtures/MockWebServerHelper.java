@@ -7,8 +7,12 @@ import java.net.MalformedURLException;
 
 public class MockWebServerHelper {
 
-    public static URL toUrl(MockWebServer server, String path) throws MalformedURLException {
-        return new URL(server.url(path).toString());
+    public static URL toUrl(MockWebServer server, String path) {
+        try {
+            return new URL(server.url(path).toString());
+        } catch (MalformedURLException ex) {
+            throw new IllegalStateException("Can't convert dispatcher request path to URL");
+        }
     }
 
 }

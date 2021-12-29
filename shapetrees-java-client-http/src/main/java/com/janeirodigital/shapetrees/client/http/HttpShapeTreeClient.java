@@ -2,8 +2,8 @@ package com.janeirodigital.shapetrees.client.http;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeClient;
 import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
-import com.janeirodigital.shapetrees.core.enums.LinkRelations;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
+import com.janeirodigital.shapetrees.core.enums.LinkRelation;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.riot.Lang;
@@ -139,8 +139,8 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         // Build an HTTP PUT request with the manager graph in turtle as the content body + link header
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = new ResourceAttributes();
-        headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", managerResourceUrl, headers, sw.toString(), "text/turtle"));
+        headers.maybeSet(HttpHeader.AUTHORIZATION.getValue(), context.getCredentials());
+        return fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest("PUT", managerResourceUrl, headers, sw.toString(), "text/turtle"));
     }
 
     @Override
@@ -157,7 +157,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNodes, targetShapeTrees, isContainer, proposedResourceName, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("POST", parentContainer, headers, bodyString, contentType));
+        return fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest("POST", parentContainer, headers, bodyString, contentType));
     }
 
     // Create via HTTP PUT
@@ -174,7 +174,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNodes, targetShapeTrees, isContainer,null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceUrl, headers, bodyString, contentType));
+        return fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest("PUT", resourceUrl, headers, bodyString, contentType));
     }
 
     // Update via HTTP PUT
@@ -190,7 +190,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNodes, null, null, null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PUT", resourceUrl, headers, bodyString, contentType));
+        return fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest("PUT", resourceUrl, headers, bodyString, contentType));
     }
 
     @Override
@@ -208,7 +208,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, focusNodes, null, null, null, contentType);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("PATCH", resourceUrl, headers, patchString, contentType));
+        return fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest("PATCH", resourceUrl, headers, patchString, contentType));
     }
 
     @Override
@@ -222,7 +222,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
 
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
         ResourceAttributes headers = getCommonHeaders(context, null, null, null, null, null);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest("DELETE", resourceUrl, headers,null,null));
+        return fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest("DELETE", resourceUrl, headers,null,null));
     }
 
     @Override
@@ -269,7 +269,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
         }
 
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(this.useClientShapeTreeValidation);
-        return fetcher.fetchShapeTreeResponse(new HttpRequest(method, manager.getId(),
+        return fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest(method, manager.getId(),
                                               null, // why no getCommonHeaders(context, null, null, null, null, null)
                                               body, contentType));
     }
@@ -277,33 +277,33 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
     private ResourceAttributes getCommonHeaders(ShapeTreeContext context, List<URL> focusNodes, List<URL> targetShapeTrees, Boolean isContainer, String proposedResourceName, String contentType) {
         ResourceAttributes ret = new ResourceAttributes();
 
-        if (context.getAuthorizationHeaderValue() != null) {
-            ret.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
+        if (context.getCredentials() != null) {
+            ret.maybeSet(HttpHeader.AUTHORIZATION.getValue(), context.getCredentials());
         }
 
         if (isContainer != null) {
             String resourceTypeUrl = Boolean.TRUE.equals(isContainer) ? "http://www.w3.org/ns/ldp#Container" : "http://www.w3.org/ns/ldp#Resource";
-            ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + resourceTypeUrl + ">; rel=\"type\"");
+            ret.maybeSet(HttpHeader.LINK.getValue(), "<" + resourceTypeUrl + ">; rel=\"type\"");
         }
 
         if (focusNodes != null && !focusNodes.isEmpty()) {
             for (URL focusNode : focusNodes) {
-                ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelations.FOCUS_NODE.getValue() + "\"");
+                ret.maybeSet(HttpHeader.LINK.getValue(), "<" + focusNode + ">; rel=\"" + LinkRelation.FOCUS_NODE.getValue() + "\"");
             }
         }
 
         if (targetShapeTrees != null && !targetShapeTrees.isEmpty()) {
             for (URL targetShapeTree : targetShapeTrees) {
-                ret.maybeSet(HttpHeaders.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelations.TARGET_SHAPETREE.getValue() + "\"");
+                ret.maybeSet(HttpHeader.LINK.getValue(), "<" + targetShapeTree + ">; rel=\"" + LinkRelation.TARGET_SHAPETREE.getValue() + "\"");
             }
         }
 
         if (proposedResourceName != null) {
-            ret.maybeSet(HttpHeaders.SLUG.getValue(), proposedResourceName);
+            ret.maybeSet(HttpHeader.SLUG.getValue(), proposedResourceName);
         }
 
         if (contentType != null) {
-            ret.maybeSet(HttpHeaders.CONTENT_TYPE.getValue(), contentType);
+            ret.maybeSet(HttpHeader.CONTENT_TYPE.getValue(), contentType);
         }
 
         return ret;

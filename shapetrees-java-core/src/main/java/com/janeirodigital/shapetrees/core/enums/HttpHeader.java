@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.core.enums;
 
-public enum HttpHeaders {
+public enum HttpHeader {
     ACCEPT("Accept"),
     AUTHORIZATION("Authorization"),
     CONTENT_TYPE("Content-Type"),
@@ -16,7 +16,7 @@ public enum HttpHeaders {
 
     private final String value;
 
-    HttpHeaders(String value) {
+    HttpHeader(String value) {
         this.value = value;
     }
 }

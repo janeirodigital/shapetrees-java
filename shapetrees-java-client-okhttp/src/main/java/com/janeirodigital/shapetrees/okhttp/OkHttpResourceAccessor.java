@@ -1,25 +1,27 @@
-package com.janeirodigital.shapetrees.client.http;
+package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.LinkRelation;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.readStringIntoGraph;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
+import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
 
 /**
  * Allows the {@link com.janeirodigital.shapetrees.core shapetrees-core} to access
@@ -32,7 +34,7 @@ import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
  */
 @NoArgsConstructor
 @Slf4j
-public class HttpResourceAccessor implements ResourceAccessor {
+public class OkHttpResourceAccessor implements ResourceAccessor {
 
     private static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
 
@@ -262,14 +264,27 @@ public class HttpResourceAccessor implements ResourceAccessor {
     @Override
     public InstanceResource
     getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
-        log.debug("HttpResourceAccessor#getResource({})", url);
-        ResourceAttributes headers = new ResourceAttributes();
-        headers.maybeSet(HttpHeader.AUTHORIZATION.getValue(), context.getCredentials());
-        HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
-        ShapeTreeHttpRequest req = new ShapeTreeHttpRequest("GET", url, headers, null, null);
+        log.debug("OkHttpResourceAccessor#getResource({})", url);
 
-        DocumentResponse response = fetcher.fetchShapeTreeResponse(req);
-        return generateResource(url, response);
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+
+        Request.Builder requestBuilder = new Request.Builder();
+        requestBuilder.url(url);
+        requestBuilder.method("GET", null);
+        // Set the authorization header if we have credentials
+        Headers requestHeaders = null;
+        if (context.hasCredentials()) { requestHeaders = setHttpHeader(HttpHeader.AUTHORIZATION, context.getCredentials()); }
+        if (requestHeaders != null) { requestBuilder.headers(requestHeaders); }
+
+        DocumentResponse documentResponse;
+        try (Response response = checkResponse(okHttpClient.newCall(requestBuilder.build()).execute())) {
+            ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
+            documentResponse = new DocumentResponse(attributes, response.body().string(), response.code());
+        } catch(IOException ex) {
+            throw new ShapeTreeException(500, "Failed to get remote resource: " + ex.getMessage());
+        }
+
+        return generateResource(url, documentResponse);
     }
 
     /**
@@ -290,13 +305,28 @@ public class HttpResourceAccessor implements ResourceAccessor {
     createResource(ShapeTreeContext context, String method, URL url, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
         log.debug("createResource via {}: URL [{}], headers [{}]", method, url, headers.toString());
 
-        HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
-        ResourceAttributes allHeaders = headers.maybePlus(HttpHeader.AUTHORIZATION.getValue(), context.getCredentials());
-        DocumentResponse response = fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest(method, url, allHeaders, body, contentType));
-        if (!response.isExists()) {
-            throw new ShapeTreeException(500, "Unable to create resource <" + url + ">");
+        // Get an okHttpClient
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+
+        Request.Builder requestBuilder = new Request.Builder();
+        requestBuilder.url(url);
+        RequestBody requestBody = RequestBody.create(body, MediaType.get(contentType));
+        requestBuilder.method(method, requestBody);
+
+        Headers requestHeaders = null;
+        if (headers != null) { requestHeaders = attributesToHeaders(headers); }
+        if (context.hasCredentials()) { requestHeaders = setHttpHeader(HttpHeader.AUTHORIZATION, context.getCredentials(), requestHeaders); }
+        if (requestHeaders != null) { requestBuilder.headers(requestHeaders); }
+
+        DocumentResponse documentResponse;
+        try (Response response = checkResponse(okHttpClient.newCall(requestBuilder.build()).execute())) {
+            ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
+            documentResponse = new DocumentResponse(attributes, response.body().string(), response.code());
+        } catch(IOException ex) {
+            throw new ShapeTreeException(500, "Failed to get remote resource: " + ex.getMessage());
         }
-        return generateResource(url, response);
+
+        return generateResource(url, documentResponse);
     }
 
     /**
@@ -421,11 +451,26 @@ public class HttpResourceAccessor implements ResourceAccessor {
     updateResource(ShapeTreeContext context, String method, InstanceResource updateResource, String body) throws ShapeTreeException {
         log.debug("updateResource: URL [{}]", updateResource.getUrl());
 
+        // Get an okHttpClient
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+
         String contentType = updateResource.getAttributes().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null);
+
+        Request.Builder requestBuilder = new Request.Builder();
+        requestBuilder.url(updateResource.getUrl());
+        RequestBody requestBody = RequestBody.create(body, MediaType.get(contentType));
+        requestBuilder.method(method, requestBody);
+
         // [careful] updateResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         ResourceAttributes allHeaders = updateResource.getAttributes().maybePlus(HttpHeader.AUTHORIZATION.getValue(), context.getCredentials());
-        HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
-        return fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest(method, updateResource.getUrl(), allHeaders, body, contentType));
+        if (allHeaders != null) { requestBuilder.headers(attributesToHeaders(allHeaders)); }
+
+        try (Response response = checkResponse(okHttpClient.newCall(requestBuilder.build()).execute())) {
+            ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
+            return new DocumentResponse(attributes, response.body().string(), response.code());
+        } catch(IOException ex) {
+            throw new ShapeTreeException(500, "Failed to update remote resource: " + ex.getMessage());
+        }
     }
 
     /**
@@ -440,14 +485,26 @@ public class HttpResourceAccessor implements ResourceAccessor {
     deleteResource(ShapeTreeContext context, ManagerResource deleteResource) throws ShapeTreeException {
         log.debug("deleteResource: URL [{}]", deleteResource.getUrl());
 
-        HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+
+        Request.Builder requestBuilder = new Request.Builder();
+        requestBuilder.url(deleteResource.getUrl());
+        RequestBody requestBody = RequestBody.create(null, new byte[0]);
+        requestBuilder.method("DELETE", requestBody);
+
+        // [careful] updateResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
         ResourceAttributes allHeaders = deleteResource.getAttributes().maybePlus(HttpHeader.AUTHORIZATION.getValue(), context.getCredentials());
-        DocumentResponse response = fetcher.fetchShapeTreeResponse(new ShapeTreeHttpRequest("DELETE", deleteResource.getUrl(), allHeaders, null, null));
-        int respCode = response.getStatusCode();
-        if (respCode < 200 || respCode >= 400) {
-            log.error("Error deleting resource {}, Status {}", deleteResource.getUrl(), respCode);
+        if (allHeaders != null) { requestBuilder.headers(attributesToHeaders(allHeaders)); }
+
+        try (Response response = checkResponse(okHttpClient.newCall(requestBuilder.build()).execute())) {
+            ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
+            if (response.code() < 200 || response.code() >= 400) {
+                log.error("Error deleting resource {}, Status {}", deleteResource.getUrl(), response.code());
+            }
+            return new DocumentResponse(attributes, response.body().string(), response.code());
+        } catch(IOException ex) {
+            throw new ShapeTreeException(500, "Failed to delete remote resource: " + ex.getMessage());
         }
-        return response;
     }
 
     /**
@@ -610,4 +667,5 @@ public class HttpResourceAccessor implements ResourceAccessor {
         if (url.getPath() != null && url.getPath().matches(".*\\.shapetree$")) { return true; }
         return url.getQuery() != null && url.getQuery().matches(".*ext\\=shapetree$");
     }
+
 }
