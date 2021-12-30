@@ -267,7 +267,7 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
     getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
         log.debug("OkHttpResourceAccessor#getResource({})", url);
 
-        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(url);
@@ -307,7 +307,7 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
         log.debug("createResource via {}: URL [{}], headers [{}]", method, url, headers.toString());
 
         // Get an okHttpClient
-        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(url);
@@ -454,7 +454,7 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
         log.debug("updateResource: URL [{}]", updateResource.getUrl());
 
         // Get an okHttpClient
-        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 
         String contentType = updateResource.getAttributes().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null);
         if (contentType == null) { contentType = OCTET_STREAM.getValue(); }
@@ -488,7 +488,7 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
     deleteResource(ShapeTreeContext context, ManagerResource deleteResource) throws ShapeTreeException {
         log.debug("deleteResource: URL [{}]", deleteResource.getUrl());
 
-        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(deleteResource.getUrl());

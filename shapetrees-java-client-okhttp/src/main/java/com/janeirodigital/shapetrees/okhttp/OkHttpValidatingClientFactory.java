@@ -23,7 +23,7 @@ public class OkHttpValidatingClientFactory {
      * @throws ShapeTreeException
      */
     public static OkHttpClient get() throws ShapeTreeException {
-        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
         return okHttpClient.newBuilder().addInterceptor(new OkHttpValidatingShapeTreeInterceptor()).build();
     }
 

@@ -25,7 +25,7 @@ public class OkHttpExternalDocumentLoader implements ExternalDocumentLoader {
     @Override
     public DocumentResponse loadExternalDocument(URL resourceUrl) throws ShapeTreeException {
 
-        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().get();
+        OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(resourceUrl);

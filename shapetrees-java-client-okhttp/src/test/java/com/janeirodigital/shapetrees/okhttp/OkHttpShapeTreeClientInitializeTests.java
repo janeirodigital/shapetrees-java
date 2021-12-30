@@ -20,7 +20,7 @@ class OkHttpShapeTreeClientInitializeTests {
         assertNotNull(factory);
         assertTrue(factory instanceof OkHttpBasicClientFactory);
 
-        OkHttpClient okHttpClient = factory.get();
+        OkHttpClient okHttpClient = factory.getOkHttpClient();
         assertNotNull(okHttpClient);
     }
 

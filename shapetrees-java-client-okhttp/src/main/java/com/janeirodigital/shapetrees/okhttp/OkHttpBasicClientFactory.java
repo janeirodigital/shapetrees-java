@@ -21,7 +21,7 @@ public class OkHttpBasicClientFactory implements OkHttpClientFactory {
      * @return Basic OkHttpClient
      */
     @Override
-    public OkHttpClient get() {
+    public OkHttpClient getOkHttpClient() {
         return this.okHttpClient;
     }
 
