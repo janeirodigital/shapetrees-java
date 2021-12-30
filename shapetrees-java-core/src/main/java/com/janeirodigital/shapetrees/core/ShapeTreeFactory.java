@@ -122,7 +122,7 @@ public class ShapeTreeFactory {
         Property referencesProperty = resourceModel.createProperty(ShapeTreeVocabulary.REFERENCES);
 
         if (shapeTreeNode.hasProperty(referencesProperty)) { // TODO: arbitrarily pics from n objects where 1 expected
-            List<Statement> referenceStatements = shapeTreeNode.listProperties(referencesProperty).toList(); // TODO: test coverage (never hit)
+            List<Statement> referenceStatements = shapeTreeNode.listProperties(referencesProperty).toList();
             for (Statement referenceStatement : referenceStatements) {
 
                 Resource referenceResource = referenceStatement.getObject().asResource();

@@ -340,7 +340,7 @@ class ShapeTreeManagerTests {
                 "\n" +
                 "<https://data.example/container.shapetree#ln1> \n" +
                 "    st:assigns <https://tree.example/#Tree1> ; \n" +
-                "\n" ;
+                "\n." ;
     }
 
     private String getInvalidManagerUnexpectedTriplesString() {

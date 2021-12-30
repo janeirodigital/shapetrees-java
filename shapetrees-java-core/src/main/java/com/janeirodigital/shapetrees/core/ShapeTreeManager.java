@@ -45,6 +45,14 @@ public class ShapeTreeManager {
         this.id = id;
     }
 
+    @Override
+    public String toString() {
+        return "ShapeTreeManager{" +
+                "id=" + id +
+                ", assignments=" + assignments +
+                '}';
+    }
+
     /**
      * Get the URL (identifier) of the ShapeTreeManager
      * @return URL identifier of the ShapeTreeManager
@@ -105,10 +113,8 @@ public class ShapeTreeManager {
         }
 
         if (!this.assignments.isEmpty()) {
-            for (ShapeTreeAssignment existingAssignment : this.assignments) {
-                if (existingAssignment.equals(assignment)) {
-                    throw new ShapeTreeException(422, "Identical shape tree assignment cannot be added to Shape Tree Manager: " + this.id);
-                }
+            if (this.assignments.contains(assignment)) {
+                throw new ShapeTreeException(422, "Identical shape tree assignment cannot be added to Shape Tree Manager: " + this.id);
             }
         }
 

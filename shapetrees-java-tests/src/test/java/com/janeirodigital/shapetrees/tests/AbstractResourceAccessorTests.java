@@ -326,7 +326,7 @@ public class AbstractResourceAccessorTests {
                 "    ex:inProject </static/resource/managed-container-1/#project> . \n";
     }
 
-    private String getProjectTwoManagerGraph() {
+    private String getProjectTwoManagerGraph() { // TODO: the SERVER_BASE is never substituted
         return "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n" +
                 "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
                 "PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
