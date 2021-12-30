@@ -2,7 +2,7 @@
 
 This module generates an accurate JaCoCo code coverage report across all of the modules
 of shapetrees-java. JaCoCo is designed to provide coverage reports on individual modules, each of which contains 
-tests and the code being tested. In this project, we multiple modules, each with their own respective tests.
+tests and the code being tested. In this project, we have multiple modules, each with their own respective tests.
 
 The most reliable way to ensure we are generating full test coverage output is to have a seperate module (this one)
 that generates an aggregate report. The [shapetrees-java-coverage/pom.xml](./pom.xml) does exactly this, including
