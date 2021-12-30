@@ -4,7 +4,7 @@ import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
 import com.janeirodigital.shapetrees.core.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
-import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
+import com.janeirodigital.shapetrees.core.enums.RecursionMethod;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.ShapeTree;
 import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
@@ -148,8 +148,8 @@ class ShapeTreeParsingTests {
     void testTraverseReferences() {
         ShapeTree projectShapeTree = ShapeTreeFactory.getShapeTree(toUrl(server,"/static/shapetrees/project/shapetree-virtual#ProjectTree"));
         projectShapeTree.getReferencedShapeTrees();
-        Assertions.assertTrue(projectShapeTree.getReferencedShapeTrees(RecursionMethods.BREADTH_FIRST).hasNext());
-        Assertions.assertTrue(projectShapeTree.getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST).hasNext());
+        Assertions.assertTrue(projectShapeTree.getReferencedShapeTrees(RecursionMethod.BREADTH_FIRST).hasNext());
+        Assertions.assertTrue(projectShapeTree.getReferencedShapeTrees(RecursionMethod.DEPTH_FIRST).hasNext());
     }
 
     @SneakyThrows

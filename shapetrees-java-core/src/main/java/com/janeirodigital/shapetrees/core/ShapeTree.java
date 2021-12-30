@@ -3,7 +3,7 @@ package com.janeirodigital.shapetrees.core;
 import com.janeirodigital.shapetrees.core.comparators.ShapeTreeContainsPriority;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
-import com.janeirodigital.shapetrees.core.enums.RecursionMethods;
+import com.janeirodigital.shapetrees.core.enums.RecursionMethod;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
@@ -247,11 +247,11 @@ public class ShapeTree {
     }
 
     public Iterator<ShapeTreeReference> getReferencedShapeTrees() throws ShapeTreeException {
-        return getReferencedShapeTrees(RecursionMethods.DEPTH_FIRST);
+        return getReferencedShapeTrees(RecursionMethod.DEPTH_FIRST);
     }
 
-    public Iterator<ShapeTreeReference> getReferencedShapeTrees(RecursionMethods recursionMethods) throws ShapeTreeException {
-        return getReferencedShapeTreesList(recursionMethods).iterator();
+    public Iterator<ShapeTreeReference> getReferencedShapeTrees(RecursionMethod recursionMethod) throws ShapeTreeException {
+        return getReferencedShapeTreesList(recursionMethod).iterator();
     }
 
     // Return the list of shape tree contains by priority from most to least strict
@@ -263,8 +263,8 @@ public class ShapeTree {
 
     }
 
-    private List<ShapeTreeReference> getReferencedShapeTreesList(RecursionMethods recursionMethods) throws ShapeTreeException {
-        if (recursionMethods.equals(RecursionMethods.BREADTH_FIRST)) {
+    private List<ShapeTreeReference> getReferencedShapeTreesList(RecursionMethod recursionMethod) throws ShapeTreeException {
+        if (recursionMethod.equals(RecursionMethod.BREADTH_FIRST)) {
             return getReferencedShapeTreesListBreadthFirst();
         } else {
             List<ShapeTreeReference> referencedShapeTrees = new ArrayList<>();
