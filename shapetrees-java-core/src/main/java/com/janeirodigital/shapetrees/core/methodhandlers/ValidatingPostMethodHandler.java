@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+
 @Slf4j
 public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
@@ -22,7 +24,7 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
 
             // Look up the target container for the POST. Error if it doesn't exist, or is a manager resource
-            ManageableInstance targetContainer = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
+            ManageableInstance targetContainer = getInstance(this.resourceAccessor, shapeTreeContext, shapeTreeRequest.getUrl());
 
             // Get resource name from the slug or default to UUID
             String proposedName = shapeTreeRequest.getHeaders().firstValue(HttpHeader.SLUG.getValue()).orElse(UUID.randomUUID().toString());

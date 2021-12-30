@@ -17,6 +17,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import static com.janeirodigital.shapetrees.core.ManageableInstance.createInstance;
+import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,7 +67,7 @@ public class AbstractResourceAccessorTests {
     @SneakyThrows
     @DisplayName("Get instance from missing resource")
     void getInstanceFromMissingResource() {
-        ManageableInstance instance = this.resourceAccessor.getInstance(context, toUrl(server, "/static/resource/notpresent"));
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/notpresent"));
         Assertions.assertTrue(instance.getManageableResource() instanceof MissingManageableResource);
         Assertions.assertTrue(instance.getManagerResource() instanceof MissingManagerResource);
         Assertions.assertFalse(instance.isManaged());
@@ -80,7 +82,7 @@ public class AbstractResourceAccessorTests {
     void getInstanceFromManagedResource() {
         // If the resource is Manageable - determine if it is managed by getting manager
         // Get and store a ManagedResource in instance - Manager exists - store manager in instance too
-        ManageableInstance instance = this.resourceAccessor.getInstance(context, toUrl(server, "/static/resource/managed-container-1/"));
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/managed-container-1/"));
 
         Assertions.assertTrue(instance.getManageableResource() instanceof ManagedResource);
         Assertions.assertNotNull(instance.getManagerResource());
@@ -97,7 +99,7 @@ public class AbstractResourceAccessorTests {
     @SneakyThrows
     @DisplayName("Get instance for managed resource from manager request")
     void getInstanceFromManagedResourceFromManager() {
-        ManageableInstance instance = this.resourceAccessor.getInstance(context, toUrl(server, "/static/resource/managed-container-1/.shapetree"));
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/managed-container-1/.shapetree"));
         Assertions.assertNotNull(instance.getManagerResource());
         Assertions.assertFalse(instance.getManagerResource() instanceof MissingManagerResource);
         Assertions.assertTrue(instance.getManagerResource().isExists());
@@ -111,7 +113,7 @@ public class AbstractResourceAccessorTests {
     void failToGetInstanceForMissingManageableResourceFromManager() {
         // Note that in this request, the manager is also non-existent
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            ManageableInstance instance = this.resourceAccessor.getInstance(context, toUrl(server, "/static/resource/missing-resource-1.shapetree"));
+            ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/missing-resource-1.shapetree"));
         });
     }
 
@@ -121,7 +123,7 @@ public class AbstractResourceAccessorTests {
     void getInstanceFromUnmanagedResource() {
         // If the resource is Manageable - determine if it is managed by getting manager
         // Get and store an UnmanagedResource in instance - No manager exists - store the location of the manager url
-        ManageableInstance instance = this.resourceAccessor.getInstance(context, toUrl(server, "/static/resource/unmanaged-container-2/"));
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/unmanaged-container-2/"));
         Assertions.assertTrue(instance.getManageableResource() instanceof UnmanagedResource);
         Assertions.assertTrue(instance.getManagerResource() instanceof MissingManagerResource);
         Assertions.assertTrue(instance.isUnmanaged());
@@ -133,7 +135,7 @@ public class AbstractResourceAccessorTests {
     @DisplayName("Get instance from unmanaged resource from manager request")
     void getInstanceFromUnmanagedResourceFromManager() {
         // Manager resource doesn't exist. Unmanaged resource associated with it does exist
-        ManageableInstance instance = this.resourceAccessor.getInstance(context, toUrl(server, "/static/resource/unmanaged-container-2/.shapetree"));
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/unmanaged-container-2/.shapetree"));
         Assertions.assertTrue(instance.getManageableResource() instanceof UnmanagedResource);
         Assertions.assertTrue(instance.getManagerResource() instanceof MissingManagerResource);
         Assertions.assertTrue(instance.wasRequestForManager());
@@ -147,7 +149,7 @@ public class AbstractResourceAccessorTests {
     @DisplayName("Create instance from managed resource")
     void createInstanceFromManagedResource() {
         ResourceAttributes headers = new ResourceAttributes();
-        ManageableInstance instance = this.resourceAccessor.createInstance(context, "PUT", toUrl(server, "/static/resource/managed-container-1/managed-resource-1/"), headers, getMilestoneThreeBodyGraph(), "text/turtle");
+        ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/managed-container-1/managed-resource-1/"), headers, getMilestoneThreeBodyGraph(), "text/turtle");
         Assertions.assertTrue(instance.isManaged());
         Assertions.assertTrue(instance.getManageableResource() instanceof ManagedResource);
         Assertions.assertFalse(instance.getManageableResource() instanceof MissingManageableResource);
@@ -164,7 +166,7 @@ public class AbstractResourceAccessorTests {
     @DisplayName("Create instance from unmanaged resource")
     void createInstanceFromUnmanagedResource() {
         ResourceAttributes headers = new ResourceAttributes();
-        ManageableInstance instance = this.resourceAccessor.createInstance(context, "PUT", toUrl(server, "/static/resource/unmanaged-resource-1"), headers, "<#a> <#b> <#c>", "text/turtle");
+        ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/unmanaged-resource-1"), headers, "<#a> <#b> <#c>", "text/turtle");
         Assertions.assertTrue(instance.isUnmanaged());
         Assertions.assertTrue(instance.getManageableResource() instanceof UnmanagedResource);
         Assertions.assertTrue(instance.getManagerResource() instanceof MissingManagerResource);
@@ -177,7 +179,7 @@ public class AbstractResourceAccessorTests {
         // Resource exists - ERROR - can't create a manageable resource when one already exists
         ResourceAttributes headers = new ResourceAttributes(); // May need to populate this
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            ManageableInstance instance = this.resourceAccessor.createInstance(context, "PUT", toUrl(server, "/static/resource/unmanaged-container-2/"), headers, "<#a> <#b> <#c>", "text/turtle");
+            ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/unmanaged-container-2/"), headers, "<#a> <#b> <#c>", "text/turtle");
         });
     }
 
@@ -187,7 +189,7 @@ public class AbstractResourceAccessorTests {
     void createInstanceFromManagerResource() {
         // Create a new manager and store in instance and load the managed resource and store in instance (possibly just pre-fetch metadata if lazily loading)
         ResourceAttributes headers = new ResourceAttributes();
-        ManageableInstance instance = this.resourceAccessor.createInstance(context, "PUT", toUrl(server, "/static/resource/managed-container-2/.shapetree"), headers, getProjectTwoManagerGraph(), "text/turtle");
+        ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/managed-container-2/.shapetree"), headers, getProjectTwoManagerGraph(), "text/turtle");
         Assertions.assertTrue(instance.isManaged());
         Assertions.assertTrue(instance.getManageableResource() instanceof ManagedResource);
         Assertions.assertFalse(instance.getManagerResource() instanceof MissingManagerResource);
@@ -199,7 +201,7 @@ public class AbstractResourceAccessorTests {
     void failToCreateInstanceFromIsolatedManagerResource() {
         ResourceAttributes headers = new ResourceAttributes();
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            ManageableInstance instance = this.resourceAccessor.createInstance(context, "PUT", toUrl(server, "/static/resource/missing-resource-2.shapetree"), headers, getProjectTwoManagerGraph(), "text/turtle");
+            ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/missing-resource-2.shapetree"), headers, getProjectTwoManagerGraph(), "text/turtle");
         });
     }
 

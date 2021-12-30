@@ -3,7 +3,6 @@ package com.janeirodigital.shapetrees.core;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
 import java.net.URL;
-import java.util.List;
 
 /**
  * Interface used by the shape trees core for accessing {@link ManageableInstance}s
@@ -23,48 +22,6 @@ import java.util.List;
  * {@link #updateResource(ShapeTreeContext, String, InstanceResource, String) updateResource}.</p>
  */
 public interface ResourceAccessor {
-
-    /**
-     * Return a {@link ManageableInstance} constructed starting with the resource identified by the provided
-     * <code>resourceUrl</code>. The <code>resourceUrl</code> may target either a {@link ManageableResource},
-     * or a {@link ManagerResource}.
-     *
-     * <p>Both the {@link ManageableResource} and {@link ManagerResource} are retrieved and loaded as specifically
-     * typed sub-classes that indicate whether they exist, or (in the case of {@link ManageableResource})
-     * whether they are managed.</p>
-     * @param context {@link ShapeTreeContext}
-     * @param resourceUrl URL of the resource to get
-     * @return {@link ManageableInstance} including {@link ManageableResource} and {@link ManagerResource}
-     * @throws ShapeTreeException
-     */
-    ManageableInstance getInstance(ShapeTreeContext context, URL resourceUrl) throws ShapeTreeException;
-
-    /**
-     * Gets a {@link ManageableInstance} by first creating the resource identified by the provided
-     * <code>resourceUrl</code>, which could mean creating either a {@link ManageableResource} or a {@link ManagerResource}.
-     * The newly created resource is loaded into the instance, and the corresponding {@link ManageableResource} or
-     * {@link ManagerResource} is looked up and loaded into the instance alongside it. They are loaded as specifically
-     * typed sub-classes that indicate whether they exist, or (in the case of {@link ManageableResource}),
-     * whether they are managed.
-     * @param context {@link ShapeTreeContext}
-     * @param method Incoming HTTP method triggering resource creation
-     * @param resourceUrl URL of the resource to create
-     * @param headers Incoming HTTP headers
-     * @param body Body of the resource to create
-     * @param contentType Content-type of the resource to create
-     * @return {@link ManageableInstance} including {@link ManageableResource} and {@link ManagerResource}
-     * @throws ShapeTreeException
-     */
-    ManageableInstance createInstance(ShapeTreeContext context, String method, URL resourceUrl, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException;
-
-    /**
-     * Gets a list of {@link ManageableInstance}s contained in the container at the <code>containerResourceUrl</code>.
-     * @param context {@link ShapeTreeContext}
-     * @param containerResourceUrl URL of the target container
-     * @return List of contained {@link ManageableInstance}s
-     * @throws ShapeTreeException
-     */
-    List<ManageableInstance> getContainedInstances(ShapeTreeContext context, URL containerResourceUrl) throws ShapeTreeException;
 
     /**
      * Gets a specific {@link InstanceResource} identified by the provided <code>resourceUrl</code>.

@@ -10,7 +10,7 @@ import org.apache.jena.graph.Graph;
 import java.net.URL;
 import java.util.*;
 
-import static com.janeirodigital.shapetrees.core.ManageableInstance.TEXT_TURTLE;
+import static com.janeirodigital.shapetrees.core.ManageableInstance.*;
 
 @Slf4j
 public class ShapeTreeRequestHandler {
@@ -129,7 +129,7 @@ public class ShapeTreeRequestHandler {
 
         log.debug("Creating shape tree instance at {}", targetResourceUrl);
 
-        ManageableInstance createdInstance = this.resourceAccessor.createInstance(manageableInstance.getShapeTreeContext(), shapeTreeRequest.getMethod(), targetResourceUrl, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
+        ManageableInstance createdInstance = createInstance(this.resourceAccessor, manageableInstance.getShapeTreeContext(), shapeTreeRequest.getMethod(), targetResourceUrl, shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
 
         for (ShapeTreeAssignment containingAssignment : containingAssignments) {
 
@@ -231,7 +231,7 @@ public class ShapeTreeRequestHandler {
             // If the container is not empty, perform a recursive, depth first validation and assignment for each
             // contained resource by recursively calling this method (assignShapeTreeToResource)
             // TODO - Provide a configurable maximum limit on contained resources for a recursive plant, generate ShapeTreeException
-            List<ManageableInstance> containedResources = this.resourceAccessor.getContainedInstances(shapeTreeContext, manageableInstance.getManageableResource().getUrl());
+            List<ManageableInstance> containedResources = getContainedInstances(this.resourceAccessor, shapeTreeContext, manageableInstance.getManageableResource().getUrl());
             if (!containedResources.isEmpty()) {
                 Collections.sort(containedResources, new ResourceTypeAssignmentPriority());  // Evaluate containers, then resources
                 for (ManageableInstance containedResource : containedResources) {
@@ -273,7 +273,7 @@ public class ShapeTreeRequestHandler {
         if (manageableInstance.getManageableResource().isContainer() && !assignedShapeTree.getContains().isEmpty()) {
 
             // TODO - Should there also be a configurable maximum limit on unplanting?
-            List<ManageableInstance> containedResources = this.resourceAccessor.getContainedInstances(shapeTreeContext, manageableInstance.getManageableResource().getUrl());
+            List<ManageableInstance> containedResources = getContainedInstances(this.resourceAccessor, shapeTreeContext, manageableInstance.getManageableResource().getUrl());
             // If the container is not empty
             if (!containedResources.isEmpty()) {
                 // Sort contained resources so that containers are evaluated first, then resources
@@ -368,7 +368,7 @@ public class ShapeTreeRequestHandler {
     private ShapeTreeManager getRootManager(ShapeTreeContext shapeTreeContext, ShapeTreeAssignment assignment) throws ShapeTreeException {
 
         URL rootAssignmentUrl = assignment.getRootAssignment();
-        ManageableInstance instance = this.resourceAccessor.getInstance(shapeTreeContext, rootAssignmentUrl);
+        ManageableInstance instance = getInstance(this.resourceAccessor, shapeTreeContext, rootAssignmentUrl);
 
         return instance.getManagerResource().getManager();
 
@@ -427,7 +427,7 @@ public class ShapeTreeRequestHandler {
     }
 
     private void ensureTargetResourceDoesNotExist(ShapeTreeContext shapeTreeContext, URL targetResourceUrl, String message) throws ShapeTreeException {
-        ManageableInstance targetInstance = this.resourceAccessor.getInstance(shapeTreeContext, targetResourceUrl);
+        ManageableInstance targetInstance = getInstance(this.resourceAccessor, shapeTreeContext, targetResourceUrl);
         if (targetInstance.wasRequestForManager() || targetInstance.getManageableResource().isExists()) {
             throw new ShapeTreeException(409, message);
         }

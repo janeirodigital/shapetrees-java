@@ -15,6 +15,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 
+import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.SPARQL_UPDATE;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
 import static com.janeirodigital.shapetrees.core.enums.HttpHeader.*;
@@ -39,7 +40,7 @@ public class OkHttpShapeTreeClient {
         Objects.requireNonNull(context, "Must provide a valid shape tree context for shape tree discovery");
         log.debug("Discovering shape tree manager managing {}", resourceUrl);
         final OkHttpResourceAccessor accessor = new OkHttpResourceAccessor();
-        ManageableInstance instance = accessor.getInstance(context, resourceUrl);
+        ManageableInstance instance = getInstance(accessor, context, resourceUrl);
         ManageableResource manageableResource = instance.getManageableResource();
 
         if  (!manageableResource.isExists()) {
@@ -89,7 +90,7 @@ public class OkHttpShapeTreeClient {
         // Lookup the shape tree
         ShapeTree shapeTree = ShapeTreeFactory.getShapeTree(shapeTreeUrl);
         // Lookup the target resource
-        ManageableInstance instance = accessor.getInstance(context, resourceUrl);
+        ManageableInstance instance = getInstance(accessor, context, resourceUrl);
         ManageableResource manageableResource = instance.getManageableResource();
 
         if (!manageableResource.isExists()) {
@@ -150,7 +151,7 @@ public class OkHttpShapeTreeClient {
 
         // Lookup the target resource
         final OkHttpResourceAccessor accessor = new OkHttpResourceAccessor();
-        ManageableInstance instance = accessor.getInstance(context, resourceUrl);
+        ManageableInstance instance = getInstance(accessor, context, resourceUrl);
         ManageableResource manageableResource = instance.getManageableResource();
 
         if (!manageableResource.isExists()) {

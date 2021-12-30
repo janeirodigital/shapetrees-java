@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
+import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+
 @Slf4j
 public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
@@ -24,7 +26,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
 
             ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
 
-            ManageableInstance targetInstance = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
+            ManageableInstance targetInstance = getInstance(this.resourceAccessor, shapeTreeContext, shapeTreeRequest.getUrl());
 
             if (targetInstance.wasRequestForManager()) {
                 // Target resource is for shape tree manager, manage shape trees to plant and/or unplant
@@ -40,7 +42,7 @@ public class ValidatingPatchMethodHandler extends AbstractValidatingMethodHandle
                     }
                 } else {
                     // The target resource doesn't exist
-                    ManageableInstance parentInstance = this.resourceAccessor.getInstance(shapeTreeContext, targetResource.getParentContainerUrl());
+                    ManageableInstance parentInstance = getInstance(this.resourceAccessor, shapeTreeContext, targetResource.getParentContainerUrl());
                     if (parentInstance.isManaged()) {
                         // If the parent container is managed by a shape tree, the resource to create must be validated
                         return this.requestHandler.createShapeTreeInstance(targetInstance, parentInstance, shapeTreeRequest, targetResource.getName());

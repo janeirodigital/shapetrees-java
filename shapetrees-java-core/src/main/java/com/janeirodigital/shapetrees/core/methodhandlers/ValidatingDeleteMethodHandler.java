@@ -10,6 +10,8 @@ import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 
 import java.util.Optional;
 
+import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+
 public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
     public ValidatingDeleteMethodHandler(ResourceAccessor resourceAccessor) {
@@ -19,7 +21,7 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
     @Override
     public Optional<DocumentResponse> validateRequest(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
             ShapeTreeContext shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
-            ManageableInstance targetInstance = this.resourceAccessor.getInstance(shapeTreeContext, shapeTreeRequest.getUrl());
+            ManageableInstance targetInstance = getInstance(this.resourceAccessor, shapeTreeContext, shapeTreeRequest.getUrl());
 
             if (targetInstance.wasRequestForManager() && targetInstance.getManagerResource().isExists()) {
                 // If the DELETE request is for an existing shapetree manager resource,
