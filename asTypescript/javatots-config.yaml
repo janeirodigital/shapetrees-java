@@ -1,0 +1,44 @@
+inputDirectory: ..
+outputDirectory: .
+packageTemplate: "// Corresponding shapetrees-java package: %s"
+indentation: 2
+unknownImportTemplate: "import { %s } from %s;"
+commentThrows: true
+unknownAnnotations: comment # comment, ignore, throw (everything else interpreted as throw)
+
+moduleMaps:
+  shapetrees-java-client-core:
+    srcRoot: src/main/java
+    outputPath: packages/client-core/src
+    tsModule: '@shapetrees/clientcore/src'
+    packageMaps:
+      - pkg: com.janeirodigital.shapetrees.client.core
+        destPath:
+  shapetrees-java-client-http:
+    srcRoot: src/main/java
+    outputPath: packages/client-http/src
+    tsModule: '@shapetrees/clienthttp/src'
+    packageMaps:
+      - pkg: com.janeirodigital.shapetrees.client.http
+        destPath:
+  shapetrees-java-core:
+    srcRoot: src/main/java
+    outputPath: packages/core/src
+    tsModule: '@shapetrees/core/src'
+    packageMaps:
+      - pkg: com.janeirodigital.shapetrees.core
+        destPath:
+  shapetrees-java-javahttp:
+    srcRoot: src/main/java
+    outputPath: packages/javahttp/src
+    tsModule: '@shapetrees/javahttp/src'
+    packageMaps:
+      - pkg: com.janeirodigital.shapetrees.javahttp
+        destPath:
+  shapetrees-java-tests:
+    srcRoot: src/test/java
+    outputPath: packages/tests/src
+    tsModule: '@shapetrees/tests'
+    packageMaps:
+      - pkg: com.janeirodigital.shapetrees.tests
+        destPath:

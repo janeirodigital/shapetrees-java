@@ -34,20 +34,10 @@ public class Fixture {
      * @param fileName filename should not contain extension or relative path. ie: login
      */
     public static Fixture parseFrom(String fileName, RecordedRequest request) {
-        return parseFrom(fileName, new YamlParser(), request);
-    }
-
-
-    /**
-     * Parse the given filename and returns the Fixture object.
-     *
-     * @param fileName filename should not contain extension or relative path. ie: login
-     * @param parser   parser is required for parsing operation, it should not be null
-     */
-    public static Fixture parseFrom(String fileName, Parser parser, RecordedRequest request) {
         if (fileName == null) {
             throw new NullPointerException("File name should not be null");
         }
+        Parser parser = new YamlParser();
         String path = "fixtures/" + fileName + ".yaml";
         Map<String, String> variables = new HashMap<>();
         variables.put("SERVER_BASE", getServerBaseFromRequest(request));

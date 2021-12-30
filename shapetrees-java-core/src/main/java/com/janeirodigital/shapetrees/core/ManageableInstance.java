@@ -25,7 +25,7 @@ import java.util.Objects;
  * is immutable.
  */
 @Slf4j @Getter
-public class ManageableInstance {
+public class  ManageableInstance {
     public static final String TEXT_TURTLE = "text/turtle";
 
     private final ResourceAccessor resourceAccessor;

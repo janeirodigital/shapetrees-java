@@ -76,8 +76,8 @@ class GraphHelperTests {
     @DisplayName("Parse valid TTL")
     @SneakyThrows
     void parseValidTTL() {
-        String invalidTtl = "<#a> <#b> <#c> .";
-        Assertions.assertNotNull(GraphHelper.readStringIntoGraph(URI.create("https://example.com/a"), invalidTtl, "text/turtle"));
+        String validTtl = "<#a> <#b> <#c> .";
+        Assertions.assertNotNull(GraphHelper.readStringIntoGraph(URI.create("https://example.com/a"), validTtl, "text/turtle"));
     }
 
 
@@ -86,7 +86,7 @@ class GraphHelperTests {
     @SneakyThrows
     void writeGraphToTTLString() {
         Graph graph = ModelFactory.createDefaultModel().getGraph();
-        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
+        graph.add(new Triple(NodeFactory.createURI("#b"), NodeFactory.createURI("#c"), NodeFactory.createURI("#d")));
         Assertions.assertNotNull(GraphHelper.writeGraphToTurtleString(graph));
     }
 
@@ -102,7 +102,7 @@ class GraphHelperTests {
     @SneakyThrows
     void writeClosedGraphtoTTLString() {
         Graph graph = ModelFactory.createDefaultModel().getGraph();
-        graph.add(new Triple(NodeFactory.createURI("<#b>"), NodeFactory.createURI("<#c>"), NodeFactory.createURI("<#d>")));
+        graph.add(new Triple(NodeFactory.createURI("#b"), NodeFactory.createURI("#c"), NodeFactory.createURI("#d")));
         graph.close();
         Assertions.assertNull(GraphHelper.writeGraphToTurtleString(graph));
     }

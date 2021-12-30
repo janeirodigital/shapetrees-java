@@ -107,4 +107,15 @@ public class ShapeTreeAssignment {
         return this.getUrl().equals(this.getRootAssignment());
     }
 
+    @Override
+    public String toString() {
+        return "ShapeTreeAssignment{" +
+                "shapeTree=" + shapeTree +
+                ", managedResource=" + managedResource +
+                ", rootAssignment=" + rootAssignment +
+                ", focusNode=" + focusNode +
+                ", shape=" + shape +
+                ", url=" + url +
+                '}';
+    }
 }

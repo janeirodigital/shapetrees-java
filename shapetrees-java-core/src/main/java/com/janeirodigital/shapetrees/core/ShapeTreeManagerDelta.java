@@ -40,7 +40,7 @@ public class ShapeTreeManagerDelta {
         if (updatedManager == null || updatedManager.getAssignments().isEmpty()) {
             // All assignments have been removed in the updated manager, so any existing assignments should
             // similarly be removed. No need for further comparison.
-            delta.removedAssignments = existingManager.getAssignments();
+            delta.removedAssignments = existingManager.getAssignments(); // known not null from checking both parms at top
             return delta;
         }
 
@@ -101,7 +101,7 @@ public class ShapeTreeManagerDelta {
     }
 
     public boolean allRemoved() {
-        return (!this.isUpdated() && this.removedAssignments.size() == this.existingManager.getAssignments().size());
+        return (!this.isUpdated() && this.removedAssignments != null && this.removedAssignments.size() == this.existingManager.getAssignments().size());
     }
 
     public boolean isUpdated() {

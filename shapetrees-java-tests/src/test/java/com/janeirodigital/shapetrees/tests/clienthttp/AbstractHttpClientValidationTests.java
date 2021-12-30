@@ -60,7 +60,7 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
                                              toUrl(server, "/data/container-1/resource-1#element"));
 
         // Plant the data repository on newly created data container
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
+        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -84,7 +84,7 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/container-1/resource-1#resource"));
 
         // Plant the data repository on newly created data container
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
+        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
@@ -107,19 +107,19 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
 
         // Only one matching target focus node is provided
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/super/bad#node"));
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
+        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Multiple non-matching target focus nodes are provided
         focusNodes = Arrays.asList(toUrl(server, "/super/bad#node"),
                                    toUrl(server, "/data/container-1/resource-1#badnode"),
                                    toUrl(server, "/data/container-1/#badnode"));
-        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
+        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Only one matching target focus node is provided when two are needed
         focusNodes = Arrays.asList(toUrl(server, "/data/container-1/resource-1#resource"));
-        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
+        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
         Assertions.assertEquals(422, response.getStatusCode());
     }
 
@@ -166,19 +166,19 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
 
         // Only one matching target shape tree is provided
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#AttributeTree"));
-        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
+        DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // Multiple non-matching target focus nodes are provided
         targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#OtherAttributeTree"),
                                          toUrl(server, "/static/shapetrees/validation/shapetree#OtherElementTree"));
-        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
+        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
         Assertions.assertEquals(422, response.getStatusCode());
 
         // One tree provided that isn't in either st:contains lists
         targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#AttributeTree"),
                                         toUrl(server, "/static/shapetrees/validation/shapetree#StandaloneTree"));
-        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, targetShapeTrees, "resource-1", false, getResource1BodyString(), "text/turtle");
+        response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
         Assertions.assertEquals(422, response.getStatusCode());
     }
 

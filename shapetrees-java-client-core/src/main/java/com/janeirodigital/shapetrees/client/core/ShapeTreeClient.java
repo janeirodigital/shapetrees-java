@@ -69,29 +69,29 @@ public interface ShapeTreeClient {
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param parentContainer The container the created resource should be created within
      * @param focusNodes One or more nodes/subjects to use as the focus for shape validation
+     * @param bodyString String representation of body of the created resource
+     * @param contentType Content type to parse the bodyString parameter as
      * @param targetShapeTrees One or more target shape trees the resource should be validated by
      * @param proposedName Proposed resource name (aka Slug) for the resulting resource
      * @param isContainer Specifies whether the newly created resource should be created as a container or not
-     * @param bodyString String representation of body of the created resource
-     * @param contentType Content type to parse the bodyString parameter as
      * @return DocumentResponse containing status and response headers/attributes
      * @throws ShapeTreeException ShapeTreeException
      */
-    DocumentResponse postManagedInstance(ShapeTreeContext context, URL parentContainer, List<URL> focusNodes, List<URL> targetShapeTrees, String proposedName, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse postManagedInstance(ShapeTreeContext context, URL parentContainer, List<URL> focusNodes, String bodyString, String contentType, List<URL> targetShapeTrees, String proposedName, Boolean isContainer) throws ShapeTreeException;
 
     /**
      * Creates a resource via HTTP PUT that has been validated against the provided target shape tree
      * @param context ShapeTreeContext that would be used for authentication purposes
      * @param targetResource The target resource to be created or updated
      * @param focusNodes One or more nodes/subjects to use as the focus for shape validation
-     * @param targetShapeTrees The shape trees that a proposed resource to be created should be validated against
-     * @param isContainer Specifies whether a newly created resource should be created as a container or not
      * @param bodyString String representation of the body of the resource to create or update
      * @param contentType Content type to parse the bodyString parameter as
+     * @param targetShapeTrees The shape trees that a proposed resource to be created should be validated against
+     * @param isContainer Specifies whether a newly created resource should be created as a container or not
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
      */
-    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, List<URL> focusNodes, List<URL> targetShapeTrees, Boolean isContainer, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, List<URL> focusNodes, String bodyString, String contentType, List<URL> targetShapeTrees, Boolean isContainer) throws ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PUT that has been validated against an associated shape tree
@@ -103,7 +103,7 @@ public interface ShapeTreeClient {
      * @return DocumentResponse containing status and response header / attributes
      * @throws ShapeTreeException
      */
-    DocumentResponse putManagedInstance(ShapeTreeContext context, URL targetResource, List<URL> focusNodes, String bodyString, String contentType) throws ShapeTreeException;
+    DocumentResponse updateManagedInstance(ShapeTreeContext context, URL targetResource, List<URL> focusNodes, String bodyString, String contentType) throws ShapeTreeException;
 
     /**
      * Updates a resource via HTTP PATCH that has been validated against an associated shape tree
