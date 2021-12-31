@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.core.helpers;
 
 import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
-import com.janeirodigital.shapetrees.core.enums.LinkRelations;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
+import com.janeirodigital.shapetrees.core.enums.LinkRelation;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
@@ -16,9 +16,11 @@ import org.apache.jena.update.UpdateRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType.NON_RDF;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
 @Slf4j
@@ -41,61 +43,43 @@ public class RequestHelper {
      * @return ShapeTreeContext object populated with authentication details, if present
      */
     public static ShapeTreeContext buildContextFromRequest(ShapeTreeRequest shapeTreeRequest) {
-        return new ShapeTreeContext(shapeTreeRequest.getHeaderValue(HttpHeaders.AUTHORIZATION.getValue()));
+        return new ShapeTreeContext(shapeTreeRequest.getHeaderValue(HttpHeader.AUTHORIZATION.getValue()));
     }
 
     /**
-     * This determines the type of resource being processed.
+     * Determines the type of resource represented by an incoming ShapeTreeRequest.
      *
      * Initial test is based on the incoming request headers, specifically the Content-Type header.
      * If the content type is not one of the accepted RDF types, it will be treated as a NON-RDF source.
      *
      * Then the determination becomes whether or not the resource is a container.
      *
-     * If it is a PATCH or PUT and the URL provided already exists, then the existing resource's Link header(s)
-     * are used to determine if it is a container or not.
-     *
-     * If it is a POST or if the resource does not already exist, the incoming request Link header(s) are relied
-     * upon.
-     *
      * @param shapeTreeRequest The current incoming request
-     * @param existingResource The resource located at the incoming request's URL
      * @return ShapeTreeResourceType aligning to current request
      * @throws ShapeTreeException ShapeTreeException throw, specifically if Content-Type is not included on request
      */
-    public static ShapeTreeResourceType determineResourceType(ShapeTreeRequest shapeTreeRequest, ManageableInstance existingResource) throws ShapeTreeException {
-        boolean isNonRdf;
-        if (!shapeTreeRequest.getMethod().equals(DELETE)) {
-            String incomingRequestContentType = shapeTreeRequest.getContentType();
-            // Ensure a content-type is present
-            if (incomingRequestContentType == null) {
-                throw new ShapeTreeException(400, "Content-Type is required");
-            }
+    public static ShapeTreeResourceType getIncomingResourceType(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
 
-            isNonRdf = determineIsNonRdfSource(incomingRequestContentType);
+        final List<String> methods = Arrays.asList("POST", "PUT", "PATCH");
 
-        } else {
-            isNonRdf = false;
+        if (!methods.contains(shapeTreeRequest.getMethod())) {
+            throw new ShapeTreeException(500, "Cannot get resource type for unsupported method: " + shapeTreeRequest.getMethod());
         }
 
-        if (isNonRdf) {
-            return ShapeTreeResourceType.NON_RDF;
+        if (shapeTreeRequest.getContentType() == null) {
+            throw new ShapeTreeException(500, "Cannot determine incoming resource type because Content-Type is missing from request");
         }
 
-        boolean isContainer = false;
-        boolean resourceAlreadyExists = existingResource.getManageableResource().isExists();
-        if ((shapeTreeRequest.getMethod().equals(PUT) || shapeTreeRequest.getMethod().equals(PATCH)) && resourceAlreadyExists) {
-            isContainer = existingResource.getManageableResource().isContainer();
-        } else if (shapeTreeRequest.getLinkHeaders() != null) {
-            isContainer = getIsContainerFromRequest(shapeTreeRequest);
-        }
+        if (isNonRdfSource(shapeTreeRequest.getContentType())) { return NON_RDF; }
+
+        boolean isContainer = getIsContainerFromRequest(shapeTreeRequest);
 
         return isContainer ? ShapeTreeResourceType.CONTAINER : ShapeTreeResourceType.RESOURCE;
     }
 
     public static List<URL>
     getIncomingFocusNodes(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
-        final List<String> focusNodeStrings = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.FOCUS_NODE.getValue());
+        final List<String> focusNodeStrings = shapeTreeRequest.getLinkHeaders().allValues(LinkRelation.FOCUS_NODE.getValue());
         final List<URL> focusNodeUrls = new ArrayList<>();
         if (!focusNodeStrings.isEmpty()) {
             for (String focusNodeUrlString : focusNodeStrings) {
@@ -118,7 +102,7 @@ public class RequestHelper {
      */
     public static List<URL>
     getIncomingTargetShapeTrees(ShapeTreeRequest shapeTreeRequest, URL baseUrl) throws ShapeTreeException {
-        final List<String> targetShapeTreeStrings = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TARGET_SHAPETREE.getValue());
+        final List<String> targetShapeTreeStrings = shapeTreeRequest.getLinkHeaders().allValues(LinkRelation.TARGET_SHAPETREE.getValue());
         final List<URL> targetShapeTreeUrls = new ArrayList<>();
         if (!targetShapeTreeStrings.isEmpty()) {
             for (String targetShapeTreeUrlString : targetShapeTreeStrings) {
@@ -174,7 +158,7 @@ public class RequestHelper {
     public static Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseUrl, InstanceResource targetResource) throws ShapeTreeException {
         log.debug("Reading request body into graph with baseUrl {}", baseUrl);
 
-        if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF
+        if ((shapeTreeRequest.getResourceType() == NON_RDF
                 && !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update"))
                 || shapeTreeRequest.getBody() == null
                 || shapeTreeRequest.getBody().length() == 0) {
@@ -217,7 +201,7 @@ public class RequestHelper {
      * @param incomingRequestContentType Content type to test
      * @return Boolean indicating whether it is RDF or not
      */
-    private static boolean determineIsNonRdfSource(String incomingRequestContentType) {
+    private static boolean isNonRdfSource(String incomingRequestContentType) {
         return (!supportedRDFContentTypes.contains(incomingRequestContentType.toLowerCase()) &&
                 !supportedSPARQLContentTypes.contains(incomingRequestContentType.toLowerCase()));
     }
@@ -230,13 +214,16 @@ public class RequestHelper {
     private static Boolean getIsContainerFromRequest(ShapeTreeRequest shapeTreeRequest) {
         // First try to determine based on link headers
         if (shapeTreeRequest.getLinkHeaders() != null) {
-            final List<String> typeLinks = shapeTreeRequest.getLinkHeaders().allValues(LinkRelations.TYPE.getValue());
+            final List<String> typeLinks = shapeTreeRequest.getLinkHeaders().allValues(LinkRelation.TYPE.getValue());
             if (!typeLinks.isEmpty()) {
                 return (typeLinks.contains(LdpVocabulary.CONTAINER) ||
                         typeLinks.contains(LdpVocabulary.BASIC_CONTAINER));
             }
         }
-        // As a secondary attempt, use slash path semantics
+        if (shapeTreeRequest.getMethod().equals("POST")) {
+            String slug = shapeTreeRequest.getHeaderValue(HttpHeader.SLUG.getValue());
+            if (slug != null) { return slug.endsWith("/"); }
+        }
         return shapeTreeRequest.getUrl().getPath().endsWith("/");
     }
 

@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.core;
 
-import com.janeirodigital.shapetrees.core.enums.HttpHeaders;
+import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
@@ -60,6 +60,6 @@ public class InstanceResource {
         if (!this.isExists()) { return null; }
         if (baseUrl == null) { baseUrl = this.url; }
         final URI baseUri = urlToUri(baseUrl);
-        return GraphHelper.readStringIntoGraph(baseUri, this.getBody(), this.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null));
+        return GraphHelper.readStringIntoGraph(baseUri, this.getBody(), this.getAttributes().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null));
     }
 }

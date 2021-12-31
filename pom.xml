@@ -85,12 +85,8 @@
 
     <modules>
         <module>shapetrees-java-core</module>
-        <module>shapetrees-java-client-core</module>
-        <module>shapetrees-java-client-http</module>
-        <module>shapetrees-java-okhttp</module>
-        <module>shapetrees-java-javahttp</module>
+        <module>shapetrees-java-client-okhttp</module>
         <module>shapetrees-java-coverage</module>
-        <module>shapetrees-java-tests</module>
     </modules>
 
     <build>
@@ -158,8 +154,6 @@
                 <version>${maven-javadoc.version}</version>
                 <configuration>
                     <sourcepath>
-                        shapetrees-java-client-core/target/delombok;
-                        shapetrees-java-client-http/target/delombok;
                         shapetrees-java-core/target/delombok;
                         shapetrees-java-javahttp/target/delombok;
                         shapetrees-java-okhttp/target/delombok
