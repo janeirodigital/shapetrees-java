@@ -1,14 +1,14 @@
 package com.janeirodigital.shapetrees.tests.clienthttp;
 
 import com.janeirodigital.shapetrees.client.http.HttpClient;
-import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
+import com.janeirodigital.shapetrees.client.http.HttpClientFactory;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AbstractHttpClientInitializeTests extends AbstractHttpClientTests {
+public class AbstractHttpClientInitializeTests {
 
-    private static RequestMatchingFixtureDispatcher dispatcher = null;
+    protected HttpClientFactory factory;
 
     public AbstractHttpClientInitializeTests() {
         // Call AbstractHttpClient constructor
