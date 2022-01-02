@@ -44,7 +44,7 @@ public class JavaHttpClient implements HttpClient {
         try {
             body = Objects.requireNonNull(response.body()).toString();
         } catch (NullPointerException ex) {
-            log.error("Exception retrieving body string");
+            throw new ShapeTreeException(500, "Unable to read body from " + request.method + " <" + request.resourceURL + "> response");
         }
         return new DocumentResponse(new ResourceAttributes(response.headers().map()), body, response.statusCode());
     }

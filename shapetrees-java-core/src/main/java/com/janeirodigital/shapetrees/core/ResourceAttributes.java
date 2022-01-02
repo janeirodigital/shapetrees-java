@@ -73,7 +73,7 @@ public class ResourceAttributes {
                 linkHeaderMap.myMapOfLists.computeIfAbsent(rel, k -> new ArrayList<>());
                 linkHeaderMap.myMapOfLists.get(rel).add(uri);
             } else {
-                log.warn("Unable to parse link header: [{}]", headerValue);
+                log.warn("Unable to parse link header: [{}]", headerValue); // TODO: I think think this should throw (ericP).
             }
         }
         return linkHeaderMap;

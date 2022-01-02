@@ -43,7 +43,7 @@ public class OkHttpClient implements HttpClient {
         try {
             body = Objects.requireNonNull(response.body()).string();
         } catch (IOException | NullPointerException ex) {
-            log.error("Exception retrieving body string");
+            throw new ShapeTreeException(500, "Unable to read body from " + request.method + " <" + request.resourceURL + "> response");
         }
         return new DocumentResponse(new ResourceAttributes(response.headers().toMultimap()), body, response.code());
     }
@@ -120,7 +120,7 @@ public class OkHttpClient implements HttpClient {
      * @throws ShapeTreeException
      */
     private okhttp3.Response fetch(HttpRequest request) throws ShapeTreeException {
-        if (request.body == null)
+        if (request.body == null) // TODO: e.g. AbstractHttpClientTypeTests.createContainer() calls with a null body. Should either allow nulls or require "" all up and down the chain.
             request.body = "";
 
         try {

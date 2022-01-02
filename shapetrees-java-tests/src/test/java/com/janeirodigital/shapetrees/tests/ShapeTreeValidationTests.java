@@ -216,7 +216,7 @@ class ShapeTreeValidationTests {
         // so it should return an error when using to validate
         ShapeTree noShapeValidationTree = ShapeTreeFactory.getShapeTree(toUrl(server, "/static/shapetrees/validation/shapetree#NoShapeValidationTree"));
         String graphTtl = "<#a> <#b> <#c> .";
-        List<URL> focusNodeUrls = List.of(toUrl(server,"http://a.example/b/c.d#a"));
+        List<URL> focusNodeUrls = List.of(new URL("http://a.example/b/c.d#a"));
         StringReader sr = new StringReader(graphTtl);
         Model model = ModelFactory.createDefaultModel(); // TODO: how about: GraphHelper.readStringIntoModel(new URL("http://example.com/"), graphTtl, "text/turtle")
         RDFDataMgr.read(model, sr, "http://example.com/", Lang.TTL);

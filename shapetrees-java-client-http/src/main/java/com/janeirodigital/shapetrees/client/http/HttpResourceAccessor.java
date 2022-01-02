@@ -66,7 +66,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
     public ManageableInstance
     getInstance(ShapeTreeContext context, URL resourceUrl) throws ShapeTreeException {
 
-        InstanceResource resource = this.getResource(context, resourceUrl);
+        final InstanceResource resource = this.getResource(context, resourceUrl);
 
         if (resource instanceof MissingManageableResource) {
             // Get is for a manageable resource that doesn't exist

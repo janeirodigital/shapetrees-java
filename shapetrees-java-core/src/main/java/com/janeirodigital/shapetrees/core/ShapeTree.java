@@ -156,7 +156,7 @@ public class ShapeTree {
 
         } else {  // No focus nodes were provided for validator, so all subject nodes will be evaluated
 
-            List<Node> evaluateNodes = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
+            List<Node> evaluateNodes = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList(); // TODO: handle different node types, ald look at objects if static analysis shows focus is value of any inverse property
 
             for (Node evaluateNode : evaluateNodes) {
 

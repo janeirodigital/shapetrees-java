@@ -34,6 +34,12 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         dispatcherList.add(new DispatcherEntry(List.of("type/non-rdf-resources-container"), "GET", "/non-rdf-resources/", null));
         dispatcherList.add(new DispatcherEntry(List.of("type/non-rdf-resources-container-manager"), "GET", "/non-rdf-resources/.shapetree", null));
         dispatcherList.add(new DispatcherEntry(List.of("shapetrees/type-shapetree-ttl"), "GET", "/static/shapetrees/type/shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("type/valid-container-create-response"), "POST", "/containers/valid-container/", null));
+        dispatcherList.add(new DispatcherEntry(List.of("http/201"), "POST", "/containers/valid-container/.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("type/valid-resource-create-response"), "POST", "/resources/valid-resource", null));
+        dispatcherList.add(new DispatcherEntry(List.of("http/201"), "POST", "/resources/valid-resource.shapetree", null));
+        dispatcherList.add(new DispatcherEntry(List.of("type/valid-non-rdf-resource-create-response"), "POST", "/non-rdf-resources/valid-non-rdf-resource", null));
+        dispatcherList.add(new DispatcherEntry(List.of("http/201"), "POST", "/non-rdf-resources/valid-non-rdf-resource.shapetree", null)); // TODO: Test: should this fail? should it have already failed?
 
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
     }
@@ -44,10 +50,6 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
     void createContainer() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-
-        // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-container-create-response"), "POST", "/containers/valid-container/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/containers/valid-container/.shapetree", null));
         DocumentResponse response;
 
         // Provide target shape tree
@@ -62,6 +64,7 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
 
     }
 
+/*
     @SneakyThrows
     @Test
     @Label("Fail to create resource when only containers are allowed")
@@ -91,10 +94,6 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
     void createResource() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-
-        // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-resource-create-response"), "POST", "/resources/valid-resource", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/resources/valid-resource.shapetree", null));
         DocumentResponse response;
 
         // Provide target shape tree
@@ -136,10 +135,6 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
     void createNonRDFResource() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-
-        // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-non-rdf-resource-create-response"), "POST", "/non-rdf-resources/valid-non-rdf-resource", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/non-rdf-resources/valid-non-rdf-resource.shapetree", null)); // TODO: Test: should this fail? should it have already failed?
         DocumentResponse response;
 
         response = shapeTreeClient.postManagedInstance(context, toUrl(server, "/non-rdf-resources/"), null, null, "application/octet-stream", Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree")), "valid-non-rdf-resource", false);
@@ -171,5 +166,6 @@ public class AbstractHttpClientTypeTests extends AbstractHttpClientTests {
         Assertions.assertEquals(422, response.getStatusCode());
 
     }
+*/
 
 }

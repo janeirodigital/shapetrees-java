@@ -96,7 +96,8 @@ public class ShapeTreeRequestHandler {
 
     // TODO: #87: do sanity checks on meta of meta, c.f. @see https://github.com/xformativ/shapetrees-java/issues/87
     public Optional<DocumentResponse> createShapeTreeInstance(ManageableInstance manageableInstance, ManageableInstance containerResource, ShapeTreeRequest shapeTreeRequest, String proposedName) throws ShapeTreeException {
-        // Sanity check user-owned resource @@ delete 'cause type checks
+        // Sanity check user-owned resource
+        ensureExists(shapeTreeRequest.getBody(), "Can't create an instance without a body -- try \"\" if it's empty."); // TODO c.f. {Java,Ok}HttpClient.fetch body assignment.
         ensureInstanceResourceExists(containerResource.getManageableResource(),"Target container for resource creation not found");
         ensureRequestResourceIsContainer(containerResource.getManageableResource(),"Cannot create a shape tree instance in a non-container resource");
 
@@ -452,6 +453,15 @@ public class ShapeTreeRequestHandler {
             throw new ShapeTreeException(400, message);
         }
     }
+
+    // TODO: replace `ensureAssignmentExists` with `ensureExists` ? Doesn't look like it works for `ensureShapeTreeManagerExists`.
+    private <T> T ensureExists(T checkMe, String message) throws ShapeTreeException {
+        if (checkMe == null) {
+            throw new ShapeTreeException(400, message);
+        }
+    return checkMe;
+    }
+
 
     private void ensureAllRemovedFromManagerByDelete(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
         if (!shapeTreeRequest.getMethod().equals(DELETE)) {
