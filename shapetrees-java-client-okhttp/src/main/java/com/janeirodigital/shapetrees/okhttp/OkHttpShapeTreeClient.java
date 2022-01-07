@@ -2,14 +2,12 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.ContentType;
-import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.List;
@@ -18,7 +16,8 @@ import java.util.Objects;
 import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.SPARQL_UPDATE;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
-import static com.janeirodigital.shapetrees.core.enums.HttpHeader.*;
+import static com.janeirodigital.shapetrees.core.enums.HttpHeader.CONTENT_TYPE;
+import static com.janeirodigital.shapetrees.core.enums.HttpHeader.SLUG;
 import static com.janeirodigital.shapetrees.core.enums.LinkRelation.*;
 import static com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary.BASIC_CONTAINER;
 import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
@@ -114,16 +113,9 @@ public class OkHttpShapeTreeClient {
             log.debug("Resource {} is not currently managed by a shape tree", resourceUrl);
         }
 
-        // Initialize a shape tree assignment based on the supplied parameters
+        // Initialize a shape tree assignment based on the supplied parameters and add it to the manager
         URL assignmentUrl = manager.mintAssignmentUrl();
-        ShapeTreeAssignment assignment = new ShapeTreeAssignment(shapeTreeUrl,
-                resourceUrl,
-                assignmentUrl,
-                focusNodeUrl,
-                shapeTree.getShape(),
-                assignmentUrl);
-
-        // Add the assignment to the manager
+        ShapeTreeAssignment assignment = new ShapeTreeAssignment(shapeTreeUrl, resourceUrl, assignmentUrl, focusNodeUrl, shapeTree.getShape(), assignmentUrl);
         manager.addAssignment(assignment);
 
         // Get an RDF version of the manager stored in a turtle string
@@ -132,22 +124,7 @@ public class OkHttpShapeTreeClient {
 
         log.debug("Updating shape tree manager resource at {}", manager.getId());
 
-        Request.Builder requestBuilder = new Request.Builder();
-        requestBuilder.url(managerResourceUrl);
-        RequestBody requestBody = RequestBody.create(sw.toString(), MediaType.get("text/turtle"));
-        requestBuilder.method("PUT", requestBody);
-        if (context.hasCredentials()) {
-            Headers headers = setHttpHeader(HttpHeader.AUTHORIZATION, context.getCredentials());
-            requestBuilder.headers(headers);
-        }
-
-        try (Response response = okHttpClient.newCall(requestBuilder.build()).execute()) {
-            // wrapping the call in try-with-resources automatically closes the response
-            return checkResponse(response);
-        } catch (IOException ex) {
-            throw new ShapeTreeException(500, "Failed to put remote resource: " + ex.getMessage());
-        }
-
+        return putHttpResource(okHttpClient, managerResourceUrl, context.getCredentials(), null, sw.toString(), TEXT_TURTLE);
     }
 
     public static Response unplant(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, URL shapeTreeUrl) throws ShapeTreeException {
