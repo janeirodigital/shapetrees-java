@@ -6,8 +6,6 @@ import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
-import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
-import com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -18,31 +16,28 @@ import org.junit.jupiter.api.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.List;
+
+import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 @Slf4j
 class ShapeTreeManagerTests {
 
     private static URL managerUrl;
     private static ShapeTreeManager manager;
-    private static MockWebServer server;
-    private static ShapeTreeAssignment assignment1, assignment2, assignment3, nonContainingAssignment1, nonContainingAssignment2, containingAssignment1;
-    private static RequestMatchingFixtureDispatcher dispatcher = null;
-    private static HttpExternalDocumentLoader httpExternalDocumentLoader;
+    private static ShapeTreeAssignment assignment1, nonContainingAssignment1, nonContainingAssignment2, containingAssignment1;
 
     public ShapeTreeManagerTests() {
-        httpExternalDocumentLoader = new HttpExternalDocumentLoader();
+        HttpExternalDocumentLoader httpExternalDocumentLoader = new HttpExternalDocumentLoader();
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
     }
 
     @BeforeAll
     static void beforeAll() throws MalformedURLException, ShapeTreeException {
 
-        dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("shapetrees/manager-shapetree-ttl"), "GET", "/static/shapetrees/managers/shapetree", null)
-        ));
-
-        server = new MockWebServer();
+        RequestMatchingFixtureDispatcher dispatcher = new RequestMatchingFixtureDispatcher();
+        mockOnGet(dispatcher, "/static/shapetrees/managers/shapetree", "shapetrees/manager-shapetree-ttl");
+        MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
         managerUrl = new URL("https://site.example/resource.shapetree");
@@ -54,45 +49,29 @@ class ShapeTreeManagerTests {
                 new URL("https://shapes.example/schema#ShapeOne"),
                 new URL("https://site.example/resource.shapetree#ln1"));
 
-        assignment2 = new ShapeTreeAssignment(
-                new URL("https://tree.example/tree#TreeTwo"),
-                new URL("https://site.example/resource"),
-                new URL("https://site.example/resource.shapetree#ln2"),
-                new URL("https://site.example/resource#node"),
-                new URL("https://shapes.example/schema#ShapeTwo"),
-                new URL("https://site.example/resource.shapetree#ln2"));
-
-        assignment3 = new ShapeTreeAssignment(
-                new URL("https://tree.example/tree#TreeThree"),
-                new URL("https://site.example/resource"),
-                new URL("https://site.example/resource.shapetree#ln3"),
-                new URL("https://site.example/resource#node"),
-                new URL("https://shapes.example/schema#ShapeThree"),
-                new URL("https://site.example/resource.shapetree#ln3"));
-
         nonContainingAssignment1 = new ShapeTreeAssignment(
-                MockWebServerHelper.toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree"),
-                MockWebServerHelper.toUrl(server, "/data/container/"),
-                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln1"),
+                toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree"),
+                toUrl(server, "/data/container/"),
+                toUrl(server, "/data/container/.shapetree#ln1"),
                 null,
                 null,
-                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln1"));
+                toUrl(server, "/data/container/.shapetree#ln1"));
 
         containingAssignment1 = new ShapeTreeAssignment(
-                MockWebServerHelper.toUrl(server, "/static/shapetrees/managers/shapetree#ContainingTree"),
-                MockWebServerHelper.toUrl(server, "/data/container/"),
-                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln2"),
+                toUrl(server, "/static/shapetrees/managers/shapetree#ContainingTree"),
+                toUrl(server, "/data/container/"),
+                toUrl(server, "/data/container/.shapetree#ln2"),
                 null,
                 null,
-                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln2"));
+                toUrl(server, "/data/container/.shapetree#ln2"));
 
         nonContainingAssignment2 = new ShapeTreeAssignment(
-                MockWebServerHelper.toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree2"),
-                MockWebServerHelper.toUrl(server, "/data/container/"),
-                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln3"),
+                toUrl(server, "/static/shapetrees/managers/shapetree#NonContainingTree2"),
+                toUrl(server, "/data/container/"),
+                toUrl(server, "/data/container/.shapetree#ln3"),
                 null,
                 null,
-                MockWebServerHelper.toUrl(server, "/data/container/.shapetree#ln3"));
+                toUrl(server, "/data/container/.shapetree#ln3"));
 
     }
 
@@ -117,14 +96,14 @@ class ShapeTreeManagerTests {
         Assertions.assertTrue(manager.getAssignments().isEmpty());
         manager.addAssignment(assignment1);
         Assertions.assertFalse(manager.getAssignments().isEmpty());
-        Assertions.assertEquals(manager.getAssignments().size(), 1);
+        Assertions.assertEquals(1, manager.getAssignments().size());
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Fail to add a null assignment")
     void failToAddNullAssignmentToManager() {
-        Assertions.assertThrows( ShapeTreeException.class, () -> { manager.addAssignment(null); });
+        Assertions.assertThrows( ShapeTreeException.class, () -> manager.addAssignment(null));
     }
 
     @SneakyThrows
@@ -132,24 +111,23 @@ class ShapeTreeManagerTests {
     @DisplayName("Fail to add a duplicate assignment")
     void failToAddDuplicateAssignment() {
         manager.addAssignment(assignment1);
-        Assertions.assertThrows( ShapeTreeException.class, () -> { manager.addAssignment(assignment1); });
+        Assertions.assertThrows( ShapeTreeException.class, () -> manager.addAssignment(assignment1));
     }
 
     @Test
     @DisplayName("Fail to add assignment with certain null values")
     void failToAddAssignmentWithBadValues() {
 
-        Assertions.assertThrows(ShapeTreeException.class, () -> {
+        Assertions.assertThrows(ShapeTreeException.class, () ->
             new ShapeTreeAssignment(
                     null,
                     new URL("https://site.example/resource"),
                     null,
                     new URL("https://site.example/resource#node"),
                     new URL("https://shapes.example/schema#ShapeThree"),
-                    new URL("https://site.example/resource.shapetree#ln3"));
-        });
+                    new URL("https://site.example/resource.shapetree#ln3")));
 
-        Assertions.assertThrows( ShapeTreeException.class, () -> {
+        Assertions.assertThrows( ShapeTreeException.class, () ->
             // focus node with no shape
             new ShapeTreeAssignment(
                     new URL("https://tree.example/tree#TreeThree"),
@@ -157,10 +135,9 @@ class ShapeTreeManagerTests {
                     new URL("https://site.example/resource.shapetree#ln3"),
                     new URL("https://site.example/resource#node"),
                     null,
-                    new URL("https://site.example/resource.shapetree#ln3"));
-        });
+                    new URL("https://site.example/resource.shapetree#ln3")));
 
-        Assertions.assertThrows( ShapeTreeException.class, () -> {
+        Assertions.assertThrows( ShapeTreeException.class, () ->
             // shape with no focus node
             new ShapeTreeAssignment(
                     new URL("https://tree.example/tree#TreeThree"),
@@ -168,8 +145,7 @@ class ShapeTreeManagerTests {
                     new URL("https://site.example/resource.shapetree#ln3"),
                     null,
                     new URL("https://shapes.example/schema#ShapeThree"),
-                    new URL("https://site.example/resource.shapetree#ln3"));
-        });
+                    new URL("https://site.example/resource.shapetree#ln3")));
 
     }
 
@@ -236,9 +212,7 @@ class ShapeTreeManagerTests {
     @Test
     @DisplayName("Fail to remove assignment from empty manager")
     void failToRemoveAssignmentFromEmptyManager() {
-        Assertions.assertThrows( IllegalStateException.class, () -> {
-            manager.removeAssignment(containingAssignment1);
-        });
+        Assertions.assertThrows(IllegalStateException.class, () -> manager.removeAssignment(containingAssignment1));
     }
 
     @SneakyThrows
@@ -247,9 +221,7 @@ class ShapeTreeManagerTests {
     void failToRemoveAssignmentMissingFromManager() {
         manager.addAssignment(nonContainingAssignment1);
         manager.addAssignment(nonContainingAssignment2);
-        Assertions.assertThrows( IllegalStateException.class, () -> {
-            manager.removeAssignment(containingAssignment1);
-        });
+        Assertions.assertThrows( IllegalStateException.class, () -> manager.removeAssignment(containingAssignment1));
     }
 
     @SneakyThrows
@@ -282,13 +254,9 @@ class ShapeTreeManagerTests {
     @Test
     @DisplayName("Fail to get assignment from graph due to missing triples")
     void failToGetAssignmentFromGraphMissingTriples() {
-
         URI managerUri = URI.create("https://data.example/container.shapetree");
         Graph managerGraph = GraphHelper.readStringIntoGraph(managerUri, getInvalidManagerMissingTriplesString(), "text/turtle");
-        Assertions.assertThrows( IllegalStateException.class, () -> {
-            ShapeTreeManager.getFromGraph(managerUrl, managerGraph);
-        });
-
+        Assertions.assertThrows( IllegalStateException.class, () -> ShapeTreeManager.getFromGraph(managerUrl, managerGraph));
     }
 
     @SneakyThrows
@@ -298,9 +266,7 @@ class ShapeTreeManagerTests {
 
         URI managerUri = URI.create("https://data.example/container.shapetree");
         Graph managerGraph = GraphHelper.readStringIntoGraph(managerUri, getInvalidManagerUnexpectedTriplesString(), "text/turtle");
-        Assertions.assertThrows( IllegalStateException.class, () -> {
-            ShapeTreeManager.getFromGraph(managerUrl, managerGraph);
-        });
+        Assertions.assertThrows( IllegalStateException.class, () -> ShapeTreeManager.getFromGraph(managerUrl, managerGraph));
 
     }
 

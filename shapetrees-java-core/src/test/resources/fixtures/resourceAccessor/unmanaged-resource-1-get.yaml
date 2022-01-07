@@ -2,8 +2,7 @@ statusCode : 200
 delay: 0
 headers:
   - 'Content-type:text/turtle'
-  - 'Link:<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
-  - 'Link:</managed-container-2/.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
+  - 'Link:</unmanaged-resource-1.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
 body: >
 
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -13,8 +12,4 @@ body: >
   PREFIX ldp: <http://www.w3.org/ns/ldp#>
   PREFIX ex: <http://www.example.com/ns/ex#>
 
-  <#project>
-    ex:uri </managed-container-2/#project> ;
-    ex:id 6 ;
-    ex:name "Great Validations" ;
-    ex:created_at "2021-04-04T20:15:47.000Z"^^xsd:dateTime .
+  <#a> <#b> <#c> .

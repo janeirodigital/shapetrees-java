@@ -19,9 +19,8 @@ public class MissingManageableResource extends ManageableResource {
      * @param body Body of the resource
      * @param name Name of the resource
      * @param managerResourceUrl URL of the shape tree manager resource
-     * @param isContainer Whether the resource is a container
      */
-    public MissingManageableResource(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, Optional<URL> managerResourceUrl, boolean isContainer) {
-        super(url, resourceType, attributes, body, name, false, managerResourceUrl, isContainer);
+    public MissingManageableResource(URL url, ShapeTreeResourceType resourceType, ResourceAttributes attributes, String body, String name, Optional<URL> managerResourceUrl) {
+        super(url, resourceType, attributes, body, name, false, managerResourceUrl);
     }
 }

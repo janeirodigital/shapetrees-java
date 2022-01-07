@@ -1,0 +1,21 @@
+statusCode : 200
+delay: 0
+headers:
+  - 'Content-type:text/turtle'
+  - 'Link:</managed-container-2/>; rel="http://www.w3.org/ns/shapetrees#manages"'
+body: >
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n" +
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
+  PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> \n" +
+  PREFIX ex: <http://www.example.com/ns/ex#> \n" +
+  <>
+    a st:Manager ; \n" +
+    st:hasAssignment <#ln1> . \n" +
+  
+    <#ln1>
+      st:assigns <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectTree> ;
+      st:manages </managed-container-2/> ;
+      st:hasRootAssignment <#ln1> ;
+      st:focusNode </managed-container-2/#project> ;
+      st:shape <${SERVER_BASE}/static/shex/project/shex#ProjectShape> .

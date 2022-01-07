@@ -26,6 +26,8 @@ import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
 @Slf4j
 public class OkHttpShapeTreeClient {
 
+    private OkHttpShapeTreeClient() { }
+
     /**
      * Discover the ShapeTreeManager associated with a given target resource.
      * @param okHttpClient OkHttp client to use for requests
@@ -52,8 +54,12 @@ public class OkHttpShapeTreeClient {
             throw new ShapeTreeException(500, "Discovery target must not be a shape tree manager resource");
         }
 
-        if (instance.isUnmanaged()) { return null; }
+        if (instance.isUnmanaged()) {
+            log.debug("Resource {} is not managed by a shape tree", resourceUrl);
+            return null;
+        }
 
+        log.debug("Resource {} is managed by a shape tree: {}", resourceUrl, instance.getManagerResource().getManager().toString());
         return instance.getManagerResource().getManager();
     }
 
@@ -102,8 +108,10 @@ public class OkHttpShapeTreeClient {
         URL managerResourceUrl = instance.getManagerResource().getUrl();
         if (instance.isManaged()) {
             manager = instance.getManagerResource().getManager();
+            log.debug("Resource {} is already managed", resourceUrl);
         } else {
             manager = new ShapeTreeManager(managerResourceUrl);
+            log.debug("Resource {} is not currently managed by a shape tree", resourceUrl);
         }
 
         // Initialize a shape tree assignment based on the supplied parameters
@@ -121,6 +129,8 @@ public class OkHttpShapeTreeClient {
         // Get an RDF version of the manager stored in a turtle string
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
+
+        log.debug("Updating shape tree manager resource at {}", manager.getId());
 
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(managerResourceUrl);
@@ -169,12 +179,12 @@ public class OkHttpShapeTreeClient {
 
         Response response;
         if (manager.getAssignments().isEmpty()) {
-            response = deleteResource(okHttpClient, manager.getId());
+            response = deleteHttpResource(okHttpClient, manager.getId(), context.getCredentials());
         } else {
             StringWriter sw = new StringWriter();
             RDFDataMgr.write(sw, manager.getGraph(), Lang.TURTLE);
             String body = sw.toString();
-            response = putResource(okHttpClient, manager.getId(), null, body, TEXT_TURTLE);
+            response = putHttpResource(okHttpClient, manager.getId(), null, body, TEXT_TURTLE);
         }
         return response;
     }
@@ -189,9 +199,9 @@ public class OkHttpShapeTreeClient {
         log.debug ("Target Shape Tree: {}", targetShapeTrees == null || targetShapeTrees.isEmpty()  ? "None provided" : targetShapeTrees.toString());
         log.debug("Focus Node: {}", focusNodes == null || focusNodes.isEmpty() ? "None provided" : focusNodes.toString());
 
-        Headers headers = setRequestHeaders(context, focusNodes, targetShapeTrees, isContainer, slug, contentType);
+        Headers headers = setRequestHeaders(focusNodes, targetShapeTrees, isContainer, slug, contentType);
 
-        return postResource(okHttpClient, parentContainer, headers, body, contentType);
+        return postHttpResource(okHttpClient, parentContainer, context.getCredentials(), headers, body, contentType);
     }
 
     public static Response put(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, List<URL> targetShapeTrees, Boolean isContainer, String body, ContentType contentType) throws ShapeTreeException {
@@ -203,9 +213,9 @@ public class OkHttpShapeTreeClient {
         log.debug ("Target Shape Tree: {}", targetShapeTrees == null || targetShapeTrees.isEmpty()  ? "None provided" : targetShapeTrees.toString());
         log.debug("Focus Node: {}", focusNodes == null || focusNodes.isEmpty() ? "None provided" : focusNodes.toString());
 
-        Headers headers = setRequestHeaders(context, focusNodes, targetShapeTrees, isContainer, null, contentType);
+        Headers headers = setRequestHeaders(focusNodes, targetShapeTrees, isContainer, null, contentType);
 
-        return putResource(okHttpClient, resourceUrl, headers, body, contentType);
+        return putHttpResource(okHttpClient, resourceUrl, context.getCredentials(), headers, body, contentType);
     }
 
     public static Response put(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, String body, ContentType contentType) throws ShapeTreeException {
@@ -217,9 +227,9 @@ public class OkHttpShapeTreeClient {
         log.debug("Updating shape tree instance via PUT at {}", resourceUrl);
         log.debug("Focus Node: {}", focusNodes == null || focusNodes.isEmpty() ? "None provided" : focusNodes.toString());
 
-        Headers headers = setRequestHeaders(context, focusNodes, null, false, null, contentType);
+        Headers headers = setRequestHeaders(focusNodes, null, false, null, contentType);
 
-        return putResource(okHttpClient, resourceUrl, headers, body, contentType);
+        return putHttpResource(okHttpClient, resourceUrl, context.getCredentials(), headers, body, contentType);
     }
 
     public static Response patch(OkHttpClient okHttpClient, ShapeTreeContext context, URL resourceUrl, List<URL> focusNodes, String body) throws ShapeTreeException {
@@ -233,13 +243,13 @@ public class OkHttpShapeTreeClient {
         log.debug("PATCH String: {}", body);
         log.debug("Focus Node: {}", focusNodes == null || focusNodes.isEmpty() ? "None provided" : focusNodes.toString());
 
-        Headers headers = setRequestHeaders(context, focusNodes, null, false, null, SPARQL_UPDATE);
+        Headers headers = setRequestHeaders(focusNodes, null, false, null, SPARQL_UPDATE);
 
-        return patchResource(okHttpClient, resourceUrl, headers, body, SPARQL_UPDATE);
+        return patchHttpResource(okHttpClient, resourceUrl, context.getCredentials(), headers, body, SPARQL_UPDATE);
 
     }
 
-    private static Headers setRequestHeaders(ShapeTreeContext context, List<URL> focusNodes, List<URL> targetShapeTrees, boolean isContainer, String slug, ContentType contentType) {
+    private static Headers setRequestHeaders(List<URL> focusNodes, List<URL> targetShapeTrees, boolean isContainer, String slug, ContentType contentType) {
         Headers headers = null;
         if (contentType != null) { headers = addHttpHeader(CONTENT_TYPE, contentType.getValue(), headers); }
         if (targetShapeTrees != null) {
@@ -255,7 +265,6 @@ public class OkHttpShapeTreeClient {
 
         if (isContainer) { headers = addLinkRelationHeader(TYPE, BASIC_CONTAINER, headers); }
         if (slug != null) { headers = addHttpHeader(SLUG, slug, headers); }
-        if (context.hasCredentials()) { headers = addHttpHeader(AUTHORIZATION, context.getCredentials(), headers); }
         return headers;
     }
 

@@ -3,7 +3,6 @@ package com.janeirodigital.shapetrees.okhttp;
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.ShapeTreeManager;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
@@ -11,13 +10,13 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.janeirodigital.shapetrees.core.enums.ContentType.OCTET_STREAM;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
 import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.*;
+import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.*;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,26 +37,21 @@ class OkHttpShapeTreeClientProjectTests {
     @BeforeEach
     void initializeDispatcher() {
 
-        // For this set of tests, we reinitialize the dispatcher set for every test, because almost every test needs a
-        // slightly different context. Consequently, we could either modify the state from test to test (which felt a
-        // little dirty as we couldn't run tests standalone, or set the context for each test (which we're doing)
+        dispatcher = new RequestMatchingFixtureDispatcher();
 
-        List dispatcherList = new ArrayList();
-
-        dispatcherList.add(new DispatcherEntry(List.of("project/root-container"), "GET", "/", null));
-        dispatcherList.add(new DispatcherEntry(List.of("project/root-container-manager"), "GET", "/.shapetree", null));
-        dispatcherList.add(new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null));
-        dispatcherList.add(new DispatcherEntry(List.of("shapetrees/information-shapetree-ttl"), "GET", "/static/shapetrees/information/shapetree", null));
-        dispatcherList.add(new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project/shex", null));
-        dispatcherList.add(new DispatcherEntry(List.of("schemas/information-shex"), "GET", "/static/shex/information/shex", null));
+        mockOnGet(dispatcher, "/", "project/root-container");
+        mockOnGet(dispatcher, "/.shapetree", "http/404");
+        mockOnGet(dispatcher, "/static/shapetrees/project/shapetree", "shapetrees/project-shapetree-ttl");
+        mockOnGet(dispatcher, "/static/shapetrees/information/shapetree", "shapetrees/information-shapetree-ttl");
+        mockOnGet(dispatcher, "/static/shex/project/shex", "schemas/project-shex");
+        mockOnGet(dispatcher, "/static/shex/information/shex", "schemas/information-shex");
 
         server = new MockWebServer();
-        dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
         server.setDispatcher(dispatcher);
     }
 
     @Test
-    @DisplayName("Discover unmanaged root resource")
+    @DisplayName("Discover unmanaged /data/ resource")
     void discoverUnmanagedRoot() throws ShapeTreeException {
         // Use the discover operation to see if the root container is managed
         // The root container isn't managed so check to ensure that a NULL value is returned
@@ -67,7 +61,7 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Fail to plant on a non-existent data container")
+    @DisplayName("Fail to plant on a non-existent /data/ container")
     void failPlantOnMissingDataContainer() throws ShapeTreeException {
         // Perform plant on /data container that doesn't exist yet (fails)
         // Look for 404 because /data doesn't exist
@@ -78,11 +72,12 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Plant Data Repository")
+    @DisplayName("Plant /data/")
     void plantDataRepository() throws ShapeTreeException {
         // Create the data container
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-no-contains"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/.shapetree", null));
+        mockOnGet(dispatcher, "/data/", "project/data-container-no-contains");
+        mockOnPut(dispatcher, "/data/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
 
         URL targetResource = toUrl(server, "/data/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
@@ -95,10 +90,25 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Fail to plant on missing shape tree")
+    @DisplayName("Plant (PATCH) /data/")
+    void plantDataRepositoryWithPatch() throws ShapeTreeException {
+        // Create the data container
+        mockOnGet(dispatcher, "/data/", "project/data-container-no-contains");
+        mockOnPut(dispatcher, "/data/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
+
+        URL targetResource = toUrl(server, "/data/.shapetree");
+
+        // Plant the data repository on newly created data container
+        Response response = patch(okHttpClient, context, targetResource, null, getPlantDataRepositorySparqlPatch(server));
+        assertEquals(201, response.code());
+    }
+
+    @Test
+    @DisplayName("Fail to plant /data/ on missing shape tree")
     void failPlantOnMissingShapeTree() {
         // Create the data container
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-no-contains"), "GET", "/data/", null));
+        mockOnGet(dispatcher, "/data/", "project/data-container-no-contains");
 
         URL targetResource = toUrl(server, "/data/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/missing/shapetree#NonExistentTree");
@@ -109,48 +119,16 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Create Projects Container and Validate DataCollectionTree and InformationSetTree")
-    void createAndValidateProjectsWithMultipleContains() throws ShapeTreeException {
-        // Setup initial fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-multiplecontains-manager"), "GET", "/data/.shapetree", null));
-        // Add fixture for /projects/ to handle the POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-create-response"), "POST", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
-
-        URL parentContainer = toUrl(server, "/data/");
-        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/#collection"));
-        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#DataCollectionTree"),
-                toUrl(server, "/static/shapetrees/information/shapetree#InformationSetTree"));
-
-        // Create the projects container as a managed instance.
-        // 1. Will be validated by the parent DataRepositoryTree and the InformationSetTree both planted on /data (multiple contains)
-        // 2. Will have a manager/assignment created for it as an instance of DataCollectionTree and InformationSetTree
-        Response response = post(okHttpClient, context, parentContainer, focusNodes, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
-        assertEquals(201, response.code());
-
-        // Another attempt without any target shape trees
-        response = post(okHttpClient, context, parentContainer, focusNodes, null, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
-        assertEquals(201, response.code());
-
-        // Another attempt without any target focus nodes
-        response = post(okHttpClient, context, parentContainer, null, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
-        assertEquals(201, response.code());
-
-        // Another attempt without any only one of two target shape trees
-        response = post(okHttpClient, context, parentContainer, null, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
-        assertEquals(201, response.code());
-    }
-
-    @Test
-    @DisplayName("Create Projects Container and Validate DataCollectionTree")
+    @DisplayName("Create (POST) /data/projects/")
     void createAndValidateProjects() throws ShapeTreeException {
         // Setup initial fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
+        mockOnGet(dispatcher, "/data/", "project/data-container");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
         // Add fixture for /projects/ to handle the POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-create-response"), "POST", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", List.of("http/404", "project/projects-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", List.of("http/404", "project/projects-container-manager"));
+        mockOnPut(dispatcher, "/data/projects/.shapetree", "http/201");
 
         URL parentContainer = toUrl(server, "/data/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/#collection"));
@@ -164,14 +142,86 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Plant ProjectCollectionTree on Projects Container")
+    @DisplayName("Create (POST) /data/projects/ - two containing shape trees")
+    void createAndValidateProjectsWithMultipleContains() throws ShapeTreeException {
+        // Setup initial fixtures for /data/
+        mockOnGet(dispatcher, "/data/", "project/data-container");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-multiplecontains-manager");
+        // Add fixture for /projects/ to handle the POST response
+        mockOnPut(dispatcher, "/data/projects/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/", List.of("http/404", "project/projects-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", List.of("http/404", "project/projects-container-manager"));
+
+        URL parentContainer = toUrl(server, "/data/");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/#collection"));
+        List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#DataCollectionTree"),
+                                                   toUrl(server, "/static/shapetrees/information/shapetree#InformationSetTree"));
+
+        // Create the projects container as a managed instance.
+        // 1. Will be validated by the parent DataRepositoryTree and the InformationSetTree both planted on /data (multiple contains)
+        // 2. Will have a manager/assignment created for it as an instance of DataCollectionTree and InformationSetTree
+        Response response = post(okHttpClient, context, parentContainer, focusNodes, targetShapeTrees, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        assertEquals(201, response.code());
+    }
+
+    @Test
+    @DisplayName("Create (POST) /data/projects/ - two containing shape trees - no target shape trees")
+    void createAndValidateProjectsTwoContainsNoTargetTrees() throws ShapeTreeException {
+        // Setup initial fixtures for /data/
+        mockOnGet(dispatcher, "/data/", "project/data-container");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-multiplecontains-manager");
+        // Add fixture for /projects/ to handle the POST response
+        mockOnPut(dispatcher, "/data/projects/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/", List.of("http/404", "project/projects-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", List.of("http/404", "project/projects-container-manager"));
+
+        URL parentContainer = toUrl(server, "/data/");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/#collection"));
+
+        // Create the projects container as a managed instance.
+        // 1. Will be validated by the parent DataRepositoryTree and the InformationSetTree both planted on /data (multiple contains)
+        // 2. Will have a manager/assignment created for it as an instance of DataCollectionTree and InformationSetTree
+        // Attempt without any target shape trees
+        Response response = post(okHttpClient, context, parentContainer, focusNodes, null, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        assertEquals(201, response.code());
+    }
+
+
+    @Test
+    @DisplayName("Create (POST) /data/projects/ - two containing shape trees - no targets")
+    void createAndValidateProjectsTwoContainsNoTargets() throws ShapeTreeException {
+        // Setup initial fixtures for /data/
+        mockOnGet(dispatcher, "/data/", "project/data-container");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-multiplecontains-manager");
+        // Add fixture for /projects/ to handle the POST response
+        mockOnPut(dispatcher, "/data/projects/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/", List.of("http/404", "project/projects-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", List.of("http/404", "project/projects-container-manager"));
+
+        URL parentContainer = toUrl(server, "/data/");
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/#collection"));
+
+        // Create the projects container as a managed instance.
+        // 1. Will be validated by the parent DataRepositoryTree and the InformationSetTree both planted on /data (multiple contains)
+        // 2. Will have a manager/assignment created for it as an instance of DataCollectionTree and InformationSetTree
+        // Attempt without any target focus nodes or target shape trees
+        Response response = post(okHttpClient, context, parentContainer, null, null, "projects", true, getProjectsBodyGraph(), TEXT_TURTLE);
+        assertEquals(201, response.code());
+    }
+
+    @Test
+    @DisplayName("Plant (another) shape tree on /data/projects/")
     void plantSecondShapeTreeOnProjects() throws ShapeTreeException {
         // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
-        // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager"), "GET", "/data/projects/.shapetree", null));
+        mockOnGet(dispatcher, "/data/", "project/data-container");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
+        // Add fixtures for /data/projects/
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container-no-contains");
+        mockOnPut(dispatcher, "/data/projects/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager");
 
         URL targetResource = toUrl(server, "/data/projects/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
@@ -182,17 +232,34 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Create Project in the Projects Collection")
+    @DisplayName("Update (PATCH) /data/projects/")
+    void updateProjectsManagerWithPatch() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager");
+        // Add fixture for /data/projects/ to handle response to update via PATCH
+        mockOnPut(dispatcher, "/data/projects/.shapetree", "http/204");
+
+        URL targetResource = toUrl(server, "/data/projects/.shapetree");
+
+        // Update the manager directly for the /data/projects/ with PATCH
+        Response response = patch(okHttpClient, context, targetResource, null, getUpdateDataRepositorySparqlPatch(server));
+        assertEquals(201, response.code());
+    }
+
+    @Test
+    @DisplayName("Create (POST) /data/project/project-1/")
     void createProjectInProjects() throws ShapeTreeException {
         // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
+        mockOnGet(dispatcher, "/data/", "project/data-container");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
         // Add fixture for /projects/project-1/ to handle the POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-create-response"), "POST", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/.shapetree", null));
+        mockOnPut(dispatcher, "/data/projects/project-1/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/", List.of("http/404", "project/project-1-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/project-1/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/.shapetree", List.of("http/404","project/project-1-container-manager"));
 
         URL parentContainer = toUrl(server, "/data/projects/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/#project"));
@@ -206,39 +273,28 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Update Project in the Projects Collection")
+    @DisplayName("Update (PUT) /data/projects/project-1/")
     void updateProjectInProjects() throws ShapeTreeException {
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
-        // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/", "project/project-1-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/.shapetree", "project/project-1-container-manager");
         // Add fixture for updated project-1
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains-updated"), "PUT", "/data/projects/project-1/", null));
+        mockOnPut(dispatcher, "/data/projects/project-1/", "http/204");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/#project"));
 
-        // Update the project-1 container as a shape tree instance.
-        // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        // 2. Will have a manager/assignment created for it as an instance of ProjectTree
+        // Update the project-1 container, so it will be evaluated against the shape tree already assigned to project-1
         Response response = put(okHttpClient, context, targetResource, focusNodes, getProjectOneUpdatedBodyGraph(), TEXT_TURTLE);
-        assertEquals(200, response.code());
+        assertEquals(204, response.code());
     }
 
     @Test
-    @DisplayName("Fail to Create a Malformed Project in the Projects Collection")
+    @DisplayName("Fail to create (PUT) /data/projects/project-1/ - validation failed")
     void failToCreateMalformedProject() throws ShapeTreeException {
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/#project"));
@@ -246,51 +302,41 @@ class OkHttpShapeTreeClientProjectTests {
 
         // Create the project-1 container as a shape tree instance via PUT
         // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
-        Response response = put(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         // 2. Will fail validation because the body content doesn't validate against the assigned shape
+        Response response = put(okHttpClient, context, targetResource, focusNodes, targetShapeTrees, true, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
         assertEquals(422, response.code());
     }
 
     @Test
-    @DisplayName("Fail to Update a Project to be Malformed in the Projects Collection")
+    @DisplayName("Fail to update (PUT) /data/projects/project-1/ - validation failed")
     void failToUpdateMalformedProject() throws ShapeTreeException {
-        // try to update an existing project-1 to be malformed and fail validation
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
-        // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
         // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/", "project/project-1-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/.shapetree", "project/project-1-container-manager");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/#project"));
 
         // Update the project-1 container as a shape tree instance via PUT
-        // 1. Will be validated by the parent ProjectCollectionTree planted on /data/projects/
+        // Will fail validation because the body content doesn't validate against the shape associated with the assigned shape tree
         Response response = put(okHttpClient, context, targetResource, focusNodes, getProjectOneMalformedBodyGraph(), TEXT_TURTLE);
-        // 2. Will fail validation because the body content doesn't validate against the assigned shape
         assertEquals(422, response.code());
-
     }
 
     @Test
-    @DisplayName("Create Milestone in Project With Put")
+    @DisplayName("Create (PUT) /data/projects/project-1/milestone-3/")
     void createMilestoneInProjectWithPut() throws ShapeTreeException {
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
         // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/", "project/project-1-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/.shapetree", "project/project-1-container-manager");
         // Add fixture for /projects/project-1/milestone-3 to handle response to create via PUT
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "PUT", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/", List.of("http/404", "project/milestone-3-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", List.of("http/404", "project/milestone-3-container-manager"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "http/201");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/milestone-3/#milestone"));
@@ -304,22 +350,13 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Update Milestone in Project With Patch")
+    @DisplayName("Update (PATCH) /data/projects/project-1/milestone-3/")
     void updateMilestoneInProjectWithPatch() throws ShapeTreeException {
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
-        // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
         // Add fixture for /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/", "project/milestone-3-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "project/milestone-3-container-manager");
         // Add fixture for /projects/project-1/milestone-3 to handle response to update via PATCH
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains-updated"), "PATCH", "/data/projects/project-1/milestone-3/", null));
+        mockOnPatch(dispatcher, "/data/projects/project-1/milestone-3/", "http/204");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/milestone-3/#milestone"));
@@ -327,27 +364,23 @@ class OkHttpShapeTreeClientProjectTests {
         // Update the milestone-3 container in /projects/project-1/ using PATCH
         // 1. Will be validated by the MilestoneTree planted on /data/projects/project-1/milestone-3/
         Response response = patch(okHttpClient, context, targetResource, focusNodes, getMilestoneThreeSparqlPatch());
-        assertEquals(201, response.code());
+        assertEquals(204, response.code());
     }
 
     @Test
-    @DisplayName("Create First Task in Project With Patch")
-    void createFirstTaskInProjectWithPatch() throws ShapeTreeException {
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
+    @DisplayName("Create (PATCH) /data/projects/project-1/milestone-3/task-6")
+    void createTask6WithPatch() throws ShapeTreeException {
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
         // Add fixture for /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/", "project/milestone-3-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "project/milestone-3-container-manager");
         // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to update via PATCH
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-6-container-no-contains-updated"), "PATCH", "/data/projects/project-1/milestone-3/task-6/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-6/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-6/", List.of("http/404", "project/task-6-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-6/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-6/.shapetree", List.of("http/404", "project/task-6-container-manager"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-6/.shapetree", "http/201");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-6/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/milestone-3/task-6/#task"));
@@ -360,23 +393,19 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Create Second Task in Project Without Focus Node")
-    void createSecondTaskInProjectWithoutFocusNode() throws ShapeTreeException {
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
+    @DisplayName("Create (POST) /data/projects/project-1/milestone-3/task-48 - no focus nodes")
+    void createTask48WithoutFocusNode() throws ShapeTreeException {
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
         // Add fixture for /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
-        // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/", "project/milestone-3-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "project/milestone-3-container-manager");
+        // Add fixture for /projects/project-1/milestone-3/task-48/ to handle response to update via PATCH
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/", List.of("http/404", "project/task-48-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", List.of("http/404", "project/task-48-container-manager"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", "http/201");    
 
         URL targetContainer = toUrl(server, "/data/projects/project-1/milestone-3/");
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#TaskTree"));
@@ -388,23 +417,19 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Create Third Task in Project Without Target Shape Tree or Focus Node")
-    void createThirdTaskInProjectWithoutAnyContext() throws ShapeTreeException {
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
+    @DisplayName("Create (POST) /data/projects/project-1/milestone-3/task-48 - no targets")
+    void createTask48WithoutAnyContext() throws ShapeTreeException {
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
         // Add fixture for /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
-        // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/", "project/milestone-3-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "project/milestone-3-container-manager");
+        // Add fixture for /projects/project-1/milestone-3/task-48/ to handle response to update via PATCH
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/", List.of("http/404", "project/task-48-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", List.of("http/404", "project/task-48-container-manager"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", "http/201");
 
         URL targetContainer = toUrl(server, "/data/projects/project-1/milestone-3/");
 
@@ -415,23 +440,19 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Create Second Task in Project With Focus Node Without Target Shape Tree")
-    void createSecondTaskInProjectWithFocusNodeWithoutTargetShapeTree() throws ShapeTreeException {
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
+    @DisplayName("Create (POST) /data/projects/project-1/milestone-3/task-48 - no target shape tree")
+    void createTask48WithFocusNodeWithoutTargetShapeTree() throws ShapeTreeException {
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
         // Add fixture for /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
-        // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-create-response"), "POST", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/", "project/milestone-3-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "project/milestone-3-container-manager");
+        // Add fixture for /projects/project-1/milestone-3/task-48/ to handle response to update via PATCH
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/", List.of("http/404", "project/task-48-container-no-contains"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", List.of("http/404", "project/task-48-container-manager"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", "http/201");
 
         URL targetContainer = toUrl(server, "/data/projects/project-1/milestone-3/");
         List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/projects/project-1/milestone-3/task-48/#task"));
@@ -443,27 +464,19 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Create Attachment in Task")
-    void createAttachmentInTask() throws ShapeTreeException {
-        // create an attachment in task-48 (success)
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
+    @DisplayName("Create (PUT) /data/projects/project-1/milestone-3/task-48/attachment-48 (non-rdf")
+    void createAttachment48InTask() throws ShapeTreeException {
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
-        // Add fixture for /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
-        // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
-        // Add fixture to handle PUT response and follow-up request
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/attachment-48"), "PUT", "/data/projects/project-1/milestone-3/task-48/attachment-48", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
+        // Add fixture for /projects/project-1/milestone-3/task-48/
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/", "project/task-48-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", "project/task-48-container-manager");
+        // Add fixture for /projects/project-1/milestone-3/task-48/ to handle response to update via PUT
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/attachment-48", List.of("http/404", "project/attachment-48"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/attachment-48", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", List.of("http/404", "project/attachment-48-manager"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", "http/201");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-48/attachment-48");
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree"));
@@ -474,30 +487,20 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Create Second Attachment in Task")
+    @DisplayName("Create (PUT) /data/projects/project-1/milestone-3/task-48/random.png (non-rdf)")
     void createSecondAttachmentInTask() throws ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
-
         // create an attachment in task-48 (success)
-        // Add fixtures for /data/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-no-contains"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
-        // Add fixture for /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
-        // Add fixture for /projects/project-1/milestone-3/task-6/ to handle response to create via POST
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
-        // Add fixture to handle PUT response and follow-up request
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/random-png"), "PUT", "/data/projects/project-1/milestone-3/task-48/random.png", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
+        // Add fixture for /projects/project-1/milestone-3/task-48/
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/", "project/task-48-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", "project/task-48-container-manager");
+        // Add fixture for /projects/project-1/milestone-3/task-48/ to handle response to update via PUT
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/random.png", List.of("http/404", "project/random-png"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/random.png", "http/201");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", List.of("http/404", "project/random-png-manager"));
+        mockOnPut(dispatcher, "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", "http/201");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/task-48/random.png");
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/project/shapetree#AttachmentTree"));
@@ -508,11 +511,11 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Fail to Unplant Non-Root Task")
+    @DisplayName("Fail to unplant /data/projects/project-1/milestone-3/ - non-root assignment")
     void failToUnplantNonRootTask() throws ShapeTreeException {
         // Add fixture for /data/projects/project-1/milestone-3/, which is not the root of the project hierarchy according to its manager
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/", "project/milestone-3-container");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "project/milestone-3-container-manager");
 
         URL targetResource = toUrl(server, "/data/projects/project-1/milestone-3/");
         URL targetShapeTreeOne = toUrl(server, "/static/shapetrees/project/shapetree#MilestoneTree");
@@ -527,44 +530,43 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Unplant Projects")
+    @DisplayName("Unplant /data/projects/")
     void unplantProjects() throws ShapeTreeException {
         // Unplant the project collection, recursing down the tree (success)
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
+        mockOnPut(dispatcher, "/data/projects/.shapetree", "http/204");
         // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/", "project/project-1-container");
+        mockOnGet(dispatcher, "/data/projects/project-1/.shapetree", "project/project-1-container-manager");
+        mockOnDelete(dispatcher, "/data/projects/project-1/.shapetree", "http/204");
         // Add fixture for /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container"), "GET", "/data/projects/project-1/milestone-3/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/milestone-3-container-manager"), "GET", "/data/projects/project-1/milestone-3/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/.shapetree", null));
-        // Add fixtures for tasks in /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-6-container-no-contains"), "GET", "/data/projects/project-1/milestone-3/task-6/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-6-container-manager"), "GET", "/data/projects/project-1/milestone-3/task-6/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/task-6/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container"), "GET", "/data/projects/project-1/milestone-3/task-48/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/task-48-container-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/task-48/.shapetree", null));
-        // Add fixtures for attachments in task-48
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/random-png"), "GET", "/data/projects/project-1/milestone-3/task-48/random.png", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/random-png-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/attachment-48"), "GET", "/data/projects/project-1/milestone-3/task-48/attachment-48", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/attachment-48-manager"), "GET", "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/", "project/milestone-3-container");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "project/milestone-3-container-manager");
+        mockOnDelete(dispatcher, "/data/projects/project-1/milestone-3/.shapetree", "http/204");
+        // Add fixtures for task-6 in /projects/project-1/milestone-3/
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-6/", "project/task-6-container-no-contains");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-6/.shapetree", "project/task-6-container-manager");
+        mockOnDelete(dispatcher, "/data/projects/project-1/milestone-3/task-6/.shapetree", "http/204");
+        // Add fixtures for task-48 in /projects/project-1/milestone-3/
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/", "project/task-48-container");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", "project/task-48-container-manager");
+        mockOnDelete(dispatcher, "/data/projects/project-1/milestone-3/task-48/.shapetree", "http/204");
+        // Add fixtures for attachments in task-48/
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/attachment-48", "project/attachment-48");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", "project/attachment-48-manager");
+        mockOnDelete(dispatcher, "/data/projects/project-1/milestone-3/task-48/attachment-48.shapetree", "http/204");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/random.png", "project/random-png");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", "project/random-png-manager");
+        mockOnDelete(dispatcher, "/data/projects/project-1/milestone-3/task-48/random.png.shapetree", "http/204");
         // Add fixtures for issues in /projects/project-1/milestone-3/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-2"), "GET", "/data/projects/project-1/milestone-3/issue-2", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-2-manager"), "GET", "/data/projects/project-1/milestone-3/issue-2.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/issue-2.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-3"), "GET", "/data/projects/project-1/milestone-3/issue-3", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/issue-3-manager"), "GET", "/data/projects/project-1/milestone-3/issue-3.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/projects/project-1/milestone-3/issue-3.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/issue-2", "project/issue-2");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/issue-2.shapetree", "project/issue-2-manager");
+        mockOnDelete(dispatcher, "/data/projects/project-1/milestone-3/issue-2.shapetree", "http/204");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/issue-3", "project/issue-3");
+        mockOnGet(dispatcher, "/data/projects/project-1/milestone-3/issue-3.shapetree", "project/issue-3-manager");
+        mockOnDelete(dispatcher, "/data/projects/project-1/milestone-3/issue-3.shapetree", "http/204");
 
         URL targetResource = toUrl(server, "/data/projects/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
@@ -574,19 +576,16 @@ class OkHttpShapeTreeClientProjectTests {
     }
 
     @Test
-    @DisplayName("Unplant Data Set")
+    @DisplayName("Unplant /data/")
     void unplantData() throws ShapeTreeException {
-        // Unplant the data collection, recursing down the tree (success). The root level (pre-loaded) and one level below projects included for completeness
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "DELETE", "/data/.shapetree", null));
+        // Unplant the data collection, recursing down the tree (success).
+        mockOnGet(dispatcher, "/data/", "project/data-container");
+        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
+        mockOnDelete(dispatcher, "/data/.shapetree", "http/204");
         // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager-two-assignments"), "GET", "/data/projects/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/204"), "PUT", "/data/projects/.shapetree", null));
-        // Add fixture for /projects/project-1/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container"), "GET", "/data/projects/project-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/project-1-container-manager"), "GET", "/data/projects/project-1/.shapetree", null));
+        mockOnGet(dispatcher, "/data/projects/", "project/projects-container");
+        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager-two-assignments");
+        mockOnPut(dispatcher, "/data/projects/.shapetree", "http/204");
 
         URL targetResource = toUrl(server, "/data/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
@@ -594,37 +593,6 @@ class OkHttpShapeTreeClientProjectTests {
         // Unplant the data collection, recursing down the tree (only two levels)
         // Since the projects collection still manages /data/projects/, it should not delete the manager, only update it
         Response response = unplant(okHttpClient, context, targetResource, targetShapeTree);
-        assertEquals(201, response.code());
-    }
-
-    @Test
-    @DisplayName("Plant Data Repository with Patch")
-    void plantDataRepositoryWithPatch() throws ShapeTreeException {
-        // Create the data container
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-no-contains"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/.shapetree", null));
-
-        URL targetResource = toUrl(server, "/data/.shapetree");
-
-        // Plant the data repository on newly created data container
-        Response response = patch(okHttpClient, context, targetResource, null, getPlantDataRepositorySparqlPatch(server));
-        assertEquals(201, response.code());
-    }
-
-    @Test
-    @DisplayName("Update Project Collection manager with Patch")
-    void updateProjectsManagerWithPatch() throws ShapeTreeException {
-        // Add fixtures for data repository container and manager
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container"), "GET", "/data/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/data-container-manager"), "GET", "/data/.shapetree", null));
-        // Add fixtures for /projects/
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-no-contains"), "GET", "/data/projects/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("project/projects-container-manager"), "GET", "/data/projects/.shapetree", null));
-
-        URL targetResource = toUrl(server, "/data/projects/.shapetree");
-
-        // Update the manager directly for the /data/projects/ with PATCH
-        Response response = patch(okHttpClient, context, targetResource, null, getUpdateDataRepositorySparqlPatch(server));
         assertEquals(201, response.code());
     }
 

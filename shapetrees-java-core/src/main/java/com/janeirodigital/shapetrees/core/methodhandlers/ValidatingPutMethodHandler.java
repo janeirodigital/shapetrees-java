@@ -8,6 +8,7 @@ import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import java.util.Optional;
 
 import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+import static com.janeirodigital.shapetrees.core.helpers.RequestHelper.getIncomingParentContainerUrl;
 
 public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler implements ValidatingMethodHandler {
 
@@ -24,7 +25,7 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
 
             if (targetInstance.wasRequestForManager()) {
                 // Target resource is for shape tree manager, manage shape trees to plant and/or unplant
-                return Optional.of(this.requestHandler.manageShapeTree(targetInstance, shapeTreeRequest));
+                return Optional.of(this.requestHandler.updateShapeTreeManager(targetInstance, shapeTreeRequest));
             } else {
                 ManageableResource targetResource = targetInstance.getManageableResource();
                 shapeTreeRequest.setResourceType(RequestHelper.getIncomingResourceType(shapeTreeRequest));
@@ -32,11 +33,11 @@ public class ValidatingPutMethodHandler extends AbstractValidatingMethodHandler 
                     // The target resource already exists
                     if (targetInstance.isManaged()) {
                         // If it is managed by a shape tree the update must be validated
-                        return this.requestHandler.updateShapeTreeInstance(targetInstance, shapeTreeContext, shapeTreeRequest);
+                        return this.requestHandler.updateShapeTreeInstance(targetInstance, shapeTreeRequest);
                     }
                 } else {
                     // The target resource doesn't exist
-                    ManageableInstance parentInstance = getInstance(this.resourceAccessor, shapeTreeContext, targetResource.getParentContainerUrl());
+                    ManageableInstance parentInstance = getInstance(this.resourceAccessor, shapeTreeContext, getIncomingParentContainerUrl(shapeTreeRequest));
                     if (parentInstance.isManaged()) {
                         // If the parent container is managed by a shape tree, the resource to create must be validated
                         return this.requestHandler.createShapeTreeInstance(targetInstance, parentInstance, shapeTreeRequest, targetResource.getName());

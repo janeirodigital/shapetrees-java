@@ -1,27 +1,24 @@
 package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeader;
-import com.janeirodigital.shapetrees.core.enums.LinkRelation;
+import com.janeirodigital.shapetrees.core.enums.ContentType;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Optional;
 
 import static com.janeirodigital.shapetrees.core.enums.ContentType.OCTET_STREAM;
-import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.readStringIntoGraph;
-import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
+import static com.janeirodigital.shapetrees.core.enums.HttpHeader.*;
+import static com.janeirodigital.shapetrees.core.enums.LinkRelation.MANAGED_BY;
+import static com.janeirodigital.shapetrees.core.enums.LinkRelation.MANAGES;
+import static com.janeirodigital.shapetrees.core.helpers.DocumentResponseHelper.*;
 import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
 
 /**
@@ -37,8 +34,6 @@ import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
 @Slf4j
 public class OkHttpResourceAccessor implements ResourceAccessor {
 
-    private static final Set<String> supportedRDFContentTypes = Set.of("text/turtle", "application/rdf+xml", "application/n-triples", "application/ld+json");
-
     /**
      * Get a {@link InstanceResource} at the provided <code>url</code>, which may or may not exist.
      * Most of the work happens in {@link #generateResource(URL, DocumentResponse)}, which
@@ -51,27 +46,17 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
     @Override
     public InstanceResource
     getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
-        log.debug("OkHttpResourceAccessor#getResource({})", url);
 
         OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 
-        Request.Builder requestBuilder = new Request.Builder();
-        requestBuilder.url(url);
-        requestBuilder.method("GET", null);
-        // Set the authorization header if we have credentials
-        Headers requestHeaders = null;
-        if (context.hasCredentials()) { requestHeaders = setHttpHeader(HttpHeader.AUTHORIZATION, context.getCredentials()); }
-        if (requestHeaders != null) { requestBuilder.headers(requestHeaders); }
-
-        DocumentResponse documentResponse;
-        try (Response response = checkResponse(okHttpClient.newCall(requestBuilder.build()).execute())) {
+        try (Response response = getHttpResource(okHttpClient, url, context.getCredentials())) {
             ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
-            documentResponse = new DocumentResponse(attributes, response.body().string(), response.code());
+            String body = response.body() == null ? "" : response.body().string();
+            DocumentResponse documentResponse = new DocumentResponse(attributes, body, response.code());
+            return generateResource(url, documentResponse);
         } catch(IOException ex) {
             throw new ShapeTreeException(500, "Failed to get remote resource: " + ex.getMessage());
         }
-
-        return generateResource(url, documentResponse);
     }
 
     /**
@@ -79,9 +64,8 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
      * <code>method</code>. Most of the work happens in {@link #generateResource(URL, DocumentResponse)},
      * which processes the response and returns the corresponding typed resource.
      * @param context {@link ShapeTreeContext}
-     * @param method HTTP method to use for resource creation
      * @param url Url of the resource to create
-     * @param headers HTTP headers to use for resource creation
+     * @param attributes HTTP attributes to use for resource creation
      * @param body Body of resource to create
      * @param contentType HTTP content-type
      * @return {@link InstanceResource}
@@ -89,102 +73,27 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
      */
     @Override
     public InstanceResource
-    createResource(ShapeTreeContext context, String method, URL url, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
-        log.debug("createResource via {}: URL [{}], headers [{}]", method, url, headers.toString());
+    createResource(ShapeTreeContext context, URL url, ResourceAttributes attributes, String body, String contentType) throws ShapeTreeException {
+        log.debug("createResource: URL [{}]", url);
+        log.debug("createResource: Attributes [{}]", attributes == null ? "None" : attributes.toString());
 
         // Get an okHttpClient
         OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
-
-        Request.Builder requestBuilder = new Request.Builder();
-        requestBuilder.url(url);
         if (contentType == null) { contentType = OCTET_STREAM.getValue(); }
-        RequestBody requestBody = RequestBody.create(body, MediaType.get(contentType));
-        requestBuilder.method(method, requestBody);
-
-        Headers requestHeaders = null;
-        if (headers != null) { requestHeaders = attributesToHeaders(headers); }
-        if (context.hasCredentials()) { requestHeaders = setHttpHeader(HttpHeader.AUTHORIZATION, context.getCredentials(), requestHeaders); }
-        if (requestHeaders != null) { requestBuilder.headers(requestHeaders); }
-
-        DocumentResponse documentResponse;
-        try (Response response = checkResponse(okHttpClient.newCall(requestBuilder.build()).execute())) {
-            ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
-            documentResponse = new DocumentResponse(attributes, response.body().string(), response.code());
-        } catch(IOException ex) {
-            throw new ShapeTreeException(500, "Failed to get remote resource: " + ex.getMessage());
+        Headers headers = attributesToHeaders(attributes);
+        headers = addHttpHeader(IF_NONE_MATCH, "*", headers);
+        Response response = putHttpResource(okHttpClient, url, context.getCredentials(), headers, body, ContentType.get(contentType));
+        if (!response.isSuccessful()) {
+            throw new ShapeTreeException(response.code(), "Failed to create " + url + ": " + response.code() + " " + response.message());
         }
+        return getResource(context, url);
 
-        return generateResource(url, documentResponse);
-    }
-
-    /**
-     * Generates a typed {@link InstanceResource} based on the response from {@link #getResource(ShapeTreeContext, URL)} or
-     * {@link #createResource(ShapeTreeContext, String, URL, ResourceAttributes, String, String)}.
-     * Determines whether the resource is an existing {@link ManageableResource} or {@link ManagerResource}.
-     * @param url Url of the resource to generate
-     * @param response Response from a create or update of <code>url</code>
-     * @return Generated {@link InstanceResource}, either {@link ManageableResource} or {@link ManagerResource}
-     * @throws ShapeTreeException
-     */
-    private InstanceResource
-    generateResource(URL url, DocumentResponse response) throws ShapeTreeException {
-
-        // If a resource was created, ensure the URL returned in the Location header is valid
-        Optional<String> location = response.getResourceAttributes().firstValue(HttpHeader.LOCATION.getValue());
-        if (location.isPresent()) {
-            try {
-                url = new URL(location.get());
-            } catch (MalformedURLException e) {
-                throw new ShapeTreeException(500, "Retrieving <" + url + "> yielded a Location header \"" + location.get() + "\" which doesn't parse as a URL: " + e.getMessage());
-            }
-        }
-
-        // Determine whether the resource exists based on the response. Even if the resource
-        // doesn't exist, additional context and processing is done to provide the appropriate
-        // typed resource with adequate context to the caller
-        final boolean exists = response.isExists();
-        final boolean container = isContainerFromHeaders(response.getResourceAttributes(), url);
-        final ResourceAttributes attributes = response.getResourceAttributes();
-        final ShapeTreeResourceType resourceType = getResourceTypeFromHeaders(response.getResourceAttributes());
-
-        final String name = calculateName(url);
-        final String body = response.getBody();
-        if (response.getBody() == null) {
-            log.error("Could not retrieve the body string from response for " + url);
-        }
-
-        //  Parse Link headers from response and populate ResourceAttributes
-        final List<String> linkHeaders = attributes.allValues(HttpHeader.LINK.getValue());
-        ResourceAttributes parsedLinkHeaders = linkHeaders.isEmpty() // !!
-                ? new ResourceAttributes()
-                : ResourceAttributes.parseLinkHeaders(linkHeaders);
-
-        // Determine if the resource is a shape tree manager based on the response
-        final boolean isManager = calculateIsManager(url, exists, parsedLinkHeaders);
-
-        if (Boolean.TRUE.equals(isManager)) {
-            final URL managedResourceUrl = calculateManagedUrl(url, parsedLinkHeaders);
-            if (exists) {
-                return new ManagerResource(url, resourceType, attributes, body, name, true, managedResourceUrl);
-            } else {
-                return new MissingManagerResource(url, resourceType, attributes, body, name, managedResourceUrl);
-            }
-        } else {
-            // Look for presence of st:managedBy in link headers from response and get the target manager URL
-            final Optional<URL> managerUrl = calculateManagerUrl(url, parsedLinkHeaders);
-            if (exists) {
-                return new ManageableResource(url, resourceType, attributes, body, name, true, managerUrl, container);
-            } else {
-                return new MissingManageableResource(url, resourceType, attributes, body, name, managerUrl, container);
-            }
-        }
     }
 
     /**
      * Updates the provided {@link InstanceResource} <code>updateResource</code> with <code>body</code> via the supplied
      * <code>method</code>
      * @param context Shape tree context
-     * @param method HTTP method to use for update
      * @param updateResource {@link InstanceResource} to update
      * @param body Body to use for update
      * @return {@link DocumentResponse} of the result
@@ -192,30 +101,20 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
      */
     @Override
     public DocumentResponse
-    updateResource(ShapeTreeContext context, String method, InstanceResource updateResource, String body) throws ShapeTreeException {
-        log.debug("updateResource: URL [{}]", updateResource.getUrl());
+    updateResource(ShapeTreeContext context, InstanceResource updateResource, String body) throws ShapeTreeException {
 
         // Get an okHttpClient
         OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 
-        String contentType = updateResource.getAttributes().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null);
-        if (contentType == null) { contentType = OCTET_STREAM.getValue(); }
-
-        Request.Builder requestBuilder = new Request.Builder();
-        requestBuilder.url(updateResource.getUrl());
-        RequestBody requestBody = RequestBody.create(body, MediaType.get(contentType));
-        requestBuilder.method(method, requestBody);
+        String contentTypeString = getHeader(updateResource.getAttributes(), CONTENT_TYPE).orElse(OCTET_STREAM.getValue());
 
         // [careful] updateResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
-        ResourceAttributes allHeaders = updateResource.getAttributes().maybePlus(HttpHeader.AUTHORIZATION.getValue(), context.getCredentials());
-        if (allHeaders != null) { requestBuilder.headers(attributesToHeaders(allHeaders)); }
-
-        try (Response response = checkResponse(okHttpClient.newCall(requestBuilder.build()).execute())) {
-            ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
-            return new DocumentResponse(attributes, response.body().string(), response.code());
-        } catch(IOException ex) {
-            throw new ShapeTreeException(500, "Failed to update remote resource: " + ex.getMessage());
+        Response response = putHttpResource(okHttpClient, updateResource.getUrl(), context.getCredentials(), attributesToHeaders(updateResource.getAttributes()), body, ContentType.get(contentTypeString));
+        if (!response.isSuccessful()) {
+            throw new ShapeTreeException(response.code(), "Failed to update " + updateResource.getUrl() + ": " + response.code() + " " + response.message());
         }
+        ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
+        return new DocumentResponse(attributes, response.message(), response.code());
     }
 
     /**
@@ -228,77 +127,63 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
     @Override
     public DocumentResponse
     deleteResource(ShapeTreeContext context, ManagerResource deleteResource) throws ShapeTreeException {
-        log.debug("deleteResource: URL [{}]", deleteResource.getUrl());
 
         OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 
-        Request.Builder requestBuilder = new Request.Builder();
-        requestBuilder.url(deleteResource.getUrl());
-        RequestBody requestBody = RequestBody.create(null, new byte[0]);
-        requestBuilder.method("DELETE", requestBody);
-
         // [careful] updateResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)
-        ResourceAttributes allHeaders = deleteResource.getAttributes().maybePlus(HttpHeader.AUTHORIZATION.getValue(), context.getCredentials());
-        if (allHeaders != null) { requestBuilder.headers(attributesToHeaders(allHeaders)); }
+        Response response = deleteHttpResource(okHttpClient, deleteResource.getUrl(), context.getCredentials(), attributesToHeaders(deleteResource.getAttributes()));
+        if (!response.isSuccessful()) {
+            throw new ShapeTreeException(response.code(), "Failed to delete " + deleteResource.getUrl() + ": " + response.code() + " " + response.message());
+        }
+        ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
+        return new DocumentResponse(attributes, response.message(), response.code());
+    }
 
-        try (Response response = checkResponse(okHttpClient.newCall(requestBuilder.build()).execute())) {
-            ResourceAttributes attributes = new ResourceAttributes(response.headers().toMultimap());
-            if (response.code() < 200 || response.code() >= 400) {
-                log.error("Error deleting resource {}, Status {}", deleteResource.getUrl(), response.code());
+    /**
+     * Generates a typed {@link InstanceResource} based on the response from {@link #getResource(ShapeTreeContext, URL)} or
+     * {@link #createResource(ShapeTreeContext, URL, ResourceAttributes, String, String)}.
+     * Determines whether the resource is an existing {@link ManageableResource} or {@link ManagerResource}.
+     * @param url Url of the resource to generate
+     * @param response Response from a create or update of <code>url</code>
+     * @return Generated {@link InstanceResource}, either {@link ManageableResource} or {@link ManagerResource}
+     * @throws ShapeTreeException
+     */
+    private InstanceResource
+    generateResource(URL url, DocumentResponse response) throws ShapeTreeException {
+
+        // If a resource was created, ensure the URL returned in the Location header is valid
+        final Optional<String> locationValue = getHeader(response, LOCATION);
+        if (locationValue.isPresent()) { checkStringAsUrl(locationValue.get()); }
+
+        // Determine whether the resource exists based on the response. Even if the resource
+        // doesn't exist, additional context and processing is done to provide the appropriate
+        // typed resource with adequate context to the caller
+        final boolean exists = response.isExists();
+        final ResourceAttributes attributes = response.getResourceAttributes();
+        final ShapeTreeResourceType resourceType = getResourceType(response);
+        final String name = calculateName(url);
+        final String body = response.getBody();
+        //  Parse Link headers from response
+        final ResourceAttributes linkRelations = getLinkRelations(response);
+        // Determine if the resource is a shape tree manager based on the response
+        final boolean isManager = calculateIsManager(url, exists, linkRelations);
+
+        if (isManager) {
+            final URL managedResourceUrl = calculateManagedUrl(url, linkRelations);
+            if (exists) {
+                return new ManagerResource(url, resourceType, attributes, body, name, true, managedResourceUrl);
+            } else {
+                return new MissingManagerResource(url, resourceType, attributes, body, name, managedResourceUrl);
             }
-            return new DocumentResponse(attributes, response.body().string(), response.code());
-        } catch(IOException ex) {
-            throw new ShapeTreeException(500, "Failed to delete remote resource: " + ex.getMessage());
+        } else {
+            // Look for presence of st:managedBy in link headers from response and get the target manager URL
+            final Optional<URL> managerUrl = calculateManagerUrl(url, linkRelations);
+            if (exists) {
+                return new ManageableResource(url, resourceType, attributes, body, name, true, managerUrl);
+            } else {
+                return new MissingManageableResource(url, resourceType, attributes, body, name, managerUrl);
+            }
         }
-    }
-
-    /**
-     * Look for a Link rel=type of ldp:Container or ldp:BasicContainer
-     * @param headers to parse
-     * @return True if headers indicating a container are found
-     */
-    private boolean
-    isContainerFromHeaders(ResourceAttributes headers, URL url) {
-
-        List<String> linkHeaders = headers.allValues(HttpHeader.LINK.getValue());
-
-        if (linkHeaders.isEmpty()) { return url.getPath().endsWith("/"); }
-
-        ResourceAttributes parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
-
-        List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelation.TYPE.getValue());
-        if (!typeLinks.isEmpty()) {
-            return typeLinks.contains(LdpVocabulary.CONTAINER) ||
-                    typeLinks.contains(LdpVocabulary.BASIC_CONTAINER);
-        }
-        return false;
-    }
-
-    /**
-     * Determine a resource type by parsing Link rel=type headers
-     * @param headers to parse
-     * @return Type of resource
-     */
-    private ShapeTreeResourceType
-    getResourceTypeFromHeaders(ResourceAttributes headers) {
-
-        List<String> linkHeaders = headers.allValues(HttpHeader.LINK.getValue());
-
-        if (linkHeaders == null) { return null; }
-
-        ResourceAttributes parsedLinkHeaders = ResourceAttributes.parseLinkHeaders(linkHeaders);
-
-        List<String> typeLinks = parsedLinkHeaders.allValues(LinkRelation.TYPE.getValue());
-        if (typeLinks != null &&
-                (typeLinks.contains(LdpVocabulary.CONTAINER) ||
-                        typeLinks.contains(LdpVocabulary.BASIC_CONTAINER))) {
-            return ShapeTreeResourceType.CONTAINER;
-        }
-
-        if (supportedRDFContentTypes.contains(headers.firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(""))) { // orElse("") because contains(null) throw NPE
-            return ShapeTreeResourceType.RESOURCE;
-        }
-        return ShapeTreeResourceType.NON_RDF;
     }
 
     /**
@@ -312,17 +197,10 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
      */
     private Optional<URL>
     calculateManagerUrl(URL url, ResourceAttributes parsedLinkHeaders) throws ShapeTreeException {
-        final Optional<String> optManagerString = parsedLinkHeaders.firstValue(LinkRelation.MANAGED_BY.getValue());
-        if (optManagerString.isEmpty()) {
-            log.info("The resource {} does not contain a link header of {}", url, LinkRelation.MANAGED_BY.getValue());
-            return Optional.empty();
-        }
+        final Optional<String> optManagerString = getLinkRelation(parsedLinkHeaders, MANAGED_BY);
+        if (optManagerString.isEmpty()) { return Optional.empty(); }
         String managerUrlString = optManagerString.get();
-        try {
-            return Optional.of(new URL(url, managerUrlString));
-        } catch (MalformedURLException e) {
-            throw new ShapeTreeException(500, "Malformed relative URL <" + managerUrlString + "> (resolved from <" + url + ">)");
-        }
+        return Optional.of(stringToUrl(url, managerUrlString));
     }
 
     /**
@@ -336,12 +214,9 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
      */
     private URL
     calculateManagedUrl(URL managerUrl, ResourceAttributes parsedLinkHeaders) throws ShapeTreeException {
-
         String managedUrlString;
-        URL managedResourceUrl;
-
-        final Optional<String> optManagedString = parsedLinkHeaders.firstValue(LinkRelation.MANAGES.getValue());
-        if (!optManagedString.isEmpty()) {
+        final Optional<String> optManagedString = getLinkRelation(parsedLinkHeaders, MANAGES);
+        if (optManagedString.isPresent()) {
             managedUrlString = optManagedString.get();
         } else {
             // Attempt to (crudely) infer based on path calculation
@@ -349,14 +224,7 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
             // Rebuild without the query string in case that was employed
             managedUrlString = managerUrl.getPath().replaceAll("\\.shapetree$", "");
         }
-
-        try {
-            managedResourceUrl = new URL(managerUrl, managedUrlString);
-        } catch (MalformedURLException e) {
-            throw new ShapeTreeException(500, "Can't calculate managed resource for shape tree manager <" + managerUrl + ">");
-        }
-
-        return managedResourceUrl;
+        return stringToUrl(managerUrl, managedUrlString);
     }
 
     /**
@@ -400,14 +268,10 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
     calculateIsManager(URL url, boolean exists, ResourceAttributes parsedLinkHeaders) {
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#managedBy
         // with a manager target, it is not a manager resource (because it is managed by one)
-        if (Boolean.TRUE.equals(exists) && parsedLinkHeaders.firstValue(LinkRelation.MANAGED_BY.getValue()).isPresent()) {
-            return false;
-        }
+        if (exists && getLinkRelation(parsedLinkHeaders, MANAGED_BY).isPresent()) { return false; }
         // If the resource has an HTTP Link header of type of https://www.w3.org/ns/shapetrees#manages
         // it is a manager resource (because it manages another one).
-        if (Boolean.TRUE.equals(exists) && parsedLinkHeaders.firstValue(LinkRelation.MANAGES.getValue()).isPresent()) {
-            return true;
-        }
+        if (exists && getLinkRelation(parsedLinkHeaders, MANAGES).isPresent()) { return true; }
         // If the resource doesn't exist, attempt to infer based on the URL
         if (url.getPath() != null && url.getPath().matches(".*\\.shapetree$")) { return true; }
         return url.getQuery() != null && url.getQuery().matches(".*ext\\=shapetree$");

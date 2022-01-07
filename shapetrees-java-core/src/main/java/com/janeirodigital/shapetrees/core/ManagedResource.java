@@ -17,7 +17,7 @@ public class ManagedResource extends ManageableResource {
      * @param managerUrl URL of the associated shape tree manager resource
      */
     public ManagedResource(ManageableResource manageable, Optional<URL> managerUrl) {
-        super(manageable.getUrl(), manageable.getResourceType(), manageable.getAttributes(), manageable.getBody(), manageable.getName(), manageable.isExists(), managerUrl, manageable.isContainer());
+        super(manageable.getUrl(), manageable.getResourceType(), manageable.getAttributes(), manageable.getBody(), manageable.getName(), manageable.isExists(), managerUrl);
     }
 
 }

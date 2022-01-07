@@ -15,7 +15,7 @@ body: >
 
   <#ln1>
     st:assigns <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectTree> ;
-    st:manages </static/resource/missing-resource-1> ;
+    st:manages </missing-resource-1> ;
     st:hasRootAssignment <#ln1> ;
-    st:focusNode </static/resource/missing-resource-1#project> ;
+    st:focusNode </missing-resource-1#project> ;
     st:shape <${SERVER_BASE}/static/shex/project/shex#ProjectShape> .

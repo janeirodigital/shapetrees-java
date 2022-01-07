@@ -197,6 +197,20 @@ public class RequestHelper {
     }
 
     /**
+     * Get the URL of the incoming resource target's parent container
+     * @return URL of the parent container
+     * @throws ShapeTreeException
+     */
+    public static URL getIncomingParentContainerUrl(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+        final String rel = getIsContainerFromRequest(shapeTreeRequest) ? ".." : ".";
+        try {
+            return new URL(shapeTreeRequest.getUrl(), rel);
+        } catch (MalformedURLException e) {
+            throw new ShapeTreeException(500, "Malformed focus node when resolving <" + rel + "> against <" + shapeTreeRequest.getUrl() + ">");
+        }
+    }
+
+    /**
      * Determines whether a content type is a supported RDF type
      * @param incomingRequestContentType Content type to test
      * @return Boolean indicating whether it is RDF or not

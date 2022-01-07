@@ -1,5 +1,4 @@
 package com.janeirodigital.shapetrees.core;
-import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -15,13 +14,13 @@ import static java.util.Objects.requireNonNull;
  */
 @Slf4j
 public class ResourceAttributes {
-    Map<String, List<String>> myMapOfLists;
+    protected Map<String, List<String>> attributes;
 
     /**
      * construct a case-insensitive ResourceAttributes container
      */
     public ResourceAttributes() {
-        this.myMapOfLists = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        this.attributes = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     }
 
     /**
@@ -29,8 +28,8 @@ public class ResourceAttributes {
      * @param attr attribute (header) name to set
      * @param value String value to assign to attr
      */
-    public ResourceAttributes(String attr, String value) throws ShapeTreeException {
-        this.myMapOfLists = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    public ResourceAttributes(String attr, String value) {
+        this.attributes = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         this.maybeSet(attr, value);
     }
 
@@ -39,14 +38,14 @@ public class ResourceAttributes {
      * @param newMap replacement for myMapOfLists
      */
     public ResourceAttributes(Map<String, List<String>> newMap) {
-        this.myMapOfLists = newMap;
+        this.attributes = Objects.requireNonNullElseGet(newMap, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
     }
 
     // copy constructor
     private ResourceAttributes copy() {
         ResourceAttributes ret = new ResourceAttributes();
-        for (Map.Entry<String, List<String>> entry : this.myMapOfLists.entrySet()) {
-            ret.myMapOfLists.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        for (Map.Entry<String, List<String>> entry : this.attributes.entrySet()) {
+            ret.attributes.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }
         return ret;
     }
@@ -57,21 +56,20 @@ public class ResourceAttributes {
      * @param headerValues Header values for Link headers
      * @return subset of this matching the pattern
      */
-    public static ResourceAttributes parseLinkHeaders(List<String> headerValues) {
-        ResourceAttributes linkHeaderMap = new ResourceAttributes();
+    public static RelationAttributes parseLinkHeaders(List<String> headerValues) {
+        RelationAttributes linkRelationMap = new RelationAttributes();
         for (String headerValue : headerValues) {
             Matcher matcher = LINK_HEADER_PATTERN.matcher(headerValue);
-            // if (matcher.matches() && matcher.groupCount() >= 2) {
             if (matcher.matches()) {
                 String uri = matcher.group(1);
                 String rel = matcher.group(2);
-                linkHeaderMap.myMapOfLists.computeIfAbsent(rel, k -> new ArrayList<>());
-                linkHeaderMap.myMapOfLists.get(rel).add(uri);
+                linkRelationMap.attributes.computeIfAbsent(rel, k -> new ArrayList<>());
+                linkRelationMap.attributes.get(rel).add(uri);
             } else {
                 log.warn("Unable to parse link header: [{}]", headerValue);
             }
         }
-        return linkHeaderMap;
+        return linkRelationMap;
     }
 
     /**
@@ -94,24 +92,21 @@ public class ResourceAttributes {
      * @param attr attribute (header) name to set
      * @param value String value to assign to attr
      */
-    /*@SneakyThrows*/
     public void maybeSet(String attr, String value) {
         if (attr == null || value == null) {
             return;
         }
 
-        if (this.myMapOfLists.containsKey(attr)) {
-            List<String> existingValues = this.myMapOfLists.get(attr);
+        if (this.attributes.containsKey(attr)) {
+            List<String> existingValues = this.attributes.get(attr);
             boolean alreadySet = existingValues.stream().anyMatch(s -> s.equals(value));
             if (!alreadySet) {
                 existingValues.add(value);
-            }/* else {
-                throw new Exception(attr + ": " + value + " already set.");
-            }*/
+            }
         } else {
-            ArrayList<String> list = new ArrayList<String>();
+            ArrayList<String> list = new ArrayList<>();
             list.add(value);
-            this.myMapOfLists.put(attr, list);
+            this.attributes.put(attr, list);
         }
     }
 
@@ -121,13 +116,13 @@ public class ResourceAttributes {
      * @param values String values to assign to attr
      */
     public void setAll(String attr, List<String> values) {
-        this.myMapOfLists.put(attr, values);
+        this.attributes.put(attr, values);
     }
 
     /**
      * Returns a map of attributes to lists of values
      */
-    public Map<String, List<String>> toMultimap() { return this.myMapOfLists; }
+    public Map<String, List<String>> toMultimap() { return this.attributes; }
 
     /**
      * Returns an array with alternating attributes and values.
@@ -136,7 +131,7 @@ public class ResourceAttributes {
      */
     public String[] toList(String... exclusions) {
         List<String> ret = new ArrayList<>();
-        for (Map.Entry<String, List<String>> entry : this.myMapOfLists.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : this.attributes.entrySet()) {
             String attr = entry.getKey();
             if (!Arrays.stream(exclusions).anyMatch(s -> s.equals(attr))) {
                 for (String value : entry.getValue()) {
@@ -177,9 +172,17 @@ public class ResourceAttributes {
         return values != null ? values : List.of();
     }
 
+    /**
+     * Identifies whether the ResourceAttributes are empty
+     * @return True when there are no attributes
+     */
+    public boolean isEmpty() {
+        return this.attributes.isEmpty();
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, List<String>> entry : this.myMapOfLists.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : this.attributes.entrySet()) {
             for (String value : entry.getValue()) {
                 if (sb.length() != 0) {
                     sb.append(",");

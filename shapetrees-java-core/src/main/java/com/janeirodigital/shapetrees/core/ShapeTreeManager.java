@@ -5,6 +5,7 @@ import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
 import com.janeirodigital.shapetrees.core.vocabularies.RdfVocabulary;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -29,7 +30,7 @@ import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
  * one or more shape tree assignments via st:hasAssignment.
  * https://shapetrees.org/TR/specification/#manager
 */
-@Getter
+@Slf4j @Getter
 public class ShapeTreeManager {
 
     private final URL id;
@@ -112,6 +113,7 @@ public class ShapeTreeManager {
             }
         }
 
+        log.debug("Assigning shape tree {} to {}", assignment.getShapeTree(), this.getId());
         this.assignments.add(assignment);
 
     }

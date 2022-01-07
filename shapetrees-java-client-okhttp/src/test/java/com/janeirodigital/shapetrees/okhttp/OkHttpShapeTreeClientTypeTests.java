@@ -2,21 +2,20 @@ package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
-import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.janeirodigital.shapetrees.core.enums.ContentType.OCTET_STREAM;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
 import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.post;
+import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
+import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnPut;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -36,38 +35,48 @@ class OkHttpShapeTreeClientTypeTests {
 
     @BeforeEach
     void initializeDispatcher() {
-        List dispatcherList = new ArrayList();
 
-        dispatcherList.add(new DispatcherEntry(List.of("type/containers-container"), "GET", "/containers/", null));
-        dispatcherList.add(new DispatcherEntry(List.of("type/containers-container-manager"), "GET", "/containers/.shapetree", null));
-        dispatcherList.add(new DispatcherEntry(List.of("type/resources-container"), "GET", "/resources/", null));
-        dispatcherList.add(new DispatcherEntry(List.of("type/resources-container-manager"), "GET", "/resources/.shapetree", null));
-        dispatcherList.add(new DispatcherEntry(List.of("type/non-rdf-resources-container"), "GET", "/non-rdf-resources/", null));
-        dispatcherList.add(new DispatcherEntry(List.of("type/non-rdf-resources-container-manager"), "GET", "/non-rdf-resources/.shapetree", null));
-        dispatcherList.add(new DispatcherEntry(List.of("shapetrees/type-shapetree-ttl"), "GET", "/static/shapetrees/type/shapetree", null));
+        dispatcher = new RequestMatchingFixtureDispatcher();
+
+        // Add managed container fixtures for container type tests
+        mockOnGet(dispatcher, "/containers/","type/containers-container");
+        mockOnGet(dispatcher, "/containers/.shapetree", "type/containers-container-manager");
+        // Add managed container fixtures for resource type tests
+        mockOnGet(dispatcher, "/resources/", "type/resources-container");
+        mockOnGet(dispatcher, "/resources/.shapetree", "type/resources-container-manager");
+        // Add managed container fixtures for non-rdf-resource type tests
+        mockOnGet(dispatcher, "/non-rdf-resources/", "type/non-rdf-resources-container");
+        mockOnGet(dispatcher, "/non-rdf-resources/.shapetree", "type/non-rdf-resources-container-manager");
+        // Add fixture for shapetree resource providing type-specific shape trees for validation tests
+        mockOnGet(dispatcher, "/static/shapetrees/type/shapetree", "shapetrees/type-shapetree-ttl");
 
         server = new MockWebServer();
-        dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
         server.setDispatcher(dispatcher);
     }
 
     @Test
-    @DisplayName("Create container when only containers are allowed")
-    void createContainer() throws ShapeTreeException {
+    @DisplayName("Create container with target shape tree when only containers are allowed")
+    void createContainerWithTargetShapeTree() throws ShapeTreeException {
 
-        // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-container-create-response"), "POST", "/containers/valid-container/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/containers/valid-container/.shapetree", null));
-        Response response;
-
-        // Provide target shape tree
-        response = post(okHttpClient, context, toUrl(server, "/containers/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree")), "valid-container", true, null, TEXT_TURTLE);
+        mockOnPut(dispatcher, "/containers/valid-container/", "http/201");
+        mockOnPut(dispatcher, "/containers/valid-container/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/containers/valid-container/", List.of("http/404", "type/valid-container"));
+        
+        Response response = post(okHttpClient, context, toUrl(server, "/containers/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree")), "valid-container", true, null, TEXT_TURTLE);
         assertEquals(201, response.code());
 
-        // Do not provide target shape tree
-        response = post(okHttpClient, context, toUrl(server, "/containers/"), null, null, "valid-container", true, null, TEXT_TURTLE);
-        assertEquals(201, response.code());
+    }
 
+    @Test
+    @DisplayName("Create container without target shape tree when only containers are allowed")
+    void createContainerWithoutTargetShapeTree() throws ShapeTreeException {
+
+        mockOnPut(dispatcher, "/containers/valid-container/", "http/201");
+        mockOnPut(dispatcher, "/containers/valid-container/.shapetree", "http/201");
+        mockOnGet(dispatcher, "/containers/valid-container/", List.of("http/404", "type/valid-container"));
+        
+        Response response = post(okHttpClient, context, toUrl(server, "/containers/"), null, null, "valid-container", true, null, TEXT_TURTLE);
+        assertEquals(201, response.code());
 
     }
 
@@ -89,26 +98,30 @@ class OkHttpShapeTreeClientTypeTests {
     }
 
     @Test
-    @DisplayName("Create resource when only resources are allowed")
-    void createResource() throws ShapeTreeException {
-        // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-resource-create-response"), "POST", "/resources/valid-resource", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/resources/valid-resource.shapetree", null));
-        Response response;
+    @DisplayName("Create resource with target shape tree when only resources are allowed")
+    void createResourceWithTargetShapeTree() throws ShapeTreeException {
+        mockOnPut(dispatcher, "/resources/valid-resource", "http/201");
+        mockOnPut(dispatcher, "/resources/valid-resource.shapetree", "http/201");
+        mockOnGet(dispatcher, "/resources/valid-resource", List.of("http/404", "type/valid-resource"));
 
-        // Provide target shape tree
-        response = post(okHttpClient, context, toUrl(server, "/resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree")), "valid-resource", false, null, TEXT_TURTLE);
-        assertEquals(201, response.code());
-
-        // Do not provide target shape tree
-        response = post(okHttpClient, context, toUrl(server, "/resources/"), null, null, "valid-resource", false, null, TEXT_TURTLE);
+        Response response = post(okHttpClient, context, toUrl(server, "/resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree")), "valid-resource", false, null, TEXT_TURTLE);
         assertEquals(201, response.code());
     }
 
-    @SneakyThrows
+    @Test
+    @DisplayName("Create resource without target shape tree when only resources are allowed")
+    void createResourceWithoutTargetShapeTree() throws ShapeTreeException {
+        mockOnPut(dispatcher, "/resources/valid-resource", "http/201");
+        mockOnPut(dispatcher, "/resources/valid-resource.shapetree", "http/201");
+        mockOnGet(dispatcher, "/resources/valid-resource", List.of("http/404", "type/valid-resource"));
+        
+        Response response = post(okHttpClient, context, toUrl(server, "/resources/"), null, null, "valid-resource", false, null, TEXT_TURTLE);
+        assertEquals(201, response.code());
+    }
+    
     @Test
     @DisplayName("Fail to create container when only resources are allowed")
-    void failToCreateNonResource() {
+    void failToCreateNonResource() throws ShapeTreeException {
         Response response;
         // Provide target shape tree for a container when resource shape tree is expected
         response = post(okHttpClient, context, toUrl(server, "/resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ContainerTree")), "invalid-container", true, null, TEXT_TURTLE);
@@ -123,26 +136,37 @@ class OkHttpShapeTreeClientTypeTests {
         assertEquals(422, response.code());
     }
 
-    @SneakyThrows
+    
     @Test
-    @DisplayName("Create non-rdf resource when only non-rdf resources are allowed")
-    void createNonRDFResource() {
+    @DisplayName("Create non-rdf resource with target shape tree when only non-rdf resources are allowed")
+    void createNonRDFResourceWithTargetShapeTree() throws ShapeTreeException {
         // Add fixture to handle successful POST response
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("type/valid-non-rdf-resource-create-response"), "POST", "/non-rdf-resources/valid-non-rdf-resource", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/non-rdf-resources/valid-non-rdf-resource.shapetree", null)); // TODO: Test: should this fail? should it have already failed?
-        Response response;
+        mockOnPut(dispatcher, "/non-rdf-resources/valid-non-rdf-resource", "http/201");
+        mockOnPut(dispatcher, "/non-rdf-resources/valid-non-rdf-resource.shapetree", "http/201");
+        mockOnGet(dispatcher, "/non-rdf-resources/valid-non-rdf-resource", List.of("http/404", "type/valid-non-rdf-resource"));
 
-        response = post(okHttpClient, context, toUrl(server, "/non-rdf-resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree")), "valid-non-rdf-resource", false, null, OCTET_STREAM);
-        assertEquals(201, response.code());
 
-        response = post(okHttpClient, context, toUrl(server, "/non-rdf-resources/"), null, null, "valid-non-rdf-resource", false, null, OCTET_STREAM);
+        Response response = post(okHttpClient, context, toUrl(server, "/non-rdf-resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#NonRDFResourceTree")), "valid-non-rdf-resource", false, null, OCTET_STREAM);
         assertEquals(201, response.code());
     }
 
-    @SneakyThrows
+    
+    @Test
+    @DisplayName("Create non-rdf resource without target shape tree when only non-rdf resources are allowed")
+    void createNonRDFResourceWithoutTargetShapeTree() throws ShapeTreeException {
+        // Add fixture to handle successful POST response
+        mockOnPut(dispatcher, "/non-rdf-resources/valid-non-rdf-resource", "http/201");
+        mockOnPut(dispatcher, "/non-rdf-resources/valid-non-rdf-resource.shapetree", "http/201");
+        mockOnGet(dispatcher, "/non-rdf-resources/valid-non-rdf-resource", List.of("http/404", "type/valid-non-rdf-resource"));
+
+        Response response = post(okHttpClient, context, toUrl(server, "/non-rdf-resources/"), null, null, "valid-non-rdf-resource", false, null, OCTET_STREAM);
+        assertEquals(201, response.code());
+    }
+
+    
     @Test
     @DisplayName("Fail to create resource when only non-rdf resources are allowed")
-    void failToCreateNonRDFResource() {
+    void failToCreateNonRDFResource() throws ShapeTreeException {
         Response response;
         // Provide target shape tree for a resource when non-rdf-resource shape tree is expected
         response = post(okHttpClient, context, toUrl(server, "/non-rdf-resources/"), null, Arrays.asList(toUrl(server, "/static/shapetrees/type/shapetree#ResourceTree")), "invalid-non-rdf-resource", false, null, TEXT_TURTLE);

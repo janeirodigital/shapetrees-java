@@ -24,6 +24,8 @@ class OkHttpShapeTreeClientInitializeTests {
         assertNotNull(okHttpClient);
     }
 
+    // TODO - Finish client initialization tests
+
     @Test
     @DisplayName("Confirm alternative factory can be assigned and used")
     void useAlternativeClientFactory() { }

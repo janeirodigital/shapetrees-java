@@ -26,7 +26,7 @@ public class ValidatingDeleteMethodHandler extends AbstractValidatingMethodHandl
             if (targetInstance.wasRequestForManager() && targetInstance.getManagerResource().isExists()) {
                 // If the DELETE request is for an existing shapetree manager resource,
                 // it must be evaluated to determine if unplanting is necessary
-                return Optional.of(this.requestHandler.manageShapeTree(targetInstance, shapeTreeRequest));
+                return Optional.of(this.requestHandler.updateShapeTreeManager(targetInstance, shapeTreeRequest));
             }
 
             // Reaching this point means validation was not necessary

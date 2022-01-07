@@ -1,9 +1,6 @@
 package com.janeirodigital.shapetrees.okhttp;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.ResourceAccessor;
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -48,6 +45,8 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     @Override
     public Response intercept(@NotNull Chain chain) throws IOException {
 
+        log.info("Intercepting {} request to {} for client-side validation: ", chain.request().method(), chain.request().url());
+
         ShapeTreeRequest shapeTreeRequest = new OkHttpShapeTreeRequest(chain.request());
         ResourceAccessor resourceAccessor = new OkHttpResourceAccessor();
 
@@ -57,19 +56,18 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
             try {
                 Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
                 if (!shapeTreeResponse.isPresent()) {
+                    log.info("Client-side validation successful. Passing {} request to {} through to server", shapeTreeRequest.getMethod(), shapeTreeRequest.getUrl());
                     return check(chain.proceed(chain.request()));
                 } else {
                     return createResponse(chain.request(), shapeTreeResponse.get());
                 }
             } catch (ShapeTreeException ex){
-                log.error("Error processing shape tree request: ", ex);
                 return createErrorResponse(ex, chain.request());
             } catch (Exception ex) {
-                log.error("Error processing shape tree request: ", ex);
                 return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), chain.request());
             }
         } else {
-            log.warn("No handler for method [{}] - passing through request", shapeTreeRequest.getMethod());
+            log.warn("No handler for method [{}] - passing through request to {}", shapeTreeRequest.getMethod(), shapeTreeRequest.getUrl());
             return check(chain.proceed(chain.request()));
         }
     }
@@ -90,6 +88,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     }
 
     private Response createErrorResponse(ShapeTreeException exception, Request nativeRequest) {
+        log.error("Error processing shape tree request: ", exception);
         return new Response.Builder()
                 .code(exception.getStatusCode())
                 .body(ResponseBody.create(exception.getMessage(), MediaType.get("text/plain")))
@@ -105,6 +104,8 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         ResourceAttributes responseHeaders = response.getResourceAttributes();
         builder.headers(attributesToHeaders(responseHeaders));
         String contentType = responseHeaders.firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse("text/turtle");
+
+        log.info("Client-side validation successful. {} request was fulfilled to {}", nativeRequest.method(), nativeRequest.url());
 
         builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
                 .protocol(Protocol.HTTP_2)
@@ -145,7 +146,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
 
         @Override
-        public ResourceAttributes getLinkHeaders() {
+        public RelationAttributes getLinkHeaders() {
             return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeader.LINK.getValue()));
         }
 

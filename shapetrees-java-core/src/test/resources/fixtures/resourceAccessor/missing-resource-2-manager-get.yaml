@@ -2,7 +2,7 @@ statusCode : 200
 delay: 0
 headers:
   - 'Content-type:text/turtle'
-  - 'Link:</data/projects/project-1/milestone-3/>; rel="http://www.w3.org/ns/shapetrees#manages"'
+  - 'Link:</missing-resource-2>; rel="http://www.w3.org/ns/shapetrees#manages"'
 body: >
 
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -16,7 +16,7 @@ body: >
 
   <#ln1>
     st:assigns <${SERVER_BASE}/static/shapetrees/project/shapetree#MilestoneTree> ;
-    st:manages </data/projects/project-1/milestone-3/> ;
-    st:hasRootAssignment </data/projects/.shapetree#ln2> ;
-    st:focusNode </data/projects/project-1/milestone-3/#milestone> ;
+    st:manages </missing-resource-2> ;
+    st:hasRootAssignment <#ln1> ;
+    st:focusNode </missing-resource-2#milestone> ;
     st:shape <${SERVER_BASE}/static/shex/project/shex#MilestoneShape> .

@@ -35,7 +35,6 @@ public interface ResourceAccessor {
     /**
      * Creates a specific {@link InstanceResource} identified by the provided <code>resourceUrl</code>.
      * @param context {@link ShapeTreeContext}
-     * @param method Incoming HTTP method triggering resource creation
      * @param resourceUrl URL of the resource to create
      * @param headers Incoming HTTP headers
      * @param body Body of the resource to create
@@ -43,18 +42,17 @@ public interface ResourceAccessor {
      * @return {@link InstanceResource}
      * @throws ShapeTreeException
      */
-    InstanceResource createResource(ShapeTreeContext context, String method, URL resourceUrl, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException;
+    InstanceResource createResource(ShapeTreeContext context, URL resourceUrl, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException;
 
     /**
      * Updates a specific {@link InstanceResource} identified by the provided <code>updatedResource</code>
      * @param context {@link ShapeTreeContext}
-     * @param method Incoming HTTP method triggering resource update
      * @param updatedResource {@link InstanceResource} to update
      * @param body Updated body of the {@link InstanceResource}
      * @return Updated {@link InstanceResource}
      * @throws ShapeTreeException
      */
-    DocumentResponse updateResource(ShapeTreeContext context, String method, InstanceResource updatedResource, String body) throws ShapeTreeException;
+    DocumentResponse updateResource(ShapeTreeContext context, InstanceResource updatedResource, String body) throws ShapeTreeException;
 
     /**
      * Deletes a specific {@link InstanceResource} identified by the provided <code>updatedResource</code>

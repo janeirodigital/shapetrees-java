@@ -1,6 +1,5 @@
 package com.janeirodigital.shapetrees.core;
 
-import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.LinkRelation;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
@@ -15,6 +14,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
+import static com.janeirodigital.shapetrees.core.enums.ContentType.OCTET_STREAM;
+import static com.janeirodigital.shapetrees.core.enums.HttpHeader.CONTENT_TYPE;
+import static com.janeirodigital.shapetrees.core.helpers.DocumentResponseHelper.getHeader;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.readStringIntoGraph;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
@@ -73,7 +75,7 @@ public class ManageableInstance {
      * Constructor for a ManageableInstance. Since a ManageableInstance is immutable, all
      * elements must be provided, and cannot be null. ManageableInstances should be
      * constructed through a ResourceAccessor:
-     * {@link #createInstance(ResourceAccessor, ShapeTreeContext, String, URL, ResourceAttributes, String, String)}
+     * {@link #createInstanceResource(ResourceAccessor, ShapeTreeContext, URL, ResourceAttributes, String, String)}
      * {@link #getInstance(ResourceAccessor, ShapeTreeContext, URL)}
      * @param context Shape tree context
      * @param resourceAccessor Resource accessor in use
@@ -96,6 +98,42 @@ public class ManageableInstance {
     }
 
     /**
+     * Gets a list of {@link ManageableInstance}s contained in a managed resource that is a container.
+     * @return List of contained {@link ManageableInstance}s
+     * @throws ShapeTreeException
+     */
+    public List<ManageableInstance>
+    getContainedInstances() throws ShapeTreeException {
+        ManageableResource resource = this.getManageableResource();
+        ResourceAttributes attributes = resource.getAttributes();
+        if (!resource.isContainer()) {
+            throw new ShapeTreeException(500, "Cannot get contained resources for a non-container <" + resource.getUrl() + ">");
+        }
+        try {
+            Graph containerGraph = readStringIntoGraph(urlToUri(resource.getUrl()), resource.getBody(), getHeader(attributes, CONTENT_TYPE).orElse(null));
+
+            if (containerGraph.isEmpty()) { return Collections.emptyList(); }
+
+            List<Triple> containerTriples = containerGraph.find(NodeFactory.createURI(resource.getUrl().toString()),
+                    NodeFactory.createURI(LdpVocabulary.CONTAINS),
+                    Node.ANY).toList();
+
+            if (containerTriples.isEmpty()) { return Collections.emptyList(); }
+
+            ArrayList<ManageableInstance> containedInstances = new ArrayList<>();
+
+            for (Triple containerTriple : containerTriples) {
+                ManageableInstance containedInstance = getInstance(this.resourceAccessor, this.shapeTreeContext, new URL(containerTriple.getObject().getURI()));
+                containedInstances.add(containedInstance);
+            }
+
+            return containedInstances;
+        } catch (Exception ex) {
+            throw new ShapeTreeException(500, ex.getMessage());
+        }
+    }
+
+    /**
      * Return a {@link ManageableInstance} constructed starting with the resource identified by the provided
      * <code>resourceUrl</code>. The <code>resourceUrl</code> may target either a {@link ManageableResource},
      * or a {@link ManagerResource}.
@@ -111,6 +149,12 @@ public class ManageableInstance {
      */
     public static ManageableInstance
     getInstance(ResourceAccessor accessor, ShapeTreeContext context, URL resourceUrl) throws ShapeTreeException {
+
+        Objects.requireNonNull(accessor, "Must provide a non-null resource accessor");
+        Objects.requireNonNull(accessor, "Must provide a non-null shape tree context");
+        Objects.requireNonNull(accessor, "Must provide a non-null resource URL");
+
+        log.debug("Getting manageable instance for {}", resourceUrl);
 
         InstanceResource resource = accessor.getResource(context, resourceUrl);
 
@@ -144,6 +188,7 @@ public class ManageableInstance {
     getInstanceFromMissingManageableResource(ResourceAccessor accessor, ShapeTreeContext context, MissingManageableResource missing) {
 
         MissingManagerResource missingManager = new MissingManagerResource(missing, null);
+        log.debug("Got manageable instance for missing resource {}", missing.getUrl());
         return new ManageableInstance(context, accessor, false, missing, missingManager);
 
     }
@@ -165,9 +210,10 @@ public class ManageableInstance {
 
         if (manageable.isExists()) {
             UnmanagedResource unmanaged = new UnmanagedResource((ManageableResource)manageable, Optional.of(missing.getUrl()));
+            log.debug("Got manageable instance for unmanaged resource {}, from request to missing manager resource {}", unmanaged.getUrl(), missing.getUrl());
             return new ManageableInstance(context, accessor, true, unmanaged, missing);
         } else {
-            throw new ShapeTreeException(500, "Cannot have a shape tree manager " + missing.getUrl() + " for a missing manageable resource " + manageable.getUrl());
+            throw new ShapeTreeException(500, "Cannot get a shape tree manager " + missing.getUrl() + " for a missing manageable resource " + manageable.getUrl());
         }
     }
 
@@ -191,10 +237,12 @@ public class ManageableInstance {
         if (manager instanceof MissingManagerResource) {
             // If the manager does exist it is unmanaged - Get and store both in instance
             UnmanagedResource unmanaged = new UnmanagedResource(manageable, Optional.of(manager.getUrl()));
+            log.debug("Got manageable instance for unmanaged resource {}", unmanaged.getUrl());
             return new ManageableInstance(context, accessor, false, unmanaged, (ManagerResource) manager);
         } else if (manager instanceof ManagerResource) {
             // If the manager exists then it is managed - get and store manager and managed resource in instance
             ManagedResource managed = new ManagedResource(manageable, Optional.of(manager.getUrl()));
+            log.debug("Got manageable instance for managed resource {}", managed.getUrl());
             return new ManageableInstance(context, accessor, false, managed, (ManagerResource)manager);
         } else {
             throw new ShapeTreeException(500, "Error looking up corresponding shape tree manager for " + manageable.getUrl());
@@ -217,6 +265,7 @@ public class ManageableInstance {
             throw new ShapeTreeException(500, "Cannot have a shape tree manager at " + manager.getUrl() + " without a corresponding managed resource");
         }
         ManagedResource managed = new ManagedResource((ManageableResource)manageable, Optional.of(manager.getUrl()));
+        log.debug("Got manageable instance for managed resource {}, based on request to manager {}", managed.getUrl(), manager.getUrl());
         return new ManageableInstance(context, accessor, true, managed, manager);
     }
 
@@ -262,7 +311,6 @@ public class ManageableInstance {
      * typed sub-classes that indicate whether they exist, or (in the case of {@link ManageableResource}),
      * whether they are managed.
      * @param context {@link ShapeTreeContext}
-     * @param method Incoming HTTP method triggering resource creation
      * @param resourceUrl URL of the resource to create
      * @param headers Incoming HTTP headers
      * @param body Body of the resource to create
@@ -271,9 +319,19 @@ public class ManageableInstance {
      * @throws ShapeTreeException
      */
     public static ManageableInstance
-    createInstance(ResourceAccessor accessor, ShapeTreeContext context, String method, URL resourceUrl, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
+    createInstanceResource(ResourceAccessor accessor, ShapeTreeContext context, URL resourceUrl, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
 
-        InstanceResource resource = accessor.createResource(context, method, resourceUrl, headers, body, contentType);
+        Objects.requireNonNull(accessor, "Must provide a non-null resource accessor");
+        Objects.requireNonNull(accessor, "Must provide a non-null shape tree context");
+        Objects.requireNonNull(accessor, "Must provide a non-null resource URL");
+
+        if (headers == null) { headers = new ResourceAttributes(); }
+        if (body == null) { body = ""; }
+        if (contentType == null) { contentType = OCTET_STREAM.getValue(); }
+
+        log.debug("Creating manageable instance for {}", resourceUrl);
+
+        InstanceResource resource = accessor.createResource(context, resourceUrl, headers, body, contentType);
 
         if (resource instanceof ManageableResource) {
             // Managed or unmanaged resource was created
@@ -306,14 +364,16 @@ public class ManageableInstance {
         if (manager instanceof MissingManagerResource) {
             // Create and store an UnmanagedResource in instance - if the create was a resource in an unmanaged container
             UnmanagedResource unmanaged = new UnmanagedResource(manageable, Optional.of(manager.getUrl()));
+            log.debug("Got manageable instance for newly created unmanaged resource {}", unmanaged.getUrl());
             return new ManageableInstance(context, accessor, false, unmanaged, (ManagerResource)manager);
         } else if (manager instanceof ManagerResource) {
             // Create and store a ManagedResource in instance - if the create was a resource in a managed container
             ManagedResource managed = new ManagedResource(manageable, Optional.of(manager.getUrl()));
+            log.debug("Got manageable instance for newly created managed resource {}", managed.getUrl());
             return new ManageableInstance(context, accessor, false, managed, (ManagerResource)manager);
         }
 
-        throw new ShapeTreeException(500, "Error lookup up corresponding shape tree manager for " + manageable.getUrl());
+        throw new ShapeTreeException(500, "Error looking up corresponding shape tree manager for " + manageable.getUrl());
 
     }
 
@@ -339,51 +399,8 @@ public class ManageableInstance {
         }
 
         ManagedResource managed = new ManagedResource((ManageableResource)resource, Optional.of(manager.getUrl()));
-
+        log.debug("Got manageable instance for managed resource {}, from newly created manager resource {}", managed.getUrl(), manager.getUrl());
         return new ManageableInstance(context, accessor, true, managed, manager);
 
-    }
-
-    /**
-     * Gets a list of {@link ManageableInstance}s contained in the container at the <code>containerUrl</code>.
-     * @param context {@link ShapeTreeContext}
-     * @param containerUrl URL of the target container
-     * @return List of contained {@link ManageableInstance}s
-     * @throws ShapeTreeException
-     */
-    public static List<ManageableInstance>
-    getContainedInstances(ResourceAccessor accessor, ShapeTreeContext context, URL containerUrl) throws ShapeTreeException {
-        try {
-            InstanceResource resource = accessor.getResource(context, containerUrl);
-            if (!(resource instanceof ManageableResource)) {
-                throw new ShapeTreeException(500, "Cannot get contained resources for a manager resource <" + containerUrl + ">");
-            }
-            ManageableResource containerResource = (ManageableResource) resource;
-
-            if (Boolean.FALSE.equals(containerResource.isContainer())) {
-                throw new ShapeTreeException(500, "Cannot get contained resources for a resource that is not a Container <" + containerUrl + ">");
-            }
-
-            Graph containerGraph = readStringIntoGraph(urlToUri(containerUrl), containerResource.getBody(), containerResource.getAttributes().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null));
-
-            if (containerGraph.isEmpty()) { return Collections.emptyList(); }
-
-            List<Triple> containerTriples = containerGraph.find(NodeFactory.createURI(containerUrl.toString()),
-                    NodeFactory.createURI(LdpVocabulary.CONTAINS),
-                    Node.ANY).toList();
-
-            if (containerTriples.isEmpty()) { return Collections.emptyList(); }
-
-            ArrayList<ManageableInstance> containedInstances = new ArrayList<>();
-
-            for (Triple containerTriple : containerTriples) {
-                ManageableInstance containedInstance = getInstance(accessor, context, new URL(containerTriple.getObject().getURI()));
-                containedInstances.add(containedInstance);
-            }
-
-            return containedInstances;
-        } catch (Exception ex) {
-            throw new ShapeTreeException(500, ex.getMessage());
-        }
     }
 }

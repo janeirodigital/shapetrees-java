@@ -3,20 +3,18 @@ delay: 0
 headers:
   - 'Content-type:text/turtle'
   - 'Link:<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
-  - 'Link:</data/projects/project-1/milestone-3/.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
+  - 'Link:</managed-container-1/managed-resource-1/.shapetree>; rel="http://www.w3.org/ns/shapetrees#managedBy"'
 body: >
-
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
   PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   PREFIX xml: <http://www.w3.org/XML/1998/namespace>
   PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-  PREFIX ldp: <http://www.w3.org/ns/ldp#>
   PREFIX ex: <http://www.example.com/ns/ex#>
 
   <#milestone>
-    ex:uri </data/projects/project-1/milestone-3/#milestone> ;
+    ex:uri </managed-container-1/managed-resource-1/#milestone> ;
     ex:id 12345 ;
-    ex:name "Milestone 3 of Project 1" ;
-    ex:created_at "2021-04-04T20:15:47.000Z"^^xsd:dateTime ;
-    ex:target "2021-06-05T20:15:47.000Z"^^xsd:dateTime ;
-    ex:inProject </data/projects/project-1/#project> .
+    ex:name \"Milestone 3 of Project 1\" ;
+    ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime ;
+    ex:target \"2021-06-05T20:15:47.000Z\"^^xsd:dateTime ;
+    ex:inProject </managed-container-1/#project> .

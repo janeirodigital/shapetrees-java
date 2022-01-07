@@ -4,9 +4,9 @@ import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
-import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URL;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,6 +33,9 @@ public class ValidatingPostMethodHandler extends AbstractValidatingMethodHandler
             // validated against the parent tree.
             if (targetContainer.isManaged()) {
                 shapeTreeRequest.setResourceType(RequestHelper.getIncomingResourceType(shapeTreeRequest));
+                URL targetResourceUrl = RequestHelper.normalizeSolidResourceUrl(targetContainer.getManageableResource().getUrl(), proposedName, shapeTreeRequest.getResourceType());
+                ManageableInstance targetInstance = getInstance(this.resourceAccessor, shapeTreeContext, targetResourceUrl);
+                if (targetInstance.getManageableResource().isExists()) { throw new ShapeTreeException(409, "Cannot create target resource " + targetResourceUrl + "because it already exists"); }
                 return this.requestHandler.createShapeTreeInstance(targetContainer, targetContainer, shapeTreeRequest, proposedName);
             }
 
