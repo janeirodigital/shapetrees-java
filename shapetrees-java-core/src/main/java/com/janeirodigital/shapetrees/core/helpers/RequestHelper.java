@@ -62,9 +62,7 @@ public class RequestHelper {
 
         final List<String> methods = Arrays.asList("POST", "PUT", "PATCH");
 
-        if (!methods.contains(shapeTreeRequest.getMethod())) {
-            throw new ShapeTreeException(500, "Cannot get resource type for unsupported method: " + shapeTreeRequest.getMethod());
-        }
+        if (!methods.contains(shapeTreeRequest.getMethod())) { return null; };
 
         if (shapeTreeRequest.getContentType() == null) {
             throw new ShapeTreeException(500, "Cannot determine incoming resource type because Content-Type is missing from request");

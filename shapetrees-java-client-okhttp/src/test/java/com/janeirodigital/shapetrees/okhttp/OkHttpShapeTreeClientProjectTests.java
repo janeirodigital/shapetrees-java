@@ -77,7 +77,8 @@ class OkHttpShapeTreeClientProjectTests {
         // Create the data container
         mockOnGet(dispatcher, "/data/", "project/data-container-no-contains");
         mockOnPut(dispatcher, "/data/.shapetree", "http/201");
-        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
+        // #1 - 404 in OkHttpShapeTreeClient / #2 - 404 in Intercept / #3 - Post-creation of Manager Resource (non-404)
+        mockOnGet(dispatcher, "/data/.shapetree", List.of("http/404", "http/404", "project/data-container-manager"));
 
         URL targetResource = toUrl(server, "/data/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
@@ -95,7 +96,9 @@ class OkHttpShapeTreeClientProjectTests {
         // Create the data container
         mockOnGet(dispatcher, "/data/", "project/data-container-no-contains");
         mockOnPut(dispatcher, "/data/.shapetree", "http/201");
-        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
+        // #1 - 404 in OkHttpShapeTreeClient / #2 - 404 in Intercept / #3 - Post-creation of Manager Resource (non-404)
+        mockOnGet(dispatcher, "/data/.shapetree", List.of("http/404", "http/404", "project/data-container-manager"));
+
 
         URL targetResource = toUrl(server, "/data/.shapetree");
 
@@ -228,7 +231,7 @@ class OkHttpShapeTreeClientProjectTests {
 
         // Plant the second shape tree (ProjectCollectionTree) on /data/projects/
         Response response = plant(okHttpClient, context, targetResource, targetShapeTree, null);
-        assertEquals(201, response.code());
+        assertEquals(204, response.code());
     }
 
     @Test
@@ -243,7 +246,7 @@ class OkHttpShapeTreeClientProjectTests {
 
         // Update the manager directly for the /data/projects/ with PATCH
         Response response = patch(okHttpClient, context, targetResource, null, getUpdateDataRepositorySparqlPatch(server));
-        assertEquals(201, response.code());
+        assertEquals(204, response.code());
     }
 
     @Test
@@ -523,7 +526,7 @@ class OkHttpShapeTreeClientProjectTests {
 
         // Try first by providing the Milestone Shape Tree as the unplant target
         Response responseOne = unplant(okHttpClient, context, targetResource, targetShapeTreeOne);
-        assertEquals(500, responseOne.code());
+        assertEquals(422, responseOne.code());
 
         // Try again by providing the (incorrect) Project Shape Tree as the unplant target (which is the shape tree at the root of the hierarchy) - this will be caught by the client immediately
         assertThrows(IllegalStateException.class, () -> { unplant(okHttpClient, context, targetResource, targetShapeTreeTwo); });
@@ -572,7 +575,7 @@ class OkHttpShapeTreeClientProjectTests {
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#ProjectCollectionTree");
 
         Response response = unplant(okHttpClient, context, targetResource, targetShapeTree);
-        assertEquals(201, response.code());
+        assertEquals(204, response.code());
     }
 
     @Test
@@ -593,7 +596,7 @@ class OkHttpShapeTreeClientProjectTests {
         // Unplant the data collection, recursing down the tree (only two levels)
         // Since the projects collection still manages /data/projects/, it should not delete the manager, only update it
         Response response = unplant(okHttpClient, context, targetResource, targetShapeTree);
-        assertEquals(201, response.code());
+        assertEquals(204, response.code());
     }
 
     private String getProjectsBodyGraph() {

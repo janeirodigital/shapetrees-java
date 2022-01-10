@@ -134,6 +134,17 @@ public class ManageableInstance {
     }
 
     /**
+     * Return a new version of provided {@link ManageableInstance} <code>originalInstance</code>
+     * @param originalInstance Original instance to get a new version of
+     * @return Reloaded version of <code>originalInstance</code>
+     * @throws ShapeTreeException
+     */
+    public static ManageableInstance
+    reloadInstance(ManageableInstance originalInstance) throws ShapeTreeException {
+        return getInstance(originalInstance.getResourceAccessor(), originalInstance.getShapeTreeContext(), originalInstance.getManageableResource().getUrl());
+    }
+
+    /**
      * Return a {@link ManageableInstance} constructed starting with the resource identified by the provided
      * <code>resourceUrl</code>. The <code>resourceUrl</code> may target either a {@link ManageableResource},
      * or a {@link ManagerResource}.

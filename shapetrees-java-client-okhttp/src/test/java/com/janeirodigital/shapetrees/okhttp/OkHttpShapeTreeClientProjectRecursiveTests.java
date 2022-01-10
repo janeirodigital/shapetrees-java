@@ -9,6 +9,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
 import java.net.URL;
+import java.util.List;
 
 import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.plant;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
@@ -58,8 +59,10 @@ class OkHttpShapeTreeClientProjectRecursiveTests {
         mockOnPut(dispatcher, "/data/.shapetree", "http/201");
         mockOnPut(dispatcher, "/data/projects/.shapetree", "http/201");
 
-        mockOnGet(dispatcher, "/data/.shapetree", "project/data-container-manager");
-        mockOnGet(dispatcher, "/data/projects/.shapetree", "project/projects-container-manager");
+        // #1 - 404 in OkHttpShapeTreeClient / #2 - 404 in Intercept / #3 - Post-creation of Manager Resource (non-404)
+        mockOnGet(dispatcher, "/data/.shapetree", List.of("http/404", "http/404", "project/data-container-manager"));
+        // #1 - 404 in getContainedInstance / #2 - Post-creation of Manager Resource (non-404)
+        mockOnGet(dispatcher, "/data/projects/.shapetree", List.of("http/404", "project/projects-container-manager"));
 
         URL targetResource = toUrl(server, "/data/");
         URL targetShapeTree = toUrl(server, "/static/shapetrees/project/shapetree#DataRepositoryTree");
@@ -91,7 +94,7 @@ class OkHttpShapeTreeClientProjectRecursiveTests {
 
         // Plant the projects collection recursively on already existing hierarchy
         Response response = plant(okHttpClient, context, targetResource, targetShapeTree, null);
-        assertEquals(201, response.code());
+        assertEquals(204, response.code());
     }
 
 }

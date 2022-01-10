@@ -218,7 +218,7 @@ public class ShapeTree {
                     ShapeTree targetShapeTree = ShapeTreeFactory.getShapeTree(targetShapeTreeUrl);
                     // Evaluate the shape tree against the attributes of the proposed resources
                     ValidationResult result = targetShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeUrls);
-                    if (Boolean.TRUE.equals(result.getValid())) {
+                    if (Boolean.TRUE.equals(result.isValid())) {
                         // Return a successful validation result, including the matching shape tree
                         return new ValidationResult(true, this, targetShapeTree, result.getMatchingFocusNode());
                     }
@@ -236,7 +236,7 @@ public class ShapeTree {
                 // Evaluate the shape tree against the attributes of the proposed resources
                 ValidationResult result = containsShapeTree.validateResource(requestedName, resourceType, bodyGraph, focusNodeUrls);
                 // Continue if the proposed attributes were not a match
-                if (Boolean.FALSE.equals(result.getValid())) { continue; }
+                if (Boolean.FALSE.equals(result.isValid())) { continue; }
                 // Return the successful validation result
                 return new ValidationResult(true, this, containsShapeTree, result.getMatchingFocusNode());
             }

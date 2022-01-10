@@ -1,22 +1,21 @@
 package com.janeirodigital.shapetrees.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
-import com.janeirodigital.shapetrees.core.enums.HttpHeader;
-import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.methodhandlers.*;
+import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
-import okio.Buffer;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
-import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.attributesToHeaders;
+import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+import static com.janeirodigital.shapetrees.core.ManageableInstance.reloadInstance;
+import static com.janeirodigital.shapetrees.core.ShapeTreeRequestHandler.manageShapeTreeAssignment;
+import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
 
 /**
  * Interceptor used for client-side validation
@@ -46,25 +45,46 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
     public Response intercept(@NotNull Chain chain) throws IOException {
 
         log.info("Intercepting {} request to {} for client-side validation: ", chain.request().method(), chain.request().url());
-
-        ShapeTreeRequest shapeTreeRequest = new OkHttpShapeTreeRequest(chain.request());
         ResourceAccessor resourceAccessor = new OkHttpResourceAccessor();
 
-        // Get the handler
-        ValidatingMethodHandler handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
-        if (handler != null) {
+        ShapeTreeRequest shapeTreeRequest;
+        ShapeTreeContext shapeTreeContext;
+        ManageableInstance requestInstance;
+        try {
+            shapeTreeRequest = new OkHttpShapeTreeRequest(chain.request());
+            shapeTreeContext = RequestHelper.buildContextFromRequest(shapeTreeRequest);
+            requestInstance = getInstance(resourceAccessor, shapeTreeContext, shapeTreeRequest.getUrl());
+        } catch (ShapeTreeException ex) {
+            throw new IOException("Failed to initiate shape tree processing for " + chain.request().url() + ": " + ex.getMessage());
+        }
+
+        ValidationResult validationResult;
+        if (requestInstance.wasRequestForManager()) {
+            // Target resource is for shape tree manager - manage shape trees to plant and/or unplant
             try {
-                Optional<DocumentResponse> shapeTreeResponse = handler.validateRequest(shapeTreeRequest);
-                if (!shapeTreeResponse.isPresent()) {
+                validationResult = manageShapeTreeAssignment(resourceAccessor, requestInstance, shapeTreeRequest);
+                if (!validationResult.isValid()) { return createInvalidResponse(chain.request(), validationResult); }
+                return createManagerResponse(chain.request(), requestInstance, validationResult);
+            } catch (ShapeTreeException ex) {
+                return createErrorResponse(chain.request(), ex);
+            }
+        }
+
+        // Get the handler
+        Optional<OkHttpValidatingMethodHandler> handler = getHandler(shapeTreeRequest.getMethod(), resourceAccessor);
+        if (handler.isPresent()) {
+            try {
+                Optional<Response> optionalResponse = handler.get().validateRequest(chain.request(), shapeTreeRequest, shapeTreeContext, requestInstance);
+                if (!optionalResponse.isPresent()) {
                     log.info("Client-side validation successful. Passing {} request to {} through to server", shapeTreeRequest.getMethod(), shapeTreeRequest.getUrl());
                     return check(chain.proceed(chain.request()));
                 } else {
-                    return createResponse(chain.request(), shapeTreeResponse.get());
+                    return optionalResponse.get();
                 }
             } catch (ShapeTreeException ex){
-                return createErrorResponse(ex, chain.request());
+                return createErrorResponse(chain.request(), ex);
             } catch (Exception ex) {
-                return createErrorResponse(new ShapeTreeException(500, ex.getMessage()), chain.request());
+                return createErrorResponse(chain.request(), new ShapeTreeException(500, ex.getMessage()));
             }
         } else {
             log.warn("No handler for method [{}] - passing through request to {}", shapeTreeRequest.getMethod(), shapeTreeRequest.getUrl());
@@ -72,120 +92,27 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         }
     }
 
-    private ValidatingMethodHandler getHandler(String requestMethod, ResourceAccessor resourceAccessor) {
+    private Optional<OkHttpValidatingMethodHandler> getHandler(String requestMethod, ResourceAccessor resourceAccessor) {
         switch (requestMethod) {
             case POST:
-                return new ValidatingPostMethodHandler(resourceAccessor);
+                return Optional.of(new OkHttpValidatingPostMethodHandler(resourceAccessor));
             case PUT:
-                return new ValidatingPutMethodHandler(resourceAccessor);
+                return Optional.of(new OkHttpValidatingPutMethodHandler(resourceAccessor));
             case PATCH:
-                return new ValidatingPatchMethodHandler(resourceAccessor);
-            case DELETE:
-                return new ValidatingDeleteMethodHandler(resourceAccessor);
+                return Optional.of(new OkHttpValidatingPatchMethodHandler(resourceAccessor));
             default:
-                return null;
+                return Optional.empty();
         }
     }
 
-    private Response createErrorResponse(ShapeTreeException exception, Request nativeRequest) {
-        log.error("Error processing shape tree request: ", exception);
-        return new Response.Builder()
-                .code(exception.getStatusCode())
-                .body(ResponseBody.create(exception.getMessage(), MediaType.get("text/plain")))
-                .request(nativeRequest)
-                .protocol(Protocol.HTTP_2)
-                .message(exception.getMessage())
-                .build();
+    private Response createManagerResponse(Request nativeRequest, ManageableInstance requestInstance, ValidationResult validationResult) throws ShapeTreeException {
+        if (!validationResult.isValid()) { return createInvalidResponse(nativeRequest, validationResult); }
+        ManageableInstance updatedInstance = reloadInstance(requestInstance);
+        ManagerResource original = requestInstance.getManagerResource();
+        ManagerResource updated = updatedInstance.getManagerResource();
+        int responseCode;
+        if (!original.isExists() && updated.isExists()) { responseCode = 201; } else { responseCode = 204; }
+        return createResponse(nativeRequest, responseCode);
     }
 
-    private Response createResponse(Request nativeRequest, DocumentResponse response) {
-        Response.Builder builder = new Response.Builder();
-        builder.code(response.getStatusCode());
-        ResourceAttributes responseHeaders = response.getResourceAttributes();
-        builder.headers(attributesToHeaders(responseHeaders));
-        String contentType = responseHeaders.firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse("text/turtle");
-
-        log.info("Client-side validation successful. {} request was fulfilled to {}", nativeRequest.method(), nativeRequest.url());
-
-        builder.body(ResponseBody.create(response.getBody(), MediaType.get(contentType)))
-                .protocol(Protocol.HTTP_2)
-                .message("Success")
-                .request(nativeRequest);
-
-        return builder.build();
-    }
-
-    private Response check(Response response) throws IOException {
-        if (response.code() > 599) {
-            throw new IOException("Invalid HTTP response: " + response + (response.body() == null ? "" : "\n" + response.body()));
-        }
-        return response;
-    }
-
-    private class OkHttpShapeTreeRequest implements ShapeTreeRequest {
-        private final Request request;
-        private ShapeTreeResourceType resourceType;
-
-        public OkHttpShapeTreeRequest(Request request) {
-            this.request = request;
-        }
-
-        @Override
-        public String getMethod() {
-            return this.request.method();
-        }
-
-        @Override
-        public URL getUrl() {
-            return this.request.url().url();
-        }
-
-        @Override
-        public ResourceAttributes getHeaders() {
-            return new ResourceAttributes(this.request.headers().toMultimap());
-        }
-
-        @Override
-        public RelationAttributes getLinkHeaders() {
-            return ResourceAttributes.parseLinkHeaders(this.getHeaderValues(HttpHeader.LINK.getValue()));
-        }
-
-        @Override
-        public List<String> getHeaderValues(String header) {
-            return this.request.headers(header);
-        }
-
-        @Override
-        public String getHeaderValue(String header) {
-            return this.request.header(header);
-        }
-
-        @Override
-        public String getContentType() {
-            return this.getHeaders().firstValue(HttpHeader.CONTENT_TYPE.getValue()).orElse(null);
-        }
-
-        @Override
-        public ShapeTreeResourceType getResourceType() {
-            return this.resourceType;
-        }
-
-        @Override
-        public void setResourceType(ShapeTreeResourceType resourceType) {
-            this.resourceType = resourceType;
-        }
-
-        @Override
-        public String getBody() {
-            try (Buffer buffer = new Buffer()) {
-                if (this.request.body() != null) {
-                    Objects.requireNonNull(this.request.body()).writeTo(buffer);
-                }
-                return buffer.readUtf8();
-            } catch (IOException | NullPointerException ex) {
-                log.error("Error writing body to string");
-                return null;
-            }
-        }
-    }
 }

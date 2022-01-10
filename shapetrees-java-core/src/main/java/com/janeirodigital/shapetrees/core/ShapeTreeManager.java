@@ -171,6 +171,11 @@ public class ShapeTreeManager {
         return containingAssignments;
     }
 
+    public boolean
+    hasContainingAssignments() throws ShapeTreeException {
+        return !this.getContainingAssignments().isEmpty();
+    }
+
     public static ShapeTreeManager getFromGraph(URL id, Graph managerGraph) throws ShapeTreeException {
 
          ShapeTreeManager manager = new ShapeTreeManager(id);

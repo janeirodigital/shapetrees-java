@@ -1,6 +1,8 @@
 package com.janeirodigital.shapetrees.okhttp;
 
+import com.janeirodigital.shapetrees.core.ContainingValidationResult;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.ValidationResult;
 import com.janeirodigital.shapetrees.core.enums.ContentType;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.LinkRelation;
@@ -15,8 +17,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.janeirodigital.shapetrees.core.enums.ContentType.OCTET_STREAM;
-import static com.janeirodigital.shapetrees.core.enums.HttpHeader.AUTHORIZATION;
-import static com.janeirodigital.shapetrees.core.enums.HttpHeader.LINK;
+import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_PLAIN;
+import static com.janeirodigital.shapetrees.core.enums.HttpHeader.*;
 import static com.janeirodigital.shapetrees.core.enums.HttpMethod.*;
 
 @Slf4j
@@ -80,10 +82,11 @@ public class OkHttpHelper {
         requestBuilder.url(url);
         if (body == null) { body = ""; }
         if (contentType == null) { contentType = OCTET_STREAM; }
+        headers = setHttpHeader(CONTENT_TYPE, contentType.getValue(), headers);
+        if (credentials != null) { headers = setHttpHeader(AUTHORIZATION, credentials, headers); }
+        requestBuilder.headers(headers);
         RequestBody requestBody = RequestBody.create(body, MediaType.get(contentType.getValue()));
         requestBuilder.method(POST.getValue(), requestBody);
-        if (credentials != null) { headers = setHttpHeader(AUTHORIZATION, credentials, headers); }
-        if (headers != null) { requestBuilder.headers(headers); }
 
         try (Response response = okHttpClient.newCall(requestBuilder.build()).execute()) {
             // wrapping the call in try-with-resources automatically closes the response
@@ -126,10 +129,11 @@ public class OkHttpHelper {
         requestBuilder.url(url);
         if (body == null) { body = ""; }
         if (contentType == null) { contentType = OCTET_STREAM; }
+        headers = setHttpHeader(CONTENT_TYPE, contentType.getValue(), headers);
+        if (credentials != null) { headers = setHttpHeader(AUTHORIZATION, credentials, headers); }
+        requestBuilder.headers(headers);
         RequestBody requestBody = RequestBody.create(body, MediaType.get(contentType.getValue()));
         requestBuilder.method(PUT.getValue(), requestBody);
-        if (credentials != null) { headers = setHttpHeader(AUTHORIZATION, credentials, headers); }
-        if (headers != null) { requestBuilder.headers(headers); }
 
         try (Response response = okHttpClient.newCall(requestBuilder.build()).execute()) {
             // wrapping the call in try-with-resources automatically closes the response
@@ -171,11 +175,12 @@ public class OkHttpHelper {
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(url);
         if (body == null) { body = ""; }
-        if (contentType == null) { contentType = OCTET_STREAM; }  // TODO - Exception if content-type isn't sparql-update?
+        if (contentType == null) { contentType = OCTET_STREAM; }
+        headers = setHttpHeader(CONTENT_TYPE, contentType.getValue(), headers);
+        if (credentials != null) { headers = setHttpHeader(AUTHORIZATION, credentials, headers); }
+        requestBuilder.headers(headers);
         RequestBody requestBody = RequestBody.create(body, MediaType.get(contentType.getValue()));
         requestBuilder.method(PATCH.getValue(), requestBody);
-        if (credentials != null) { headers = setHttpHeader(AUTHORIZATION, credentials, headers); }
-        if (headers != null) { requestBuilder.headers(headers); }
 
         try (Response response = okHttpClient.newCall(requestBuilder.build()).execute()) {
             // wrapping the call in try-with-resources automatically closes the response
@@ -199,8 +204,6 @@ public class OkHttpHelper {
     public static Response patchHttpResource(OkHttpClient okHttpClient, URL url, String credentials, String body, ContentType contentType) throws ShapeTreeException {
         return patchHttpResource(okHttpClient, url, credentials, null, body, contentType);
     }
-
-
 
     /**
      * Perform an HTTP DELETE on the resource at <code>url</code>.
@@ -355,6 +358,59 @@ public class OkHttpHelper {
      */
     public static String getLinkRelationString(LinkRelation type, String target) {
         return "<"+target+">;"+" rel=\""+type.getValue()+"\"";
+    }
+
+    public static Response createInvalidResponse(Request nativeRequest, ValidationResult result) throws ShapeTreeException {
+        Objects.requireNonNull(nativeRequest, "Must provide a valid native request to generate response");
+        Objects.requireNonNull(result, "Must provide a validation result to generate response");
+        if (result.isValid()) { throw new ShapeTreeException(500, "Cannot generate an invalid response for a valid result: " + result.getMessage()); }
+        log.info("Incoming {} request to {} failed shape tree validation: {}", nativeRequest.method(), nativeRequest.url(), result.getMessage());
+        return new Response.Builder()
+                .code(422)
+                .body(ResponseBody.create(result.getMessage(), MediaType.get(TEXT_PLAIN.getValue())))
+                .request(nativeRequest)
+                .protocol(Protocol.HTTP_2)
+                .message("Unprocessable Entity")
+                .build();
+    }
+
+    public static Response createInvalidResponse(Request nativeRequest, ContainingValidationResult containingResult) throws ShapeTreeException {
+        Objects.requireNonNull(nativeRequest, "Must provide a valid native request to generate response");
+        Objects.requireNonNull(containingResult, "Must provide a validation containing result to generate response");
+        if (containingResult.getEntries().isEmpty()) { throw new ShapeTreeException(500, "Cannot generate a validation failure messages without validation results"); }
+        ValidationResult validationResult = containingResult.getResults().iterator().next();
+        return createInvalidResponse(nativeRequest, validationResult);
+    }
+
+    public static Response createErrorResponse(Request nativeRequest, ShapeTreeException exception) {
+        Objects.requireNonNull(nativeRequest, "Must provide a valid native request to generate response");
+        log.error("Fail to process incoming {} request to {} with exception: {}", nativeRequest.method(), nativeRequest.url(), exception.getMessage());
+        return new Response.Builder()
+                .code(exception.getStatusCode())
+                .body(ResponseBody.create(exception.getMessage(), MediaType.get(TEXT_PLAIN.getValue())))
+                .request(nativeRequest)
+                .protocol(Protocol.HTTP_2)
+                .message(exception.getMessage())
+                .build();
+    }
+
+    public static Response createResponse(Request nativeRequest, int code) {
+        Objects.requireNonNull(nativeRequest, "Must provide a valid native request to generate response");
+        Response.Builder builder = new Response.Builder();
+        builder.code(code);
+        log.info("Client-side validation successful. {} request was fulfilled to {}", nativeRequest.method(), nativeRequest.url());
+        builder.body(ResponseBody.create("", MediaType.get(TEXT_PLAIN.getValue())))
+                .protocol(Protocol.HTTP_2)
+                .message("Success")
+                .request(nativeRequest);
+        return builder.build();
+    }
+
+    public static Response check(Response response) throws IOException {
+        if (response.code() > 599) {
+            throw new IOException("Invalid HTTP response: " + response + (response.body() == null ? "" : "\n" + response.body()));
+        }
+        return response;
     }
 
 }
