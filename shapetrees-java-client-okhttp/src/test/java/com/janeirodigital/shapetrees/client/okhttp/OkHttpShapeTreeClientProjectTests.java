@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.ShapeTreeManager;
@@ -15,7 +15,7 @@ import java.util.List;
 
 import static com.janeirodigital.shapetrees.core.enums.ContentType.OCTET_STREAM;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
-import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.*;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpShapeTreeClient.*;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.*;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.*;

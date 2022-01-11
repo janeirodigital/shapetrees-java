@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.ContentType;
@@ -19,7 +19,7 @@ import static com.janeirodigital.shapetrees.core.enums.HttpHeader.*;
 import static com.janeirodigital.shapetrees.core.enums.LinkRelation.MANAGED_BY;
 import static com.janeirodigital.shapetrees.core.enums.LinkRelation.MANAGES;
 import static com.janeirodigital.shapetrees.core.helpers.DocumentResponseHelper.*;
-import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpHelper.*;
 
 /**
  * Allows the {@link com.janeirodigital.shapetrees.core shapetrees-core} to access
@@ -126,7 +126,7 @@ public class OkHttpResourceAccessor implements ResourceAccessor {
      */
     @Override
     public DocumentResponse
-    deleteResource(ShapeTreeContext context, ManagerResource deleteResource) throws ShapeTreeException {
+    deleteResource(ShapeTreeContext context, InstanceResource deleteResource) throws ShapeTreeException {
 
         OkHttpClient okHttpClient = OkHttpClientFactoryManager.getFactory().getOkHttpClient();
 

@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;

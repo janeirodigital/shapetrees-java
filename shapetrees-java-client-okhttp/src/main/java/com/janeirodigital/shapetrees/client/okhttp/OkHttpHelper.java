@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.ContainingValidationResult;
 import com.janeirodigital.shapetrees.core.ResourceAttributes;

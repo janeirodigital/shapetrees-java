@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.*;
 import java.net.URL;
 import java.util.List;
 
-import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.plant;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpShapeTreeClient.plant;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnPut;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;

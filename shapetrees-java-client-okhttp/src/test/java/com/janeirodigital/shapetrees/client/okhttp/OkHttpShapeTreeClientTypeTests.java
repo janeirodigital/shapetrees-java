@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static com.janeirodigital.shapetrees.core.enums.ContentType.OCTET_STREAM;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
-import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.post;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpShapeTreeClient.post;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnPut;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;

@@ -5,21 +5,11 @@ import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import java.net.URL;
 
 /**
- * Interface used by the shape trees core for accessing {@link ManageableInstance}s
- * and individual {@link InstanceResource}s.
+ * Interface used by the shape trees core for accessing individual {@link InstanceResource}s.
  *
  * <p>Depending upon the context, this could be implemented by a <code>ResourceAccessor</code> implementation
  * accessing a database or filesystem (typical of server-side processing), or by a <code>ResourceAccessor</code>
  * implementation that is working with remote resources over http (typical of client-side processing).</p>
- *
- * <p>Note that create and update methods make the assumption that requests to do so are
- * originating from HTTP requests regardless of context (hence the inclusion of method,
- * headers, and contentType).</p>
- *
- * <p>Deletion and Update of {@link ManageableInstance}s aren't supported, as both should be targeted
- * specifically to either a {@link ManageableResource} or {@link ManagerResource} with
- * {@link #deleteResource(ShapeTreeContext, ManagerResource) deleteResource} or
- * {@link #updateResource(ShapeTreeContext, String, InstanceResource, String) updateResource}.</p>
  */
 public interface ResourceAccessor {
 
@@ -61,6 +51,6 @@ public interface ResourceAccessor {
      * @return Resultant {@link DocumentResponse}
      * @throws ShapeTreeException
      */
-    DocumentResponse deleteResource(ShapeTreeContext context, ManagerResource deleteResource) throws ShapeTreeException;
+    DocumentResponse deleteResource(ShapeTreeContext context, InstanceResource deleteResource) throws ShapeTreeException;
 
 }

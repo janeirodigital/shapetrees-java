@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -15,7 +15,7 @@ import java.util.Optional;
 import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
 import static com.janeirodigital.shapetrees.core.ManageableInstance.reloadInstance;
 import static com.janeirodigital.shapetrees.core.ShapeTreeRequestHandler.manageShapeTreeAssignment;
-import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpHelper.*;
 
 /**
  * Interceptor used for client-side validation

@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.tests.AbstractResourceAccessorTests;
 import org.junit.jupiter.api.MethodOrderer;

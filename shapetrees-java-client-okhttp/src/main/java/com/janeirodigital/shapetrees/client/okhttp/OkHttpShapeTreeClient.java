@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.ContentType;
@@ -20,7 +20,7 @@ import static com.janeirodigital.shapetrees.core.enums.HttpHeader.CONTENT_TYPE;
 import static com.janeirodigital.shapetrees.core.enums.HttpHeader.SLUG;
 import static com.janeirodigital.shapetrees.core.enums.LinkRelation.*;
 import static com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary.BASIC_CONTAINER;
-import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.*;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpHelper.*;
 
 @Slf4j
 public class OkHttpShapeTreeClient {

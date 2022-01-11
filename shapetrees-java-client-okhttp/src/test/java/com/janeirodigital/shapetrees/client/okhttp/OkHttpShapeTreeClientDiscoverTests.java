@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.ShapeTreeAssignment;
 import com.janeirodigital.shapetrees.core.ShapeTreeContext;
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static com.janeirodigital.shapetrees.okhttp.OkHttpShapeTreeClient.discover;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpShapeTreeClient.discover;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.assertNull;

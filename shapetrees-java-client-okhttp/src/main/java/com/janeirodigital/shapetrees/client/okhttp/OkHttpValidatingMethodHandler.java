@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.okhttp;
+package com.janeirodigital.shapetrees.client.okhttp;
 
 import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
@@ -10,8 +10,8 @@ import java.util.Optional;
 
 import static com.janeirodigital.shapetrees.core.ManageableInstance.createInstanceResource;
 import static com.janeirodigital.shapetrees.core.ShapeTreeRequestHandler.*;
-import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.createInvalidResponse;
-import static com.janeirodigital.shapetrees.okhttp.OkHttpHelper.createResponse;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpHelper.createInvalidResponse;
+import static com.janeirodigital.shapetrees.client.okhttp.OkHttpHelper.createResponse;
 
 /**
  * Abstract class providing reusable functionality to different method handlers
