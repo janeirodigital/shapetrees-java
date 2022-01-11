@@ -2,6 +2,7 @@ statusCode : 200
 delay: 0
 headers:
   - 'Content-type:text/turtle'
+  - 'Link:</managed>; rel="http://www.w3.org/ns/shapetrees#manages"'
 body: >
 
   PREFIX st: <http://www.w3.org/ns/shapetrees#>

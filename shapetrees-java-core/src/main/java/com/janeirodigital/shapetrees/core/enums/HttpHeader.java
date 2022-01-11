@@ -7,6 +7,7 @@ public enum HttpHeader {
     LINK("Link"),
     LOCATION("Location"),
     SLUG("Slug"),
+    IF_NONE_MATCH("If-None-Match"),
     INTEROP_ORIGINATOR("InteropOrigin"),
     INTEROP_WEBID("InteropWebID");
 

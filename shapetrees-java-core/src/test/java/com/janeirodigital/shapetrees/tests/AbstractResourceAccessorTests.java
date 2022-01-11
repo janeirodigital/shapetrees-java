@@ -1,12 +1,10 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.core.ShapeTreeContext;
-import com.janeirodigital.shapetrees.core.ShapeTreeManager;
-import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.resources.*;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeManager;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
-import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,10 +13,11 @@ import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 
-import static com.janeirodigital.shapetrees.core.ManageableInstance.createInstance;
-import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.createInstanceResource;
+import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.getInstance;
+import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
+import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnPut;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,54 +34,38 @@ public class AbstractResourceAccessorTests {
     }
 
     @BeforeAll
-    static void beforeAll() {
-        dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("resourceAccessor/resource-no-link-headers"), "GET", "/static/resource/resource-no-link-headers", null),
-                new DispatcherEntry(List.of("resourceAccessor/resource-empty-link-header"), "GET", "/static/resource/resource-empty-link-header", null),
-                new DispatcherEntry(List.of("resourceAccessor/resource-container-link-header"), "GET", "/static/resource/resource-container-link-header", null),
-                new DispatcherEntry(List.of("resourceAccessor/resource-container-link-header"), "GET", "/static/resource/resource-container-link-header/", null),
-                new DispatcherEntry(List.of("resourceAccessor/resource-container-invalid-link-header"), "GET", "/static/resource/resource-container-invalid-link-header/", null),
-                new DispatcherEntry(List.of("resourceAccessor/managed-container-1"), "GET", "/static/resource/managed-container-1/", null),
-                new DispatcherEntry(List.of("resourceAccessor/managed-resource-1-create"), "PUT", "/static/resource/managed-container-1/managed-resource-1/", null),
-                new DispatcherEntry(List.of("resourceAccessor/managed-resource-1-manager"), "GET", "/static/resource/managed-container-1/managed-resource-1/.shapetree", null),
-                new DispatcherEntry(List.of("resourceAccessor/managed-container-1-manager"), "GET", "/static/resource/managed-container-1/.shapetree", null),
-                new DispatcherEntry(List.of("resourceAccessor/unmanaged-container-2"), "GET", "/static/resource/unmanaged-container-2/", null),
-                new DispatcherEntry(List.of("resourceAccessor/managed-container-2"), "GET", "/static/resource/managed-container-2/", null),
-                new DispatcherEntry(List.of("resourceAccessor/unmanaged-resource-1-create"), "PUT", "/static/resource/unmanaged-resource-1", null),
-                new DispatcherEntry(List.of("resourceAccessor/managed-container-2-manager-create"), "PUT", "/static/resource/managed-container-2/.shapetree", null),
-                new DispatcherEntry(List.of("errors/404"), "GET", "/static/resource/missing-resource-1.shapetree", null),
-                new DispatcherEntry(List.of("errors/404"), "GET", "/static/resource/missing-resource-2", null),
-                new DispatcherEntry(List.of("resourceAccessor/missing-resource-2-manager-create"), "PUT", "/static/resource/missing-resource-2.shapetree", null),
-                new DispatcherEntry(List.of("shapetrees/project-shapetree-ttl"), "GET", "/static/shapetrees/project/shapetree", null),
-                new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project/shex", null),
-                new DispatcherEntry(List.of("errors/404"), "GET", "/static/resource/notpresent", null)
-        ));
+    static void initializeDispatcher() {
+        dispatcher = new RequestMatchingFixtureDispatcher();
+        // Add fixture for shapetree resource containing shapetrees used in these tests
+        mockOnGet(dispatcher, "/static/shapetrees/project/shapetree", "shapetrees/project-shapetree-ttl");
+        // Add fixture for shape resource containing shapes used by the above shape trees
+        mockOnGet(dispatcher, "/static/shex/project/shex", "schemas/project-shex");
         server = new MockWebServer();
         server.setDispatcher(dispatcher);
     }
 
-    // Tests to Get ManageableInstances
-
     @Test
-    @SneakyThrows
     @DisplayName("Get instance from missing resource")
-    void getInstanceFromMissingResource() {
-        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/notpresent"));
+    void getInstanceFromMissingResource() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/notpresent", "http/404");
+        
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/notpresent"));
         Assertions.assertTrue(instance.getManageableResource() instanceof MissingManageableResource);
         Assertions.assertTrue(instance.getManagerResource() instanceof MissingManagerResource);
         Assertions.assertFalse(instance.isManaged());
-        Assertions.assertEquals(instance.getManageableResource().getUrl(), toUrl(server, "/static/resource/notpresent"));
+        Assertions.assertEquals(instance.getManageableResource().getUrl(), toUrl(server, "/notpresent"));
         Assertions.assertFalse(instance.getManageableResource().isExists());
         Assertions.assertFalse(instance.getManagerResource().isExists());
     }
 
     @Test
-    @SneakyThrows
     @DisplayName("Get instance from managed resource")
-    void getInstanceFromManagedResource() {
+    void getInstanceFromManagedResource() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/managed-container-1/", "resourceAccessor/managed-container-1");
+        mockOnGet(dispatcher, "/managed-container-1/.shapetree", "resourceAccessor/managed-container-1-manager");
         // If the resource is Manageable - determine if it is managed by getting manager
         // Get and store a ManagedResource in instance - Manager exists - store manager in instance too
-        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/managed-container-1/"));
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/managed-container-1/"));
 
         Assertions.assertTrue(instance.getManageableResource() instanceof ManagedResource);
         Assertions.assertNotNull(instance.getManagerResource());
@@ -96,10 +79,12 @@ public class AbstractResourceAccessorTests {
     }
 
     @Test
-    @SneakyThrows
     @DisplayName("Get instance for managed resource from manager request")
-    void getInstanceFromManagedResourceFromManager() {
-        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/managed-container-1/.shapetree"));
+    void getInstanceFromManagedResourceFromManager() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/managed-container-1/", "resourceAccessor/managed-container-1");
+        mockOnGet(dispatcher, "/managed-container-1/.shapetree", "resourceAccessor/managed-container-1-manager");
+
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/managed-container-1/.shapetree"));
         Assertions.assertNotNull(instance.getManagerResource());
         Assertions.assertFalse(instance.getManagerResource() instanceof MissingManagerResource);
         Assertions.assertTrue(instance.getManagerResource().isExists());
@@ -108,22 +93,24 @@ public class AbstractResourceAccessorTests {
     }
 
     @Test
-    @SneakyThrows
     @DisplayName("Fail to get instance for missing resource from manager request")
     void failToGetInstanceForMissingManageableResourceFromManager() {
+        mockOnGet(dispatcher, "/missing-resource-1.shapetree", "http/404");
+        
         // Note that in this request, the manager is also non-existent
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/missing-resource-1.shapetree"));
+            ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/missing-resource-1.shapetree"));
         });
     }
 
     @Test
-    @SneakyThrows
     @DisplayName("Get instance from unmanaged resource")
-    void getInstanceFromUnmanagedResource() {
+    void getInstanceFromUnmanagedResource() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/unmanaged-container-2/", "resourceAccessor/unmanaged-container-2");
         // If the resource is Manageable - determine if it is managed by getting manager
         // Get and store an UnmanagedResource in instance - No manager exists - store the location of the manager url
-        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/unmanaged-container-2/"));
+
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/unmanaged-container-2/"));
         Assertions.assertTrue(instance.getManageableResource() instanceof UnmanagedResource);
         Assertions.assertTrue(instance.getManagerResource() instanceof MissingManagerResource);
         Assertions.assertTrue(instance.isUnmanaged());
@@ -131,11 +118,12 @@ public class AbstractResourceAccessorTests {
     }
 
     @Test
-    @SneakyThrows
     @DisplayName("Get instance from unmanaged resource from manager request")
-    void getInstanceFromUnmanagedResourceFromManager() {
+    void getInstanceFromUnmanagedResourceFromManager() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/unmanaged-container-2/", "resourceAccessor/unmanaged-container-2");
         // Manager resource doesn't exist. Unmanaged resource associated with it does exist
-        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/static/resource/unmanaged-container-2/.shapetree"));
+
+        ManageableInstance instance = getInstance(this.resourceAccessor, context, toUrl(server, "/unmanaged-container-2/.shapetree"));
         Assertions.assertTrue(instance.getManageableResource() instanceof UnmanagedResource);
         Assertions.assertTrue(instance.getManagerResource() instanceof MissingManagerResource);
         Assertions.assertTrue(instance.wasRequestForManager());
@@ -143,13 +131,14 @@ public class AbstractResourceAccessorTests {
         Assertions.assertFalse(instance.isManaged());
     }
 
-    // Tests to Create ManageableInstances
     @Test
-    @SneakyThrows
     @DisplayName("Create instance from managed resource")
-    void createInstanceFromManagedResource() {
-        ResourceAttributes headers = new ResourceAttributes();
-        ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/managed-container-1/managed-resource-1/"), headers, getMilestoneThreeBodyGraph(), "text/turtle");
+    void createInstanceFromManagedResource() throws ShapeTreeException {
+        mockOnPut(dispatcher, "/managed-container-1/managed-resource-1/", "http/201");
+        mockOnGet(dispatcher, "/managed-container-1/managed-resource-1/", "resourceAccessor/managed-resource-1-get");
+        mockOnGet(dispatcher, "/managed-container-1/managed-resource-1/.shapetree", "resourceAccessor/managed-resource-1-manager");
+        
+        ManageableInstance instance = createInstanceResource(this.resourceAccessor, context, toUrl(server, "/managed-container-1/managed-resource-1/"), null, getMilestoneThreeBodyGraph(), "text/turtle");
         Assertions.assertTrue(instance.isManaged());
         Assertions.assertTrue(instance.getManageableResource() instanceof ManagedResource);
         Assertions.assertFalse(instance.getManageableResource() instanceof MissingManageableResource);
@@ -162,34 +151,37 @@ public class AbstractResourceAccessorTests {
     }
 
     @Test
-    @SneakyThrows
     @DisplayName("Create instance from unmanaged resource")
-    void createInstanceFromUnmanagedResource() {
-        ResourceAttributes headers = new ResourceAttributes();
-        ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/unmanaged-resource-1"), headers, "<#a> <#b> <#c>", "text/turtle");
+    void createInstanceFromUnmanagedResource() throws ShapeTreeException {
+        mockOnPut(dispatcher, "/unmanaged-resource-1", "http/201");
+        mockOnGet(dispatcher, "/unmanaged-resource-1", "resourceAccessor/unmanaged-resource-1-get");
+
+        ManageableInstance instance = createInstanceResource(this.resourceAccessor, context, toUrl(server, "/unmanaged-resource-1"), null, "<#a> <#b> <#c>", "text/turtle");
         Assertions.assertTrue(instance.isUnmanaged());
         Assertions.assertTrue(instance.getManageableResource() instanceof UnmanagedResource);
         Assertions.assertTrue(instance.getManagerResource() instanceof MissingManagerResource);
     }
 
     @Test
-    @SneakyThrows
     @DisplayName("Fail to create instance from existing manageable resource")
     void failToCreateInstanceFromExistingResource() {
+        mockOnPut(dispatcher, "/unmanaged-container-2/", "http/412");
         // Resource exists - ERROR - can't create a manageable resource when one already exists
-        ResourceAttributes headers = new ResourceAttributes(); // May need to populate this
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/unmanaged-container-2/"), headers, "<#a> <#b> <#c>", "text/turtle");
+            ManageableInstance instance = createInstanceResource(this.resourceAccessor, context, toUrl(server, "/unmanaged-container-2/"), null, "<#a> <#b> <#c>", "text/turtle");
         });
     }
 
     @Test
-    @SneakyThrows
     @DisplayName("Create instance from manager resource")
-    void createInstanceFromManagerResource() {
-        // Create a new manager and store in instance and load the managed resource and store in instance (possibly just pre-fetch metadata if lazily loading)
-        ResourceAttributes headers = new ResourceAttributes();
-        ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/managed-container-2/.shapetree"), headers, getProjectTwoManagerGraph(), "text/turtle");
+    void createInstanceFromManagerResource() throws ShapeTreeException {
+
+        mockOnGet(dispatcher, "/managed-container-2/", "resourceAccessor/managed-container-2");
+        mockOnGet(dispatcher, "/managed-container-2/.shapetree", "resourceAccessor/managed-container-2-manager-get");
+        mockOnPut(dispatcher, "/managed-container-2/.shapetree", "http/201");
+
+        // Create a new manager and store in instance and load the managed resource and store in instance
+        ManageableInstance instance = createInstanceResource(this.resourceAccessor, context, toUrl(server, "/managed-container-2/.shapetree"), null, getProjectTwoManagerGraph(), "text/turtle");
         Assertions.assertTrue(instance.isManaged());
         Assertions.assertTrue(instance.getManageableResource() instanceof ManagedResource);
         Assertions.assertFalse(instance.getManagerResource() instanceof MissingManagerResource);
@@ -199,9 +191,11 @@ public class AbstractResourceAccessorTests {
     @Test
     @DisplayName("Fail to create instance from isolated manager resource")
     void failToCreateInstanceFromIsolatedManagerResource() {
-        ResourceAttributes headers = new ResourceAttributes();
+        mockOnGet(dispatcher, "/missing-resource-2.shapetree", "resourceAccessor/missing-resource-2-manager-get");
+        mockOnPut(dispatcher, "/missing-resource-2.shapetree", "http/201");
+
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            ManageableInstance instance = createInstance(this.resourceAccessor, context, "PUT", toUrl(server, "/static/resource/missing-resource-2.shapetree"), headers, getProjectTwoManagerGraph(), "text/turtle");
+            ManageableInstance instance = createInstanceResource(this.resourceAccessor, context, toUrl(server, "/missing-resource-2.shapetree"), null, getProjectTwoManagerGraph(), "text/turtle");
         });
     }
 
@@ -209,8 +203,9 @@ public class AbstractResourceAccessorTests {
 
     @Test
     @DisplayName("Get a resource without any link headers")
-    void getResourceWithNoLinkHeaders() throws MalformedURLException, ShapeTreeException {
-        InstanceResource resource = this.resourceAccessor.getResource(this.context, toUrl(server, "/static/resource/resource-no-link-headers"));
+    void getResourceWithNoLinkHeaders() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/resource-no-link-headers", "resourceAccessor/resource-no-link-headers");
+        InstanceResource resource = this.resourceAccessor.getResource(this.context, toUrl(server, "/resource-no-link-headers"));
         // This is a strange way to check whether something has no link headers
         assertTrue(resource.isExists());
         assertTrue(((ManageableResource) resource).getManagerResourceUrl().isEmpty());
@@ -218,94 +213,103 @@ public class AbstractResourceAccessorTests {
 
     @Test
     @DisplayName("Get a resource with an empty link header")
-    void getResourceWithEmptyLinkHeader() throws MalformedURLException, ShapeTreeException {
+    void getResourceWithEmptyLinkHeader() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/resource-empty-link-header", "resourceAccessor/resource-empty-link-header");
         // Link header is present but has nothing in it
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/resource-empty-link-header"));
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/resource-empty-link-header"));
         assertTrue(resource.isExists());
         Assertions.assertTrue(((ManageableResource) resource).getManagerResourceUrl().isEmpty());
     }
 
     @Test
     @DisplayName("Fail to get a resource with an invalid URL string")
-    void failToAccessResourceWithInvalidUrlString() throws MalformedURLException, ShapeTreeException { // TODO: Test: may as well deleted as it's only testing URL.create()
+    void failToAccessResourceWithInvalidUrlString() { // TODO: Test: may as well deleted as it's only testing URL.create()
         Assertions.assertThrows(MalformedURLException.class, () -> this.resourceAccessor.getResource(context, new URL(":invalid")));
         // TODO - this should also test create, update, delete, getContained, (also get/create instance)
     }
 
     @Test
     @DisplayName("Get a missing resource with no slash")
-    void getMissingResourceWithNoSlash() throws MalformedURLException, ShapeTreeException {
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/not-existing-no-slash"));
+    void getMissingResourceWithNoSlash() throws ShapeTreeException {
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/not-existing-no-slash"));
         assertFalse(resource.isExists());
+        assertTrue(resource instanceof MissingManageableResource);
         assertFalse(((ManageableResource) resource).isContainer());
     }
 
     @Test
     @DisplayName("Get a missing container with slash")
     void getMissingContainerWithSlash() throws MalformedURLException, ShapeTreeException {
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/not-existing-slash/"));
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/not-existing-slash/"));
         assertFalse(resource.isExists());
-        assertTrue(((ManageableResource) resource).isContainer());
+        assertTrue(resource instanceof MissingManageableResource);
+        assertFalse(((ManageableResource) resource).isContainer());
     }
 
     @Test
     @DisplayName("Get a missing container with slash and fragment")
     void getMissingContainerWithSlashAndFragment() throws MalformedURLException, ShapeTreeException {
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/not-existing-slash/#withfragment"));
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/not-existing-slash/#withfragment"));
         assertFalse(resource.isExists());
-        assertTrue(((ManageableResource) resource).isContainer());
+        assertFalse(((ManageableResource) resource).isContainer());
+        assertTrue(resource instanceof MissingManageableResource);
     }
 
     @Test
     @DisplayName("Get an existing container with no slash")
-    void getExistingContainerNoSlash() throws MalformedURLException, ShapeTreeException {
-        // TODO - In Solid at least, the slash must be present, so I question whether setting this as a container helps or hurts
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/resource-container-link-header"));
+    void getExistingContainerNoSlash() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/resource-container-link-header", "resourceAccessor/resource-container-link-header");
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/resource-container-link-header"));
         assertTrue(resource.isExists());
         assertTrue(((ManageableResource) resource).isContainer());
     }
 
     @Test
     @DisplayName("Get an existing container")
-    void getExistingContainer() throws MalformedURLException, ShapeTreeException {
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/resource-container-link-header/"));
+    void getExistingContainer() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/resource-container-link-header/", "resourceAccessor/resource-container-link-header");
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/resource-container-link-header/"));
         assertTrue(resource.isExists());
         assertTrue(((ManageableResource) resource).isContainer());
     }
 
     @Test
     @DisplayName("Fail to lookup invalid resource attributes")
-    void failToLookupInvalidAttributes() throws MalformedURLException, ShapeTreeException {
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/resource-container-link-header"));
+    void failToLookupInvalidAttributes() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/resource-container-link-header", "resourceAccessor/resource-container-link-header");
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/resource-container-link-header"));
         assertTrue(resource.isExists());
         Assertions.assertNull(resource.getAttributes().firstValue("invalid").orElse(null));
     }
 
     @Test
     @DisplayName("Get a missing resource")
-    void getMissingResource() throws MalformedURLException, ShapeTreeException {
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/notpresent"));
+    void getMissingResource() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/notpresent", "http/404");
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/notpresent"));
         Assertions.assertEquals("", resource.getBody());
-        // TODO - what other tests and assertions should be included here? isExists()?
+        Assertions.assertTrue(resource instanceof MissingManageableResource);
     }
 
     @Test
     @DisplayName("Get a container with an invalid link type header")
-    void getContainerWithInvalidLinkTypeHeader() throws MalformedURLException, ShapeTreeException {
-        // TODO - at the moment we process this happily. Aside from not marking it as a container, should there be a more severe handling?
-        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/resource-container-invalid-link-header/"));
+    void getContainerWithInvalidLinkTypeHeader() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/resource-container-invalid-link-header/", "resourceAccessor/resource-container-invalid-link-header");
+        InstanceResource resource = this.resourceAccessor.getResource(context, toUrl(server, "/resource-container-invalid-link-header/"));
         assertTrue(resource.isExists());
         assertFalse(((ManageableResource) resource).isContainer());
     }
 
     @Test
     @DisplayName("Fail to update resource")
-    void failToUpdateResource() throws MalformedURLException, ShapeTreeException {
+    void failToUpdateResource() throws ShapeTreeException {
+        mockOnGet(dispatcher, "/resource-container-link-header/", "resourceAccessor/resource-container-link-header");
         // Succeed in getting a resource
-        InstanceResource resource =  this.resourceAccessor.getResource(context, toUrl(server, "/static/resource/resource-container-link-header/"));
+        InstanceResource resource =  this.resourceAccessor.getResource(context, toUrl(server, "/resource-container-link-header/"));
         // Fail to update it
-        DocumentResponse response = this.resourceAccessor.updateResource(context, "PUT", resource, "BODY");
-        assertFalse(response.isExists());
+        Assertions.assertThrows(ShapeTreeException.class, () -> {
+            this.resourceAccessor.updateResource(context, resource, "BODY");
+        });
     }
 
     private String getMilestoneThreeBodyGraph() {
@@ -317,12 +321,12 @@ public class AbstractResourceAccessorTests {
                 "\n" +
                 "\n" +
                 "<#milestone> \n" +
-                "    ex:uri </static/resource/managed-container-1/managed-resource-1/#milestone> ; \n" +
+                "    ex:uri </managed-container-1/managed-resource-1/#milestone> ; \n" +
                 "    ex:id 12345 ; \n" +
                 "    ex:name \"Milestone 3 of Project 1\" ; \n" +
                 "    ex:created_at \"2021-04-04T20:15:47.000Z\"^^xsd:dateTime ; \n" +
                 "    ex:target \"2021-06-05T20:15:47.000Z\"^^xsd:dateTime ; \n" +
-                "    ex:inProject </static/resource/managed-container-1/#project> . \n";
+                "    ex:inProject </managed-container-1/#project> . \n";
     }
 
     private String getProjectTwoManagerGraph() {
@@ -338,9 +342,9 @@ public class AbstractResourceAccessorTests {
                 "\n" +
                 "<#ln1> \n" +
                 "    st:assigns <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectTree> ; \n" +
-                "    st:manages </static/resource/managed-container-2/> ; \n" +
+                "    st:manages </managed-container-2/> ; \n" +
                 "    st:hasRootAssignment <#ln1> ; \n" +
-                "    st:focusNode </static/resource/managed-container-2/#project> ; \n" +
+                "    st:focusNode </managed-container-2/#project> ; \n" +
                 "    st:shape <${SERVER_BASE}/static/shex/project/shex#ProjectShape> . \n" ;
     }
 

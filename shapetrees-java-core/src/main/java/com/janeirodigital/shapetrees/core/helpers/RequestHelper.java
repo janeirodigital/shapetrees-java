@@ -1,10 +1,14 @@
 package com.janeirodigital.shapetrees.core.helpers;
 
-import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.LinkRelation;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.resources.InstanceResource;
+import com.janeirodigital.shapetrees.core.resources.ManagerResource;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeManager;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
@@ -62,9 +66,7 @@ public class RequestHelper {
 
         final List<String> methods = Arrays.asList("POST", "PUT", "PATCH");
 
-        if (!methods.contains(shapeTreeRequest.getMethod())) {
-            throw new ShapeTreeException(500, "Cannot get resource type for unsupported method: " + shapeTreeRequest.getMethod());
-        }
+        if (!methods.contains(shapeTreeRequest.getMethod())) { return null; };
 
         if (shapeTreeRequest.getContentType() == null) {
             throw new ShapeTreeException(500, "Cannot determine incoming resource type because Content-Type is missing from request");
@@ -194,6 +196,20 @@ public class RequestHelper {
         }
 
         return targetResourceGraph;
+    }
+
+    /**
+     * Get the URL of the incoming resource target's parent container
+     * @return URL of the parent container
+     * @throws ShapeTreeException
+     */
+    public static URL getIncomingParentContainerUrl(ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+        final String rel = getIsContainerFromRequest(shapeTreeRequest) ? ".." : ".";
+        try {
+            return new URL(shapeTreeRequest.getUrl(), rel);
+        } catch (MalformedURLException e) {
+            throw new ShapeTreeException(500, "Malformed focus node when resolving <" + rel + "> against <" + shapeTreeRequest.getUrl() + ">");
+        }
     }
 
     /**

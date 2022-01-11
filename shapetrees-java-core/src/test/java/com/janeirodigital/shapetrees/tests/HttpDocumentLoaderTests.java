@@ -1,39 +1,38 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
+import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
+import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
 
 class HttpDocumentLoaderTests {
 
-    private static RequestMatchingFixtureDispatcher dispatcher = null;
+    private static RequestMatchingFixtureDispatcher dispatcher;
     private static HttpExternalDocumentLoader httpExternalDocumentLoader;
+    private static MockWebServer server;
 
     public HttpDocumentLoaderTests() {
         httpExternalDocumentLoader = new HttpExternalDocumentLoader();
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
     }
 
-    protected URL getURL(MockWebServer server, String path) throws MalformedURLException {
-        return new URL(server.url(path).toString());
-    }
-
     @BeforeAll
     static void beforeAll() {
 
-        dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("shapetrees/validation-shapetree-ttl"), "GET", "/static/shapetrees/validation/shapetree", null),
-                new DispatcherEntry(List.of("http/404"), "GET", "/static/shex/missing", null)));
+        dispatcher = new RequestMatchingFixtureDispatcher();
+
+        mockOnGet(dispatcher,"/static/shapetrees/validation/shapetree","shapetrees/validation-shapetree-ttl");
+        mockOnGet(dispatcher, "/static/shex/missing", "http/404");
+
+        server = new MockWebServer();
+        server.setDispatcher(dispatcher);
 
     }
 
@@ -45,10 +44,8 @@ class HttpDocumentLoaderTests {
     @Test
     @DisplayName("Fail to load missing document over http")
     void failToLoadMissingHttpDocument() {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            httpExternalDocumentLoader.loadExternalDocument(getURL(server, "/static/shex/missing"));
+            httpExternalDocumentLoader.loadExternalDocument(toUrl(server, "/static/shex/missing"));
         });
     }
 
@@ -58,7 +55,7 @@ class HttpDocumentLoaderTests {
     void loadHttpDocument() {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
-        DocumentResponse shapeTreeDocument = httpExternalDocumentLoader.loadExternalDocument(getURL(server, "/static/shapetrees/validation/shapetree"));
+        DocumentResponse shapeTreeDocument = httpExternalDocumentLoader.loadExternalDocument(toUrl(server, "/static/shapetrees/validation/shapetree"));
         Assertions.assertNotNull(shapeTreeDocument);
         Assertions.assertEquals(200, shapeTreeDocument.getStatusCode());
         Assertions.assertTrue(shapeTreeDocument.isExists());
@@ -74,7 +71,7 @@ class HttpDocumentLoaderTests {
         server.setDispatcher(dispatcher);
         Thread.currentThread().interrupt();
         Assertions.assertThrows(ShapeTreeException.class, () -> {
-            DocumentResponse shapeTreeDocument = httpExternalDocumentLoader.loadExternalDocument(getURL(server, "/static/shapetrees/validation/shapetree"));
+            httpExternalDocumentLoader.loadExternalDocument(toUrl(server, "/static/shapetrees/validation/shapetree"));
         });
     }
 

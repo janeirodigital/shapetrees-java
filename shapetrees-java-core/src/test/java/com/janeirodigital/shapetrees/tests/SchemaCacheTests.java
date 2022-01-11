@@ -1,11 +1,10 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.SchemaCache;
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
+import com.janeirodigital.shapetrees.core.validation.SchemaCache;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import com.janeirodigital.shapetrees.tests.fixtures.DispatcherEntry;
 import com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import fr.inria.lille.shexjava.GlobalFactory;
@@ -23,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,19 +30,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SchemaCacheTests {
 
-    private static RequestMatchingFixtureDispatcher dispatcher = null;
-    private static HttpExternalDocumentLoader httpExternalDocumentLoader;
+    private static MockWebServer server;
 
     public SchemaCacheTests() {
-        httpExternalDocumentLoader = new HttpExternalDocumentLoader();
+        HttpExternalDocumentLoader httpExternalDocumentLoader = new HttpExternalDocumentLoader();
         DocumentLoaderManager.setLoader(httpExternalDocumentLoader);
     }
 
     @BeforeAll
     static void beforeAll() throws ShapeTreeException {
-        dispatcher = new RequestMatchingFixtureDispatcher(List.of(
-                new DispatcherEntry(List.of("schemas/project-shex"), "GET", "/static/shex/project", null)
-        ));
+        RequestMatchingFixtureDispatcher dispatcher = new RequestMatchingFixtureDispatcher();
+        mockOnGet(dispatcher, "/static/shex/project", "schemas/project-shex");
+        server = new MockWebServer();
+        server.setDispatcher(dispatcher);
+
         SchemaCache.unInitializeCache();
     }
 
@@ -87,8 +88,6 @@ public class SchemaCacheTests {
     @Test
     @Order(3)
     void testPreloadCache() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(MockWebServerHelper.toUrl(server, "/static/shex/project").toString()));
         SchemaCache.initializeCache(schemas);
         assertTrue(SchemaCache.containsSchema(MockWebServerHelper.toUrl(server, "/static/shex/project")));
@@ -97,8 +96,6 @@ public class SchemaCacheTests {
     @Test
     @Order(4)
     void testClearPutGet() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
         Assertions.assertNull(SchemaCache.getSchema(MockWebServerHelper.toUrl(server, "/static/shex/project")));
         Map<URL, ShexSchema> schemas = buildSchemaCache(List.of(MockWebServerHelper.toUrl(server, "/static/shex/project").toString()));
@@ -112,8 +109,6 @@ public class SchemaCacheTests {
     @Test
     @Order(5)
     void testNullOnCacheContains() throws MalformedURLException, ShapeTreeException {
-        MockWebServer server = new MockWebServer();
-        server.setDispatcher(dispatcher);
         SchemaCache.clearCache();
 
         Assertions.assertNull(SchemaCache.getSchema(MockWebServerHelper.toUrl(server, "/static/shex/project")));

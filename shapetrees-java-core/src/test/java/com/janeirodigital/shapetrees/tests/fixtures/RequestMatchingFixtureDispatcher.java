@@ -7,6 +7,7 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,10 @@ public class RequestMatchingFixtureDispatcher extends Dispatcher {
 
     public RequestMatchingFixtureDispatcher(List<DispatcherEntry> configuredFixtures) {
         this.configuredFixtures = configuredFixtures;
+    }
+
+    public RequestMatchingFixtureDispatcher() {
+        this.configuredFixtures = new ArrayList<DispatcherEntry>();
     }
 
     @NotNull

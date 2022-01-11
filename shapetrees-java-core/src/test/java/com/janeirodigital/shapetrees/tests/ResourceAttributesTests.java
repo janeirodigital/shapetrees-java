@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.resources.ResourceAttributes;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

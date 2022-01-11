@@ -155,8 +155,7 @@
                 <configuration>
                     <sourcepath>
                         shapetrees-java-core/target/delombok;
-                        shapetrees-java-javahttp/target/delombok;
-                        shapetrees-java-okhttp/target/delombok
+                        shapetrees-java-client-okhttp/target/delombok
                     </sourcepath>
                 </configuration>
                 <reportSets>

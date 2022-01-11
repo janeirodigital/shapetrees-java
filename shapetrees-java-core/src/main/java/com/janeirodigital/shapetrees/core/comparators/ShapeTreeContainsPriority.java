@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.core.comparators;
 
-import com.janeirodigital.shapetrees.core.ShapeTree;
-import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.validation.ShapeTree;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeFactory;
 import lombok.SneakyThrows;
 
 import java.io.Serializable;

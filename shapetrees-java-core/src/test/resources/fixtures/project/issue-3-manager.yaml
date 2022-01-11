@@ -2,6 +2,7 @@ statusCode : 200
 delay: 0
 headers:
   - 'Content-type:text/turtle'
+  - 'Link:</data/projects/project-1/milestone-3/issue-3>; rel="http://www.w3.org/ns/shapetrees#manages"'
 body: >
 
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>

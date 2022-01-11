@@ -13,9 +13,6 @@ body: >
   PREFIX ldp: <http://www.w3.org/ns/ldp#>
   PREFIX ex: <http://www.example.com/ns/ex#>
 
-  <> ldp:contains
-    </data/projects/project-1/milestone-3/task-6/> .
-
   <#milestone>
     ex:uri </data/projects/project-1/milestone-3/#milestone> ;
     ex:id 12345 ;

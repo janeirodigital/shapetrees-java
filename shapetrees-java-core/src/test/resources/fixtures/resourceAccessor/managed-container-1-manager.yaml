@@ -2,6 +2,7 @@ statusCode : 200
 delay: 0
 headers:
   - 'Content-type:text/turtle'
+  - 'Link:</managed-container-1/>; rel="http://www.w3.org/ns/shapetrees#manages"'
 body: >
 
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -15,7 +16,7 @@ body: >
 
   <#ln1>
     st:assigns <${SERVER_BASE}/static/shapetrees/project/shapetree#ProjectTree> ;
-    st:manages </static/resource/managed-container-1/> ;
+    st:manages </managed-container-1/> ;
     st:hasRootAssignment <#ln1> ;
-    st:focusNode </static/resource/managed-container-1/#project> ;
+    st:focusNode </managed-container-1/#project> ;
     st:shape <${SERVER_BASE}/static/shex/project/shex#ProjectShape> .
