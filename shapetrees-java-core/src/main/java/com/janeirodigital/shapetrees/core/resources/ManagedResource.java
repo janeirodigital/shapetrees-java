@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.resources;
 
 import java.net.URL;
 import java.util.Optional;

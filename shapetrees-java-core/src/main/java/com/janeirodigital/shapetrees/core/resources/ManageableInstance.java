@@ -1,5 +1,7 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.resources;
 
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeManager;
 import com.janeirodigital.shapetrees.core.enums.LinkRelation;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;

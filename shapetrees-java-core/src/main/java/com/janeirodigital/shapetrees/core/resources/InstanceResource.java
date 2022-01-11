@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.resources;
 
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;

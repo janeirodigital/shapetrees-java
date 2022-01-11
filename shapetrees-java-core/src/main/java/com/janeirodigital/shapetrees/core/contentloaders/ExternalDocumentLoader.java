@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.core.contentloaders;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 
 import java.net.URL;

@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.resources;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;

@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.validation;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.vocabularies.ShapeTreeVocabulary;

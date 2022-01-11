@@ -1,9 +1,11 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.ContentType;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.resources.*;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeManager;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;

@@ -1,5 +1,6 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.validation;
 
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
 import com.janeirodigital.shapetrees.core.comparators.ShapeTreeContainsPriority;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
@@ -7,6 +8,7 @@ import com.janeirodigital.shapetrees.core.enums.RecursionMethod;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
+import com.janeirodigital.shapetrees.core.resources.ManageableResource;
 import fr.inria.lille.shexjava.GlobalFactory;
 import fr.inria.lille.shexjava.schema.Label;
 import fr.inria.lille.shexjava.schema.ShexSchema;

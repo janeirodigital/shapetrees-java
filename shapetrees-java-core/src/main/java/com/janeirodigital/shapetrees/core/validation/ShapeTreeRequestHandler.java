@@ -1,25 +1,27 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.validation;
 
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
+import com.janeirodigital.shapetrees.core.resources.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.comparators.ResourceTypeAssignmentPriority;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.RequestHelper;
+import com.janeirodigital.shapetrees.core.resources.InstanceResource;
+import com.janeirodigital.shapetrees.core.resources.ManageableInstance;
+import com.janeirodigital.shapetrees.core.resources.ManageableResource;
+import com.janeirodigital.shapetrees.core.resources.ResourceAccessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;
 
 import java.net.URL;
 import java.util.*;
 
-import static com.janeirodigital.shapetrees.core.ManageableInstance.*;
+import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.*;
 
 @Slf4j
 public class ShapeTreeRequestHandler {
 
-    ResourceAccessor resourceAccessor;
-
-    public ShapeTreeRequestHandler(ResourceAccessor resourceAccessor) {
-        this.resourceAccessor = resourceAccessor;
-    }
+    private ShapeTreeRequestHandler() { }
 
     public static ValidationResult manageShapeTreeAssignment(ResourceAccessor accessor, ManageableInstance manageableInstance, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
 

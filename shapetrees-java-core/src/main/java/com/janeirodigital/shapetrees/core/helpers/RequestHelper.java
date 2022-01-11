@@ -1,10 +1,14 @@
 package com.janeirodigital.shapetrees.core.helpers;
 
-import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.LinkRelation;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.resources.InstanceResource;
+import com.janeirodigital.shapetrees.core.resources.ManagerResource;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeManager;
 import com.janeirodigital.shapetrees.core.vocabularies.LdpVocabulary;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.graph.Graph;

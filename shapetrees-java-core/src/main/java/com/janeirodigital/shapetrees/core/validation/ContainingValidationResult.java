@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.validation;
 
 import lombok.Getter;
 

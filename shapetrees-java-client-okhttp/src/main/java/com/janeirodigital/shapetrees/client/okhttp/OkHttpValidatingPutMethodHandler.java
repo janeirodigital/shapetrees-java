@@ -1,14 +1,18 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.resources.ManageableInstance;
+import com.janeirodigital.shapetrees.core.resources.ManageableResource;
+import com.janeirodigital.shapetrees.core.resources.ResourceAccessor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
 
 import java.util.Optional;
 
-import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.getInstance;
 import static com.janeirodigital.shapetrees.core.helpers.RequestHelper.getIncomingParentContainerUrl;
 
 @Slf4j

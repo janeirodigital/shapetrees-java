@@ -1,5 +1,6 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.validation;
 
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;

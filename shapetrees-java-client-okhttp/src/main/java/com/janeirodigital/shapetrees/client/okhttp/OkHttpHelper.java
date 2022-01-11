@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-import com.janeirodigital.shapetrees.core.ContainingValidationResult;
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ValidationResult;
+import com.janeirodigital.shapetrees.core.validation.ContainingValidationResult;
+import com.janeirodigital.shapetrees.core.resources.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.validation.ValidationResult;
 import com.janeirodigital.shapetrees.core.enums.ContentType;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.LinkRelation;

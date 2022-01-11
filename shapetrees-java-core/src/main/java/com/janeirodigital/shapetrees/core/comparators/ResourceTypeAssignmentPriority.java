@@ -1,6 +1,6 @@
 package com.janeirodigital.shapetrees.core.comparators;
 
-import com.janeirodigital.shapetrees.core.ManageableInstance;
+import com.janeirodigital.shapetrees.core.resources.ManageableInstance;
 
 import java.io.Serializable;
 import java.util.Comparator;

@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.ShapeTree;
-import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
-import com.janeirodigital.shapetrees.core.ShapeTreeResource;
+import com.janeirodigital.shapetrees.core.validation.ShapeTree;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeResource;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.RecursionMethod;

@@ -1,7 +1,7 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
+import com.janeirodigital.shapetrees.core.resources.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.contentloaders.ExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import okhttp3.OkHttpClient;

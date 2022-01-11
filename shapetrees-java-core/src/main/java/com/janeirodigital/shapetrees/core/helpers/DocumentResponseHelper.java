@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.core.helpers;
 
-import com.janeirodigital.shapetrees.core.DocumentResponse;
-import com.janeirodigital.shapetrees.core.RelationAttributes;
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
+import com.janeirodigital.shapetrees.core.resources.RelationAttributes;
+import com.janeirodigital.shapetrees.core.resources.ResourceAttributes;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.LinkRelation;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.janeirodigital.shapetrees.core.ResourceAttributes.parseLinkHeaders;
+import static com.janeirodigital.shapetrees.core.resources.ResourceAttributes.parseLinkHeaders;
 import static com.janeirodigital.shapetrees.core.enums.HttpHeader.CONTENT_TYPE;
 import static com.janeirodigital.shapetrees.core.enums.HttpHeader.LINK;
 import static com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType.CONTAINER;

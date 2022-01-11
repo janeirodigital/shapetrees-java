@@ -1,9 +1,9 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.SchemaCache;
-import com.janeirodigital.shapetrees.core.ShapeTree;
-import com.janeirodigital.shapetrees.core.ShapeTreeFactory;
-import com.janeirodigital.shapetrees.core.ValidationResult;
+import com.janeirodigital.shapetrees.core.validation.SchemaCache;
+import com.janeirodigital.shapetrees.core.validation.ShapeTree;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.validation.ValidationResult;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;

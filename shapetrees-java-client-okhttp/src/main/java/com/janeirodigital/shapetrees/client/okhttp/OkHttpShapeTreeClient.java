@@ -1,8 +1,14 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.enums.ContentType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.resources.ManageableInstance;
+import com.janeirodigital.shapetrees.core.resources.ManageableResource;
+import com.janeirodigital.shapetrees.core.validation.ShapeTree;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeAssignment;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeFactory;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeManager;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.jena.riot.Lang;
@@ -13,7 +19,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 
-import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.getInstance;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.SPARQL_UPDATE;
 import static com.janeirodigital.shapetrees.core.enums.ContentType.TEXT_TURTLE;
 import static com.janeirodigital.shapetrees.core.enums.HttpHeader.CONTENT_TYPE;

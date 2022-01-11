@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.client.okhttp;
 
-import com.janeirodigital.shapetrees.core.RelationAttributes;
-import com.janeirodigital.shapetrees.core.ResourceAttributes;
-import com.janeirodigital.shapetrees.core.ShapeTreeRequest;
+import com.janeirodigital.shapetrees.core.resources.RelationAttributes;
+import com.janeirodigital.shapetrees.core.resources.ResourceAttributes;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeRequest;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;

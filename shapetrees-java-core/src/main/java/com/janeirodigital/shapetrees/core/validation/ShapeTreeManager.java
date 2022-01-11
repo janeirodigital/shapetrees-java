@@ -1,4 +1,4 @@
-package com.janeirodigital.shapetrees.core;
+package com.janeirodigital.shapetrees.core.validation;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
@@ -94,7 +94,7 @@ public class ShapeTreeManager {
     }
 
     /**
-     * Add a {@link com.janeirodigital.shapetrees.core.ShapeTreeAssignment} to the ShapeTreeManager.
+     * Add a {@link ShapeTreeAssignment} to the ShapeTreeManager.
      * @param assignment Shape tree assignment to add
      * @throws ShapeTreeException
      */

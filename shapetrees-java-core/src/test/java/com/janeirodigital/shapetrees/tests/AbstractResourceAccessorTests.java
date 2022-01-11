@@ -1,7 +1,9 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.*;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeContext;
+import com.janeirodigital.shapetrees.core.resources.*;
+import com.janeirodigital.shapetrees.core.validation.ShapeTreeManager;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Assertions;
@@ -12,8 +14,8 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static com.janeirodigital.shapetrees.core.ManageableInstance.createInstanceResource;
-import static com.janeirodigital.shapetrees.core.ManageableInstance.getInstance;
+import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.createInstanceResource;
+import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.getInstance;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnGet;
 import static com.janeirodigital.shapetrees.tests.fixtures.DispatcherHelper.mockOnPut;
 import static com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper.toUrl;
