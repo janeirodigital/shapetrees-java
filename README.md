@@ -7,12 +7,12 @@
 
 A Java (JDK11+) implementation of the [shape tree specification](https://shapetrees.org/TR/specification/index.html).
 
-As detailed in the specification shape tree validation can be performed on either client or server sides.
+[JavaDocs](https://janeirodigital.github.io/shapetrees-java/) are generated and published with each release.
 
 Each module within the project has its own README.md to further explain its contents:
  * [shapetrees-java-core](shapetrees-java-core/README.md) - Core validation functionality and any classes required
    to interact with the API are present here
  * [shapetrees-java-client-okhttp](shapetrees-java-client-okhttp/README.md) - Provides a shape tree client implemented
    with [OkHttp](https://github.com/square/okhttp/).  This client can perform client-side
-   validation by using an interceptor or interact directly with a server that performs server-side validation
+   validation by using an interceptor or interact directly with a server that performs server-side validation.
 
