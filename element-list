@@ -1,9 +1,10 @@
-com.janeirodigital.shapetrees.core
+com.janeirodigital.shapetrees.client.okhttp
 com.janeirodigital.shapetrees.core.annotations
 com.janeirodigital.shapetrees.core.comparators
 com.janeirodigital.shapetrees.core.contentloaders
 com.janeirodigital.shapetrees.core.enums
 com.janeirodigital.shapetrees.core.exceptions
 com.janeirodigital.shapetrees.core.helpers
-com.janeirodigital.shapetrees.core.methodhandlers
+com.janeirodigital.shapetrees.core.resources
+com.janeirodigital.shapetrees.core.validation
 com.janeirodigital.shapetrees.core.vocabularies
