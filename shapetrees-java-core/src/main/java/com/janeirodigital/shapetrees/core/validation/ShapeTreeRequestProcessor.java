@@ -19,11 +19,11 @@ import java.util.*;
 import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.*;
 
 @Slf4j
-public class ShapeTreeRequestHandler {
+public class ShapeTreeRequestProcessor {
 
-    private ShapeTreeRequestHandler() { }
+    private ShapeTreeRequestProcessor() { }
 
-    public static ValidationResult manageShapeTreeAssignment(ResourceAccessor accessor, ManageableInstance manageableInstance, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+    public static ValidationResult updateManager(ResourceAccessor accessor, ManageableInstance manageableInstance, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
 
         ValidationResult result = new ValidationResult(false, "A request to manage shape tree assignment is invalid until it is proven valid");
         ShapeTreeManager updatedRootManager = RequestHelper.getIncomingShapeTreeManager(shapeTreeRequest, manageableInstance.getManagerResource());
@@ -40,13 +40,13 @@ public class ShapeTreeRequestHandler {
 
         if (delta.wasReduced()) {
             // An existing assignment has been removed from the manager for the managed resource.
-            result = unplantShapeTree(accessor, manageableInstance, manageableInstance.getShapeTreeContext(), delta);
+            result = unplant(accessor, manageableInstance, manageableInstance.getShapeTreeContext(), delta);
             if (!result.isValid()) { return result; }
         }
 
         if (delta.isUpdated()) {
             // An existing assignment has been updated, or new assignments have been added
-            result = plantShapeTree(accessor, manageableInstance, manageableInstance.getShapeTreeContext(), updatedRootManager, delta);
+            result = plant(accessor, manageableInstance, manageableInstance.getShapeTreeContext(), updatedRootManager, delta);
             if (!result.isValid()) { return result; }
         }
 
@@ -62,7 +62,7 @@ public class ShapeTreeRequestHandler {
      * @return DocumentResponse
      * @throws ShapeTreeException
      */
-    public static ValidationResult plantShapeTree(ResourceAccessor accessor, ManageableInstance manageableInstance, ShapeTreeContext shapeTreeContext, ShapeTreeManager updatedRootManager, ShapeTreeManagerDelta delta) throws ShapeTreeException {
+    public static ValidationResult plant(ResourceAccessor accessor, ManageableInstance manageableInstance, ShapeTreeContext shapeTreeContext, ShapeTreeManager updatedRootManager, ShapeTreeManagerDelta delta) throws ShapeTreeException {
 
         // Cannot directly update assignments that are not root locations
         ensureUpdatedAssignmentIsRoot(delta);
@@ -70,20 +70,20 @@ public class ShapeTreeRequestHandler {
         ValidationResult result = new ValidationResult(false, "All plant operations are invalid until they can be proven valid");
         // Run recursive assignment for each updated assignment in the root manager
         for (ShapeTreeAssignment rootAssignment : delta.getUpdatedAssignments()) {
-            result = assignShapeTreeToResource(accessor, manageableInstance, shapeTreeContext, updatedRootManager, rootAssignment, rootAssignment, null);
+            result = assign(accessor, manageableInstance, shapeTreeContext, updatedRootManager, rootAssignment, rootAssignment, null);
             if (!result.isValid()) { return result; }
         }
         return result;
     }
 
-    public static ValidationResult unplantShapeTree(ResourceAccessor accessor, ManageableInstance manageableInstance, ShapeTreeContext shapeTreeContext, ShapeTreeManagerDelta delta) throws ShapeTreeException {
+    public static ValidationResult unplant(ResourceAccessor accessor, ManageableInstance manageableInstance, ShapeTreeContext shapeTreeContext, ShapeTreeManagerDelta delta) throws ShapeTreeException {
 
         ensureRemovedAssignmentsAreRoot(delta); // Cannot unplant a non-root location
 
         ValidationResult result = new ValidationResult(false, "All unplant operations are invalid until they can be proven valid");
         // Run recursive unassignment for each removed assignment in the updated root manager
         for (ShapeTreeAssignment rootAssignment : delta.getRemovedAssignments()) {
-            result = unassignShapeTreeFromResource(accessor, manageableInstance, shapeTreeContext, rootAssignment);
+            result = unassign(accessor, manageableInstance, shapeTreeContext, rootAssignment);
             if (!result.isValid()) { return result; }
         }
 
@@ -91,7 +91,7 @@ public class ShapeTreeRequestHandler {
     }
 
     // TODO: #87: do sanity checks on meta of meta, c.f. @see https://github.com/xformativ/shapetrees-java/issues/87
-    public static ContainingValidationResult validateResourceCreation(ResourceAccessor accessor, ManageableInstance targetInstance, ManageableInstance parentContainer, ShapeTreeRequest shapeTreeRequest, String proposedName) throws ShapeTreeException {
+    public static ContainingValidationResult validateCreate(ResourceAccessor accessor, ManageableInstance targetInstance, ManageableInstance parentContainer, ShapeTreeRequest shapeTreeRequest, String proposedName) throws ShapeTreeException {
         // Sanity check user-owned resource @@ delete 'cause type checks
         ensureInstanceResourceExists(parentContainer.getManageableResource(),"Target container for resource creation not found");
         ensureRequestResourceIsContainer(parentContainer.getManageableResource(),"Cannot create a shape tree instance in a non-container resource");
@@ -131,7 +131,7 @@ public class ShapeTreeRequestHandler {
         return containingResult;
     }
 
-    public static ValidationResult validateResourceUpdate(ResourceAccessor accessor, ManageableInstance targetInstance, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
+    public static ValidationResult validateUpdate(ResourceAccessor accessor, ManageableInstance targetInstance, ShapeTreeRequest shapeTreeRequest) throws ShapeTreeException {
 
         ensureInstanceResourceExists(targetInstance.getManageableResource(),"Target resource to update not found");
         ensureInstanceResourceExists(targetInstance.getManagerResource(), "Should not be updating an unmanaged resource as a shape tree instance");
@@ -153,13 +153,13 @@ public class ShapeTreeRequestHandler {
         return new ValidationResult(true, "Update to " + targetInstance.getManageableResource().getUrl() + "passed shape tree validation");
     }
 
-    public static ValidationResult assignShapeTreeToResource(ResourceAccessor accessor,
-                                                             ManageableInstance manageableInstance,
-                                                             ShapeTreeContext shapeTreeContext,
-                                                             ShapeTreeManager rootManager,
-                                                             ShapeTreeAssignment rootAssignment,
-                                                             ShapeTreeAssignment parentAssignment,
-                                                             ValidationResult advanceValidationResult) throws ShapeTreeException {
+    public static ValidationResult assign(ResourceAccessor accessor,
+                                          ManageableInstance manageableInstance,
+                                          ShapeTreeContext shapeTreeContext,
+                                          ShapeTreeManager rootManager,
+                                          ShapeTreeAssignment rootAssignment,
+                                          ShapeTreeAssignment parentAssignment,
+                                          ValidationResult advanceValidationResult) throws ShapeTreeException {
 
         ShapeTree managingShapeTree = null;
         ShapeTreeManager shapeTreeManager;
@@ -210,7 +210,7 @@ public class ShapeTreeRequestHandler {
             if (!containedInstances.isEmpty()) {
                 Collections.sort(containedInstances, new ResourceTypeAssignmentPriority());  // Evaluate containers, then resources
                 for (ManageableInstance containedResource : containedInstances) {
-                    result = assignShapeTreeToResource(accessor, containedResource, shapeTreeContext, null, rootAssignment, managingAssignment, null);
+                    result = assign(accessor, containedResource, shapeTreeContext, null, rootAssignment, managingAssignment, null);
                     if (!result.isValid()) { return result; }
                 }
             }
@@ -230,10 +230,10 @@ public class ShapeTreeRequestHandler {
 
     }
 
-    public static ValidationResult unassignShapeTreeFromResource(ResourceAccessor accessor,
-                                                                 ManageableInstance manageableInstance,
-                                                                 ShapeTreeContext shapeTreeContext,
-                                                                 ShapeTreeAssignment rootAssignment) throws ShapeTreeException {
+    public static ValidationResult unassign(ResourceAccessor accessor,
+                                            ManageableInstance manageableInstance,
+                                            ShapeTreeContext shapeTreeContext,
+                                            ShapeTreeAssignment rootAssignment) throws ShapeTreeException {
 
         ensureInstanceResourceExists(manageableInstance.getManageableResource(), "Cannot remove assignment from non-existent managed resource");
         ensureInstanceResourceExists(manageableInstance.getManagerResource(), "Cannot remove assignment from non-existent manager resource");
@@ -254,7 +254,7 @@ public class ShapeTreeRequestHandler {
                 // Perform a depth first unassignment for each contained resource
                 for (ManageableInstance containedResource : containedInstances) {
                     // Recursively call this function on the contained resource
-                    ValidationResult result = unassignShapeTreeFromResource(accessor, containedResource, shapeTreeContext, rootAssignment);
+                    ValidationResult result = unassign(accessor, containedResource, shapeTreeContext, rootAssignment);
                     if (!result.isValid()) { return result; }
                 }
             }
@@ -391,12 +391,6 @@ public class ShapeTreeRequestHandler {
 
     private static void ensureShapeTreeManagerExists(ShapeTreeManager manager, String message) throws ShapeTreeException {
         if (manager == null || manager.getAssignments() == null || manager.getAssignments().isEmpty()) {
-            throw new ShapeTreeException(400, message);
-        }
-    }
-
-    private static void ensureAssignmentExists(ShapeTreeAssignment assignment, String message) throws ShapeTreeException {
-        if (assignment == null) {
             throw new ShapeTreeException(400, message);
         }
     }

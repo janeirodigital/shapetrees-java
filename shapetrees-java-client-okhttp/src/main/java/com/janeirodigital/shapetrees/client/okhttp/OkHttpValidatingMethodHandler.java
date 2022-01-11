@@ -17,7 +17,7 @@ import okhttp3.Response;
 import java.util.Optional;
 
 import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.createInstanceResource;
-import static com.janeirodigital.shapetrees.core.validation.ShapeTreeRequestHandler.*;
+import static com.janeirodigital.shapetrees.core.validation.ShapeTreeRequestProcessor.*;
 import static com.janeirodigital.shapetrees.client.okhttp.OkHttpHelper.createInvalidResponse;
 import static com.janeirodigital.shapetrees.client.okhttp.OkHttpHelper.createResponse;
 
@@ -37,7 +37,7 @@ public abstract class OkHttpValidatingMethodHandler {
 
     Optional<Response> validateManagedResourceUpdate(Request nativeRequest, ShapeTreeRequest shapeTreeRequest, ManageableInstance proposedInstance) throws ShapeTreeException {
         // Validate the proposed update against the shapetree(s) managing the managed resource
-        ValidationResult result = validateResourceUpdate(this.resourceAccessor, proposedInstance, shapeTreeRequest);
+        ValidationResult result = validateUpdate(this.resourceAccessor, proposedInstance, shapeTreeRequest);
         // If validation was unsuccessful, craft and return invalid response
         if (!result.isValid()) { return Optional.of(createInvalidResponse(nativeRequest, result)); }
         log.info("Validation Successful: {} request to {}", shapeTreeRequest.getMethod(), shapeTreeRequest.getUrl());
@@ -50,7 +50,7 @@ public abstract class OkHttpValidatingMethodHandler {
         ManageableResource targetResource = proposedInstance.getManageableResource();
         ShapeTreeManager manager = parentInstance.getManagerResource().getManager();
         if (!manager.hasContainingAssignments()) { return Optional.empty(); } // Parent container doesn't constrain members with st:contains
-        ContainingValidationResult containingResult = validateResourceCreation(this.resourceAccessor, proposedInstance, parentInstance, shapeTreeRequest, targetResource.getName());
+        ContainingValidationResult containingResult = validateCreate(this.resourceAccessor, proposedInstance, parentInstance, shapeTreeRequest, targetResource.getName());
         // check for bad result and create error response
         if (!containingResult.isValid()) { return Optional.of(createInvalidResponse(nativeRequest, containingResult)); }
         ManageableInstance createdInstance = createInstanceResource(this.resourceAccessor, shapeTreeContext, targetResource.getUrl(), shapeTreeRequest.getHeaders(), shapeTreeRequest.getBody(), shapeTreeRequest.getContentType());
@@ -58,7 +58,7 @@ public abstract class OkHttpValidatingMethodHandler {
             ShapeTreeAssignment containingAssignment = validationMap.getKey();
             ValidationResult result = validationMap.getValue();
             ShapeTreeAssignment rootAssignment = getRootAssignment(this.resourceAccessor, shapeTreeContext, containingAssignment);
-            ValidationResult assignmentResult = assignShapeTreeToResource(this.resourceAccessor, createdInstance, shapeTreeContext, null, rootAssignment, containingAssignment, result);
+            ValidationResult assignmentResult = assign(this.resourceAccessor, createdInstance, shapeTreeContext, null, rootAssignment, containingAssignment, result);
             if (!assignmentResult.isValid()) { return Optional.of(createInvalidResponse(nativeRequest, assignmentResult)); }
         }
         return Optional.of(createResponse(nativeRequest, 201));

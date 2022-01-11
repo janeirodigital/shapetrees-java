@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.getInstance;
 import static com.janeirodigital.shapetrees.core.resources.ManageableInstance.reloadInstance;
-import static com.janeirodigital.shapetrees.core.validation.ShapeTreeRequestHandler.manageShapeTreeAssignment;
+import static com.janeirodigital.shapetrees.core.validation.ShapeTreeRequestProcessor.updateManager;
 import static com.janeirodigital.shapetrees.client.okhttp.OkHttpHelper.*;
 
 /**
@@ -67,7 +67,7 @@ public class OkHttpValidatingShapeTreeInterceptor implements Interceptor {
         if (requestInstance.wasRequestForManager()) {
             // Target resource is for shape tree manager - manage shape trees to plant and/or unplant
             try {
-                validationResult = manageShapeTreeAssignment(resourceAccessor, requestInstance, shapeTreeRequest);
+                validationResult = updateManager(resourceAccessor, requestInstance, shapeTreeRequest);
                 if (!validationResult.isValid()) { return createInvalidResponse(chain.request(), validationResult); }
                 return createManagerResponse(chain.request(), requestInstance, validationResult);
             } catch (ShapeTreeException ex) {
