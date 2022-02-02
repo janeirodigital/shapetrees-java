@@ -16,7 +16,7 @@
         <okhttp.version>4.9.2</okhttp.version>
         <junit.version>5.8.1</junit.version>
         <jersey-core.version>1.19.4</jersey-core.version>
-        <snakeyaml.version>1.29</snakeyaml.version>
+        <snakeyaml.version>1.30</snakeyaml.version>
         <commons-text.version>1.9</commons-text.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
