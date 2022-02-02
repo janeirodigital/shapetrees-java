@@ -1,8 +1,8 @@
 package com.janeirodigital.shapetrees.core.validation;
 
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
-import fr.inria.lille.shexjava.schema.ShexSchema;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.jena.shex.ShexSchema;
 
 import java.net.URL;
 import java.util.HashMap;

@@ -1,21 +1,18 @@
 package com.janeirodigital.shapetrees.tests;
 
-import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
-import com.janeirodigital.shapetrees.core.validation.SchemaCache;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.contentloaders.HttpExternalDocumentLoader;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
+import com.janeirodigital.shapetrees.core.validation.SchemaCache;
 import com.janeirodigital.shapetrees.tests.fixtures.MockWebServerHelper;
 import com.janeirodigital.shapetrees.tests.fixtures.RequestMatchingFixtureDispatcher;
-import fr.inria.lille.shexjava.GlobalFactory;
-import fr.inria.lille.shexjava.schema.ShexSchema;
-import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.jena.shex.Shex;
+import org.apache.jena.shex.ShexSchema;
 import org.junit.jupiter.api.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -132,9 +129,8 @@ public class SchemaCacheTests {
             }
 
             String shapeBody = shexShapeSchema.getBody();
-            try (InputStream stream = new ByteArrayInputStream(shapeBody.getBytes())) {
-                ShExCParser shexCParser = new ShExCParser();
-                ShexSchema schema = new ShexSchema(GlobalFactory.RDFFactory, shexCParser.getRules(stream), shexCParser.getStart());
+            try {
+                ShexSchema schema = Shex.schemaFromString(shapeBody);
                 schemaCache.put(new URL(schemaUrl), schema);
             } catch (Exception ex) {
                 log.error("Error parsing schema {}", schemaUrl);

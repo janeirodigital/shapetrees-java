@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 /**
  * Assorted helper methods related to RDF Graphs
@@ -177,6 +178,21 @@ public class GraphHelper {
         }
     }
 
+    /**
+     * Convert an RDFNode value to URL
+     * @param node RDFNode to convert
+     * @return Converted URL
+     * @throws ShapeTreeException
+     */
+    public static URL nodeToUrl(Node node) throws ShapeTreeException {
+        Objects.requireNonNull(node, "Cannot convert a null node to URL");
+        try {
+            return new URL(node.getURI());
+        } catch (MalformedURLException ex) {
+            throw new ShapeTreeException(500, "Failed to convert node to URL - " + node.getURI() + ": " + ex.getMessage());
+        }
+    }
+    
     /**
      * Remove a fragment from a URL. Returns the same URL if there is no fragment
      * @param url to remove fragment from

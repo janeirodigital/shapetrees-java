@@ -1,6 +1,5 @@
 package com.janeirodigital.shapetrees.core.validation;
 
-import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
 import com.janeirodigital.shapetrees.core.comparators.ShapeTreeContainsPriority;
 import com.janeirodigital.shapetrees.core.contentloaders.DocumentLoaderManager;
 import com.janeirodigital.shapetrees.core.enums.HttpHeader;
@@ -8,29 +7,21 @@ import com.janeirodigital.shapetrees.core.enums.RecursionMethod;
 import com.janeirodigital.shapetrees.core.enums.ShapeTreeResourceType;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import com.janeirodigital.shapetrees.core.helpers.GraphHelper;
+import com.janeirodigital.shapetrees.core.resources.DocumentResponse;
 import com.janeirodigital.shapetrees.core.resources.ManageableResource;
-import fr.inria.lille.shexjava.GlobalFactory;
-import fr.inria.lille.shexjava.schema.Label;
-import fr.inria.lille.shexjava.schema.ShexSchema;
-import fr.inria.lille.shexjava.schema.parsing.ShExCParser;
-import fr.inria.lille.shexjava.validation.RecursiveValidation;
-import fr.inria.lille.shexjava.validation.ValidationAlgorithm;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.rdf.api.IRI;
-import org.apache.commons.rdf.jena.JenaRDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.shex.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.nodeToUrl;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
 
 @Getter
@@ -101,15 +92,16 @@ public class ShapeTree {
     }
 
     public ValidationResult validateGraph(Graph graph, List<URL> focusNodeUrls) throws ShapeTreeException {
-        // if (true) return new ValidationResult(true, this, this, focusNodeUrl); // [debug] ShExC parser brings debugger to its knees
+
         if (this.shape == null) {
             throw new ShapeTreeException(400, "Attempting to validate a shape for ShapeTree " + this.id + "but it doesn't specify one");
         }
 
-        ShexSchema schema;
+        ShexSchema shapes;
+
         if (SchemaCache.isInitialized() && SchemaCache.containsSchema(this.shape)) {
             log.debug("Found cached schema {}", this.shape);
-            schema = SchemaCache.getSchema(this.shape);
+            shapes = SchemaCache.getSchema(this.shape);
         } else {
             log.debug("Did not find schema in cache {} will retrieve and parse", this.shape);
             DocumentResponse shexShapeContents = DocumentLoaderManager.getLoader().loadExternalDocument(this.shape);
@@ -118,63 +110,42 @@ public class ShapeTree {
             }
 
             String shapeBody = shexShapeContents.getBody();
-            InputStream stream = new ByteArrayInputStream(shapeBody.getBytes(StandardCharsets.UTF_8));
-            ShExCParser shexCParser = new ShExCParser();
             try {
-                schema = new ShexSchema(GlobalFactory.RDFFactory,shexCParser.getRules(stream),shexCParser.getStart());
-                if (SchemaCache.isInitialized()) {
-                    SchemaCache.putSchema(this.shape, schema);
-                }
+                shapes = Shex.schemaFromString(shapeBody);
+                if (SchemaCache.isInitialized()) { SchemaCache.putSchema(this.shape, shapes); }
             } catch (Exception ex) {
                 throw new ShapeTreeException(500, "Error parsing ShEx schema - " + ex.getMessage());
             }
         }
 
-        // Tell ShExJava we want to use Jena as our graph library
-        JenaRDF jenaRDF = new org.apache.commons.rdf.jena.JenaRDF();
-        GlobalFactory.RDFFactory = jenaRDF;
-
-        ValidationAlgorithm validation = new RecursiveValidation(schema, jenaRDF.asGraph(graph));
-        Label shapeLabel = new Label(GlobalFactory.RDFFactory.createIRI(this.shape.toString()));
+        // Get Node for Shape
+        Node shapeNode = NodeFactory.createURI(this.shape.toString());
+        String validationReport = "No additional criteria to report";
 
         if (!focusNodeUrls.isEmpty()) {  // One or more focus nodes were provided for validation
 
             for (URL focusNodeUrl : focusNodeUrls) {
-                // Evaluate each provided focus node
-                IRI focusNode = GlobalFactory.RDFFactory.createIRI(focusNodeUrl.toString());
-                log.debug("Validating Shape Label = {}, Focus Node = {}", shapeLabel.toPrettyString(), focusNode.getIRIString());
-                validation.validate(focusNode, shapeLabel);
-                boolean valid = validation.getTyping().isConformant(focusNode, shapeLabel);
-                if (valid) { return new ValidationResult(valid, this, this, focusNodeUrl); }
+                Node focusNode = NodeFactory.createURI(focusNodeUrl.toString());
+                ShexMap shapeMap = ShexMap.record(focusNode, shapeNode);
+                log.debug("Validating Shape = {}, Focus Node = {}", shapeNode.getURI(), focusNode.getURI());
+                ShexReport report = ShexValidator.get().validate(graph, shapes, shapeMap);
+                if (report.conforms()) { return new ValidationResult(true, this, this, focusNodeUrl); }
+                validationReport = report.toString();
             }
-
             // None of the provided focus nodes were valid - this will return the last failure
-            return new ValidationResult(false, this, "Failed to validate: " + shapeLabel.toPrettyString());
+            return new ValidationResult(false, this, "Failed to validate: " + shapeNode.getURI() + ": " + validationReport);
 
         } else {  // No focus nodes were provided for validation, so all subject nodes will be evaluated
 
             List<Node> evaluateNodes = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
-
             for (Node evaluateNode : evaluateNodes) {
-
-                final String focusUriString = evaluateNode.getURI();
-                IRI node = GlobalFactory.RDFFactory.createIRI(focusUriString);
-                validation.validate(node, shapeLabel);
-                boolean valid = validation.getTyping().isConformant(node, shapeLabel);
-
-                if (valid) {
-                    final URL matchingFocusNode;
-                    try {
-                        matchingFocusNode = new URL(focusUriString);
-                    } catch (MalformedURLException ex) {
-                        throw new ShapeTreeException(500, "Error reporting validation success on malformed URL <" + focusUriString + ">: " + ex.getMessage());
-                    }
-                    return new ValidationResult(valid, this, this, matchingFocusNode);
-                }
-
+                ShexMap shapeMap = ShexMap.record(evaluateNode, shapeNode);
+                ShexReport report = ShexValidator.get().validate(graph, shapes, shapeMap);
+                if (report.conforms()) { return new ValidationResult(true, this, this, nodeToUrl(evaluateNode)); }
+                validationReport = report.toString();
             }
 
-            return new ValidationResult(false, this, "Failed to validate: " + shapeLabel.toPrettyString());
+            return new ValidationResult(false, this, "Failed to validate: " + shapeNode.getURI() + ": " + validationReport);
 
         }
     }

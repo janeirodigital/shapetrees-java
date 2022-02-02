@@ -9,22 +9,21 @@
     <packaging>pom</packaging>
 
     <properties>
-        <jena.version>3.17.0</jena.version>
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <jena.version>4.3.2</jena.version>
+        <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
         <lombok.version>1.18.22</lombok.version>
         <slf4j.version>1.7.32</slf4j.version>
-        <okhttp.version>4.9.2</okhttp.version>
-        <shexjava.version>1.3beta</shexjava.version>
-        <junit.version>5.8.1</junit.version>
+        <okhttp.version>4.9.3</okhttp.version>
+        <junit.version>5.8.2</junit.version>
         <jersey-core.version>1.19.4</jersey-core.version>
-        <commons-rdf.version>0.5.0</commons-rdf.version>
-        <commons-codec.version>1.15</commons-codec.version>
-        <snakeyaml.version>1.29</snakeyaml.version>
+        <snakeyaml.version>1.30</snakeyaml.version>
+        <commons-text.version>1.9</commons-text.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
-        <maven-release-plugin.version>3.0.0-M4</maven-release-plugin.version>
+        <maven-release-plugin.version>3.0.0-M5</maven-release-plugin.version>
         <maven-javadoc.version>3.3.1</maven-javadoc.version>
-        <maven-site-plugin.version>3.9.0</maven-site-plugin.version>
+        <maven-site-plugin.version>3.10.0</maven-site-plugin.version>
         <maven-project-info-reports-plugin.version>3.1.2</maven-project-info-reports-plugin.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -56,19 +55,6 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>fr.inria.lille.shexjava</groupId>
-                <artifactId>shexjava-core</artifactId>
-                <version>${shexjava.version}</version>
-            </dependency>
-            <!-- jena-osgi is a dependency of RDF4J-Jena, but that package uses and old version
-                 this explicit dependency forces the use of the latest version as defined
-                 here -->
-            <dependency>
-                <groupId>org.apache.jena</groupId>
-                <artifactId>jena-osgi</artifactId>
-                <version>${jena.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
