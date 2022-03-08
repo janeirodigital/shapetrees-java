@@ -72,16 +72,16 @@ public class AbstractHttpClientValidationTests extends AbstractHttpClientTests {
         MockWebServer server = new MockWebServer();
         server.setDispatcher(dispatcher);
 
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/container-1-samecontains-manager"), "GET", "/data/container-1/.shapetree", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/resource-1-create-response"), "POST", "/data/container-1/resource-1", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-1/", null));
-        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-1/resource-1.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/container-1-samecontains-manager"), "GET", "/data/container-same/.shapetree", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("validation/resource-1-create-response"), "POST", "/data/container-same/resource-1", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-same/", null));
+        dispatcher.getConfiguredFixtures().add(new DispatcherEntry(List.of("http/201"), "POST", "/data/container-same/resource-1.shapetree", null));
 
         // Validate multiple contains, same shape tree, same node
 
-        URL targetResource = toUrl(server, "/data/container-1/");
+        URL targetResource = toUrl(server, "/data/container-same/");
         List<URL> targetShapeTrees = Arrays.asList(toUrl(server, "/static/shapetrees/validation/shapetree#ChildTree"));
-        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/container-1/resource-1#resource"));
+        List<URL> focusNodes = Arrays.asList(toUrl(server, "/data/container-same/resource-1#resource"));
 
         // Plant the data repository on newly created data container
         DocumentResponse response = this.shapeTreeClient.postManagedInstance(context, targetResource, focusNodes, getResource1BodyString(), "text/turtle", targetShapeTrees, "resource-1", false);
