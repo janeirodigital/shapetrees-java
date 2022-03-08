@@ -70,6 +70,7 @@ public class AbstractHttpClientProjectRecursiveTests extends AbstractHttpClientT
     @Label("Recursively Plant Projects Collection")
     void plantProjectsRecursively() {
         MockWebServer server = new MockWebServer();
+        server.start(8001);
         server.setDispatcher(dispatcher);
 
         // Add planted data set
