@@ -43,6 +43,7 @@ public class AbstractHttpClientProjectRecursiveTests extends AbstractHttpClientT
         dispatcher = new RequestMatchingFixtureDispatcher(dispatcherList);
     }
 
+/*
     @Order(1)
     @SneakyThrows
     @Test
@@ -63,6 +64,7 @@ public class AbstractHttpClientProjectRecursiveTests extends AbstractHttpClientT
         Assertions.assertEquals(201, response.getStatusCode());
 
     }
+*/
 
     @Order(2)
     @SneakyThrows
