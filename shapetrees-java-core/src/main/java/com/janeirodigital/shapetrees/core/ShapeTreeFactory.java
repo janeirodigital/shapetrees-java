@@ -48,10 +48,10 @@ public class ShapeTreeFactory {
     public static ShapeTree
     getShapeTree(URL shapeTreeUrl) throws ShapeTreeException {
 
-        log.debug("Parsing shape tree: {}", shapeTreeUrl);
+        log.debug("Parsing shape tree: <{}>", shapeTreeUrl);
 
         if (localShapeTreeCache.containsKey(urlToUri(shapeTreeUrl))) {
-            log.debug("[{}] previously cached -- returning", shapeTreeUrl.toString());
+            log.debug("<{}> previously cached -- returning", shapeTreeUrl.toString());
             return localShapeTreeCache.get(urlToUri(shapeTreeUrl));
         }
 

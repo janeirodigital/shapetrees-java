@@ -277,7 +277,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
     @Override
     public InstanceResource
     getResource(ShapeTreeContext context, URL url) throws ShapeTreeException {
-        log.debug("HttpResourceAccessor#getResource({})", url);
+        log.debug("HttpResourceAccessor#getResource(<{}>)", url);
         ResourceAttributes headers = new ResourceAttributes();
         headers.maybeSet(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);

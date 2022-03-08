@@ -114,7 +114,7 @@ public class ShapeTree {
             log.debug("Found cached schema {}", this.shape);
             schema = SchemaCache.getSchema(this.shape);
         } else {
-            log.debug("Did not find schema in cache {} will retrieve and parse", this.shape);
+            log.debug("Did not find schema in cache <{}> will retrieve and parse", this.shape);
             DocumentResponse shexShapeContents = DocumentLoaderManager.getLoader().loadExternalDocument(this.shape);
             if (shexShapeContents == null || shexShapeContents.getBody() == null || shexShapeContents.getBody().isEmpty()) {
                 throw new ShapeTreeException(400, "Attempting to validate a ShapeTree (" + this.id + ") - Shape at (" + this.shape + ") is not found or is empty");

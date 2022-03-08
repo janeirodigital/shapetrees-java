@@ -110,7 +110,7 @@ public class HttpShapeTreeClient implements ShapeTreeClient {
             throw new ShapeTreeException(500, "Must provide a valid context, target resource, and target shape tree to the plant shape tree");
         }
 
-        log.debug("Planting shape tree {} on {}: ", targetShapeTree, targetResource);
+        log.debug("Planting shape tree <{}> on <{}>:", targetShapeTree, targetResource);
         log.debug("Focus node: {}", focusNode == null ? "None provided" : focusNode);
 
         final HttpResourceAccessor resourceAccessor = new HttpResourceAccessor();

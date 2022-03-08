@@ -47,10 +47,7 @@ public class ShapeTreeManager {
 
     @Override
     public String toString() {
-        return "ShapeTreeManager{" +
-                "id=" + id +
-                ", assignments=" + assignments +
-                '}';
+        return String.format("ShapeTreeManager{\n    id=%s\n    assignments=%s\n}", id, assignments);
     }
 
     /**

@@ -44,7 +44,7 @@ public class ShapeTreeResource {
         resourceUrl = removeUrlFragment(resourceUrl);
 
         if (localResourceCache.containsKey(urlToUri(resourceUrl))) {
-            log.debug("[{}] previously cached -- returning", resourceUrl);
+            log.debug("<{}> previously cached -- returning", resourceUrl);
             return localResourceCache.get(urlToUri(resourceUrl));
         }
 

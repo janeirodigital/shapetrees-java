@@ -177,7 +177,7 @@ public class RequestHelper {
      * @throws ShapeTreeException ShapeTreeException
      */
     public static Graph getIncomingBodyGraph(ShapeTreeRequest shapeTreeRequest, URL baseUrl, InstanceResource targetResource) throws ShapeTreeException {
-        log.debug("Reading request body into graph with baseUrl {}", baseUrl);
+        log.debug("Reading request body into graph with baseUrl <{}>", baseUrl);
 
         if ((shapeTreeRequest.getResourceType() == ShapeTreeResourceType.NON_RDF
                 && !shapeTreeRequest.getContentType().equalsIgnoreCase("application/sparql-update"))

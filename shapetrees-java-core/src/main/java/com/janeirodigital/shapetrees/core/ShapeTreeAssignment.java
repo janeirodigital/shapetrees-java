@@ -109,13 +109,6 @@ public class ShapeTreeAssignment {
 
     @Override
     public String toString() {
-        return "ShapeTreeAssignment{" +
-                "shapeTree=" + shapeTree +
-                ", managedResource=" + managedResource +
-                ", rootAssignment=" + rootAssignment +
-                ", focusNode=" + focusNode +
-                ", shape=" + shape +
-                ", url=" + url +
-                '}';
+        return String.format("ShapeTreeAssignment{\n    url=%s\n    shapeTree=%s\n    managedResource=%s\n    rootAssignment=%s\n    focusNode=%s\n    shape=%s\n}", url, shapeTree, managedResource, rootAssignment, focusNode, shape);
     }
 }
