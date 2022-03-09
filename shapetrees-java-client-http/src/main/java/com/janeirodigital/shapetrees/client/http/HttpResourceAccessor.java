@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.readStringIntoGraph;
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
@@ -303,7 +304,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
     @Override
     public InstanceResource
     createResource(ShapeTreeContext context, String method, URL url, ResourceAttributes headers, String body, String contentType) throws ShapeTreeException {
-        log.debug("createResource via {}: URL [{}], headers [{}]", method, url, headers.toString());
+        log.debug("createResource via {}: URL <{}>, headers [{}]", method, url, headers.toString());
 
         HttpClient fetcher = HttpClientFactoryManager.getFactory().get(false);
         ResourceAttributes allHeaders = headers.maybePlus(HttpHeaders.AUTHORIZATION.getValue(), context.getAuthorizationHeaderValue());
@@ -405,9 +406,12 @@ public class HttpResourceAccessor implements ResourceAccessor {
 
             if (containerGraph.isEmpty()) { return Collections.emptyList(); }
 
-            List<Triple> containerTriples = containerGraph.find(NodeFactory.createURI(containerUrl.toString()),
+            List<Triple> containerTriples = containerGraph.find(
+                    NodeFactory.createURI(containerUrl.toString()),
                     NodeFactory.createURI(LdpVocabulary.CONTAINS),
-                    Node.ANY).toList();
+                    Node.ANY
+            ).toList();
+            Collections.sort(containerTriples, Comparator.comparing(t -> t.getObject().getURI())); // ORDERED
 
             if (containerTriples.isEmpty()) { return Collections.emptyList(); }
 
@@ -437,7 +441,7 @@ public class HttpResourceAccessor implements ResourceAccessor {
     @Override
     public DocumentResponse
     updateResource(ShapeTreeContext context, String method, InstanceResource updateResource, String body) throws ShapeTreeException {
-        log.debug("updateResource: URL [{}]", updateResource.getUrl());
+        log.debug("updateResource: URL <{}>", updateResource.getUrl());
 
         String contentType = updateResource.getAttributes().firstValue(HttpHeaders.CONTENT_TYPE.getValue()).orElse(null);
         // [careful] updateResource attributes may contain illegal client headers (connection, content-length, date, expect, from, host, upgrade, via, warning)

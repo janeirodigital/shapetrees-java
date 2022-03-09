@@ -69,10 +69,10 @@ public class ShapeTreeFactory {
         final String label = getStringValue(resourceModel, shapeTreeNode, RDFS_LABEL);
         // Load and set contains list
         final List<URL> contains = getContains(resourceModel, shapeTreeNode, shapeTreeUrl);
-        contains.sort((URL l, URL r) -> l.toString().compareTo(r.toString()));
+        contains.sort((URL l, URL r) -> l.toString().compareTo(r.toString())); // ORDERED
         // Load and set references list
         final List<ShapeTreeReference> references = getReferences(resourceModel, shapeTreeNode, shapeTreeUrl);
-        references.sort((ShapeTreeReference l, ShapeTreeReference r) -> l.getReferenceUrl().toString().compareTo(r.getReferenceUrl().toString()));
+        references.sort((ShapeTreeReference l, ShapeTreeReference r) -> l.getReferenceUrl().toString().compareTo(r.getReferenceUrl().toString())); // ORDERED
 
         if (!contains.isEmpty() && !expectsType.toString().equals(ShapeTreeVocabulary.CONTAINER)) {
             throw new ShapeTreeException(400, "Only a container can be expected to have st:contains");

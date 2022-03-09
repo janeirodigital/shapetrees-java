@@ -33,8 +33,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 import static com.janeirodigital.shapetrees.core.helpers.GraphHelper.urlToUri;
+import static java.util.stream.Collectors.toList;
 
 @Getter
 @Slf4j
@@ -247,11 +249,16 @@ public class ShapeTree {
     }
 
     // Return the list of shape tree contains by priority from most to least strict
-    public List<URL> getPrioritizedContains() {
+    public List<URL> getPrioritizedContains() throws ShapeTreeException {
 
-        List<URL> prioritized = new ArrayList<>(this.contains);
-        Collections.sort(prioritized, new ShapeTreeContainsPriority());
-        return prioritized;
+        List<ShapeTree> sortable = new ArrayList<ShapeTree>();
+        // Load referenced ShapeTrees
+        for (URL u : (Iterable<? extends URL>) this.contains::iterator) {
+            sortable.add(ShapeTreeFactory.getShapeTree(u));
+        }
+        // Sort by prioritization algorithm
+        Collections.sort(sortable, new ShapeTreeContainsPriority());
+        return sortable.stream().map(st -> st.getId()).collect(Collectors.toUnmodifiableList());
 
     }
 

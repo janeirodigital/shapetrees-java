@@ -9,14 +9,11 @@ import java.net.URL;
 import java.util.Comparator;
 
 public class
-ShapeTreeContainsPriority implements Comparator<URL>, Serializable {
+ShapeTreeContainsPriority implements Comparator<ShapeTree>, Serializable {
     // Used for sorting shape trees in st:contains by most to least strict
     @SneakyThrows
     @Override
-    public int compare(URL stUrl1, URL stUrl2) {
-
-        ShapeTree st1 = ShapeTreeFactory.getShapeTree(stUrl1);
-        ShapeTree st2 = ShapeTreeFactory.getShapeTree(stUrl2);
+    public int compare(ShapeTree st1, ShapeTree st2) {
 
         Integer st1Priority = 0;
         Integer st2Priority = 0;
