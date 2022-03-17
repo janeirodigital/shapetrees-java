@@ -41,7 +41,7 @@ public class ShapeTreeReference {
         return predicate != null;
     }
 
-    public static Property getPropertyFromReference(ShapeTreeReference reference) {
+    public static Property getPropertyFromReference(ShapeTreeReference reference) throws ShapeTreeException {
         Property property = null;
         if (reference.viaPredicate()) { property = ResourceFactory.createProperty(reference.getPredicate().toString()); }
         if (reference.viaShapePath()) {
@@ -49,11 +49,14 @@ public class ShapeTreeReference {
             // TODO - current lack of a shape path parser in java. It is functionally equivalent to viaPredicate
             Pattern pattern = Pattern.compile("^@<?\\S+>?~(<?\\S*>?$)");
             Matcher matcher = pattern.matcher(reference.getShapePath());
-            if (!matcher.matches()) return null;
-            String parsed = matcher.group(1);
-            if (parsed == null) return null;
-            property = ResourceFactory.createProperty(parsed);
+            if (matcher.matches()) {
+                String parsed = matcher.group(1);
+                if (parsed != null) {
+                    property = ResourceFactory.createProperty(parsed);
+                }
+            }
         }
+        if (property == null) { throw new ShapeTreeException(500, "Failed to get property from shape tree reference"); }
         return property;
     }
 
