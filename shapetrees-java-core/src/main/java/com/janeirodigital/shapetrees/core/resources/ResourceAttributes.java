@@ -1,9 +1,10 @@
 package com.janeirodigital.shapetrees.core.resources;
+
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.util.Objects.requireNonNull;
 
