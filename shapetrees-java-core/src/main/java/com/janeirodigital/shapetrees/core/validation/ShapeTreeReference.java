@@ -47,7 +47,7 @@ public class ShapeTreeReference {
         if (reference.viaShapePath()) {
             // TODO - this is a bit of a workaround to extract the target property from the shape path, given the
             // TODO - current lack of a shape path parser in java. It is functionally equivalent to viaPredicate
-            Pattern pattern = Pattern.compile("@\\S+~(\\S*$)");
+            Pattern pattern = Pattern.compile("^@<?\\S+>?~(<?\\S*>?$)");
             Matcher matcher = pattern.matcher(reference.getShapePath());
             if (!matcher.matches()) return null;
             String parsed = matcher.group(1);
