@@ -1,5 +1,7 @@
 package com.janeirodigital.shapetrees.core.validation;
 
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 import com.janeirodigital.shapetrees.core.exceptions.ShapeTreeException;
 import lombok.Getter;
 import org.apache.jena.rdf.model.Property;
@@ -8,8 +10,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Getter
 public class ShapeTreeReference {
