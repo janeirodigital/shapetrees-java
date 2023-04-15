@@ -17,7 +17,7 @@ import java.net.http.HttpResponse;
  */
 public class HttpExternalDocumentLoader implements ExternalDocumentLoader {
 
-    private final HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
+    private final HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
 
     @Override
     public DocumentResponse loadExternalDocument(URL resourceUrl) throws ShapeTreeException {
