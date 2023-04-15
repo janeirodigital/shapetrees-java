@@ -89,22 +89,27 @@
                 <version>${maven-surefire-plugin.version}</version>
             </plugin>
             <plugin>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok-maven-plugin</artifactId>
-                <version>${lombok-maven-plugin.version}</version>
+                <groupId>com.github.auties00</groupId>
+                <artifactId>delombok-plugin</artifactId>
+                <version>${delombok-plugin.version}</version>
+                <configuration>
+                    <rootDirectory>src/main/java</rootDirectory>
+                    <outputDirectory>${project.build.directory}/delombok</outputDirectory>
+                    <excludedFiles>
+                        <excludedFile>module-info.java</excludedFile>
+                    </excludedFiles>
+                    <parameters>
+                        <encoding>UTF-8</encoding>
+                    </parameters>
+                </configuration>
                 <executions>
                     <execution>
-                        <phase>generate-sources</phase>
+                        <phase>process-sources</phase>
                         <goals>
                             <goal>delombok</goal>
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <addOutputDirectory>false</addOutputDirectory>
-                    <sourceDirectory>src/main/java</sourceDirectory>
-                    <outputDirectory>${project.build.directory}/delombok</outputDirectory>
-                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -26,6 +26,7 @@
         <maven-site-plugin.version>3.10.0</maven-site-plugin.version>
         <maven-project-info-reports-plugin.version>3.1.2</maven-project-info-reports-plugin.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
+        <delombok-plugin.version>1.18.24</delombok-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <sonar.organization>janeirodigital</sonar.organization>
@@ -165,21 +166,21 @@
 
     <repositories>
         <repository>
-            <id>xformativ-nexus</id>
-            <name>Xformativ Repository</name>
-            <url>https://repo.janeirodigital.com/repository/oss/</url>
+            <id>jd-oss-github</id>
+            <name>OSS Maven Package Repository on Janeiro Digital GitHub</name>
+            <url>https://maven.pkg.github.com/janeirodigital/oss-packages</url>
         </repository>
     </repositories>
     <distributionManagement>
         <snapshotRepository>
-            <id>xformativ-nexus</id>
-            <name>Xformativ Repository</name>
-            <url>https://repo.janeirodigital.com/repository/oss/</url>
+            <id>jd-oss-github</id>
+            <name>OSS Maven Package Repository on Janeiro Digital GitHub</name>
+            <url>https://maven.pkg.github.com/janeirodigital/oss-packages</url>
         </snapshotRepository>
         <repository>
-            <id>xformativ-nexus</id>
-            <name>Xformativ Repository</name>
-            <url>https://repo.janeirodigital.com/repository/oss/</url>
+            <id>jd-oss-github</id>
+            <name>OSS Maven Package Repository on Janeiro Digital GitHub</name>
+            <url>https://maven.pkg.github.com/janeirodigital/oss-packages</url>
         </repository>
     </distributionManagement>
 
