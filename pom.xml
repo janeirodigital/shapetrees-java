@@ -9,12 +9,13 @@
     <packaging>pom</packaging>
 
     <properties>
-        <jena.version>4.3.2</jena.version>
-        <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
+        <java.version>17</java.version>
+        <jena.version>4.8.0</jena.version>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <lombok.version>1.18.22</lombok.version>
-        <slf4j.version>1.7.32</slf4j.version>
-        <okhttp.version>4.9.3</okhttp.version>
-        <junit.version>5.8.2</junit.version>
+        <slf4j.version>2.0.7</slf4j.version>
+        <okhttp.version>4.11.0</okhttp.version>
+        <junit.version>5.9.3</junit.version>
         <jersey-core.version>1.19.4</jersey-core.version>
         <snakeyaml.version>1.30</snakeyaml.version>
         <commons-text.version>1.9</commons-text.version>
@@ -22,9 +23,9 @@
         <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
         <maven-release-plugin.version>3.0.0-M5</maven-release-plugin.version>
-        <maven-javadoc.version>3.3.1</maven-javadoc.version>
+        <maven-javadoc.version>3.5.0</maven-javadoc.version>
         <maven-site-plugin.version>3.10.0</maven-site-plugin.version>
-        <maven-project-info-reports-plugin.version>3.1.2</maven-project-info-reports-plugin.version>
+        <maven-project-info-reports-plugin.version>3.4.2</maven-project-info-reports-plugin.version>
         <delombok-plugin.version>1.18.24</delombok-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -82,7 +83,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <release>11</release>
+                    <release>${java.version}</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

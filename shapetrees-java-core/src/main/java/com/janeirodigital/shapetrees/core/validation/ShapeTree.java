@@ -126,7 +126,7 @@ public class ShapeTree {
 
             for (URL focusNodeUrl : focusNodeUrls) {
                 Node focusNode = NodeFactory.createURI(focusNodeUrl.toString());
-                ShexMap shapeMap = ShexMap.record(focusNode, shapeNode);
+                ShapeMap shapeMap = ShapeMap.record(focusNode, shapeNode);
                 log.debug("Validating Shape = {}, Focus Node = {}", shapeNode.getURI(), focusNode.getURI());
                 ShexReport report = ShexValidator.get().validate(graph, shapes, shapeMap);
                 if (report.conforms()) { return new ValidationResult(true, this, this, focusNodeUrl); }
@@ -139,7 +139,7 @@ public class ShapeTree {
 
             List<Node> evaluateNodes = GraphUtil.listSubjects(graph, Node.ANY, Node.ANY).toList();
             for (Node evaluateNode : evaluateNodes) {
-                ShexMap shapeMap = ShexMap.record(evaluateNode, shapeNode);
+                ShapeMap shapeMap = ShapeMap.record(evaluateNode, shapeNode);
                 ShexReport report = ShexValidator.get().validate(graph, shapes, shapeMap);
                 if (report.conforms()) { return new ValidationResult(true, this, this, nodeToUrl(evaluateNode)); }
                 validationReport = report.toString();
